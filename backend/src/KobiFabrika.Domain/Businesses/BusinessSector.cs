@@ -1,9 +1,17 @@
 namespace KobiFabrika.Domain.Businesses;
 
-/// <summary>Kurulum sihirbazındaki sektör şablonu: Hizmet / Perakende / Genel.</summary>
+/// <summary>
+/// Kurulum sihirbazında seçilen sektör. Her sektör bir <see cref="BusinessTemplate"/>'e bağlıdır
+/// (<see cref="SectorCatalog"/>); şablon menüyü ve varsayılan ayarları belirler.
+/// </summary>
 public enum BusinessSector
 {
-    Service,
-    Retail,
-    General,
+    HairBarber,
+    BeautyCare,
+    ClinicHealth,
+    SportsFitness,
+    AutoService,
+    RetailStore,
+    CafeRestaurant,
+    Other,
 }
