@@ -5,7 +5,10 @@ using FluentValidation;
 using KobiFabrika.Api.Common;
 using KobiFabrika.Api.Common.Authorization;
 using KobiFabrika.Api.Features.Auth;
+using KobiFabrika.Api.Features.Businesses;
+using KobiFabrika.Api.Features.Reference;
 using KobiFabrika.Api.Features.Search;
+using KobiFabrika.Api.Features.Setup;
 using KobiFabrika.Api.Features.SystemInfo;
 using KobiFabrika.Infrastructure;
 using KobiFabrika.Infrastructure.Persistence;
@@ -60,6 +63,7 @@ builder.Services.AddAuthorizationBuilder().AddKobiFabrikaPolicies();
 builder.Services.AddScoped<SessionService>();
 builder.Services.AddScoped<AccountEmails>();
 builder.Services.AddScoped<EmailDispatch>();
+builder.Services.AddScoped<BusinessOperations>();
 builder.Services.AddValidatorsFromAssemblyContaining<Program>(includeInternalTypes: true);
 Validation.ConfigureDefaults();
 
@@ -135,6 +139,9 @@ app.MapHealthChecks("/health").AllowAnonymous();
 app.MapSystemEndpoints();
 app.MapAuthEndpoints();
 app.MapSearchEndpoints();
+app.MapReferenceEndpoints();
+app.MapSetupEndpoints();
+app.MapBusinessEndpoints();
 
 app.Run();
 

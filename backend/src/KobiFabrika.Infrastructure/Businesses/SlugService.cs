@@ -1,5 +1,7 @@
+using KobiFabrika.Domain.Businesses;
 using KobiFabrika.Domain.Common;
 using KobiFabrika.Infrastructure.Persistence;
+using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 
 namespace KobiFabrika.Infrastructure.Businesses;
@@ -18,6 +20,30 @@ public sealed class SlugService(AppDbContext db)
 
         return candidate;
     }
+
+    /// <summary>
+    /// Kaydeder; aynı anda aynı slug'ı alan başka bir kayıt yüzünden benzersiz indeks çakışırsa
+    /// slug'ı yeniden üretip tekrar dener.
+    /// </summary>
+    public async Task SaveWithUniqueSlugAsync(Business business, string name, CancellationToken cancellationToken = default)
+    {
+        for (var attempt = 1; ; attempt++)
+        {
+            try
+            {
+                await db.SaveChangesAsync(cancellationToken);
+                return;
+            }
+            catch (DbUpdateException ex) when (attempt < 5 && IsSlugConflict(ex))
+            {
+                business.Slug = await GenerateUniqueAsync(name, business.Id, cancellationToken);
+            }
+        }
+    }
+
+    private static bool IsSlugConflict(DbUpdateException ex) =>
+        ex.InnerException is SqlException { Number: 2601 or 2627 } sql
+        && sql.Message.Contains("IX_Businesses_Slug", StringComparison.Ordinal);
 
     public Task<bool> IsAvailableAsync(string slug, Guid? exceptBusinessId, CancellationToken cancellationToken = default) =>
         db.Businesses.IgnoreQueryFilters()

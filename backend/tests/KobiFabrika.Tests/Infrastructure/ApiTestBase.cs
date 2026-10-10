@@ -57,6 +57,34 @@ public abstract class ApiTestBase(SqlServerFixture db) : IAsyncLifetime
         return new TestUser(client, email, DefaultPassword, me.GetProperty("user").GetProperty("id").GetGuid());
     }
 
+    protected async Task<JsonElement> SetupBusinessAsync(TestUser user, string name = "Şık Kuaför", string sector = "HairBarber")
+    {
+        var response = await user.Client.PostAsJsonAsync("/api/setup/business", new
+        {
+            name,
+            sector,
+            phone = "0212 555 44 33",
+            city = "İstanbul",
+            district = "Kadıköy",
+        }, Ct);
+        await EnsureSuccessAsync(response);
+        return await response.Content.ReadFromJsonAsync<JsonElement>(Json, Ct);
+    }
+
+    /// <summary>Kayıt olmuş, (isteğe bağlı) e-postasını doğrulamış ve kurulumu bitirmiş bir işletme sahibi.</summary>
+    protected async Task<TestUser> CreateOwnerAsync(string businessName = "Şık Kuaför", bool confirmEmail = true, string sector = "HairBarber")
+    {
+        var owner = await RegisterAsync();
+        if (confirmEmail)
+        {
+            await ConfirmEmailAsync(owner);
+        }
+
+        await SetupBusinessAsync(owner, businessName, sector);
+        await EnsureSuccessAsync(await owner.Client.PostAsync("/api/setup/complete", null, Ct));
+        return owner;
+    }
+
     protected async Task ConfirmEmailAsync(TestUser user)
     {
         var query = QueryHelpers.ParseQuery(new Uri(new Uri("https://x"), Factory.Emails.LinkTo(user.Email, "/e-posta-dogrula")).Query);

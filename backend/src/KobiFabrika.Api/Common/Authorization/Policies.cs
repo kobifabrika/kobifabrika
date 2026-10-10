@@ -15,7 +15,10 @@ public static class Policies
     /// <summary>Kayıt yazabilenler: Owner, Manager, Staff.</summary>
     public const string CanWrite = nameof(CanWrite);
 
-    /// <summary>İşletme ayarları: Owner, Manager.</summary>
+    /// <summary>İşletme ayarlarını görme: Owner, Manager, Accountant (salt okunur). Staff göremez.</summary>
+    public const string ViewSettings = nameof(ViewSettings);
+
+    /// <summary>İşletme ayarlarını değiştirme: Owner, Manager.</summary>
     public const string ManageBusiness = nameof(ManageBusiness);
 
     /// <summary>Ekip listesi ve yönetimi: Owner, Manager (Owner'a dokunma kuralı handler'da).</summary>
@@ -36,6 +39,7 @@ public static class Policies
     public static AuthorizationBuilder AddKobiFabrikaPolicies(this AuthorizationBuilder builder) => builder
         .AddPolicy(Panel, p => p.AddRequirements(new MemberRequirement()))
         .AddPolicy(CanWrite, p => p.AddRequirements(new MemberRequirement(BusinessRole.Owner, BusinessRole.Manager, BusinessRole.Staff)))
+        .AddPolicy(ViewSettings, p => p.AddRequirements(new MemberRequirement(BusinessRole.Owner, BusinessRole.Manager, BusinessRole.Accountant)))
         .AddPolicy(ManageBusiness, p => p.AddRequirements(new MemberRequirement(BusinessRole.Owner, BusinessRole.Manager)))
         .AddPolicy(ManageTeam, p => p.AddRequirements(new MemberRequirement(BusinessRole.Owner, BusinessRole.Manager)))
         .AddPolicy(ViewAuditLog, p => p.AddRequirements(new MemberRequirement(BusinessRole.Owner, BusinessRole.Manager, BusinessRole.Accountant)))
