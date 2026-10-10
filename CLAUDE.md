@@ -88,8 +88,9 @@ cd frontend; npm run lint; npm run test
 3. Sprint bitince `docs/05-sprintler.md`'de maddeleri işaretle ve "Durum" satırını güncelle.
 4. Belirsiz bir ürün kararı varsa tahmin etme; sor.
 5. Geliştirme ana makinesi Windows (PowerShell). Komutlar Mac'te de çalışmalı; satır sonları LF (`.gitattributes`).
+6. Her sprint sonunda ve her büyük adımdan sonra commit at ve git push ile GitHub'a gönder (origin: github.com/kobifabrika/kobifabrika). Silme veya geri alınamaz bir işlem yapmadan önce commit at.
 
 ## Güncel durum
 
 - Sprint: **0 (kurulum)** başlamadı.
-- GitHub hesabı henüz yok; şimdilik yerel git. Hesap açılınca `origin` eklenecek.
+- GitHub: github.com/kobifabrika/kobifabrika (private)

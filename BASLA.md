@@ -59,8 +59,6 @@ git remote add origin https://github.com/<kullanici>/kobifabrika.git
 git push -u origin main
 ```
 
-(`git push`'u Claude Code'a yasakladım; push'u sen yaparsın.)
-
 ## 3. Claude Code'u başlat
 
 ```powershell
@@ -70,7 +68,7 @@ claude
 
 İlk açılışta tarayıcıda giriş yap (Claude aboneliğin Pro veya üstü olmalı).
 
-**İzinler:** `.claude/settings.json` hazır. Claude Code dosya düzenlemelerini ve `dotnet`, `npm`, `npx`, `docker compose`, `git` (push hariç) komutlarını sormadan çalıştırır; bunların dışındaki komutlar için izin ister. `Shift+Tab` ile mod değiştirirsin: **Plan** (sadece okur ve plan yapar), **Accept edits** (varsayılan). Bilgisayarının tamamına sınırsız yetki veren `bypassPermissions` modunu ana bilgisayarında kullanmanı önermem: Claude Code'un kendi dokümanı da bunu sadece izole ortamlar için öneriyor.
+**İzinler:** Claude Code tam yetkiyle (bypassPermissions) çalışır, izin sormaz. Shift+Tab ile Plan moduna geçebilirsin.
 
 **Faydalı komutlar:** `/clear` (yeni bir işe başlarken konuşmayı temizler; CLAUDE.md ve docs sayesinde kaldığı yeri bilir), `/compact` (uzun konuşmayı özetler), `Esc` (çalışan işi durdurur), `/status`.
 
