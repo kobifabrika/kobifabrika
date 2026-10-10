@@ -94,6 +94,39 @@ npm install
 npm run dev
 ```
 
+## Hızlı başlatma (Windows): `baslat.ps1` ve `durdur.ps1`
+
+İlk çalıştırmanın 1. (`.env`) ve 3. (user-secrets) adımlarını bir kez yaptıktan sonra her gün tek komut yeter.
+Repo kök klasöründe PowerShell'de:
+
+```powershell
+.\baslat.ps1        # Docker kontrolü → docker compose up -d → migration'lar → API ve frontend ayrı pencerelerde → tarayıcı
+.\durdur.ps1        # API ve frontend pencerelerini kapatır, SQL Server ve Mailpit'i durdurur (veriler silinmez)
+```
+
+`baslat.ps1` sırasıyla şunları yapar:
+
+1. Araçları (`docker`, `dotnet`, `dotnet-ef`, `npm`), `.env` dosyasını ve API bağlantı dizesini kontrol eder; eksik varsa ne yapılacağını yazıp durur.
+2. Docker çalışmıyorsa Docker Desktop'ı açar ve hazır olmasını bekler.
+3. `docker compose up -d` çalıştırır, SQL Server "healthy" olana kadar bekler.
+4. Migration'ları uygular (`dotnet ef database update`).
+5. `frontend/node_modules` yoksa `npm install` yapar.
+6. API'yi (**KobiFabrika API**) ve frontend'i (**KobiFabrika Frontend**) iki ayrı PowerShell penceresinde başlatır. Biri zaten çalışıyorsa onu tekrar açmaz.
+7. http://localhost:5080/health ve http://localhost:3000 hazır olunca tarayıcıda http://localhost:3000 adresini açar.
+
+| Seçenek | Ne yapar |
+|---|---|
+| `.\baslat.ps1 -TarayiciAcma` | Her şeyi başlatır ama tarayıcıyı açmaz. |
+| `.\durdur.ps1 -DockerKalsin` | Sadece API ve frontend'i kapatır; SQL Server ve Mailpit açık kalır. |
+
+- Açılan pencerelerin PID'leri `.baslat.pids` dosyasında tutulur (git dışı). `durdur.ps1` ayrıca 5080 ve 3000 portlarında kalan
+  `dotnet`/`node` süreçlerini de kapatır; bu portlarda başka bir program varsa ona dokunmaz, sadece uyarır.
+- Betik çalışmıyorsa ("running scripts is disabled") bir kez şunu çalıştırın:
+  `Set-ExecutionPolicy -Scope CurrentUser RemoteSigned`
+- Migration hatası alırsanız: API penceresi açıksa Windows DLL'leri kilitler. Betik bu durumda derlemeden (`--no-build`) uygular;
+  yeni bir migration eklediyseniz önce `.\durdur.ps1 -DockerKalsin`, sonra `.\baslat.ps1`.
+- Mac'te bu betikler yok; "İlk çalıştırma" bölümündeki 2, 4, 5 ve 6. adımları kullanın.
+
 ## Adresler
 
 | Adres | Ne |

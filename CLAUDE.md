@@ -57,6 +57,8 @@ kobifabrika/
 ## Komutlar
 
 ```powershell
+.\baslat.ps1                                          # Windows: Docker + migration + API ve frontend pencereleri + tarayıcı
+.\durdur.ps1                                          # API, frontend ve konteynerleri durdurur (-DockerKalsin: konteynerler açık kalır)
 docker compose up -d                                  # SQL Server + Mailpit (önce .env.example → .env)
 dotnet run --project backend/src/KobiFabrika.Api      # API: http://localhost:5080 (/scalar, /health)
 dotnet test backend                                   # Docker açık olmalı (Testcontainers)

@@ -32,3 +32,6 @@ logs/
 
 # Yüklenen dosyalar (geliştirmede yerel disk)
 App_Data/
+
+# baslat.ps1'in açtığı pencerelerin PID'leri
+.baslat.pids
