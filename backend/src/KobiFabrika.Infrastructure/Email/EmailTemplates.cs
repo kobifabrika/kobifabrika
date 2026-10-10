@@ -1,0 +1,85 @@
+using System.Text.Encodings.Web;
+using System.Text.Unicode;
+
+namespace KobiFabrika.Infrastructure.Email;
+
+/// <summary>
+/// Sistem e-postaları: sade, satır içi stilli HTML + düz metin. Marka renkleri docs/04-tasarim.md'den.
+/// </summary>
+public static class EmailTemplates
+{
+    /// <summary>Türkçe karakterleri olduğu gibi bırakır; sadece HTML'e özel karakterleri kodlar.</summary>
+    private static readonly HtmlEncoder Html = HtmlEncoder.Create(UnicodeRanges.All);
+
+    public static EmailMessage ConfirmEmail(string to, string fullName, string link) => Build(
+        to,
+        "E-posta adresini doğrula",
+        $"Merhaba {fullName},",
+        "KobiFabrika hesabını oluşturduğun için teşekkürler. E-posta adresini doğrulamak için aşağıdaki butona dokun.",
+        "E-postamı doğrula",
+        link,
+        "Bağlantı 24 saat geçerlidir. Bu hesabı sen oluşturmadıysan bu e-postayı yok sayabilirsin.");
+
+    public static EmailMessage ResetPassword(string to, string fullName, string link) => Build(
+        to,
+        "Şifreni sıfırla",
+        $"Merhaba {fullName},",
+        "Şifreni sıfırlamak için bir istek aldık. Yeni şifre belirlemek için aşağıdaki butona dokun.",
+        "Yeni şifre belirle",
+        link,
+        "Bağlantı 2 saat geçerlidir. Bu isteği sen yapmadıysan şifren değişmez; bu e-postayı yok sayabilirsin.");
+
+    public static EmailMessage Invitation(string to, string businessName, string invitedBy, string roleName, string link) => Build(
+        to,
+        $"{businessName} seni KobiFabrika'ya davet etti",
+        "Merhaba,",
+        $"{invitedBy}, seni {businessName} işletmesine {roleName} olarak davet etti. Daveti kabul etmek için aşağıdaki butona dokun.",
+        "Daveti kabul et",
+        link,
+        "Davet 7 gün geçerlidir ve tek kullanımlıktır.");
+
+    public static EmailMessage PasswordChanged(string to, string fullName) => Build(
+        to,
+        "Şifren değiştirildi",
+        $"Merhaba {fullName},",
+        "KobiFabrika hesabının şifresi az önce değiştirildi. Diğer cihazlardaki oturumların kapatıldı.",
+        null,
+        null,
+        "Bu değişikliği sen yapmadıysan hemen \"Şifremi unuttum\" ile yeni şifre belirle ve bize yaz.");
+
+    private static EmailMessage Build(
+        string to, string subject, string greeting, string body, string? buttonText, string? link, string footnote)
+    {
+        static string E(string s) => Html.Encode(s);
+
+        var button = buttonText is null || link is null
+            ? ""
+            : $"""
+              <p style="margin:24px 0">
+                <a href="{E(link)}" style="display:inline-block;background:#006ea6;color:#ffffff;text-decoration:none;font-weight:600;padding:12px 20px;border-radius:8px;font-size:16px">{E(buttonText)}</a>
+              </p>
+              <p style="margin:0 0 16px;font-size:14px;color:#5b6676">Buton çalışmazsa bu bağlantıyı tarayıcına yapıştır:<br><a href="{E(link)}" style="color:#006ea6;word-break:break-all">{E(link)}</a></p>
+              """;
+
+        var html = $"""
+            <!doctype html>
+            <html lang="tr">
+            <body style="margin:0;background:#f5f7fa;font-family:-apple-system,'Segoe UI',Roboto,Arial,sans-serif;color:#000a1d">
+              <div style="max-width:560px;margin:0 auto;padding:24px 16px">
+                <p style="margin:0 0 16px;font-size:24px;font-weight:800;color:#000a1d">Kobi<span style="color:#006ea6">Fabrika</span></p>
+                <div style="background:#ffffff;border:1px solid #e3e8ef;border-radius:8px;padding:24px">
+                  <p style="margin:0 0 12px;font-size:16px">{E(greeting)}</p>
+                  <p style="margin:0 0 12px;font-size:16px;line-height:1.5">{E(body)}</p>
+                  {button}
+                  <p style="margin:0;font-size:14px;color:#5b6676;line-height:1.5">{E(footnote)}</p>
+                </div>
+                <p style="margin:16px 0 0;font-size:12px;color:#5b6676">KobiFabrika Yazılım A.Ş.</p>
+              </div>
+            </body>
+            </html>
+            """;
+
+        var text = $"{greeting}\n\n{body}\n\n{(link is null ? "" : $"{buttonText}: {link}\n\n")}{footnote}\n\nKobiFabrika Yazılım A.Ş.";
+        return new EmailMessage(to, subject, html, text);
+    }
+}
