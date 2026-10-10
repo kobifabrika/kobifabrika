@@ -8,6 +8,7 @@ import { useForm, useWatch } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
 
+import { QueryError } from "@/components/feedback/query-error";
 import { Field, FormMessage } from "@/components/forms/field";
 import { RequirePermission } from "@/components/panel/settings-nav";
 import { useSession } from "@/components/providers/session-provider";
@@ -219,7 +220,7 @@ function MembersCard() {
         {members.isPending ? (
           <p role="status" className="text-sm text-neutral-600">Yükleniyor…</p>
         ) : members.isError ? (
-          <FormMessage>{errorMessage(members.error)}</FormMessage>
+          <QueryError error={members.error} onRetry={members.refetch} />
         ) : (
           <ul className="flex flex-col divide-y divide-border">
             {members.data.map((m) => {

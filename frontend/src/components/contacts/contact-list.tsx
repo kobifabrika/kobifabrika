@@ -8,6 +8,7 @@ import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 
 import { Balance, ContactActions, EmptyState, Notice, selectClass, TagList } from "@/components/contacts/contact-bits";
+import { QueryError } from "@/components/feedback/query-error";
 import { Field } from "@/components/forms/field";
 import { useSession } from "@/components/providers/session-provider";
 import { Button } from "@/components/ui/button";
@@ -186,9 +187,7 @@ export function ContactList({ mode = "customer" }: { mode?: Mode }) {
           Yükleniyor…
         </p>
       ) : list.isError ? (
-        <p role="alert" className="text-sm text-danger-600">
-          {errorMessage(list.error)}
-        </p>
+        <QueryError error={list.error} onRetry={list.refetch} />
       ) : items.length === 0 ? (
         noFilter ? (
           <EmptyState

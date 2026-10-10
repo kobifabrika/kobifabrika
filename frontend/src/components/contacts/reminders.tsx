@@ -8,6 +8,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 
 import { EmptyState, selectClass } from "@/components/contacts/contact-bits";
+import { QueryError } from "@/components/feedback/query-error";
 import { Field, FormMessage } from "@/components/forms/field";
 import { useSession } from "@/components/providers/session-provider";
 import { Button } from "@/components/ui/button";
@@ -80,9 +81,7 @@ export function ReminderList({ contactId, contactName }: { contactId?: string; c
           Yükleniyor…
         </p>
       ) : reminders.isError ? (
-        <p role="alert" className="text-sm text-danger-600">
-          {errorMessage(reminders.error)}
-        </p>
+        <QueryError error={reminders.error} onRetry={reminders.refetch} />
       ) : reminders.data.length === 0 ? (
         <EmptyState
           icon={<BellRing className="size-10" />}

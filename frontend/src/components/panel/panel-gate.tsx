@@ -4,6 +4,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useEffect, type ReactNode } from "react";
 
 import { Wordmark } from "@/components/brand/wordmark";
+import { QueryError } from "@/components/feedback/query-error";
 import { SessionProvider, useMeQuery } from "@/components/providers/session-provider";
 import { ApiError } from "@/lib/api/client";
 
@@ -12,7 +13,7 @@ import { ApiError } from "@/lib/api/client";
  * oturum yoksa /giris'e (geri dönüş adresiyle), işletme kurulumu bitmemişse /kurulum'a yönlendirir.
  */
 export function PanelGate({ children }: { children: ReactNode }) {
-  const { data: me, error } = useMeQuery();
+  const { data: me, error, refetch } = useMeQuery();
   const router = useRouter();
   const pathname = usePathname();
 
@@ -24,11 +25,12 @@ export function PanelGate({ children }: { children: ReactNode }) {
     else if (needsSetup) router.replace("/kurulum");
   }, [unauthenticated, needsSetup, pathname, router]);
 
-  if (error && !unauthenticated) {
+  // Oturum zaten yüklüyse arka plandaki yenileme hatası paneli kapatmaz; sadece ilk yükleme hatası burada.
+  if (error && !unauthenticated && !me) {
     return (
       <FullScreenMessage>
-        <p className="text-base font-semibold text-black">Sunucuya ulaşılamıyor</p>
-        <p className="text-sm text-neutral-600">İnternet bağlantınızı kontrol edip sayfayı yenileyin.</p>
+        <p className="text-base font-semibold text-black">Panel açılamadı</p>
+        <QueryError error={error} onRetry={refetch} className="items-center" />
       </FullScreenMessage>
     );
   }

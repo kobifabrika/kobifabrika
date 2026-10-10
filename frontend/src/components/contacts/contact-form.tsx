@@ -14,6 +14,7 @@ import { z } from "zod";
 import { contactHref, contactsKey } from "@/components/contacts/contact-list";
 import { selectClass, tagColorClass } from "@/components/contacts/contact-bits";
 import { useLocations } from "@/components/business/business-fields";
+import { QueryError } from "@/components/feedback/query-error";
 import { Field, FormMessage } from "@/components/forms/field";
 import { useSession } from "@/components/providers/session-provider";
 import { Button } from "@/components/ui/button";
@@ -508,6 +509,6 @@ export function EditContact({ id }: { id: string }) {
         Yükleniyor…
       </p>
     );
-  if (contact.isError) return <FormMessage>{errorMessage(contact.error)}</FormMessage>;
+  if (contact.isError) return <QueryError error={contact.error} onRetry={contact.refetch} />;
   return <ContactForm contact={contact.data} />;
 }

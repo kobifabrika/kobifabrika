@@ -5,6 +5,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 
 import { invalidDays, WorkingHoursEditor } from "@/components/business/working-hours-editor";
+import { QueryError } from "@/components/feedback/query-error";
 import { FormMessage } from "@/components/forms/field";
 import { useSession } from "@/components/providers/session-provider";
 import { Button } from "@/components/ui/button";
@@ -18,7 +19,7 @@ export function WorkingHoursSettings() {
   const hours = useQuery({ queryKey: key, queryFn: () => unwrap(api.GET("/api/business/working-hours")) });
 
   if (hours.isPending) return <p role="status" className="text-sm text-neutral-600">Yükleniyor…</p>;
-  if (hours.isError) return <FormMessage>{errorMessage(hours.error)}</FormMessage>;
+  if (hours.isError) return <QueryError error={hours.error} onRetry={hours.refetch} />;
   return <Editor initial={hours.data} />;
 }
 

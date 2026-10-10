@@ -10,6 +10,7 @@ import { z } from "zod";
 import { businessBasicsSchema, BusinessFields } from "@/components/business/business-fields";
 import { LogoUpload } from "@/components/business/logo-upload";
 import { templateNames } from "@/components/business/sectors";
+import { QueryError } from "@/components/feedback/query-error";
 import { Field, FormMessage } from "@/components/forms/field";
 import { meQueryKey, useSession } from "@/components/providers/session-provider";
 import { Button } from "@/components/ui/button";
@@ -41,7 +42,7 @@ export function BusinessSettings() {
         Yükleniyor…
       </p>
     );
-  if (business.isError) return <FormMessage>{errorMessage(business.error)}</FormMessage>;
+  if (business.isError) return <QueryError error={business.error} onRetry={business.refetch} />;
 
   return (
     <div className="flex flex-col gap-6">

@@ -14,6 +14,7 @@ import {
   SharePaymentDialog,
   useFinanceRefresh,
 } from "@/components/finance/finance-dialogs";
+import { QueryError } from "@/components/feedback/query-error";
 import { useSession } from "@/components/providers/session-provider";
 import { Button } from "@/components/ui/button";
 import { api, errorMessage, unwrap } from "@/lib/api/client";
@@ -36,9 +37,7 @@ export function PaymentRequestList({ contactId, showContact = true }: { contactI
     );
   if (requests.isError)
     return (
-      <p role="alert" className="text-sm text-danger-600">
-        {errorMessage(requests.error)}
-      </p>
+      <QueryError error={requests.error} onRetry={requests.refetch} />
     );
   if (requests.data.length === 0) {
     return contactId ? (

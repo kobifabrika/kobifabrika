@@ -26,6 +26,7 @@ import { Balance, ContactActions, Notice, TabNav, TagList } from "@/components/c
 import { contactsKey } from "@/components/contacts/contact-list";
 import { ReminderList } from "@/components/contacts/reminders";
 import { LedgerPanel } from "@/components/finance/ledger-panel";
+import { QueryError } from "@/components/feedback/query-error";
 import { FormMessage } from "@/components/forms/field";
 import { useSession } from "@/components/providers/session-provider";
 import { Button } from "@/components/ui/button";
@@ -62,11 +63,11 @@ export function ContactDetail({ id, basePath }: { id: string; basePath: string }
   if (contact.isError) {
     return (
       <div className="flex flex-col gap-3">
-        <FormMessage>
-          {contact.error instanceof ApiError && contact.error.status === 404
-            ? "Kayıt bulunamadı."
-            : errorMessage(contact.error)}
-        </FormMessage>
+        {contact.error instanceof ApiError && contact.error.status === 404 ? (
+          <FormMessage>Kayıt bulunamadı.</FormMessage>
+        ) : (
+          <QueryError error={contact.error} onRetry={contact.refetch} />
+        )}
         <Link href={basePath} className="text-sm font-semibold text-black underline">
           Listeye dön
         </Link>
@@ -295,9 +296,7 @@ function Timeline({ id }: { id: string }) {
     );
   if (timeline.isError)
     return (
-      <p role="alert" className="text-sm text-danger-600">
-        {errorMessage(timeline.error)}
-      </p>
+      <QueryError error={timeline.error} onRetry={timeline.refetch} />
     );
   const items = timeline.data.pages.flatMap((p) => p.items);
 

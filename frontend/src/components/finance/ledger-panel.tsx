@@ -13,6 +13,7 @@ import {
   StatementDialog,
   useFinanceRefresh,
 } from "@/components/finance/finance-dialogs";
+import { QueryError } from "@/components/feedback/query-error";
 import { PaymentRequestList } from "@/components/finance/payment-request-list";
 import { useSession } from "@/components/providers/session-provider";
 import { Button } from "@/components/ui/button";
@@ -125,9 +126,7 @@ export function LedgerPanel({ contact }: { contact: Contact }) {
             Yükleniyor…
           </p>
         ) : ledger.isError ? (
-          <p role="alert" className="text-sm text-danger-600">
-            {errorMessage(ledger.error)}
-          </p>
+          <QueryError error={ledger.error} onRetry={ledger.refetch} />
         ) : ledger.data.items.length === 0 && ledger.data.carriedBalance === 0 ? (
           <p className="text-sm text-neutral-600">Bu aralıkta hareket yok.</p>
         ) : (

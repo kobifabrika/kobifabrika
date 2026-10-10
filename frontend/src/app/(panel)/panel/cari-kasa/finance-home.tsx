@@ -8,12 +8,13 @@ import { useState } from "react";
 
 import { Balance, EmptyState, TabNav } from "@/components/contacts/contact-bits";
 import { contactHref, ContactList, contactsKey } from "@/components/contacts/contact-list";
+import { QueryError } from "@/components/feedback/query-error";
 import { CollectionDialog, useCashAccounts } from "@/components/finance/finance-dialogs";
 import { PaymentRequestList } from "@/components/finance/payment-request-list";
 import { RequirePermission } from "@/components/panel/settings-nav";
 import { useSession } from "@/components/providers/session-provider";
 import { Button } from "@/components/ui/button";
-import { api, errorMessage, unwrap } from "@/lib/api/client";
+import { api, unwrap } from "@/lib/api/client";
 import type { ContactListItem } from "@/lib/api/types";
 import { displayPhone } from "@/lib/contacts";
 import { formatMoney } from "@/lib/format";
@@ -68,9 +69,7 @@ function BalanceGroup({ title, balance, empty }: { title: string; balance: "debt
           Yükleniyor…
         </p>
       ) : list.isError ? (
-        <p role="alert" className="text-sm text-danger-600">
-          {errorMessage(list.error)}
-        </p>
+        <QueryError error={list.error} onRetry={list.refetch} />
       ) : items.length === 0 ? (
         <p className="text-sm text-neutral-600">{empty}</p>
       ) : (
@@ -124,9 +123,7 @@ function CashAccounts() {
     );
   if (accounts.isError)
     return (
-      <p role="alert" className="text-sm text-danger-600">
-        {errorMessage(accounts.error)}
-      </p>
+      <QueryError error={accounts.error} onRetry={accounts.refetch} />
     );
   if (accounts.data.length === 0) return <EmptyState icon={<Wallet className="size-10" />} title="Kasa hesabı yok" />;
   return (

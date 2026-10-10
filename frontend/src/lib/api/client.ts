@@ -4,6 +4,39 @@ import type { paths } from "./schema";
 
 export const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5080";
 
+/** Bu sürede yanıt gelmezse istek kesilir; ekran sonsuza kadar "Yükleniyor…" demez. */
+export const REQUEST_TIMEOUT_MS = 20_000;
+
+/** API'ye hiç ulaşılamadı (kapalı, ağ yok, CORS) veya zaman aşımı. ApiError'dan farklı olarak yanıt yoktur. */
+export class NetworkError extends Error {
+  constructor(public readonly timedOut: boolean) {
+    super(timedOut ? "Sunucu yanıt vermedi." : "Sunucuya ulaşılamıyor.");
+    this.name = "NetworkError";
+  }
+}
+
+/** fetch + zaman aşımı; ağ hatalarını (tarayıcının "Failed to fetch" TypeError'ı) NetworkError'a çevirir. */
+export async function fetchWithTimeout(request: Request): Promise<Response> {
+  const controller = new AbortController();
+  let timedOut = false;
+  const timer = setTimeout(() => {
+    timedOut = true;
+    controller.abort();
+  }, REQUEST_TIMEOUT_MS);
+  const forwardAbort = () => controller.abort();
+  request.signal.addEventListener("abort", forwardAbort);
+  try {
+    return await fetch(request, { signal: controller.signal });
+  } catch (e) {
+    // Çağıranın iptali (React Query sayfadan çıkınca) olduğu gibi geçer.
+    if (!timedOut && request.signal.aborted) throw e;
+    throw new NetworkError(timedOut);
+  } finally {
+    clearTimeout(timer);
+    request.signal.removeEventListener("abort", forwardAbort);
+  }
+}
+
 /**
  * Tipli API istemcisi. Tipler `npm run gen:api` ile backend'in OpenAPI dokümanından üretilir.
  * Kimlik doğrulama httpOnly cookie ile; bu yüzden her istek `credentials: "include"`.
@@ -11,6 +44,7 @@ export const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5080
 export const api = createClient<paths>({
   baseUrl: API_URL,
   credentials: "include",
+  fetch: fetchWithTimeout,
 });
 
 /** RFC 9457 ProblemDetails: backend'in tüm hata yanıtları bu biçimde ve Türkçe. */
@@ -60,7 +94,9 @@ export function errorMessage(error: unknown, fallback = "Bir şeyler ters gitti.
     const first = Object.values(fieldErrors(error))[0];
     return error.problem.detail ?? first ?? error.problem.title ?? fallback;
   }
-  if (error instanceof TypeError) return "Sunucuya ulaşılamıyor. İnternet bağlantınızı kontrol edin.";
+  if (error instanceof NetworkError && error.timedOut) return "Sunucu yanıt vermedi. Biraz sonra tekrar deneyin.";
+  if (error instanceof NetworkError || error instanceof TypeError)
+    return "Sunucuya ulaşılamıyor. İnternet bağlantınızı kontrol edip tekrar deneyin.";
   return fallback;
 }
 

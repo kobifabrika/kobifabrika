@@ -3,11 +3,12 @@
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 
-import { Field, FormMessage } from "@/components/forms/field";
+import { QueryError } from "@/components/feedback/query-error";
+import { Field } from "@/components/forms/field";
 import { RequirePermission } from "@/components/panel/settings-nav";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { api, errorMessage, unwrap } from "@/lib/api/client";
+import { api, unwrap } from "@/lib/api/client";
 import type { AuditAction } from "@/lib/api/types";
 import { auditActionLabels, auditDetail } from "@/lib/audit";
 import { formatDateTime } from "@/lib/format";
@@ -58,7 +59,7 @@ function ActivityList() {
       </Field>
 
       {logs.isError ? (
-        <FormMessage>{errorMessage(logs.error)}</FormMessage>
+        <QueryError error={logs.error} onRetry={logs.refetch} />
       ) : (
         <Card className="py-0">
           <CardContent className="px-0">
