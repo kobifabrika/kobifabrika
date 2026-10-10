@@ -25,7 +25,7 @@ Ayrıntılar: `docs/00-urun-ozeti.md`, `docs/01-faz1-kapsam.md`.
 | PDF | QuestPDF |
 | Frontend | Next.js (App Router) · TypeScript · Tailwind CSS · shadcn/ui |
 | API sözleşmesi | OpenAPI (Microsoft.AspNetCore.OpenApi) → `openapi-typescript` ile frontend tipleri |
-| Test | xUnit (backend), Vitest + Testing Library (frontend), Playwright (uçtan uca, sonra) |
+| Test | xUnit v3 + Testcontainers + Shouldly (backend), Vitest + Testing Library (frontend), Playwright (uçtan uca, sonra) |
 
 Mimari ayrıntılar: `docs/02-mimari.md`. Veri modeli: `docs/03-veri-modeli.md`.
 
@@ -34,41 +34,46 @@ Mimari ayrıntılar: `docs/02-mimari.md`. Veri modeli: `docs/03-veri-modeli.md`.
 ```
 kobifabrika/
 ├─ CLAUDE.md
+├─ README.md                 # kurulum ve çalıştırma (Windows + Mac)
+├─ global.json               # .NET SDK sürümü + test runner (Microsoft Testing Platform)
 ├─ docker-compose.yml        # SQL Server + Mailpit (geliştirme)
 ├─ .env.example              # gizli değerlerin şablonu (.env git'e girmez)
 ├─ docs/                     # ürün, kapsam, mimari, veri modeli, tasarım, sprintler, karar günlüğü
 ├─ backend/
-│  ├─ KobiFabrika.sln
-│  ├─ src/KobiFabrika.Api/            # host, endpoint'ler (Features/<Modul>/), Program.cs
-│  ├─ src/KobiFabrika.Domain/         # entity'ler, enum'lar, domain kuralları
-│  ├─ src/KobiFabrika.Infrastructure/ # EF Core DbContext, migrations, SMS, e-posta, Hangfire işleri, PDF
-│  └─ tests/KobiFabrika.Tests/
+│  ├─ KobiFabrika.slnx
+│  ├─ Directory.Packages.props        # tüm NuGet sürümleri tek yerde
+│  ├─ src/KobiFabrika.Api/            # host, endpoint'ler (Features/<Modul>/), Common/ (middleware), Program.cs
+│  ├─ src/KobiFabrika.Domain/         # entity'ler, enum'lar, domain kuralları (Common/: TenantEntity, arayüzler)
+│  ├─ src/KobiFabrika.Infrastructure/ # AppDbContext, Persistence/Migrations, Tenancy/, Identity/; ileride SMS, e-posta, Hangfire, PDF
+│  └─ tests/KobiFabrika.Tests/        # xUnit v3, Testcontainers ile gerçek SQL Server
 └─ frontend/                 # Next.js uygulaması
    └─ src/app/
       ├─ (site)/             # tanıtım sitesi: kobifabrika.com
       ├─ (auth)/             # giriş, kayıt, şifre sıfırlama
-      ├─ (panel)/            # işletme paneli: app.kobifabrika.com
+      ├─ (panel)/panel/      # işletme paneli, URL /panel/... (canlıda app.kobifabrika.com buraya yönlenir)
       └─ r/[slug]/           # işletmenin herkese açık online randevu sayfası
 ```
 
 ## Komutlar
 
 ```powershell
-docker compose up -d                                  # SQL Server + Mailpit
-dotnet run --project backend/src/KobiFabrika.Api      # API: http://localhost:5080
-dotnet test backend
-dotnet ef migrations add <Ad> -p backend/src/KobiFabrika.Infrastructure -s backend/src/KobiFabrika.Api
-cd frontend; npm run dev                              # http://localhost:3000
-cd frontend; npm run gen:api                          # OpenAPI'den TS tiplerini üret
-cd frontend; npm run lint; npm run test
+docker compose up -d                                  # SQL Server + Mailpit (önce .env.example → .env)
+dotnet run --project backend/src/KobiFabrika.Api      # API: http://localhost:5080 (/scalar, /health)
+dotnet test backend                                   # Docker açık olmalı (Testcontainers)
+dotnet ef migrations add <Ad> -p backend/src/KobiFabrika.Infrastructure -s backend/src/KobiFabrika.Api -o Persistence/Migrations
+dotnet ef database update -p backend/src/KobiFabrika.Infrastructure -s backend/src/KobiFabrika.Api
+cd frontend; npm run dev                              # http://localhost:3000 (panel: /panel)
+cd frontend; npm run gen:api                          # API çalışırken OpenAPI'den TS tiplerini üret, commit'le
+cd frontend; npm run lint; npm run test; npm run build
 ```
 
-(Sprint 0 bu komutları kurar; değişirse bu bölümü güncelle.)
+Bağlantı dizesi user-secrets'ta (`ConnectionStrings:Default`); ilk kurulum adımları `README.md`'de.
+Windows'ta API çalışırken backend derlenmez (DLL kilitli); önce API'yi durdur.
 
 ## Kurallar
 
 - **Kod dili İngilizce, arayüz Türkçe.** Sınıf, tablo, değişken adları İngilizce (`Customer`, `Appointment`); kullanıcının gördüğü her metin Türkçe. Terim eşlemesi: `docs/03-veri-modeli.md` başındaki sözlük.
-- **Çok kiracılı (multi-tenant):** İşletmeye ait her tabloda `BusinessId` var. EF Core global query filter ile otomatik süzülür; bir işletme başka işletmenin verisini asla göremez. Yeni tablo eklerken bunu unutma ve testini yaz.
+- **Çok kiracılı (multi-tenant):** İşletmeye ait her tabloda `BusinessId` var. EF Core global query filter ile otomatik süzülür; bir işletme başka işletmenin verisini asla göremez. Yeni işletme tablosu `TenantEntity`'den türer (BusinessId, soft delete, audit otomatik). BusinessId olup kiracı filtresine girmeyecek tablo `[TenantExempt("gerekçe")]` ister; yoksa `TenantModelTests` kırılır. Her modülde "A, B'nin kaydını göremez/değiştiremez" testi yaz.
 - **Para:** `decimal(18,2)`, asla `float/double`. KDV oranları tabloda tutulur.
 - **Zaman:** Veritabanında UTC (`datetime2`), arayüzde Europe/Istanbul.
 - **Telefon:** `+90` ile E.164 biçiminde saklanır.
@@ -77,6 +82,7 @@ cd frontend; npm run lint; npm run test
 - **Yetki:** 4 rol: Owner (Sahip), Manager (Yönetici), Staff (Personel), Accountant (Mali Müşavir, salt okunur). Maaş bilgisini sadece Owner görür.
 - **Gizli bilgiler** `.env` / user-secrets'ta; koda ve git'e asla girmez.
 - **Tasarım:** Renkler ve kurallar `docs/04-tasarim.md`. Sadece 5 marka rengi + nötr griler. #00b0ff ve #00fdff beyaz zeminde yazı rengi olarak kullanılmaz.
+- **URL'ler:** Frontend yolları Türkçe (`/panel/musteriler`, `/giris`), API yolları İngilizce (`/api/customers`).
 - **Mobil:** En küçük yazı 12px, input yazısı 16px, dokunma alanı en az 44px. Her ekranı 375px genişlikte kontrol et.
 - Küçük, okunur commit'ler; mesajlar Türkçe ve emir kipinde ("Müşteri listesini ekle").
 - Bir özelliği bitirmeden önce: build geçer, testler geçer, lint temiz.
@@ -92,5 +98,5 @@ cd frontend; npm run lint; npm run test
 
 ## Güncel durum
 
-- Sprint: **0 (kurulum)** başlamadı.
+- Sprint: **0 (kurulum)** tamamlandı (2026-10-10). Sıradaki: **Sprint 1 (Çekirdek)**.
 - GitHub: github.com/kobifabrika/kobifabrika (private)

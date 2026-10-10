@@ -5,6 +5,7 @@ name: kobifabrika
 services:
   sqlserver:
     image: mcr.microsoft.com/mssql/server:2025-latest
+    platform: linux/amd64 # Apple Silicon Mac'te Rosetta ile emüle edilir
     environment:
       ACCEPT_EULA: "Y"
       MSSQL_PID: Developer

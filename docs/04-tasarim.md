@@ -15,7 +15,9 @@ Logo henüz yok: logo gelene kadar "KobiFabrika" yazısı (wordmark) kullanılı
 | `brand-100` (color5) | `#00fdff` | Koyu zeminde vurgu, odak halkası, grafik ikincil |
 
 Nötrler: hafif lacivert tonlu griler (ör. zemin `#f5f7fa`, kenarlık `#e3e8ef`, ikincil metin `#5b6676`).
-Durum renkleri (marka renklerinden ayrı): başarı yeşil, uyarı turuncu/amber, hata kırmızı.
+Durum renkleri (marka renklerinden ayrı): başarı `#15803d`, uyarı `#b45309`, hata `#b91c1c` (açık zeminleri `#ecfdf3`, `#fffbeb`, `#fef2f2`).
+Odak halkası: açık zeminde `brand-500`, koyu zeminde `brand-100`.
+Token'ların kodu: `frontend/src/app/globals.css` (Tailwind sınıfları: `bg-brand-900`, `text-brand-500`, `border-neutral-200`, `text-danger-600`…).
 
 ### Kontrast kuralları
 
@@ -34,7 +36,7 @@ Sistem fontu yığını: `-apple-system, "Segoe UI", Roboto, "Helvetica Neue", A
 - Minimal, sakin, beyaz kartlar, ince kenarlıklar, 6-8px köşe yuvarlaklığı, gölge az.
 - Giriş ekranı: solda koyu marka paneli (KobiFabrika, slogan, şirket unvanı), sağda beyaz form (kullanıcı adı/e-posta, şifre + Göster, Beni hatırla, Şifremi unuttum, Giriş Yap, Üye Ol).
 - Panel: koyu sol menü (YÖNETİM ve İŞLETME grupları, sayı rozetleri), üstte selamlama ("Günaydın, Emir."), 4 istatistik kartı, satış grafiği, personel durumu, son satışlar tablosu.
-- Menü (Faz 1): Bugün · Randevular · Satışlar · Müşteriler · Ürünler/Hizmetler · Stok · Cari ve Kasa · Kampanyalar · Personel · Mesai ve İzin · Raporlar · Ayarlar.
+- Menü (Faz 1): **İşletme:** Bugün · Randevular · Satışlar · Müşteriler · Ürünler/Hizmetler · Stok · Cari ve Kasa · Kampanyalar. **Yönetim:** Personel · Mesai ve İzin · Raporlar · Ayarlar.
 
 ## Taslaklardaki hatalar (tekrarlanmayacak)
 

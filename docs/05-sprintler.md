@@ -2,23 +2,23 @@
 
 Tahmini, yarı zamanlı. Toplam yaklaşık 15-18 hafta. Her sprint sonunda: build ve testler geçer, ekranlar 375px'te kontrol edilir, bu dosyada maddeler işaretlenir, `docs/karar-gunlugu.md` güncellenir, commit atılır.
 
-**Durum:** Sprint 0 başlamadı.
+**Durum:** Sprint 0 tamamlandı (2026-10-10). Sıradaki: Sprint 1.
 
 ---
 
 ## Sprint 0 — Kurulum (1 hafta)
 
-- [ ] Klasör yapısı (CLAUDE.md'deki gibi), `.gitignore`, `.editorconfig`, `.env.example`
-- [ ] `docker-compose.yml`: SQL Server 2025 + Mailpit; `docker compose up -d` ile ayağa kalkar
-- [ ] Backend solution: Api, Domain, Infrastructure, Tests projeleri; .NET 10
-- [ ] EF Core + SQL Server bağlantısı (user-secrets), `AppDbContext`, ilk migration (Businesses, Identity tabloları, BusinessMemberships)
-- [ ] Kiracı altyapısı: `ITenantContext`, `ITenantScoped`, global query filter, SaveChanges'te BusinessId ataması + testi
-- [ ] Serilog, ProblemDetails, OpenAPI + Scalar, `/health` endpoint'i
-- [ ] Frontend: Next.js (App Router, TS, Tailwind, ESLint, `src/`), shadcn/ui kurulumu, renk token'ları (`docs/04-tasarim.md`), lucide-react
-- [ ] `apiClient` + `npm run gen:api` (openapi-typescript)
-- [ ] Boş sayfalar: tanıtım ana sayfa (taslak), giriş, panel iskeleti (sol menü + mobil alt çubuk)
-- [ ] README: kurulum ve çalıştırma adımları (Windows ve Mac)
-- [ ] Git: ilk commit
+- [x] Klasör yapısı (CLAUDE.md'deki gibi), `.gitignore`, `.editorconfig`, `.env.example`
+- [x] `docker-compose.yml`: SQL Server 2025 + Mailpit; `docker compose up -d` ile ayağa kalkar
+- [x] Backend solution: Api, Domain, Infrastructure, Tests projeleri; .NET 10
+- [x] EF Core + SQL Server bağlantısı (user-secrets), `AppDbContext`, ilk migration (Businesses, Identity tabloları, BusinessMemberships)
+- [x] Kiracı altyapısı: `ITenantContext`, `ITenantScoped`, global query filter, SaveChanges'te BusinessId ataması + testi
+- [x] Serilog, ProblemDetails, OpenAPI + Scalar, `/health` endpoint'i
+- [x] Frontend: Next.js (App Router, TS, Tailwind, ESLint, `src/`), shadcn/ui kurulumu, renk token'ları (`docs/04-tasarim.md`), lucide-react
+- [x] `apiClient` + `npm run gen:api` (openapi-typescript)
+- [x] Boş sayfalar: tanıtım ana sayfa (taslak), giriş, panel iskeleti (sol menü + mobil alt çubuk)
+- [x] README: kurulum ve çalıştırma adımları (Windows ve Mac)
+- [x] Git: ilk commit
 
 ## Sprint 1 — Çekirdek (2 hafta)
 
