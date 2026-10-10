@@ -23,9 +23,9 @@ async function BookingPlaceholder({ params }: { params: PageProps<"/r/[slug]">["
   const { slug } = await params;
   return (
     <div>
-      <h1 className="text-2xl font-bold text-brand-900">Online randevu</h1>
+      <h1 className="text-2xl font-bold text-black">Online randevu</h1>
       <p className="mt-2 text-sm text-neutral-600">
-        <span className="font-semibold text-brand-700">{slug}</span> için online randevu sayfası yakında burada.
+        <span className="font-semibold text-black">{slug}</span> için online randevu sayfası yakında burada.
       </p>
     </div>
   );

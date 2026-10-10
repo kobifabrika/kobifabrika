@@ -20,7 +20,7 @@ export default function TodayPage() {
   return (
     <div className="mx-auto flex max-w-6xl flex-col gap-6">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight text-brand-900">Bugün</h1>
+        <h1 className="text-2xl font-bold tracking-tight text-black">Bugün</h1>
         <p className="mt-1 text-sm text-neutral-600">İşletmenizde bugün olanlar burada görünecek.</p>
       </div>
 
@@ -29,10 +29,10 @@ export default function TodayPage() {
           <Card key={label} className="gap-2 py-4">
             <CardHeader className="flex flex-row items-center justify-between gap-2 px-4">
               <CardTitle className="text-xs font-medium text-neutral-600">{label}</CardTitle>
-              <Icon aria-hidden className="size-5 shrink-0 text-brand-500" />
+              <Icon aria-hidden className="size-5 shrink-0 text-neutral-600" />
             </CardHeader>
             <CardContent className="px-4">
-              <p className="text-2xl font-bold text-brand-900 tabular-nums">—</p>
+              <p className="text-2xl font-bold text-black tabular-nums">—</p>
             </CardContent>
           </Card>
         ))}
@@ -41,7 +41,7 @@ export default function TodayPage() {
       <div className="grid gap-4 lg:grid-cols-2">
         <Card>
           <CardHeader>
-            <CardTitle className="text-brand-700">Bugünün randevuları</CardTitle>
+            <CardTitle className="text-black">Bugünün randevuları</CardTitle>
           </CardHeader>
           <CardContent>
             <p className="text-sm text-neutral-600">Henüz randevu yok.</p>
@@ -49,7 +49,7 @@ export default function TodayPage() {
         </Card>
         <Card>
           <CardHeader>
-            <CardTitle className="text-brand-700">Kritik stok</CardTitle>
+            <CardTitle className="text-black">Kritik stok</CardTitle>
           </CardHeader>
           <CardContent>
             <p className="text-sm text-neutral-600">Kritik seviyede ürün yok.</p>

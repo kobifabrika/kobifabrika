@@ -32,7 +32,7 @@ function ApiStatusIndicator({ className }: { className?: string }) {
         aria-hidden
         className={cn(
           "size-2 rounded-full",
-          isPending ? "bg-neutral-400" : isError ? "bg-danger-600" : "bg-success-600",
+          isPending ? "bg-neutral-400" : isError ? "bg-danger-600" : "bg-brand",
         )}
       />
       {label}

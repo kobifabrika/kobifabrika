@@ -83,7 +83,7 @@ Windows'ta API çalışırken backend derlenmez (DLL kilitli); önce API'yi durd
 - **KVKK ve İYS:** SMS/e-posta izni olmayan müşteriye pazarlama mesajı gönderilmez. Her pazarlama mesajında çıkış seçeneği olur.
 - **Yetki:** 4 rol: Owner (Sahip), Manager (Yönetici), Staff (Personel), Accountant (Mali Müşavir, salt okunur). Maaş bilgisini sadece Owner görür.
 - **Gizli bilgiler** `.env` / user-secrets'ta; koda ve git'e asla girmez.
-- **Tasarım:** Renkler ve kurallar `docs/04-tasarim.md`. Sadece 5 marka rengi + nötr griler. #00b0ff ve #00fdff beyaz zeminde yazı rengi olarak kullanılmaz.
+- **Tasarım:** Renkler ve kurallar `docs/04-tasarim.md`. Sadece 3 renk: siyah, beyaz, vurgu mavisi #00b0ff (+ renksiz griler; kırmızı sadece hata/silme). Mavi beyaz zeminde yazı rengi olarak kullanılmaz; gradyan, gölgeli kart, emoji yok.
 - **URL'ler:** Frontend yolları Türkçe (`/panel/musteriler`, `/giris`), API yolları İngilizce (`/api/customers`).
 - **Mobil:** En küçük yazı 12px, input yazısı 16px, dokunma alanı en az 44px. Her ekranı 375px genişlikte kontrol et.
 - Küçük, okunur commit'ler; mesajlar Türkçe ve emir kipinde ("Müşteri listesini ekle").

@@ -33,7 +33,7 @@ export function useLocations() {
 }
 
 const selectClass =
-  "h-11 w-full rounded-lg border border-input bg-background px-3 text-base text-foreground outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring aria-invalid:border-destructive disabled:bg-muted disabled:text-muted-foreground";
+  "h-11 w-full rounded-lg border border-input bg-background px-3 text-base text-foreground outline-none focus-visible:border-foreground focus-visible:ring-3 focus-visible:ring-ring aria-invalid:border-destructive disabled:bg-muted disabled:text-muted-foreground";
 
 type Props<T extends BusinessBasics> = {
   control: Control<T>;

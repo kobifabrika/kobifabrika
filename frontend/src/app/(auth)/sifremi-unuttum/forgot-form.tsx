@@ -54,7 +54,7 @@ export function ForgotForm() {
           <Button type="submit" size="lg" className="w-full" disabled={isSubmitting}>
             {isSubmitting ? "Gönderiliyor…" : "Sıfırlama bağlantısı gönder"}
           </Button>
-          <Link href="/giris" className="inline-flex min-h-11 items-center justify-center text-sm font-semibold text-primary hover:underline">
+          <Link href="/giris" className="inline-flex min-h-11 items-center justify-center text-sm font-semibold text-black underline decoration-brand decoration-2 underline-offset-4 hover:decoration-black">
             Giriş ekranına dön
           </Link>
         </form>

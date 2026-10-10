@@ -22,7 +22,7 @@ import { formatPhone, fullNameSchema, passwordSchema, phoneSchema } from "@/lib/
 export function AccountSettings() {
   return (
     <div className="mx-auto flex max-w-2xl flex-col gap-6">
-      <h1 className="text-2xl font-bold tracking-tight text-brand-900">Hesabım</h1>
+      <h1 className="text-2xl font-bold tracking-tight text-black">Hesabım</h1>
       <ProfileCard />
       <PasswordCard />
     </div>
@@ -59,7 +59,7 @@ function ProfileCard() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-brand-700">Profil</CardTitle>
+        <CardTitle className="text-black">Profil</CardTitle>
         <CardDescription>
           {business.name} · {roleNames[role]}
         </CardDescription>
@@ -70,11 +70,11 @@ function ProfileCard() {
             label="E-posta"
             hint={
               me.user.emailConfirmed ? (
-                <span className="flex items-center gap-1 text-success-600">
+                <span className="flex items-center gap-1 text-black">
                   <CircleCheck aria-hidden className="size-4" /> Doğrulandı
                 </span>
               ) : (
-                <span className="flex items-center gap-1 text-warning-600">
+                <span className="flex items-center gap-1 text-neutral-600">
                   <MailWarning aria-hidden className="size-4" /> Doğrulanmadı — sayfanın üstünden yeni bağlantı isteyebilirsin.
                 </span>
               )
@@ -129,7 +129,7 @@ function PasswordCard() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-brand-700">Şifre değiştir</CardTitle>
+        <CardTitle className="text-black">Şifre değiştir</CardTitle>
       </CardHeader>
       <CardContent>
         <form className="flex flex-col gap-5" onSubmit={onSubmit} noValidate>

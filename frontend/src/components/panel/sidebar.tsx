@@ -33,13 +33,13 @@ export function NavList({ onNavigate }: { onNavigate?: () => void }) {
                     className={cn(
                       "flex min-h-11 items-center gap-3 rounded-md px-3 text-sm transition-colors outline-sidebar-ring",
                       active
-                        ? "bg-sidebar-accent font-semibold text-white shadow-[inset_3px_0_0_var(--color-brand-300)]"
-                        : "text-sidebar-foreground hover:bg-sidebar-accent/60 hover:text-white",
+                        ? "bg-sidebar-primary font-semibold text-sidebar-primary-foreground"
+                        : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-white",
                     )}
                   >
                     <Icon
                       aria-hidden
-                      className={cn("size-5 shrink-0", active ? "text-sidebar-primary" : "text-sidebar-foreground/80")}
+                      className={cn("size-5 shrink-0", active ? "text-sidebar-primary-foreground" : "text-sidebar-foreground")}
                     />
                     {label}
                   </Link>
@@ -53,12 +53,10 @@ export function NavList({ onNavigate }: { onNavigate?: () => void }) {
   );
 }
 
-/** Masaüstünde (lg ve üstü) sabit koyu sol menü. */
+/** Masaüstünde (lg ve üstü) sabit siyah sol menü; aktif öğe mavi zemin + siyah yazı. */
 export function Sidebar() {
   return (
     <aside className="fixed inset-y-0 left-0 z-30 hidden w-64 flex-col overflow-hidden border-r border-sidebar-border bg-sidebar text-sidebar-foreground lg:flex">
-      {/* Siteyle aynı dil: üstte hafif turkuaz ışıma. */}
-      <div aria-hidden className="pointer-events-none absolute -top-24 -left-16 size-64 rounded-full bg-brand-300/10 blur-3xl" />
       <div className="relative flex h-16 items-center border-b border-sidebar-border px-6">
         <Link href="/panel" className="rounded-md outline-sidebar-ring" aria-label="KobiFabrika — Bugün">
           <Wordmark onDark className="text-2xl" />

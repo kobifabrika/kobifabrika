@@ -7,14 +7,15 @@
 /*
  * KobiFabrika tema token'ları — kaynak: docs/04-tasarim.md
  *
- * Tailwind'in hazır renk paleti kapatıldı (--color-*: initial). Kodda sadece aşağıdaki
- * marka renkleri, nötr griler ve durum renkleri kullanılabilir; ör. `text-red-500` üretilmez.
+ * Üç renk: siyah, beyaz ve vurgu mavisi (#00b0ff, wordmark'taki "Fabrika"). Arası gri tonlar serbest.
+ * Kırmızı sadece hata ve silme gibi işlevsel uyarılarda. Başarı için yeşil yok: siyah/mavi + ✓ ikonu.
+ * Tailwind'in hazır renk paleti kapatıldı (--color-*: initial); ör. `text-red-500` üretilmez.
  *
  * KONTRAST KURALLARI (src/lib/theme/contrast.test.ts bunları doğrular):
- * - Beyaz zeminde yazı/link: sadece brand-900, brand-700, brand-500.
- * - brand-300 (#00b0ff) ve brand-100 (#00fdff) beyaz zeminde YAZI OLARAK KULLANILMAZ;
- *   ikon, çizgi, dekor için. Koyu zeminde (brand-900) rahat okunur.
- * - brand-300 buton → yazı brand-900. brand-500 buton → yazı beyaz.
+ * - Beyaz zeminde yazı/link: siyah veya neutral-600 ve koyusu. Link = siyah + alt çizgi.
+ * - brand (#00b0ff) beyaz zeminde YAZI OLARAK KULLANILMAZ (2.1:1); sadece çizgi, ikon, alt çizgi, vurgu zemini.
+ * - Siyah zeminde brand yazı/link olabilir (9.9:1).
+ * - brand buton → yazı siyah. Siyah buton → yazı beyaz.
  */
 @theme {
   --color-*: initial;
@@ -24,35 +25,28 @@
   --color-transparent: transparent;
   --color-current: currentColor;
 
-  /* Marka renkleri (5 renk, kesin) */
-  --color-brand-900: #000a1d; /* en koyu lacivert: sol menü, başlıklar, ana metin */
-  --color-brand-700: #00385a; /* ikincil koyu: hover, kart/tablo başlığı */
-  --color-brand-500: #006ea6; /* ana buton (beyaz yazı), link, açık zeminde vurgu ve odak halkası */
-  --color-brand-300: #00b0ff; /* koyu zeminde aktif menü, ikon, grafik; açık buton (yazı brand-900) */
-  --color-brand-100: #00fdff; /* koyu zeminde vurgu ve odak halkası, grafik ikincil */
+  /* Vurgu mavisi (tek marka rengi) */
+  --color-brand: #00b0ff;
 
-  /* Nötrler: hafif lacivert tonlu griler */
-  --color-neutral-50: #f5f7fa; /* sayfa zemini */
-  --color-neutral-100: #edf1f6;
-  --color-neutral-200: #e3e8ef; /* kenarlık */
-  --color-neutral-300: #cbd3de;
-  --color-neutral-400: #98a2b3; /* açık zeminde sadece dekor; koyu zeminde ikincil metin */
-  --color-neutral-500: #6b7685;
-  --color-neutral-600: #5b6676; /* ikincil metin */
-  --color-neutral-700: #3d4757;
-  --color-neutral-800: #232c3b;
+  /* Nötr griler (renk tonu yok) */
+  --color-neutral-50: #fafafa;
+  --color-neutral-100: #f2f2f2; /* ikincil yüzey, hover */
+  --color-neutral-200: #e5e5e5; /* kenarlık, ayırıcı çizgi */
+  --color-neutral-300: #d4d4d4; /* siyah zeminde ikincil metin */
+  --color-neutral-400: #8f8f8f; /* beyaz zeminde input kenarlığı (3:1); siyah zeminde soluk metin */
+  --color-neutral-500: #707070;
+  --color-neutral-600: #525252; /* beyaz zeminde ikincil metin */
+  --color-neutral-700: #3a3a3a;
+  --color-neutral-800: #262626; /* siyah zeminde hover/aktif olmayan yüzey, kenarlık */
+  --color-neutral-900: #141414; /* siyah zeminde kart */
 
-  /* Durum renkleri (marka renklerinden ayrı) — beyaz zeminde 4.5:1 üstü */
-  --color-success-50: #ecfdf3;
-  --color-success-600: #15803d;
-  --color-warning-50: #fffbeb;
-  --color-warning-600: #b45309;
+  /* Sadece hata ve silme */
   --color-danger-50: #fef2f2;
   --color-danger-600: #b91c1c;
 
-  /* Tipografi: sistem fontu; ölçek 12/14/16/18/20/24/30 px. 12px'in altı yok. */
+  /* Tipografi: gövde sistem fontu; başlık Bricolage Grotesque (src/app/layout.tsx, next/font). 12px'in altı yok. */
   --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-  --font-heading: var(--font-sans);
+  --font-heading: var(--font-display, var(--font-sans));
   --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 }
 
@@ -98,75 +92,73 @@
   --radius-4xl: calc(var(--radius) * 4);
 }
 
-/* Açık tema (öncelikli). `.light`: koyu kapsam içindeki açık ada (ör. sitedeki panel önizlemesi). */
-:root,
-.light {
+/* Beyaz tema (varsayılan): panel içeriği, giriş ekranları, tanıtım sitesi. */
+:root {
   color-scheme: light;
-  --radius: 8px;
+  --radius: 6px;
 
-  --background: var(--color-neutral-50);
-  --foreground: var(--color-brand-900);
+  --background: var(--color-white);
+  --foreground: var(--color-black);
   --card: var(--color-white);
-  --card-foreground: var(--color-brand-900);
+  --card-foreground: var(--color-black);
   --popover: var(--color-white);
-  --popover-foreground: var(--color-brand-900);
-  --primary: var(--color-brand-500);
+  --popover-foreground: var(--color-black);
+  --primary: var(--color-black); /* ana buton siyah, yazı beyaz */
   --primary-foreground: var(--color-white);
   --secondary: var(--color-neutral-100);
-  --secondary-foreground: var(--color-brand-900);
+  --secondary-foreground: var(--color-black);
   --muted: var(--color-neutral-100);
   --muted-foreground: var(--color-neutral-600);
   --accent: var(--color-neutral-100);
-  --accent-foreground: var(--color-brand-700);
+  --accent-foreground: var(--color-black);
   --destructive: var(--color-danger-600);
   --border: var(--color-neutral-200);
-  --input: var(--color-neutral-300);
-  --ring: var(--color-brand-500); /* açık zeminde odak halkası (brand-100 burada görünmez) */
+  --input: var(--color-neutral-400);
+  --ring: var(--color-brand); /* mavi halka; inputta kenarlık ayrıca siyaha döner (3:1 garantisi) */
 
-  --chart-1: var(--color-brand-500);
-  --chart-2: var(--color-brand-300);
-  --chart-3: var(--color-brand-700);
-  --chart-4: var(--color-brand-100);
-  --chart-5: var(--color-neutral-400);
+  --chart-1: var(--color-black);
+  --chart-2: var(--color-brand);
+  --chart-3: var(--color-neutral-500);
+  --chart-4: var(--color-neutral-300);
+  --chart-5: var(--color-neutral-700);
 
-  /* Koyu sol menü */
-  --sidebar: var(--color-brand-900);
+  /* Siyah sol menü ve üst çubuk; aktif menü mavi zemin + siyah yazı */
+  --sidebar: var(--color-black);
   --sidebar-foreground: var(--color-neutral-300);
-  --sidebar-primary: var(--color-brand-300);
-  --sidebar-primary-foreground: var(--color-brand-900);
-  --sidebar-accent: var(--color-brand-700);
+  --sidebar-primary: var(--color-brand);
+  --sidebar-primary-foreground: var(--color-black);
+  --sidebar-accent: var(--color-neutral-800);
   --sidebar-accent-foreground: var(--color-white);
-  --sidebar-border: color-mix(in srgb, var(--color-brand-700) 45%, var(--color-brand-900));
-  --sidebar-ring: var(--color-brand-100); /* koyu zeminde odak halkası */
+  --sidebar-border: var(--color-neutral-800);
+  --sidebar-ring: var(--color-brand);
 }
 
 /*
- * Koyu kapsam (docs/04-tasarim.md → "Site ve kimlik ekranları koyu tema"): tanıtım sitesi, giriş/kayıt/şifre/davet,
- * kurulum sihirbazı ve panelin üst çubuğu. Kapsayıcıya `dark` sınıfı verilir; içindeki shadcn bileşenleri ve
- * semantik sınıflar (bg-card, text-foreground, text-muted-foreground, text-primary…) kendiliğinden koyuya döner.
- * Yeni renk yok: yüzeyler brand-700 ile brand-900'ün karışımı, metinler beyaz ve nötr griler.
+ * Siyah kapsam: panelin üst çubuğu, sitedeki 1-2 siyah bölüm, kimlik ekranlarının marka paneli.
+ * Kapsayıcıya `dark` sınıfı verilir; içindeki shadcn bileşenleri ve semantik sınıflar (bg-card, text-foreground,
+ * text-muted-foreground, text-primary…) kendiliğinden siyah zemine döner. Burada mavi yazı/link olabilir.
  * Kontrast: src/lib/theme/contrast.test.ts bu bloktaki değerleri de doğrular.
  */
 .dark {
   color-scheme: dark;
 
-  --background: var(--color-brand-900);
+  --background: var(--color-black);
   --foreground: var(--color-white);
-  --card: color-mix(in srgb, var(--color-brand-700) 40%, var(--color-brand-900)); /* form kartı */
+  --card: var(--color-neutral-900);
   --card-foreground: var(--color-white);
-  --popover: color-mix(in srgb, var(--color-brand-700) 40%, var(--color-brand-900));
+  --popover: var(--color-neutral-900);
   --popover-foreground: var(--color-white);
-  --primary: var(--color-brand-300); /* buton zemini (yazı brand-900), link */
-  --primary-foreground: var(--color-brand-900);
-  --secondary: var(--color-brand-700);
+  --primary: var(--color-brand); /* buton zemini (yazı siyah), link */
+  --primary-foreground: var(--color-black);
+  --secondary: var(--color-neutral-800);
   --secondary-foreground: var(--color-white);
-  --muted: color-mix(in srgb, var(--color-brand-700) 60%, var(--color-brand-900));
-  --muted-foreground: var(--color-neutral-400); /* ikincil metin, placeholder */
-  --accent: var(--color-brand-700);
+  --muted: var(--color-neutral-800);
+  --muted-foreground: var(--color-neutral-300);
+  --accent: var(--color-neutral-800);
   --accent-foreground: var(--color-white);
-  --border: color-mix(in srgb, var(--color-brand-700) 80%, var(--color-brand-900));
+  --border: var(--color-neutral-800);
   --input: var(--color-neutral-500);
-  --ring: var(--color-brand-100); /* koyu zeminde odak halkası */
+  --ring: var(--color-brand);
 }
 
 @layer base {
@@ -183,6 +175,12 @@
     @apply bg-background text-foreground antialiased;
   }
 
+  h1,
+  h2,
+  h3 {
+    font-family: var(--font-heading);
+  }
+
   /* iPhone 16px altındaki inputlarda sayfayı yakınlaştırır. */
   input,
   select,
@@ -190,9 +188,11 @@
     font-size: 16px;
   }
 
+  /* Mavi odak halkası. Beyaz zeminde mavi tek başına 3:1 vermez; bu yüzden halka elemanın siyah kenarına/zeminine
+     bitişik durur (offset yok) ve input kenarlığı odakta siyaha döner (field/input bileşenleri). */
   :focus-visible {
-    outline-width: 2px;
-    outline-offset: 2px;
+    outline-width: 3px;
+    outline-offset: 1px;
   }
 
   /* Sabit üst menünün altında kalmasın (sayfa içi bağlantılar). */
@@ -207,30 +207,16 @@
 }
 
 /*
- * Tanıtım sitesi: kaydırınca hafif giriş animasyonu. Saf CSS (scroll-driven); desteklemeyen tarayıcıda ve
- * "hareketi azalt" açıkken içerik doğrudan görünür.
+ * Tanıtım sitesi: sayfa açılırken hafif belirme. Sadece "hareketi azalt" kapalıyken; kaydırmaya bağlı animasyon yok.
  */
-@keyframes kf-reveal {
-  from {
-    opacity: 0;
-    transform: translateY(24px);
-  }
-}
-
-@supports (animation-timeline: view()) {
-  @media (prefers-reduced-motion: no-preference) {
-    .kf-reveal {
-      animation: kf-reveal linear both;
-      animation-timeline: view();
-      animation-range: entry 0% entry 35%;
+@media (prefers-reduced-motion: no-preference) {
+  @keyframes kf-fade {
+    from {
+      opacity: 0;
     }
   }
-}
 
-/* İnce çizgi ızgara (koyu zeminde dekor). */
-.kf-grid {
-  background-image:
-    linear-gradient(to right, color-mix(in srgb, var(--color-brand-300) 8%, transparent) 1px, transparent 1px),
-    linear-gradient(to bottom, color-mix(in srgb, var(--color-brand-300) 8%, transparent) 1px, transparent 1px);
-  background-size: 48px 48px;
+  .kf-fade {
+    animation: kf-fade 0.5s ease-out both;
+  }
 }

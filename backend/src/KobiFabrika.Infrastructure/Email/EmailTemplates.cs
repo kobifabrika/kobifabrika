@@ -56,24 +56,24 @@ public static class EmailTemplates
             ? ""
             : $"""
               <p style="margin:24px 0">
-                <a href="{E(link)}" style="display:inline-block;background:#006ea6;color:#ffffff;text-decoration:none;font-weight:600;padding:12px 20px;border-radius:8px;font-size:16px">{E(buttonText)}</a>
+                <a href="{E(link)}" style="display:inline-block;background:#000000;color:#ffffff;text-decoration:none;font-weight:600;padding:12px 20px;border-radius:6px;font-size:16px">{E(buttonText)}</a>
               </p>
-              <p style="margin:0 0 16px;font-size:14px;color:#5b6676">Buton çalışmazsa bu bağlantıyı tarayıcına yapıştır:<br><a href="{E(link)}" style="color:#006ea6;word-break:break-all">{E(link)}</a></p>
+              <p style="margin:0 0 16px;font-size:14px;color:#525252">Buton çalışmazsa bu bağlantıyı tarayıcına yapıştır:<br><a href="{E(link)}" style="color:#000000;word-break:break-all">{E(link)}</a></p>
               """;
 
         var html = $"""
             <!doctype html>
             <html lang="tr">
-            <body style="margin:0;background:#f5f7fa;font-family:-apple-system,'Segoe UI',Roboto,Arial,sans-serif;color:#000a1d">
+            <body style="margin:0;background:#f2f2f2;font-family:-apple-system,'Segoe UI',Roboto,Arial,sans-serif;color:#000000">
               <div style="max-width:560px;margin:0 auto;padding:24px 16px">
-                <p style="margin:0 0 16px;font-size:24px;font-weight:800;color:#000a1d">Kobi<span style="color:#006ea6">Fabrika</span></p>
-                <div style="background:#ffffff;border:1px solid #e3e8ef;border-radius:8px;padding:24px">
+                <p style="margin:0 0 16px;font-size:24px;font-weight:800;color:#000000">Kobi<span style="border-bottom:3px solid #00b0ff">Fabrika</span></p>
+                <div style="background:#ffffff;border:1px solid #e5e5e5;border-radius:6px;padding:24px">
                   <p style="margin:0 0 12px;font-size:16px">{E(greeting)}</p>
                   <p style="margin:0 0 12px;font-size:16px;line-height:1.5">{E(body)}</p>
                   {button}
-                  <p style="margin:0;font-size:14px;color:#5b6676;line-height:1.5">{E(footnote)}</p>
+                  <p style="margin:0;font-size:14px;color:#525252;line-height:1.5">{E(footnote)}</p>
                 </div>
-                <p style="margin:16px 0 0;font-size:12px;color:#5b6676">KobiFabrika Yazılım A.Ş.</p>
+                <p style="margin:16px 0 0;font-size:12px;color:#525252">KobiFabrika Yazılım A.Ş.</p>
               </div>
             </body>
             </html>

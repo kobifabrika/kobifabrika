@@ -6,7 +6,7 @@ export const instant = false;
 export default function SettingsLayout({ children }: LayoutProps<"/panel/ayarlar">) {
   return (
     <div className="mx-auto flex max-w-4xl flex-col gap-6">
-      <h1 className="text-2xl font-bold tracking-tight text-brand-900">Ayarlar</h1>
+      <h1 className="text-2xl font-bold tracking-tight text-black">Ayarlar</h1>
       <RequirePermission permission="viewSettings">
         <SettingsNav />
         {children}

@@ -75,10 +75,10 @@ export function NotificationBell() {
       </PopoverTrigger>
       <PopoverContent align="end" className="w-[calc(100vw-2rem)] max-w-sm p-0">
         <div className="flex items-center justify-between gap-2 border-b border-border px-4 py-2">
-          <p className="text-sm font-semibold text-brand-900">Bildirimler</p>
+          <p className="text-sm font-semibold text-black">Bildirimler</p>
           <Button
             variant="ghost"
-            className="text-brand-500"
+            className="text-black underline underline-offset-4"
             disabled={unread === 0 || markAll.isPending}
             onClick={() => markAll.mutate()}
           >
@@ -106,10 +106,10 @@ export function NotificationBell() {
                   >
                     <span
                       aria-hidden
-                      className={cn("mt-1.5 size-2 shrink-0 rounded-full", n.readAt ? "bg-transparent" : "bg-brand-500")}
+                      className={cn("mt-1.5 size-2 shrink-0 rounded-full", n.readAt ? "bg-transparent" : "bg-brand")}
                     />
                     <span className="flex flex-col gap-0.5">
-                      <span className={cn("text-sm text-brand-900", !n.readAt && "font-semibold")}>
+                      <span className={cn("text-sm text-black", !n.readAt && "font-semibold")}>
                         {n.title}
                         {!n.readAt && <span className="sr-only"> (okunmadı)</span>}
                       </span>

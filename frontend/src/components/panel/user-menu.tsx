@@ -50,13 +50,13 @@ export function UserMenu() {
     <DropdownMenu>
       <DropdownMenuTrigger
         aria-label={`Kullanıcı menüsü: ${me.user.fullName}`}
-        className="flex size-11 items-center justify-center rounded-full bg-brand-300 text-sm font-bold text-brand-900"
+        className="flex size-11 items-center justify-center rounded-full bg-neutral-800 text-sm font-bold text-white"
       >
         {initials(me.user.fullName)}
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-72">
         <DropdownMenuLabel className="flex flex-col gap-0.5 py-2">
-          <span className="text-sm font-semibold text-brand-900">{me.user.fullName}</span>
+          <span className="text-sm font-semibold text-black">{me.user.fullName}</span>
           <span className="text-xs font-normal text-neutral-600">
             {business.name} · {roleNames[role]}
           </span>

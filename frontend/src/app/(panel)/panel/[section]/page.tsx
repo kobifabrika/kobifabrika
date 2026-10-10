@@ -26,11 +26,11 @@ export default async function SectionPage({ params }: PageProps<"/panel/[section
   const Icon = item.icon;
   return (
     <div className="mx-auto flex max-w-6xl flex-col gap-6">
-      <h1 className="text-2xl font-bold tracking-tight text-brand-900">{item.label}</h1>
+      <h1 className="text-2xl font-bold tracking-tight text-black">{item.label}</h1>
       <Card>
         <CardContent className="flex flex-col items-center gap-3 py-10 text-center">
-          <Icon aria-hidden className="size-10 text-brand-500" />
-          <p className="text-base font-semibold text-brand-900">Bu ekran hazırlanıyor</p>
+          <Icon aria-hidden className="size-10 text-brand" />
+          <p className="text-base font-semibold text-black">Bu ekran hazırlanıyor</p>
           <p className="text-sm text-neutral-600">Sprint {item.sprint} ile gelecek.</p>
         </CardContent>
       </Card>

@@ -119,7 +119,7 @@ export function CommandMenu() {
                 <CommandGroup heading="Sayfalar">
                   {matchedPages.map(({ label, href, icon: Icon }) => (
                     <CommandItem key={href} value={href} onSelect={() => go(href)}>
-                      <Icon aria-hidden className="text-brand-500" />
+                      <Icon aria-hidden className="text-neutral-600" />
                       {label}
                     </CommandItem>
                   ))}

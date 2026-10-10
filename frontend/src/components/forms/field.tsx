@@ -45,8 +45,8 @@ export function FormMessage({ tone = "error", children }: { tone?: "error" | "su
       className={cn(
         "rounded-md px-3 py-2 text-sm",
         tone === "error" && "bg-danger-50 text-danger-600",
-        tone === "success" && "bg-success-50 text-success-600",
-        tone === "info" && "bg-neutral-100 text-brand-700",
+        tone === "success" && "border border-black bg-white text-black",
+        tone === "info" && "bg-neutral-100 text-black",
       )}
     >
       {children}

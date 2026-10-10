@@ -34,7 +34,7 @@ const invitationsKey = ["team", "invitations"] as const;
 const allRoles: Role[] = ["Owner", "Manager", "Staff", "Accountant"];
 
 const selectClass =
-  "h-11 w-full rounded-lg border border-input bg-background px-3 text-base text-brand-900 outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring";
+  "h-11 w-full rounded-lg border border-input bg-background px-3 text-base text-black outline-none focus-visible:border-foreground focus-visible:ring-3 focus-visible:ring-ring";
 
 /** Owner rolünü sadece Owner verir/alır (backend TeamEndpoints ile aynı kural). */
 function assignableRoles(myRole: Role): Role[] {
@@ -79,7 +79,7 @@ function InviteCard() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-brand-700">Ekibe davet et</CardTitle>
+        <CardTitle className="text-black">Ekibe davet et</CardTitle>
         <CardDescription>Davet bağlantısı 7 gün geçerlidir ve tek kullanımlıktır. Mali müşavir kullanıcı sınırına sayılmaz.</CardDescription>
       </CardHeader>
       <CardContent>
@@ -104,7 +104,7 @@ function InviteCard() {
             </Field>
           </div>
           <p className="text-sm text-neutral-600">
-            <span className="font-semibold text-brand-900">{roleNames[selectedRole]}:</span> {roleDescriptions[selectedRole]}
+            <span className="font-semibold text-black">{roleNames[selectedRole]}:</span> {roleDescriptions[selectedRole]}
           </p>
           {error && <FormMessage>{error}</FormMessage>}
           <Button type="submit" size="lg" className="self-start" disabled={!verified || form.formState.isSubmitting}>
@@ -141,7 +141,7 @@ function InvitationsCard() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-brand-700">Bekleyen davetler</CardTitle>
+        <CardTitle className="text-black">Bekleyen davetler</CardTitle>
       </CardHeader>
       <CardContent>
         <ul className="flex flex-col divide-y divide-border">
@@ -150,13 +150,13 @@ function InvitationsCard() {
             return (
               <li key={i.id} className="flex flex-col gap-2 py-3 sm:flex-row sm:items-center sm:justify-between">
                 <div className="flex min-w-0 flex-col gap-1">
-                  <span className="truncate text-sm font-semibold text-brand-900">{i.email}</span>
+                  <span className="truncate text-sm font-semibold text-black">{i.email}</span>
                   <span className="flex flex-wrap items-center gap-2 text-sm text-neutral-600">
                     {roleNames[i.role as Role]}
                     {i.status === "Expired" ? (
-                      <Badge className="bg-warning-50 text-warning-600">Süresi doldu</Badge>
+                      <Badge className="bg-neutral-100 text-neutral-600">Süresi doldu</Badge>
                     ) : (
-                      <Badge className="bg-neutral-100 text-brand-700">Son gün: {formatDate(i.expiresAt)}</Badge>
+                      <Badge className="bg-neutral-100 text-black">Son gün: {formatDate(i.expiresAt)}</Badge>
                     )}
                   </span>
                 </div>
@@ -212,7 +212,7 @@ function MembersCard() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-brand-700">Ekip</CardTitle>
+        <CardTitle className="text-black">Ekip</CardTitle>
         <CardDescription>Kimse kendi rolünü değiştiremez. Sahip rolünü sadece işletme sahibi verebilir.</CardDescription>
       </CardHeader>
       <CardContent>
@@ -228,9 +228,9 @@ function MembersCard() {
               return (
                 <li key={m.membershipId} className="flex flex-col gap-3 py-3 sm:flex-row sm:items-center sm:justify-between">
                   <div className="flex min-w-0 flex-col gap-0.5">
-                    <span className="flex items-center gap-2 text-sm font-semibold text-brand-900">
+                    <span className="flex items-center gap-2 text-sm font-semibold text-black">
                       {m.fullName}
-                      {m.isYou && <Badge className="bg-neutral-100 text-brand-700">Sen</Badge>}
+                      {m.isYou && <Badge className="bg-neutral-100 text-black">Sen</Badge>}
                     </span>
                     <span className="truncate text-sm text-neutral-600">{m.email}</span>
                   </div>
@@ -262,7 +262,7 @@ function MembersCard() {
                       </Button>
                     </div>
                   ) : (
-                    <Badge className="self-start bg-brand-500 text-white sm:self-center">{roleNames[memberRole]}</Badge>
+                    <Badge className="self-start bg-black text-white sm:self-center">{roleNames[memberRole]}</Badge>
                   )}
                 </li>
               );

@@ -52,8 +52,8 @@ export function ResetForm() {
 
   return (
     <form className="mt-8 flex flex-col gap-5" onSubmit={onSubmit} noValidate>
-      <p className="text-sm text-muted-foreground">
-        Hesap: <span className="font-semibold text-foreground">{email}</span>
+      <p className="text-sm text-neutral-600">
+        Hesap: <span className="font-semibold text-black">{email}</span>
       </p>
       <Field label="Yeni şifre" error={errors.newPassword?.message} hint={<PasswordHints value={password} />}>
         <PasswordInput autoComplete="new-password" {...register("newPassword")} />
@@ -76,7 +76,7 @@ export function ResetForm() {
 
 function NewLinkButton() {
   return (
-    <Link href="/sifremi-unuttum" className="inline-flex min-h-11 items-center justify-center text-sm font-semibold text-primary hover:underline">
+    <Link href="/sifremi-unuttum" className="inline-flex min-h-11 items-center justify-center text-sm font-semibold text-black underline decoration-brand decoration-2 underline-offset-4 hover:decoration-black">
       Yeni sıfırlama bağlantısı iste
     </Link>
   );

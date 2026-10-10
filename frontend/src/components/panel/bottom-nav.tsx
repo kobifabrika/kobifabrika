@@ -44,7 +44,7 @@ export function BottomNav() {
         key={item.label}
         href={panelHref(item.slug)}
         aria-current={active ? "page" : undefined}
-        className={cn(tabClass, active ? "text-brand-500" : "text-neutral-600")}
+        className={cn(tabClass, active ? "text-black shadow-[inset_0_3px_0_var(--color-brand)]" : "text-neutral-600")}
       >
         <Icon aria-hidden className="size-6" strokeWidth={active ? 2.4 : 2} />
         {item.label}
@@ -63,8 +63,8 @@ export function BottomNav() {
 
         <Sheet open={quickOpen} onOpenChange={setQuickOpen}>
           <SheetTrigger asChild>
-            <button type="button" className={cn(tabClass, "text-brand-900")} aria-label="Hızlı işlem">
-              <span className="flex size-12 items-center justify-center rounded-full bg-brand-500 text-white shadow-md">
+            <button type="button" className={cn(tabClass, "text-black")} aria-label="Hızlı işlem">
+              <span className="flex size-12 items-center justify-center rounded-full bg-black text-white">
                 <Plus aria-hidden className="size-7" />
               </span>
             </button>
@@ -80,9 +80,9 @@ export function BottomNav() {
                   key={label}
                   href={href}
                   onClick={() => setQuickOpen(false)}
-                  className="flex min-h-20 flex-col items-start justify-center gap-2 rounded-lg border border-border bg-neutral-50 px-4 text-sm font-semibold text-brand-900 hover:border-brand-500"
+                  className="flex min-h-20 flex-col items-start justify-center gap-2 rounded-lg border border-border bg-neutral-50 px-4 text-sm font-semibold text-black hover:border-black"
                 >
-                  <Icon aria-hidden className="size-6 text-brand-500" />
+                  <Icon aria-hidden className="size-6 text-black" />
                   {label}
                 </Link>
               ))}
@@ -95,7 +95,7 @@ export function BottomNav() {
 
         <Sheet open={menuOpen} onOpenChange={setMenuOpen}>
           <SheetTrigger asChild>
-            <button type="button" className={cn(tabClass, menuOpen ? "text-brand-500" : "text-neutral-600")}>
+            <button type="button" className={cn(tabClass, menuOpen ? "text-black" : "text-neutral-600")}>
               <Menu aria-hidden className="size-6" />
               Menü
             </button>

@@ -38,9 +38,9 @@ export function EmailBanner() {
   };
 
   return (
-    <div role="status" className="border-b border-warning-600/30 bg-warning-50 px-4 py-3 lg:px-8">
+    <div role="status" className="border-b border-border bg-neutral-50 px-4 shadow-[inset_3px_0_0_var(--color-brand)] py-3 lg:px-8">
       <div className="mx-auto flex max-w-6xl flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-        <p className="flex items-start gap-2 text-sm text-warning-600">
+        <p className="flex items-start gap-2 text-sm text-black">
           <MailWarning aria-hidden className="mt-0.5 size-5 shrink-0" />
           <span>
             <strong>E-postanı doğrula.</strong> {me.user.email} adresine bir bağlantı gönderdik. Ekip daveti için doğrulama
@@ -49,7 +49,7 @@ export function EmailBanner() {
         </p>
         <Button
           variant="outline"
-          className="shrink-0 border-warning-600 text-warning-600 hover:bg-white"
+          className="shrink-0"
           disabled={sending || cooldown > 0}
           onClick={resend}
         >

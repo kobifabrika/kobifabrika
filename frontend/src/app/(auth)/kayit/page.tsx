@@ -11,17 +11,17 @@ export const metadata: Metadata = { title: "Üye ol" };
 export default function RegisterPage() {
   return (
     <>
-      <h1 className="text-3xl font-bold tracking-tight text-foreground">Üye ol</h1>
-      <p className="mt-2 text-sm text-muted-foreground">Hesabınızı oluşturun; işletme bilgilerini sonraki adımda soracağız.</p>
+      <h1 className="text-3xl font-bold tracking-tight text-black">Üye ol</h1>
+      <p className="mt-2 text-sm text-neutral-600">Hesabınızı oluşturun; işletme bilgilerini sonraki adımda soracağız.</p>
 
       <Suspense>
         <RedirectIfSignedIn />
       </Suspense>
       <RegisterForm />
 
-      <p className="mt-6 text-center text-sm text-muted-foreground">
+      <p className="mt-6 text-center text-sm text-neutral-600">
         Zaten hesabınız var mı?{" "}
-        <Link href="/giris" className="inline-flex min-h-11 items-center font-semibold text-primary hover:underline">
+        <Link href="/giris" className="inline-flex min-h-11 items-center font-semibold text-black underline decoration-brand decoration-2 underline-offset-4 hover:decoration-black">
           Giriş yap
         </Link>
       </p>

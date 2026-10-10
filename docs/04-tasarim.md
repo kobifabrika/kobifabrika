@@ -4,50 +4,65 @@ Referans taslaklar: `docs/tasarim-referans/index.html` (giriş ekranı) ve `admi
 Bu dosyalar sadece görsel referanstır; içlerindeki "KOBIOS" adı eski çalışma adıdır, her yerde **KobiFabrika** yazılacak.
 Logo henüz yok: logo gelene kadar "KobiFabrika" yazısı (wordmark) kullanılır.
 
-## Renkler (site geneli, kesin)
+## Renkler (site geneli, kesin — 2026-10-10)
+
+Sitenin, giriş ekranlarının ve panelin tamamında **üç renk** var:
 
 | Token | Hex | Kullanım |
 |---|---|---|
-| `brand-900` (color1) | `#000a1d` | En koyu lacivert: sol menü zemini, başlıklar, ana metin, giriş ekranı marka paneli |
-| `brand-700` (color2) | `#00385a` | İkincil koyu: hover, kart başlıkları, tablo başlığı |
-| `brand-500` (color3) | `#006ea6` | Ana buton (beyaz yazı), link, beyaz zeminde vurgu metni |
-| `brand-300` (color4) | `#00b0ff` | Koyu zeminde aktif menü, ikon, grafik çizgisi, rozet; açık buton (yazı `#000a1d`) |
-| `brand-100` (color5) | `#00fdff` | Koyu zeminde vurgu, odak halkası, grafik ikincil |
+| `black` | `#000000` | Yazı, ana buton (panel ve giriş), sol menü, üst çubuk, giriş ekranı marka paneli, sitede en fazla 2 siyah bölüm |
+| `white` | `#ffffff` | Zemin, siyah zeminde yazı |
+| `brand` | `#00b0ff` | Vurgu mavisi (wordmark'taki "Fabrika"): sitenin ana çağrı butonu, aktif menü, odak halkası, alt çizgi, küçük ikon |
 
-Nötrler: hafif lacivert tonlu griler (ör. zemin `#f5f7fa`, kenarlık `#e3e8ef`, ikincil metin `#5b6676`).
-Durum renkleri (marka renklerinden ayrı): başarı `#15803d`, uyarı `#b45309`, hata `#b91c1c` (açık zeminleri `#ecfdf3`, `#fffbeb`, `#fef2f2`).
-Odak halkası: açık zeminde `brand-500`, koyu zeminde `brand-100`.
-Token'ların kodu: `frontend/src/app/globals.css` (Tailwind sınıfları: `bg-brand-900`, `text-brand-500`, `border-neutral-200`, `text-danger-600`…).
+- **Griler** (`neutral-50` … `neutral-900`) siyah-beyaz arası, renk tonu yok (R = G = B). Ayırıcı çizgi `neutral-200`, ikincil metin `neutral-600`, input kenarlığı `neutral-400`, siyah zeminde ikincil metin `neutral-300`.
+- **Kırmızı** (`danger-600` #b91c1c, açık zemini `danger-50`) sadece hata mesajı ve silme gibi işlevsel uyarılarda.
+- **Başarı için yeşil yok:** siyah (veya mavi ikon) + ✓. Uyarı için sarı yok: gri kutu + solda ince mavi çizgi.
+- Kaldırılanlar (kodda, token'da, e-posta şablonunda kullanılmaz): `#000a1d`, `#00385a`, `#006ea6`, `#00fdff` ve onlardan türetilen tonlar; `success-*`, `warning-*`.
+- Token'ların kodu: `frontend/src/app/globals.css` (Tailwind: `bg-black`, `bg-brand`, `border-neutral-200`, `text-danger-600`…). Tailwind'in hazır paleti kapalı.
 
 ### Kontrast kuralları
 
-- Beyaz zeminde yazı/link: sadece `#000a1d` (19.8:1), `#00385a` (12.3:1), `#006ea6` (5.6:1).
-- `#00b0ff` (2.4:1) ve `#00fdff` (1.3:1) beyaz zeminde **yazı olarak kullanılmaz**; ikon, çizgi, dekor için.
-- Koyu zeminde (`#000a1d`): `#00b0ff` (8.2:1) ve `#00fdff` (15.5:1) rahat okunur.
-- `#00b0ff` buton → yazı `#000a1d`. `#006ea6` buton → yazı beyaz.
+- Beyaz zeminde yazı/link: siyah (21:1), `neutral-700`, `neutral-600` (7.8:1). Link = siyah yazı + alt çizgi (alt çizgi mavi olabilir).
+- **Mavi beyaz zeminde yazı olarak kullanılmaz** (2.1:1). Sadece çizgi, ikon, alt çizgi, vurgu zemini (ör. aktif menü, ilerleme çubuğu).
+- Siyah zeminde mavi yazı/link olabilir (9.9:1).
+- Mavi buton → yazı **siyah** (9.9:1). Siyah buton → yazı beyaz.
+- Odak: mavi halka (3px). Beyaz zeminde mavi tek başına 3:1 vermediği için inputların kenarı odakta siyaha döner; butonlarda halka siyah butona bitişik durur.
+- `danger-600` siyah zeminde yazı olamaz; siyah zeminde hata mesajı açık kutuda (`bg-danger-50 text-danger-600`).
+- `src/lib/theme/contrast.test.ts` bu kuralları gerçek token değerleri üzerinden doğrular; eski renkler `globals.css`'e geri girerse test kırılır.
 
-### Site ve kimlik ekranları koyu tema (2026-10-10)
+### Kapsamlar
 
-- **Koyu:** tanıtım sitesi (`/`, `/kvkk`), giriş/kayıt/şifre/davet/e-posta doğrulama ekranları, kurulum sihirbazı (`/kurulum`), panelin sol menüsü ve üst çubuğu. **Açık:** panelin içerik alanı (ve alt sekme çubuğu).
-- Uygulama: kapsayıcıya `dark` sınıfı verilir; `globals.css` → `.dark` bloğu semantik değişkenleri koyuya çevirir. Bileşenlerde sabit renk yerine semantik sınıf kullan (`bg-card`, `text-foreground`, `text-muted-foreground`, link için `text-primary`); böylece aynı bileşen panelde açık, kimlik ekranlarında koyu görünür. Koyu kapsam içinde açık bir ada gerekirse (ör. sitedeki panel önizlemesi) `light` sınıfı.
-- Yeni renk yok. Zemin `#000a1d`; kart/yüzey `#00385a` ile `#000a1d` karışımı (`color-mix`) veya `#000a1d` üstünde %3-4 şeffaf beyaz (cam kart).
-- Koyu zeminde yazı: başlık/ana metin beyaz, ikincil metin `neutral-300`/`neutral-400`; link ve vurgu `#00b0ff`, güçlü vurgu `#00fdff`. **`#006ea6` ve `neutral-600` koyu zeminde yazı olarak kullanılmaz.**
-- Ana buton `#00b0ff` zemin + `#000a1d` yazı (hover `#00fdff`). Odak halkası `#00fdff`. Input koyu zemin (`#000a1d`), açık yazı, kenarlık `neutral-500`.
-- Durum renkleri (`danger-600`, `success-600`) koyu zeminde yazı olamaz (3:1 altı): hata ve başarı mesajları açık kutuda (`bg-danger-50 text-danger-600`) gösterilir.
-- Efektler ölçülü: hafif turkuaz ışıma, ince çizgi ızgara (`.kf-grid`), cam kart. Kaydırmada giriş animasyonu (`.kf-reveal`, saf CSS) sadece `prefers-reduced-motion: no-preference` iken.
+- **Beyaz (varsayılan, `:root`):** tanıtım sitesi, giriş/kayıt/şifre/davet/e-posta doğrulama, kurulum sihirbazı, panel içerik alanı. Ana buton siyah (`primary`), sitenin çağrı butonu mavi (`<Button variant="accent">`).
+- **Siyah (`.dark` sınıfı):** panelin üst çubuğu, sitedeki siyah bölümler. İçindeki semantik sınıflar (`bg-card`, `text-foreground`, `text-muted-foreground`, `text-primary`) kendiliğinden siyah zemine döner; burada `primary` mavidir.
+- **Sol menü:** siyah zemin, `neutral-300` yazı, aktif öğe mavi zemin + siyah yazı, hover `neutral-800`.
+- Giriş ekranları: solda siyah marka paneli (wordmark, slogan, şirket unvanı), sağda beyaz form; 768px altında marka paneli üstte ince bant.
+
+## Tasarım ilkeleri (site ve panel)
+
+Rakip incelemesi: `docs/rakip-site-notlari.md`.
+
+- Ağırlıklı beyaz zemin, siyah yazı, bol boşluk, güçlü tipografi hiyerarşisi, **sola hizalı** düzen.
+- **Mavi az:** her ekran alanında bir mavi öğe yeter (sitede bölüm başına: ana buton *ya da* bir kelimenin alt çizgisi *ya da* paketlerde önerilen paketin üst çizgisi).
+- Bölümleri ayırmak için **gölge yerine ince çizgi** (`border-black` güçlü ayrım, `border-neutral-200` hafif). Kartlarda gölge yok.
+- **Ürünü göster:** sitedeki ekranlar resim değil, panelin gerçek bileşenleriyle (`Card`, `Badge`, `Button`, menü) çizilir (`src/components/site/product-shots.tsx`), tarayıcı ve telefon çerçevesinde. Örnek veriler gerçekçi ve esnafa ait ("Ayşe Yılmaz — Saç kesimi, 14:30", "Bakiye 1.250 TL"); her çerçevenin altında "Örnek ekran" yazar.
+- **Metin esnafın dilinde,** somut ve kısa: "Veresiye defterini kapat", "Gelmeyen müşteriyi geri çağır". Kalıp sözler yok: "devrim", "akıllı", "yapay zekâ destekli", "işinizi bir üst seviyeye taşıyın".
+- **Yasak:** gradyan, neon ışıma, cam/blur kart, yüzen/eğik 3D kart, emoji, her bölümde ikon yağmuru, her şeyin ortalanması, her kartın aynı yuvarlak köşe + gölge alması, sayaç animasyonu, uydurma müşteri yorumu/logo/kullanıcı sayısı.
+- İkonlar tek renk (siyah; siyah zeminde beyaz/gri) ve az; liste maddelerinde ✓ yeterli.
+- **Animasyon en az:** sadece sitenin ilk bölümünde hafif belirme (`.kf-fade`), `prefers-reduced-motion: no-preference` iken. Kaydırmaya bağlı animasyon yok.
+- Köşe yuvarlaklığı 6px (`--radius`); büyük yüzeylerde (çerçeve, tablo) köşe yok ya da az.
 - Paket fiyatları tek dosyada: `frontend/src/content/plans.ts` (`monthlyPrice: null` → "Lansman fiyatı yakında").
-- Kontrast testleri (`src/lib/theme/contrast.test.ts`) `.dark` bloğunu okuyup koyu kombinasyonları da doğrular.
 
 ## Tipografi
 
-Sistem fontu yığını: `-apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif` (Türkçe karakter sorunu yok, hızlı).
-Ölçek: 12 / 14 / 16 / 18 / 20 / 24 / 30 px. Rakamlar `tabular-nums`.
+- **Başlık:** Schibsted Grotesk (`next/font/google`, kendi sunucumuzdan; `latin` + `latin-ext`). `h1`–`h3` ve `font-heading` sınıfı. Kalın (700), sıkı satır aralığı, hafif negatif harf aralığı.
+- **Gövde:** sistem fontu yığını `-apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif` (Türkçe karakter sorunu yok, hızlı).
+- Ölçek: 12 / 14 / 16 / 18 / 20 / 24 / 30 px panelde; sitede başlıklar 36–84px. Rakamlar `tabular-nums`. 12px'in altı yok.
 
 ## Taslaklardan alınan dil
 
-- Minimal, sakin, beyaz kartlar, ince kenarlıklar, 6-8px köşe yuvarlaklığı, gölge az.
-- Giriş ekranı: solda koyu marka paneli (KobiFabrika, slogan, şirket unvanı), sağda form (2026-10-10'dan beri form da koyu kart; yukarıya bak) (kullanıcı adı/e-posta, şifre + Göster, Beni hatırla, Şifremi unuttum, Giriş Yap, Üye Ol).
-- Panel: koyu sol menü (YÖNETİM ve İŞLETME grupları, sayı rozetleri), üstte selamlama ("Günaydın, Emir."), 4 istatistik kartı, satış grafiği, personel durumu, son satışlar tablosu.
+- Minimal, sakin, beyaz zemin, ince kenarlıklar, 6px köşe yuvarlaklığı, gölge yok.
+- Giriş ekranı: solda siyah marka paneli (KobiFabrika, slogan, şirket unvanı), sağda beyaz form (kullanıcı adı/e-posta, şifre + Göster, Beni hatırla, Şifremi unuttum, Giriş Yap, Üye Ol).
+- Panel: siyah sol menü (YÖNETİM ve İŞLETME grupları, sayı rozetleri), üstte selamlama ("Günaydın, Emir."), 4 istatistik kartı, satış grafiği, personel durumu, son satışlar tablosu.
 - Menü (Faz 1): **İşletme:** Bugün · Randevular · Satışlar · Müşteriler · Ürünler/Hizmetler · Stok · Cari ve Kasa · Kampanyalar. **Yönetim:** Personel · Mesai ve İzin · Raporlar · Ayarlar.
 
 ## Taslaklardaki hatalar (tekrarlanmayacak)

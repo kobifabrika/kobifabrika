@@ -88,7 +88,7 @@ Serilog (konsol + dosya), canlıda Sentry (ücretsiz katman). Her istek için co
 - Oturum: `src/proxy.ts` sadece `kf.auth` cookie'sinin varlığına bakar (yoksa `/giris?donus=…`). Asıl kontrol `PanelGate`'te: `GET /api/auth/me` 401 → giriş, kurulum bitmemiş → `/kurulum`. Panel içeriği istemcide render edildiği için panel segmentleri `export const instant = false` ile anında gezinme doğrulamasının dışında.
 - Veri çekme: `openapi-typescript` ile üretilen tipler + küçük bir `apiClient` (fetch, `credentials: "include"`). Sunucu durumu için TanStack Query.
 - Formlar: react-hook-form + zod (backend doğrulamasıyla aynı kurallar).
-- Tema: `docs/04-tasarim.md`'deki renkler Tailwind tema token'larına ve CSS değişkenlerine işlenir. Açık tema öncelikli; koyu tema sonra.
+- Tema: `docs/04-tasarim.md`'deki renkler Tailwind tema token'larına ve CSS değişkenlerine işlenir. Beyaz tema varsayılan; siyah kapsam (`.dark` sınıfı) panelin üst çubuğu ve sitedeki siyah bölümler için.
 - Panel düzeni: masaüstünde koyu sol menü; telefonda alt sekme çubuğu (Bugün, Randevu, Satış, Müşteri, Menü) + hızlı işlem butonu.
 - Erişilebilirlik: klavye ile kullanılabilir, görünür odak, form etiketleri.
 

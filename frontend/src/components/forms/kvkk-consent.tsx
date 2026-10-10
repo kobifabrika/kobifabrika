@@ -23,7 +23,7 @@ export function KvkkConsent({ error, ...input }: ComponentProps<"input"> & { err
         <input
           id="kvkk"
           type="checkbox"
-          className="mt-0.5 size-5 shrink-0 accent-brand-500 dark:accent-brand-300"
+          className="mt-0.5 size-5 shrink-0 accent-black dark:accent-brand"
           aria-invalid={error ? true : undefined}
           aria-describedby={error ? "kvkk-error" : undefined}
           {...input}
@@ -57,7 +57,7 @@ function KvkkDialog() {
         <div className="flex flex-col gap-4 text-sm leading-6 text-neutral-700 dark:text-neutral-300">
           {kvkkSections.map((s) => (
             <section key={s.heading}>
-              <h3 className="font-semibold text-brand-900">{s.heading}</h3>
+              <h3 className="font-semibold text-black">{s.heading}</h3>
               <p>{s.body}</p>
             </section>
           ))}

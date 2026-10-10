@@ -27,7 +27,7 @@ export function PanelGate({ children }: { children: ReactNode }) {
   if (error && !unauthenticated) {
     return (
       <FullScreenMessage>
-        <p className="text-base font-semibold text-brand-900">Sunucuya ulaşılamıyor</p>
+        <p className="text-base font-semibold text-black">Sunucuya ulaşılamıyor</p>
         <p className="text-sm text-neutral-600">İnternet bağlantınızı kontrol edip sayfayı yenileyin.</p>
       </FullScreenMessage>
     );

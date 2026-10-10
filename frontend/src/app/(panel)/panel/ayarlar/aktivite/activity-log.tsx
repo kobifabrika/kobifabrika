@@ -41,7 +41,7 @@ function ActivityList() {
       <p className="text-sm text-neutral-600">Girişler, davetler, rol değişiklikleri ve işletme ayarı değişiklikleri burada kayıtlıdır.</p>
       <Field label="İşlem türü" className="sm:w-72">
         <select
-          className="h-11 w-full rounded-lg border border-input bg-background px-3 text-base text-brand-900"
+          className="h-11 w-full rounded-lg border border-input bg-background px-3 text-base text-black"
           value={action}
           onChange={(e) => {
             setAction(e.target.value as AuditAction | "");
@@ -76,7 +76,7 @@ function ActivityList() {
                         {formatDateTime(item.at)}
                       </time>
                       <div className="flex flex-col gap-0.5">
-                        <p className="text-sm text-brand-900">
+                        <p className="text-sm text-black">
                           <span className="font-semibold">{item.userName ?? "Sistem"}</span> {auditActionLabels[item.action].toLocaleLowerCase("tr-TR")}
                         </p>
                         {detail && <p className="text-sm break-all text-neutral-600">{detail}</p>}

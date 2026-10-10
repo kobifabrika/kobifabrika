@@ -34,7 +34,7 @@ export function PasswordHints({ value }: { value: string }) {
       {passwordHints.map(({ label, test }) => {
         const ok = test(value);
         return (
-          <li key={label} className={cn("flex items-center gap-2 text-xs", ok ? "text-success-600 dark:text-brand-100" : "text-muted-foreground")}>
+          <li key={label} className={cn("flex items-center gap-2 text-xs", ok ? "text-foreground" : "text-muted-foreground")}>
             {ok ? <Check aria-hidden className="size-4" /> : <Circle aria-hidden className="size-3" />}
             {label}
             <span className="sr-only">{ok ? " (tamam)" : " (eksik)"}</span>

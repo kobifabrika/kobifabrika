@@ -44,7 +44,7 @@ export function SetupWizard() {
 
   if (!state.data) {
     return (
-      <p role="status" className="py-10 text-center text-sm text-muted-foreground">
+      <p role="status" className="py-10 text-center text-sm text-neutral-600">
         {state.isError ? errorMessage(state.error) : "Yükleniyor…"}
       </p>
     );
@@ -125,12 +125,12 @@ function WizardSteps({ initial }: { initial: SetupState }) {
   return (
     <div className="flex flex-col gap-6 pb-28">
       <div>
-        <p className="text-sm font-semibold text-primary">
+        <p className="text-sm font-semibold text-neutral-600">
           Adım {step + 1}/3 · {steps[step]}
         </p>
         <div className="mt-2 flex gap-1.5" aria-hidden>
           {steps.map((s, i) => (
-            <span key={s} className={cn("h-1.5 flex-1 rounded-full", i <= step ? "bg-primary" : "bg-muted")} />
+            <span key={s} className={cn("h-1.5 flex-1 rounded-full", i <= step ? "bg-brand" : "bg-neutral-200")} />
           ))}
         </div>
       </div>
@@ -138,8 +138,8 @@ function WizardSteps({ initial }: { initial: SetupState }) {
       {step === 0 && (
         <section className="flex flex-col gap-4">
           <div>
-            <h1 className="text-2xl font-bold tracking-tight text-foreground">İşletmeni tanıyalım</h1>
-            <p className="mt-1 text-sm text-muted-foreground">Sektörün menüyü ve varsayılan ayarları belirler; sonra değiştirebilirsin.</p>
+            <h1 className="text-2xl font-bold tracking-tight text-black">İşletmeni tanıyalım</h1>
+            <p className="mt-1 text-sm text-neutral-600">Sektörün menüyü ve varsayılan ayarları belirler; sonra değiştirebilirsin.</p>
           </div>
           <form id="business-form" onSubmit={saveBusiness} noValidate>
             <BusinessFields
@@ -155,8 +155,8 @@ function WizardSteps({ initial }: { initial: SetupState }) {
       {step === 1 && (
         <section className="flex flex-col gap-4">
           <div>
-            <h1 className="text-2xl font-bold tracking-tight text-foreground">Çalışma saatlerin</h1>
-            <p className="mt-1 text-sm text-muted-foreground">Online randevu ve takvim bu saatlere göre çalışır.</p>
+            <h1 className="text-2xl font-bold tracking-tight text-black">Çalışma saatlerin</h1>
+            <p className="mt-1 text-sm text-neutral-600">Online randevu ve takvim bu saatlere göre çalışır.</p>
           </div>
           <WorkingHoursEditor value={hours} onChange={setHours} />
         </section>
@@ -165,8 +165,8 @@ function WizardSteps({ initial }: { initial: SetupState }) {
       {step === 2 && (
         <section className="flex flex-col gap-4">
           <div>
-            <h1 className="text-2xl font-bold tracking-tight text-foreground">Logon var mı?</h1>
-            <p className="mt-1 text-sm text-muted-foreground">Tekliflerde ve randevu sayfanda görünür. İstersen bu adımı atlayabilirsin.</p>
+            <h1 className="text-2xl font-bold tracking-tight text-black">Logon var mı?</h1>
+            <p className="mt-1 text-sm text-neutral-600">Tekliflerde ve randevu sayfanda görünür. İstersen bu adımı atlayabilirsin.</p>
           </div>
           <LogoUpload logoUrl={logoUrl} endpoint="/api/setup/logo" onChange={setLogoUrl} />
         </section>
@@ -174,7 +174,7 @@ function WizardSteps({ initial }: { initial: SetupState }) {
 
       {error && <FormMessage>{error}</FormMessage>}
 
-      <div className="fixed inset-x-0 bottom-0 z-20 border-t border-border bg-background/90 px-4 backdrop-blur pt-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))]">
+      <div className="fixed inset-x-0 bottom-0 z-20 border-t border-border bg-white px-4 pt-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))]">
         <div className="mx-auto flex max-w-xl gap-3">
           {step > 0 && (
             <Button type="button" variant="outline" size="lg" disabled={busy} onClick={() => setStep((s) => (s - 1) as 0 | 1)}>

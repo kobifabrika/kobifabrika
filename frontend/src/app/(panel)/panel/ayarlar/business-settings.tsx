@@ -55,7 +55,7 @@ function SettingsCard({ title, description, children }: { title: string; descrip
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-brand-700">{title}</CardTitle>
+        <CardTitle className="text-black">{title}</CardTitle>
         {description && <CardDescription>{description}</CardDescription>}
       </CardHeader>
       <CardContent>{children}</CardContent>
@@ -179,7 +179,7 @@ function SlugCard({ business, readOnly }: { business: Business; readOnly: boolea
               value={slug}
               disabled={readOnly}
               onChange={(e) => setSlug(e.target.value.trim().toLowerCase())}
-              className="h-11 min-w-0 flex-1 bg-background px-2 text-base text-brand-900 outline-none disabled:bg-neutral-100"
+              className="h-11 min-w-0 flex-1 bg-background px-2 text-base text-black outline-none disabled:bg-neutral-100"
               autoCapitalize="none"
               autoCorrect="off"
               spellCheck={false}
@@ -222,7 +222,7 @@ function ModulesCard({ business, readOnly }: { business: Business; readOnly: boo
           <li key={row.key}>
             <label className="flex min-h-14 items-center justify-between gap-4 py-2">
               <span className="flex flex-col">
-                <span className="text-sm font-semibold text-brand-900">{row.label}</span>
+                <span className="text-sm font-semibold text-black">{row.label}</span>
                 <span className="text-sm text-neutral-600">{row.text}</span>
               </span>
               <Switch
