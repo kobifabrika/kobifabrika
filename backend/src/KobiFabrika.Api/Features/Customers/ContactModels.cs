@@ -163,7 +163,7 @@ public static class ContactLabels
         var t = text.Trim();
         foreach (var (source, label) in Sources)
         {
-            if (string.Equals(label, t, StringComparison.CurrentCultureIgnoreCase) || string.Equals(source.ToString(), t, StringComparison.OrdinalIgnoreCase))
+            if (string.Equals(label, t, StringComparison.InvariantCultureIgnoreCase) || string.Equals(source.ToString(), t, StringComparison.OrdinalIgnoreCase))
             {
                 return source;
             }

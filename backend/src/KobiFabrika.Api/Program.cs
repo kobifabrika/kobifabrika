@@ -164,6 +164,7 @@ app.MapAuditLogEndpoints();
 app.MapContactEndpoints();
 app.MapTagAndSegmentEndpoints();
 app.MapLedgerEndpoints();
+app.MapImportEndpoints();
 
 app.Run();
 
