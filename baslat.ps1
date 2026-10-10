@@ -9,17 +9,29 @@
     4. API'yi ve frontend'i iki ayrı PowerShell penceresinde başlatır.
     5. İkisi de hazır olunca tarayıcıda http://localhost:3000 adresini açar.
 
+    Bir servis ancak bu betiğin daha önce açtığı pencere hâlâ açıksa yeniden kullanılır. Portta sahipsiz
+    kalmış bir dotnet/node süreci varsa (kapanmış bir terminalden veya başka bir araçtan kalan) durdurulup
+    yeniden başlatılır: çıktısını okuyan kalmamış bir Next.js dev sunucusu "write EPIPE" ile bozulur,
+    sayfalar dakikalarca "Rendering" der ve tarayıcıda "Failed to fetch" görünür.
+
     Durdurmak için: .\durdur.ps1
 
 .PARAMETER TarayiciAcma
     Hazır olunca tarayıcıyı açma.
 
+.PARAMETER Hizli
+    Frontend'i production modunda açar (npm run build + npm start). İlk açılış derleme yüzünden 1-3 dakika
+    sürer, sonra sayfalar anında açılır; elle deneme için. Kod değişiklikleri otomatik yansımaz (tekrar
+    .\baslat.ps1 -Hizli). Varsayılan dev modudur (npm run dev, anlık yenileme).
+
 .EXAMPLE
     .\baslat.ps1
+    .\baslat.ps1 -Hizli
 #>
 [CmdletBinding()]
 param(
-    [switch]$TarayiciAcma
+    [switch]$TarayiciAcma,
+    [switch]$Hizli
 )
 
 # Native komutlar (docker, dotnet, npm) $LASTEXITCODE ile kontrol edilir; 'Stop' Windows PowerShell 5.1'de
@@ -58,6 +70,30 @@ function Wait-Until([scriptblock]$condition, [int]$timeoutSeconds, [string]$what
         Start-Sleep -Seconds 2
     }
     Stop-WithError "$what $timeoutSeconds saniyede hazır olmadı."
+}
+
+# Porta dinleyen süreçlerin PID'leri.
+function Get-PortOwners([int]$port) {
+    @(Get-NetTCPConnection -LocalPort $port -State Listen -ErrorAction SilentlyContinue |
+        Select-Object -ExpandProperty OwningProcess -Unique)
+}
+
+# Portu tutan dotnet/node süreçlerini alt süreçleriyle durdurur; port başka bir programdaysa hata verir.
+function Clear-Port([int]$port, [string]$what) {
+    foreach ($owner in Get-PortOwners $port) {
+        $process = Get-Process -Id $owner -ErrorAction SilentlyContinue
+        if (-not $process) { continue }
+        if ($process.ProcessName -notmatch '^(dotnet|node|KobiFabrika\.Api)$') {
+            Stop-WithError "Port $port başka bir programda: $($process.ProcessName) (PID $owner). Kapatıp tekrar deneyin."
+        }
+        Write-Host "    Port $port'ta sahipsiz $what süreci var ($($process.ProcessName), PID $owner); yeniden başlatılıyor." -ForegroundColor Yellow
+        taskkill /PID $owner /T /F *> $null
+    }
+    Wait-Until { (Get-PortOwners $port).Count -eq 0 } 20 "Port $port"
+}
+
+function Test-Alive($processId) {
+    return [bool]($processId -and (Get-Process -Id $processId -ErrorAction SilentlyContinue))
 }
 
 function Test-Docker {
@@ -117,8 +153,24 @@ Wait-Until {
 Write-Ok 'SQL Server hazır. Mailpit: http://localhost:8025'
 
 # --- 3. Migration'lar -------------------------------------------------------
+# Pencere PID'leri durdur.ps1 için saklanır. Yeniden kullanılan servisin önceki PID'i korunur.
+$pids = @{}
+if (Test-Path $pidFile) {
+    try {
+        (Get-Content $pidFile -Raw | ConvertFrom-Json).PSObject.Properties | ForEach-Object { $pids[$_.Name] = $_.Value }
+    } catch {
+        $pids = @{}
+    }
+}
+
+# API sadece bu betiğin açtığı pencere hâlâ açıksa yeniden kullanılır; portta sahipsiz süreç varsa kapatılır.
+$apiAlreadyRunning = (Test-Alive $pids.api) -and (Test-Url $apiUrl)
+if (-not $apiAlreadyRunning) {
+    if (Test-Alive $pids.api) { taskkill /PID $pids.api /T /F *> $null }
+    Clear-Port 5080 'API'
+}
+
 Write-Step 'Veritabanı migration''ları uygulanıyor'
-$apiAlreadyRunning = Test-Url $apiUrl
 $efArgs = @('ef', 'database', 'update', '-p', $infraProject, '-s', $apiProject)
 if ($apiAlreadyRunning) {
     # Çalışan API DLL'leri kilitler (Windows); derlemeden mevcut çıktıyla uygulanır.
@@ -155,16 +207,6 @@ function Start-Window([string]$title, [string]$workingDirectory, [string]$comman
     return $process.Id
 }
 
-# Pencere PID'leri durdur.ps1 için saklanır. Zaten çalışan bir servis atlanırsa önceki PID'i korunur.
-$pids = @{}
-if (Test-Path $pidFile) {
-    try {
-        (Get-Content $pidFile -Raw | ConvertFrom-Json).PSObject.Properties | ForEach-Object { $pids[$_.Name] = $_.Value }
-    } catch {
-        $pids = @{}
-    }
-}
-
 Write-Step 'API başlatılıyor (yeni pencere)'
 if ($apiAlreadyRunning) {
     Write-Ok 'API zaten çalışıyor; yeni pencere açılmadı.'
@@ -172,11 +214,25 @@ if ($apiAlreadyRunning) {
     $pids.api = Start-Window 'KobiFabrika API' $root "dotnet run --project $apiProject"
 }
 
-Write-Step 'Frontend başlatılıyor (yeni pencere)'
-if (Test-Url "$webUrl/giris") {
-    Write-Ok 'Frontend zaten çalışıyor; yeni pencere açılmadı.'
+$webMode = if ($Hizli) { 'prod' } else { 'dev' }
+$webModeLabel = if ($Hizli) { 'production: npm run build + npm start' } else { 'dev: npm run dev' }
+Write-Step "Frontend başlatılıyor ($webModeLabel, yeni pencere)"
+$webReusable = (Test-Alive $pids.web) -and ($pids.webMode -eq $webMode) -and (Test-Url "$webUrl/giris")
+if ($webReusable) {
+    Write-Ok 'Frontend zaten bu modda çalışıyor; yeni pencere açılmadı.'
 } else {
-    $pids.web = Start-Window 'KobiFabrika Frontend' (Join-Path $root 'frontend') 'npm run dev'
+    if (Test-Alive $pids.web) {
+        Write-Host '    Önceki frontend penceresi kapatılıyor (mod değişti veya yanıt vermiyor).'
+        taskkill /PID $pids.web /T /F *> $null
+    }
+    Clear-Port 3000 'frontend'
+    $webCommand = if ($Hizli) {
+        "npm run build; if (`$LASTEXITCODE -eq 0) { npm start } else { Write-Host 'Build başarısız; yukarıdaki hatayı inceleyin.' -ForegroundColor Red }"
+    } else {
+        'npm run dev'
+    }
+    $pids.web = Start-Window 'KobiFabrika Frontend' (Join-Path $root 'frontend') $webCommand
+    $pids.webMode = $webMode
 }
 
 $pids | ConvertTo-Json | Set-Content -Path $pidFile -Encoding UTF8
@@ -185,7 +241,10 @@ $pids | ConvertTo-Json | Set-Content -Path $pidFile -Encoding UTF8
 Write-Step 'API ve frontend''in hazır olması bekleniyor'
 Wait-Until { Test-Url $apiUrl } 180 "API ($apiUrl)"
 Write-Ok "API hazır: http://localhost:5080 (doküman: /scalar)"
-Wait-Until { Test-Url "$webUrl/giris" } 180 "Frontend ($webUrl)"
+# Production build ilk seferde birkaç dakika sürebilir.
+$webTimeout = if ($Hizli) { 600 } else { 180 }
+if ($Hizli -and -not $webReusable) { Write-Host '    Production build alınıyor (1-3 dakika)...' }
+Wait-Until { Test-Url "$webUrl/giris" } $webTimeout "Frontend ($webUrl)"
 Write-Ok "Frontend hazır: $webUrl"
 
 if (-not $TarayiciAcma) {

@@ -2,6 +2,12 @@
 
 En yeni en üstte. Notion'daki "Proje Planı ve Kararlar" sayfasıyla aynı kararlar; teknik kararlar burada daha ayrıntılı.
 
+- **2026-10-11 (geliştirme ortamı, "Failed to fetch" ve yavaşlık):**
+  - Neden: önceki bir Claude oturumunun arka planda açtığı Next dev sunucusu oturum kapanınca sahipsiz kaldı (stdout borusu koptu); `baslat.ps1` port 3000 yanıt verdiği için onu yeniden kullandı. Dinamik yollarda (`/panel/musteriler/[id]`) static-paths worker `write EPIPE` ile çöküp tekrar denedi, istekler dakikalarca sürdü, RSC isteği "TypeError: Failed to fetch" ile düştü. API sağlıklıydı; uygulama kodunda tekrarlanan istek veya sonsuz render yok (temiz dev sunucuda sayfalar 0,2-0,7 sn, production'da 0,1-0,2 sn).
+  - `baslat.ps1` bir servisi sadece kendi açtığı pencere hâlâ açıksa yeniden kullanır; portta sahipsiz `dotnet`/`node` varsa durdurup yeniden başlatır. `-Hizli`: frontend production modunda (`npm run build` + `npm start`), elle deneme için; varsayılan dev modu.
+  - API istemcisi 20 sn zaman aşımı kullanır; ağ hatası/zaman aşımı `NetworkError` olur. Veri yüklenemeyen her ekran Türkçe hata ve "Tekrar dene" gösterir (`QueryError`); panel açılışında oturum alınamazsa tam ekran "Panel açılamadı" + "Tekrar dene".
+  - Bozuk istek gövdesi (geçersiz JSON/UTF-8) Development'ta da 500 değil 400 döner.
+
 - **2026-10-11 (Sprint 2, ürün):**
   - Adresler: `/panel/musteriler` (liste), `/yeni` (`?tur=tedarikci` ile tedarikçi), `/[id]` (sekmeler `?sekme=ozet|zaman|cari|notlar|hatirlatmalar`), `/[id]/duzenle`, `/ice-aktar`; `/panel/cari-kasa` (`?sekme=bakiyeler|tahsilat-linkleri|tedarikciler|kasa`), `/panel/cari-kasa/tedarikciler/[id]`; `/panel/hatirlatmalar` (menüde değil; zil, kart ve Ctrl+K'dan); herkese açık `/ekstre/[token]`, `/odeme/[token]`. Ayarlar'da "Ödeme bilgileri" kartı (`?odeme=1` vurgular).
   - Müşteri ve tedarikçi tek tablo (Contacts); Müşteriler sayfası sadece müşterileri, Cari ve Kasa → Tedarikçiler sadece tedarikçileri listeler. Ad/soyad veya firma zorunlu; telefon isteğe bağlı, girilirse işletme içinde benzersiz ("Bu numara {ad} adına kayıtlı, karta git"). Silinen kaydın numarası tekrar kullanılabilir; arşivdeki kaydın numarası kullanılamaz (uyarı yine çıkar).

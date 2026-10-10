@@ -111,12 +111,15 @@ Repo kök klasöründe PowerShell'de:
 3. `docker compose up -d` çalıştırır, SQL Server "healthy" olana kadar bekler.
 4. Migration'ları uygular (`dotnet ef database update`).
 5. `frontend/node_modules` yoksa `npm install` yapar.
-6. API'yi (**KobiFabrika API**) ve frontend'i (**KobiFabrika Frontend**) iki ayrı PowerShell penceresinde başlatır. Biri zaten çalışıyorsa onu tekrar açmaz.
+6. API'yi (**KobiFabrika API**) ve frontend'i (**KobiFabrika Frontend**) iki ayrı PowerShell penceresinde başlatır. Daha önce
+   kendi açtığı pencere hâlâ açık ve yanıt veriyorsa onu tekrar açmaz. Portta sahipsiz kalmış bir `dotnet`/`node` süreci varsa
+   (kapatılmış bir terminalden veya başka bir araçtan kalan) onu durdurup yeniden başlatır.
 7. http://localhost:5080/health ve http://localhost:3000 hazır olunca tarayıcıda http://localhost:3000 adresini açar.
 
 | Seçenek | Ne yapar |
 |---|---|
 | `.\baslat.ps1 -TarayiciAcma` | Her şeyi başlatır ama tarayıcıyı açmaz. |
+| `.\baslat.ps1 -Hizli` | Frontend'i production modunda açar (`npm run build` + `npm start`). İlk açılış 1-3 dakika sürer, sonra sayfalar anında açılır; elle deneme için. Kod değişikliği otomatik yansımaz: tekrar `.\baslat.ps1 -Hizli`. Dev moduna dönmek için `.\baslat.ps1`. |
 | `.\durdur.ps1 -DockerKalsin` | Sadece API ve frontend'i kapatır; SQL Server ve Mailpit açık kalır. |
 
 - Açılan pencerelerin PID'leri `.baslat.pids` dosyasında tutulur (git dışı). `durdur.ps1` ayrıca 5080 ve 3000 portlarında kalan
@@ -169,3 +172,7 @@ dotnet ef database update -p backend/src/KobiFabrika.Infrastructure -s backend/s
 - **Port dolu (1433, 5080, 3000):** Başka bir SQL Server veya uygulama çalışıyor olabilir. `.env`'de `MSSQL_PORT`'u değiştirip
   bağlantı dizesindeki portu da güncelleyin.
 - **Windows'ta API derlenmiyor ("dosya kullanımda"):** Çalışan API'yi durdurun (Ctrl+C), sonra tekrar derleyin.
+- **Panelde sayfalar dakikalarca "Rendering" diyor, konsolda "Failed to fetch RSC payload … TypeError: Failed to fetch":**
+  Next.js dev sunucusu bozulmuş; çoğunlukla çıktısını okuyan terminal kapanmış bir süreçtir (dev logunda `write EPIPE`,
+  `Jest worker encountered 2 child process exceptions`). `.\durdur.ps1 -DockerKalsin` ve `.\baslat.ps1` ile yeniden başlatın.
+  Dev sunucusunu kapanacak bir terminalde arka planda başlatmayın.

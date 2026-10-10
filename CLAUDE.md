@@ -57,7 +57,7 @@ kobifabrika/
 ## Komutlar
 
 ```powershell
-.\baslat.ps1                                          # Windows: Docker + migration + API ve frontend pencereleri + tarayıcı
+.\baslat.ps1                                          # Windows: Docker + migration + API ve frontend pencereleri + tarayıcı (-Hizli: frontend production modunda)
 .\durdur.ps1                                          # API, frontend ve konteynerleri durdurur (-DockerKalsin: konteynerler açık kalır)
 docker compose up -d                                  # SQL Server + Mailpit (önce .env.example → .env)
 dotnet run --project backend/src/KobiFabrika.Api      # API: http://localhost:5080 (/scalar, /health)
@@ -71,6 +71,8 @@ cd frontend; npm run lint; npm run test; npm run build
 
 Bağlantı dizesi user-secrets'ta (`ConnectionStrings:Default`); ilk kurulum adımları `README.md`'de.
 Windows'ta API çalışırken backend derlenmez (DLL kilitli); önce API'yi durdur.
+Claude oturumunda dev sunucusu (`npm run dev`, `dotnet run`) arka planda açıldıysa iş bitince kapat: oturum kapanınca çıktı borusu
+kopar, sahipsiz Next dev sunucusu `write EPIPE` ile bozulur (sayfalar dakikalarca "Rendering", konsolda "Failed to fetch").
 
 ## Kurallar
 
