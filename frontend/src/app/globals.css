@@ -1,0 +1,175 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+@custom-variant dark (&:is(.dark *));
+
+/*
+ * KobiFabrika tema token'ları — kaynak: docs/04-tasarim.md
+ *
+ * Tailwind'in hazır renk paleti kapatıldı (--color-*: initial). Kodda sadece aşağıdaki
+ * marka renkleri, nötr griler ve durum renkleri kullanılabilir; ör. `text-red-500` üretilmez.
+ *
+ * KONTRAST KURALLARI (src/lib/theme/contrast.test.ts bunları doğrular):
+ * - Beyaz zeminde yazı/link: sadece brand-900, brand-700, brand-500.
+ * - brand-300 (#00b0ff) ve brand-100 (#00fdff) beyaz zeminde YAZI OLARAK KULLANILMAZ;
+ *   ikon, çizgi, dekor için. Koyu zeminde (brand-900) rahat okunur.
+ * - brand-300 buton → yazı brand-900. brand-500 buton → yazı beyaz.
+ */
+@theme {
+  --color-*: initial;
+
+  --color-white: #ffffff;
+  --color-black: #000000;
+  --color-transparent: transparent;
+  --color-current: currentColor;
+
+  /* Marka renkleri (5 renk, kesin) */
+  --color-brand-900: #000a1d; /* en koyu lacivert: sol menü, başlıklar, ana metin */
+  --color-brand-700: #00385a; /* ikincil koyu: hover, kart/tablo başlığı */
+  --color-brand-500: #006ea6; /* ana buton (beyaz yazı), link, açık zeminde vurgu ve odak halkası */
+  --color-brand-300: #00b0ff; /* koyu zeminde aktif menü, ikon, grafik; açık buton (yazı brand-900) */
+  --color-brand-100: #00fdff; /* koyu zeminde vurgu ve odak halkası, grafik ikincil */
+
+  /* Nötrler: hafif lacivert tonlu griler */
+  --color-neutral-50: #f5f7fa; /* sayfa zemini */
+  --color-neutral-100: #edf1f6;
+  --color-neutral-200: #e3e8ef; /* kenarlık */
+  --color-neutral-300: #cbd3de;
+  --color-neutral-400: #98a2b3; /* sadece dekor/devre dışı; yazı için değil */
+  --color-neutral-500: #6b7685;
+  --color-neutral-600: #5b6676; /* ikincil metin */
+  --color-neutral-700: #3d4757;
+  --color-neutral-800: #232c3b;
+
+  /* Durum renkleri (marka renklerinden ayrı) — beyaz zeminde 4.5:1 üstü */
+  --color-success-50: #ecfdf3;
+  --color-success-600: #15803d;
+  --color-warning-50: #fffbeb;
+  --color-warning-600: #b45309;
+  --color-danger-50: #fef2f2;
+  --color-danger-600: #b91c1c;
+
+  /* Tipografi: sistem fontu; ölçek 12/14/16/18/20/24/30 px. 12px'in altı yok. */
+  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-heading: var(--font-sans);
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+
+/* shadcn/ui semantik değişkenleri → marka token'ları */
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --radius-sm: calc(var(--radius) * 0.75);
+  --radius-md: var(--radius);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.5);
+  --radius-2xl: calc(var(--radius) * 2);
+  --radius-3xl: calc(var(--radius) * 3);
+  --radius-4xl: calc(var(--radius) * 4);
+}
+
+/* Açık tema (öncelikli) */
+:root {
+  --radius: 8px;
+
+  --background: var(--color-neutral-50);
+  --foreground: var(--color-brand-900);
+  --card: var(--color-white);
+  --card-foreground: var(--color-brand-900);
+  --popover: var(--color-white);
+  --popover-foreground: var(--color-brand-900);
+  --primary: var(--color-brand-500);
+  --primary-foreground: var(--color-white);
+  --secondary: var(--color-neutral-100);
+  --secondary-foreground: var(--color-brand-900);
+  --muted: var(--color-neutral-100);
+  --muted-foreground: var(--color-neutral-600);
+  --accent: var(--color-neutral-100);
+  --accent-foreground: var(--color-brand-700);
+  --destructive: var(--color-danger-600);
+  --border: var(--color-neutral-200);
+  --input: var(--color-neutral-300);
+  --ring: var(--color-brand-500); /* açık zeminde odak halkası (brand-100 burada görünmez) */
+
+  --chart-1: var(--color-brand-500);
+  --chart-2: var(--color-brand-300);
+  --chart-3: var(--color-brand-700);
+  --chart-4: var(--color-brand-100);
+  --chart-5: var(--color-neutral-400);
+
+  /* Koyu sol menü */
+  --sidebar: var(--color-brand-900);
+  --sidebar-foreground: #c9d3e0;
+  --sidebar-primary: var(--color-brand-300);
+  --sidebar-primary-foreground: var(--color-brand-900);
+  --sidebar-accent: var(--color-brand-700);
+  --sidebar-accent-foreground: var(--color-white);
+  --sidebar-border: #14223a;
+  --sidebar-ring: var(--color-brand-100); /* koyu zeminde odak halkası */
+}
+
+/* Koyu tema: sonra doldurulacak (docs/02-mimari.md: açık tema öncelikli). */
+.dark {
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring;
+  }
+
+  html {
+    @apply font-sans;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+  }
+
+  /* iPhone 16px altındaki inputlarda sayfayı yakınlaştırır. */
+  input,
+  select,
+  textarea {
+    font-size: 16px;
+  }
+
+  :focus-visible {
+    outline-width: 2px;
+    outline-offset: 2px;
+  }
+
+  button:not(:disabled),
+  [role="button"]:not(:disabled) {
+    cursor: pointer;
+  }
+}
