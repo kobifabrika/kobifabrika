@@ -73,6 +73,7 @@ builder.Services.AddScoped<BusinessOperations>();
 builder.Services.AddScoped<InvitationMailer>();
 builder.Services.AddScoped<InvitationAcceptor>();
 builder.Services.AddScoped<LedgerService>();
+builder.Services.AddScoped<CollectionService>();
 builder.Services.AddScoped<ISearchProvider, ContactSearchProvider>();
 builder.Services.AddValidatorsFromAssemblyContaining<Program>(includeInternalTypes: true);
 Validation.ConfigureDefaults();
@@ -162,6 +163,7 @@ app.MapNotificationEndpoints();
 app.MapAuditLogEndpoints();
 app.MapContactEndpoints();
 app.MapTagAndSegmentEndpoints();
+app.MapLedgerEndpoints();
 
 app.Run();
 

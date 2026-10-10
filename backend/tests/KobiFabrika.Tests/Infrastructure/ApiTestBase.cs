@@ -127,6 +127,11 @@ public abstract class ApiTestBase(SqlServerFixture db) : IAsyncLifetime
         return await response.Content.ReadFromJsonAsync<JsonElement>(Json, Ct);
     }
 
+    /// <summary>Kasa hesaplarının Id'leri türüne göre: "Cash" (Nakit Kasa), "Bank" (Banka).</summary>
+    protected async Task<Dictionary<string, Guid>> CashAccountsAsync(HttpClient client) =>
+        (await GetJsonAsync(client, "/api/cash-accounts")).EnumerateArray()
+            .ToDictionary(a => a.GetProperty("type").GetString()!, a => a.GetProperty("id").GetGuid());
+
     protected static async Task EnsureSuccessAsync(HttpResponseMessage response)
     {
         if (!response.IsSuccessStatusCode)
