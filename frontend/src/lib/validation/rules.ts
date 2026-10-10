@@ -54,11 +54,11 @@ export function normalizePhone(input: string | null | undefined): string | null 
   return `+90${national}`;
 }
 
-/** +905321234567 → 0532 123 45 67 (form alanında gösterim için). */
+/** +905321234567 → 532 123 45 67 (form alanında; "+90" öneki PhoneInput'ta ayrıca görünür). */
 export function formatPhone(e164: string | null | undefined): string {
   if (!e164?.startsWith("+90") || e164.length !== 13) return e164 ?? "";
   const n = e164.slice(3);
-  return `0${n.slice(0, 3)} ${n.slice(3, 6)} ${n.slice(6, 8)} ${n.slice(8)}`;
+  return `${n.slice(0, 3)} ${n.slice(3, 6)} ${n.slice(6, 8)} ${n.slice(8)}`;
 }
 
 export const phoneSchema = z.string().refine((v) => normalizePhone(v) !== null, PHONE_MESSAGE);

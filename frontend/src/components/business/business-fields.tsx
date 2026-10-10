@@ -102,30 +102,58 @@ export function BusinessFields<T extends BusinessBasics>({ control, register, er
       </Field>
 
       <div className="grid gap-5 sm:grid-cols-2">
-        <Field label="İl" error={errors.city?.message}>
-          <select
-            className={selectClass}
-            disabled={disabled || locations.isPending}
-            {...r("city", { onChange: onCityChange })}
-          >
-            <option value="">{locations.isPending ? "Yükleniyor…" : "İl seçin"}</option>
-            {locations.data?.map((l) => (
-              <option key={l.code} value={l.name}>
-                {l.name}
-              </option>
-            ))}
-          </select>
-        </Field>
-        <Field label="İlçe" error={errors.district?.message}>
-          <select className={selectClass} disabled={disabled || !city} {...r("district")}>
-            <option value="">{city ? "İlçe seçin" : "Önce il seçin"}</option>
-            {districts.map((d) => (
-              <option key={d} value={d}>
-                {d}
-              </option>
-            ))}
-          </select>
-        </Field>
+        {/* Liste geç yüklendiği için seçimler kontrollü (Controller): kayıtlı il/ilçe seçenekler gelince görünür. */}
+        <Controller
+          control={c}
+          name="city"
+          render={({ field }) => (
+            <Field label="İl" error={errors.city?.message}>
+              <select
+                className={selectClass}
+                disabled={disabled || locations.isPending}
+                name={field.name}
+                ref={field.ref}
+                value={field.value}
+                onBlur={field.onBlur}
+                onChange={(e) => {
+                  field.onChange(e.target.value);
+                  onCityChange();
+                }}
+              >
+                <option value="">{locations.isPending ? "Yükleniyor…" : "İl seçin"}</option>
+                {locations.data?.map((l) => (
+                  <option key={l.code} value={l.name}>
+                    {l.name}
+                  </option>
+                ))}
+              </select>
+            </Field>
+          )}
+        />
+        <Controller
+          control={c}
+          name="district"
+          render={({ field }) => (
+            <Field label="İlçe" error={errors.district?.message}>
+              <select
+                className={selectClass}
+                disabled={disabled || !city || locations.isPending}
+                name={field.name}
+                ref={field.ref}
+                value={field.value}
+                onBlur={field.onBlur}
+                onChange={(e) => field.onChange(e.target.value)}
+              >
+                <option value="">{city ? "İlçe seçin" : "Önce il seçin"}</option>
+                {districts.map((d) => (
+                  <option key={d} value={d}>
+                    {d}
+                  </option>
+                ))}
+              </select>
+            </Field>
+          )}
+        />
       </div>
     </div>
   );

@@ -46,8 +46,9 @@ describe("telefon", () => {
     },
   );
 
-  it("E.164'ü okunur biçime çevirir", () => {
-    expect(formatPhone("+905321234567")).toBe("0532 123 45 67");
+  it("E.164'ü +90 önekli kutu için okunur biçime çevirir", () => {
+    expect(formatPhone("+905321234567")).toBe("532 123 45 67");
+    expect(normalizePhone(formatPhone("+902125554433"))).toBe("+902125554433");
   });
 });
 
