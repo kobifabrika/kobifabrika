@@ -11,6 +11,7 @@ using KobiFabrika.Api.Features.Customers;
 using KobiFabrika.Api.Features.Finance;
 using KobiFabrika.Api.Features.Invitations;
 using KobiFabrika.Api.Features.Notifications;
+using KobiFabrika.Api.Features.Public;
 using KobiFabrika.Api.Features.Reference;
 using KobiFabrika.Api.Features.Search;
 using KobiFabrika.Api.Features.Setup;
@@ -97,6 +98,12 @@ builder.Services.AddRateLimiter(options =>
         http.Connection.RemoteIpAddress?.ToString() ?? "unknown",
         _ => new FixedWindowRateLimiterOptions { PermitLimit = authLimit, Window = TimeSpan.FromMinutes(1) }));
 
+    // Herkese açık ekstre ve tahsilat linkleri: IP başına dakikada sınırlı istek.
+    var publicLimit = builder.Configuration.GetValue("RateLimiting:PublicPermitLimit", 60);
+    options.AddPolicy(PublicLinkEndpoints.RateLimit, http => RateLimitPartition.GetFixedWindowLimiter(
+        http.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+        _ => new FixedWindowRateLimiterOptions { PermitLimit = publicLimit, Window = TimeSpan.FromMinutes(1) }));
+
     // Doğrulama e-postası: kullanıcı başına 60 saniyede bir.
     options.AddPolicy(AuthEndpoints.ResendRateLimit, http => RateLimitPartition.GetFixedWindowLimiter(
         http.User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "anonymous",
@@ -168,6 +175,9 @@ app.MapTagAndSegmentEndpoints();
 app.MapLedgerEndpoints();
 app.MapImportEndpoints();
 app.MapReminderEndpoints();
+app.MapStatementShareEndpoints();
+app.MapPaymentRequestEndpoints();
+app.MapPublicLinkEndpoints();
 
 if (BackgroundJobs.IsEnabled(app.Configuration))
 {

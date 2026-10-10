@@ -84,4 +84,71 @@ public sealed class CustomerIsolationApiTests(SqlServerFixture db) : ApiTestBase
         bContact.GetProperty("balance").GetDecimal().ShouldBe(100m);
         (await GetJsonAsync(b.Owner.Client, $"/api/contacts/{b.ContactId}/notes")).GetArrayLength().ShouldBe(1);
     }
+
+    [Fact]
+    public async Task Business_A_cannot_see_or_change_business_B_ledger_cash_and_payment_links()
+    {
+        var a = await CreateTenantAsync("A");
+        var b = await CreateTenantAsync("B");
+        var c = a.Owner.Client;
+        await EnsureSuccessAsync(await b.Owner.Client.PutAsJsonAsync("/api/business/payment-info", new { iban = Api.PaymentRequestTests.ValidIban }, Ct));
+        var bAccounts = await CashAccountsAsync(b.Owner.Client);
+        var bCollection = await (await b.Owner.Client.PostAsJsonAsync($"/api/contacts/{b.ContactId}/collections",
+            new { amount = 10m, cashAccountId = bAccounts["Cash"] }, Ct)).Content.ReadFromJsonAsync<JsonElement>(Json, Ct);
+        var bLink = await (await b.Owner.Client.PostAsJsonAsync("/api/payment-requests", new { contactId = b.ContactId, amount = 50m }, Ct))
+            .Content.ReadFromJsonAsync<JsonElement>(Json, Ct);
+        var bLinkId = bLink.GetProperty("request").GetProperty("id").GetGuid();
+        var bEntryId = (await GetJsonAsync(b.Owner.Client, $"/api/contacts/{b.ContactId}/ledger")).GetProperty("items")[0].GetProperty("id").GetGuid();
+
+        // Görme
+        (await c.GetAsync($"/api/contacts/{b.ContactId}/ledger", Ct)).StatusCode.ShouldBe(HttpStatusCode.NotFound);
+        (await c.GetAsync($"/api/contacts/{b.ContactId}/statement.pdf", Ct)).StatusCode.ShouldBe(HttpStatusCode.NotFound);
+        (await GetJsonAsync(c, "/api/cash-accounts")).EnumerateArray().Select(x => x.GetProperty("id").GetGuid())
+            .ShouldNotContain(bAccounts["Cash"]);
+        (await GetJsonAsync(c, "/api/payment-requests")).GetArrayLength().ShouldBe(0);
+        (await GetJsonAsync(c, "/api/contacts?segment=debtors")).GetProperty("items").EnumerateArray()
+            .Select(x => x.GetProperty("id").GetGuid()).ShouldBe([a.ContactId]);
+
+        // Değiştirme
+        (await c.PostAsJsonAsync($"/api/contacts/{b.ContactId}/ledger", new { kind = "Credit", amount = 100m, description = "x" }, Ct))
+            .StatusCode.ShouldBe(HttpStatusCode.NotFound);
+        (await c.PutAsJsonAsync($"/api/contacts/{b.ContactId}/opening-balance", new { amount = 1m, direction = "Payable" }, Ct))
+            .StatusCode.ShouldBe(HttpStatusCode.NotFound);
+        (await c.DeleteAsync($"/api/ledger-entries/{bEntryId}", Ct)).StatusCode.ShouldBe(HttpStatusCode.NotFound);
+        (await c.DeleteAsync($"/api/collections/{bCollection.GetProperty("cashTransactionId").GetGuid()}", Ct)).StatusCode.ShouldBe(HttpStatusCode.NotFound);
+        (await c.PostAsJsonAsync($"/api/contacts/{b.ContactId}/collections", new { amount = 1m, cashAccountId = bAccounts["Cash"] }, Ct))
+            .StatusCode.ShouldBe(HttpStatusCode.NotFound);
+        // A'nın müşterisine B'nin kasasıyla tahsilat yazılamaz.
+        (await c.PostAsJsonAsync($"/api/contacts/{a.ContactId}/collections", new { amount = 1m, cashAccountId = bAccounts["Cash"] }, Ct))
+            .StatusCode.ShouldBe(HttpStatusCode.BadRequest);
+        (await c.PostAsJsonAsync("/api/payment-requests", new { contactId = b.ContactId, amount = 5m }, Ct)).StatusCode.ShouldBe(HttpStatusCode.Conflict); // A'da IBAN yok
+        (await c.PostAsJsonAsync($"/api/payment-requests/{bLinkId}/confirm", new { cashAccountId = bAccounts["Cash"], amount = 50m }, Ct))
+            .StatusCode.ShouldBe(HttpStatusCode.NotFound);
+        (await c.PostAsync($"/api/payment-requests/{bLinkId}/cancel", null, Ct)).StatusCode.ShouldBe(HttpStatusCode.NotFound);
+        (await c.PostAsJsonAsync($"/api/payment-requests/{bLinkId}/share", new { sendEmail = false }, Ct)).StatusCode.ShouldBe(HttpStatusCode.NotFound);
+        (await c.PostAsJsonAsync($"/api/contacts/{b.ContactId}/statement-shares", new { channel = "Link" }, Ct)).StatusCode.ShouldBe(HttpStatusCode.NotFound);
+
+        // B'de hiçbir şey değişmedi: 100 açılış − 10 tahsilat.
+        (await GetJsonAsync(b.Owner.Client, $"/api/contacts/{b.ContactId}")).GetProperty("balance").GetDecimal().ShouldBe(90m);
+        (await GetJsonAsync(b.Owner.Client, "/api/payment-requests"))[0].GetProperty("status").GetString().ShouldBe("Open");
+        (await GetJsonAsync(b.Owner.Client, "/api/cash-accounts")).EnumerateArray()
+            .Single(x => x.GetProperty("type").GetString() == "Cash").GetProperty("balance").GetDecimal().ShouldBe(10m);
+    }
+
+    [Fact]
+    public async Task Public_link_of_B_opened_in_A_session_shows_only_B_data()
+    {
+        var a = await CreateTenantAsync("A");
+        var b = await CreateTenantAsync("B");
+        var share = await (await b.Owner.Client.PostAsJsonAsync($"/api/contacts/{b.ContactId}/statement-shares", new { channel = "Link" }, Ct))
+            .Content.ReadFromJsonAsync<JsonElement>(Json, Ct);
+        var token = share.GetProperty("url").GetString()!.Split('/').Last();
+
+        var statement = await GetJsonAsync(a.Owner.Client, $"/api/public/statements/{token}");
+
+        statement.GetProperty("businessName").GetString().ShouldBe("B İşletmesi");
+        statement.GetProperty("contactName").GetString().ShouldBe("B Müşterisi");
+        statement.GetProperty("closingBalance").GetDecimal().ShouldBe(100m);
+        (await GetJsonAsync(a.Owner.Client, "/api/business")).GetProperty("name").GetString().ShouldBe("A İşletmesi");
+    }
 }

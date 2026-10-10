@@ -26,7 +26,12 @@ public sealed record BusinessResponse(
     string? Address,
     string? City,
     string? District,
-    string? LogoUrl);
+    string? LogoUrl,
+    string? Iban,
+    string? IbanHolderName);
+
+/// <summary>Tahsilat linkinde gösterilen banka bilgisi. IBAN boş gönderilirse kaldırılır.</summary>
+public sealed record PaymentInfoRequest(string? Iban, string? IbanHolderName);
 
 public sealed record UpdateBusinessRequest(
     string Name, BusinessSector Sector, string Phone, string? Email, string? Address, string City, string District);
@@ -53,6 +58,8 @@ public static class BusinessEndpoints
         group.MapGet("/working-hours", GetWorkingHours).RequireAuthorization(Policies.ViewSettings).WithSummary("Çalışma saatleri");
         group.MapPut("/working-hours", UpdateWorkingHours).RequireAuthorization(Policies.ManageBusiness)
             .Validate<WorkingHoursRequest>().WithSummary("Çalışma saatlerini güncelle");
+        group.MapPut("/payment-info", UpdatePaymentInfo).RequireAuthorization(Policies.ManageBusiness).Validate<PaymentInfoRequest>()
+            .WithSummary("Ödeme bilgileri (IBAN, hesap sahibi) — tahsilat linki için gerekli");
         group.MapPost("/logo", UploadLogo).RequireAuthorization(Policies.ManageBusiness).DisableAntiforgery()
             .WithSummary("Logo yükle (PNG/JPG/WebP, en fazla 2 MB)");
         group.MapDelete("/logo", DeleteLogo).RequireAuthorization(Policies.ManageBusiness).WithSummary("Logoyu kaldır");
@@ -64,7 +71,8 @@ public static class BusinessEndpoints
         db.Businesses.SingleAsync(b => b.Id == member.RequiredBusinessId, ct);
 
     private static BusinessResponse ToResponse(Business b) => new(
-        b.Id, b.Name, b.Slug, b.Sector, b.Template, ModulesDto.From(b.Modules), b.Phone, b.Email, b.Address, b.City, b.District, b.LogoUrl);
+        b.Id, b.Name, b.Slug, b.Sector, b.Template, ModulesDto.From(b.Modules), b.Phone, b.Email, b.Address, b.City, b.District, b.LogoUrl,
+        b.Iban, b.IbanHolderName);
 
     private static async Task<Ok<BusinessResponse>> Get(CurrentMember member, AppDbContext db, CancellationToken ct) =>
         TypedResults.Ok(ToResponse(await CurrentAsync(db, member, ct)));
@@ -115,6 +123,30 @@ public static class BusinessEndpoints
         Compare("district", before.District, after.District);
         return changes;
     }
+
+    private static async Task<Ok<BusinessResponse>> UpdatePaymentInfo(
+        PaymentInfoRequest request, CurrentMember member, AppDbContext db, IAuditLogger audit, CancellationToken ct)
+    {
+        var business = await CurrentAsync(db, member, ct);
+        var iban = Iban.TryNormalize(request.Iban, out var normalized) ? normalized : null;
+        var holder = string.IsNullOrWhiteSpace(request.IbanHolderName) ? null : request.IbanHolderName.Trim();
+        if (business.Iban != iban || business.IbanHolderName != holder)
+        {
+            audit.Log(AuditAction.PaymentInfoChanged, nameof(Business), business.Id, new
+            {
+                iban = new { from = Mask(business.Iban), to = Mask(iban) },
+                holder = new { from = business.IbanHolderName, to = holder },
+            });
+            business.Iban = iban;
+            business.IbanHolderName = holder;
+            await db.SaveChangesAsync(ct);
+        }
+
+        return TypedResults.Ok(ToResponse(business));
+    }
+
+    /// <summary>Günlükte IBAN'ın sadece son 4 hanesi.</summary>
+    private static string? Mask(string? iban) => iban is null ? null : $"TR•• •••• {iban[^4..]}";
 
     private static async Task<Ok<BusinessResponse>> UpdateModules(
         ModulesDto request, CurrentMember member, AppDbContext db, IAuditLogger audit, CancellationToken ct)
@@ -183,6 +215,15 @@ public static class BusinessEndpoints
 
     private static async Task<Ok<LogoResponse>> DeleteLogo(CurrentMember member, AppDbContext db, BusinessOperations ops, CancellationToken ct) =>
         TypedResults.Ok(await ops.DeleteLogoAsync(await CurrentAsync(db, member, ct), logAudit: true, ct));
+}
+
+public sealed class PaymentInfoRequestValidator : AbstractValidator<PaymentInfoRequest>
+{
+    public PaymentInfoRequestValidator()
+    {
+        RuleFor(x => x.Iban).ValidIban().When(x => !string.IsNullOrWhiteSpace(x.Iban));
+        RuleFor(x => x.IbanHolderName).MaximumLength(200).WithMessage("Hesap sahibi en fazla 200 karakter olabilir.");
+    }
 }
 
 public sealed class UpdateBusinessRequestValidator : AbstractValidator<UpdateBusinessRequest>

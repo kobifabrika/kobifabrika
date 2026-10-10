@@ -47,8 +47,31 @@ public static class EmailTemplates
         null,
         "Bu değişikliği sen yapmadıysan hemen \"Şifremi unuttum\" ile yeni şifre belirle ve bize yaz.");
 
+    /// <summary>İşletmenin müşterisine giden ekstre linki. Üstte işletme adı; KobiFabrika sadece altta küçük.</summary>
+    public static EmailMessage Statement(string to, string businessName, string contactName, string range, string link) => Build(
+        to,
+        $"{businessName} cari hesap ekstreniz",
+        $"Merhaba {contactName},",
+        $"{businessName} işletmesindeki cari hesabınızın {range} dönemi ekstresi hazır. Görmek ve PDF olarak indirmek için aşağıdaki butona dokunun.",
+        "Ekstreyi gör",
+        link,
+        "Bağlantı 30 gün geçerlidir. Sorunuz varsa doğrudan işletmeyle iletişime geçin.",
+        senderName: businessName);
+
+    /// <summary>İşletmenin müşterisine giden tahsilat linki (IBAN ve "Ödedim").</summary>
+    public static EmailMessage PaymentRequest(string to, string businessName, string contactName, string amount, string link) => Build(
+        to,
+        $"{businessName} ödeme bilgileri",
+        $"Merhaba {contactName},",
+        $"{businessName} işletmesine {amount} ödemeniz için banka bilgileri aşağıdaki bağlantıda. Ödemeyi yaptıktan sonra sayfadaki \"Ödedim\" butonuna dokunun.",
+        "Ödeme bilgilerini gör",
+        link,
+        "Bağlantı 30 gün geçerlidir. Sorunuz varsa doğrudan işletmeyle iletişime geçin.",
+        senderName: businessName);
+
+    /// <param name="senderName">Doluysa e-posta işletme adına gider: üstte işletme adı, altta "KobiFabrika ile gönderildi".</param>
     private static EmailMessage Build(
-        string to, string subject, string greeting, string body, string? buttonText, string? link, string footnote)
+        string to, string subject, string greeting, string body, string? buttonText, string? link, string footnote, string? senderName = null)
     {
         static string E(string s) => Html.Encode(s);
 
@@ -61,25 +84,30 @@ public static class EmailTemplates
               <p style="margin:0 0 16px;font-size:14px;color:#525252">Buton çalışmazsa bu bağlantıyı tarayıcına yapıştır:<br><a href="{E(link)}" style="color:#000000;word-break:break-all">{E(link)}</a></p>
               """;
 
+        var header = senderName is null
+            ? """<p style="margin:0 0 16px;font-size:24px;font-weight:800;color:#000000">Kobi<span style="border-bottom:3px solid #00b0ff">Fabrika</span></p>"""
+            : $"""<p style="margin:0 0 16px;font-size:22px;font-weight:800;color:#000000">{E(senderName)}</p>""";
+        var signature = senderName is null ? "KobiFabrika Yazılım A.Ş." : "KobiFabrika ile gönderildi";
+
         var html = $"""
             <!doctype html>
             <html lang="tr">
             <body style="margin:0;background:#f2f2f2;font-family:-apple-system,'Segoe UI',Roboto,Arial,sans-serif;color:#000000">
               <div style="max-width:560px;margin:0 auto;padding:24px 16px">
-                <p style="margin:0 0 16px;font-size:24px;font-weight:800;color:#000000">Kobi<span style="border-bottom:3px solid #00b0ff">Fabrika</span></p>
+                {header}
                 <div style="background:#ffffff;border:1px solid #e5e5e5;border-radius:6px;padding:24px">
                   <p style="margin:0 0 12px;font-size:16px">{E(greeting)}</p>
                   <p style="margin:0 0 12px;font-size:16px;line-height:1.5">{E(body)}</p>
                   {button}
                   <p style="margin:0;font-size:14px;color:#525252;line-height:1.5">{E(footnote)}</p>
                 </div>
-                <p style="margin:16px 0 0;font-size:12px;color:#525252">KobiFabrika Yazılım A.Ş.</p>
+                <p style="margin:16px 0 0;font-size:12px;color:#525252">{E(signature)}</p>
               </div>
             </body>
             </html>
             """;
 
-        var text = $"{greeting}\n\n{body}\n\n{(link is null ? "" : $"{buttonText}: {link}\n\n")}{footnote}\n\nKobiFabrika Yazılım A.Ş.";
+        var text = $"{greeting}\n\n{body}\n\n{(link is null ? "" : $"{buttonText}: {link}\n\n")}{footnote}\n\n{signature}";
         return new EmailMessage(to, subject, html, text);
     }
 }

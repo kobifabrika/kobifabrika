@@ -28,6 +28,7 @@ public sealed class KobiFabrikaApiFactory : WebApplicationFactory<Program>
     /// <summary>Her okumada 1 ms ilerler; aynı istekte yazılan kayıtların sırası gerçek hayattaki gibi belirli olur.</summary>
     public FakeTimeProvider Clock { get; } = new(DateTimeOffset.UtcNow) { AutoAdvanceAmount = TimeSpan.FromMilliseconds(1) };
     public int AuthPermitLimit { get; init; } = 100_000;
+    public int PublicPermitLimit { get; init; } = 100_000;
     public string StoragePath { get; } = Path.Combine(Path.GetTempPath(), "kf-tests-" + Guid.NewGuid().ToString("N"));
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
@@ -35,6 +36,7 @@ public sealed class KobiFabrikaApiFactory : WebApplicationFactory<Program>
         builder.UseEnvironment("Testing");
         builder.UseSetting("ConnectionStrings:Default", _db.AppDatabase);
         builder.UseSetting("RateLimiting:AuthPermitLimit", AuthPermitLimit.ToString());
+        builder.UseSetting("RateLimiting:PublicPermitLimit", PublicPermitLimit.ToString());
         builder.UseSetting("Storage:LocalPath", StoragePath);
         builder.UseSetting("App:FrontendUrl", "http://localhost:3000");
         // Arka plan işleri testte zamanlanmaz; iş sınıfları doğrudan çağrılır.

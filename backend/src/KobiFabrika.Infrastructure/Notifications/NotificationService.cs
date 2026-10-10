@@ -21,4 +21,5 @@ public static class NotificationTypes
     public const string InvitationAccepted = "invitation.accepted";
     public const string RoleChanged = "team.role_changed";
     public const string JoinedTeam = "team.joined";
+    public const string PaymentClaimed = "payment.claimed";
 }
