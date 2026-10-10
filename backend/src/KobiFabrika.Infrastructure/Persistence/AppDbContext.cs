@@ -1,7 +1,10 @@
 using System.Linq.Expressions;
 using System.Reflection;
+using KobiFabrika.Domain.Auditing;
 using KobiFabrika.Domain.Businesses;
 using KobiFabrika.Domain.Common;
+using KobiFabrika.Domain.Notifications;
+using KobiFabrika.Domain.Users;
 using KobiFabrika.Infrastructure.Identity;
 using KobiFabrika.Infrastructure.Persistence.Conventions;
 using KobiFabrika.Infrastructure.Tenancy;
@@ -31,6 +34,11 @@ public class AppDbContext : IdentityDbContext<AppUser, AppRole, Guid>
 
     public DbSet<Business> Businesses => Set<Business>();
     public DbSet<BusinessMembership> BusinessMemberships => Set<BusinessMembership>();
+    public DbSet<WorkingHour> WorkingHours => Set<WorkingHour>();
+    public DbSet<Invitation> Invitations => Set<Invitation>();
+    public DbSet<Notification> Notifications => Set<Notification>();
+    public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
+    public DbSet<UserConsent> UserConsents => Set<UserConsent>();
 
     /// <summary>
     /// Query filter'lar bu özelliğe başvurur; EF her sorguda bu context örneğinin
@@ -106,6 +114,11 @@ public class AppDbContext : IdentityDbContext<AppUser, AppRole, Guid>
 
         foreach (var entry in ChangeTracker.Entries().ToList())
         {
+            if (entry is { Entity: AuditLog, State: EntityState.Modified or EntityState.Deleted })
+            {
+                throw new InvalidOperationException("Aktivite günlüğü kayıtları değiştirilemez veya silinemez.");
+            }
+
             if (entry.Entity is ITenantScoped scoped)
             {
                 EnforceTenant(entry, scoped);

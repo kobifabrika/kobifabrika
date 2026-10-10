@@ -13,6 +13,8 @@ internal sealed class BusinessConfiguration : IEntityTypeConfiguration<Business>
         b.Property(x => x.Slug).HasMaxLength(100);
         b.HasIndex(x => x.Slug).IsUnique();
         b.Property(x => x.Sector).HasConversion<string>().HasMaxLength(20);
+        b.Property(x => x.Template).HasConversion<string>().HasMaxLength(20);
+        b.Property(x => x.Modules).HasConversion<int>();
         b.Property(x => x.Phone).HasMaxLength(20);
         b.Property(x => x.WhatsappNumber).HasMaxLength(20);
         b.Property(x => x.Email).HasMaxLength(256);
