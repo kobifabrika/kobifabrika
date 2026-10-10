@@ -16,7 +16,9 @@ using KobiFabrika.Api.Features.Search;
 using KobiFabrika.Api.Features.Setup;
 using KobiFabrika.Api.Features.SystemInfo;
 using KobiFabrika.Api.Features.Team;
+using Hangfire;
 using KobiFabrika.Infrastructure;
+using KobiFabrika.Infrastructure.Jobs;
 using KobiFabrika.Infrastructure.Persistence;
 using KobiFabrika.Infrastructure.Storage;
 using Microsoft.AspNetCore.Authorization;
@@ -165,6 +167,12 @@ app.MapContactEndpoints();
 app.MapTagAndSegmentEndpoints();
 app.MapLedgerEndpoints();
 app.MapImportEndpoints();
+app.MapReminderEndpoints();
+
+if (BackgroundJobs.IsEnabled(app.Configuration))
+{
+    BackgroundJobs.RegisterRecurringJobs(app.Services.GetRequiredService<IRecurringJobManager>());
+}
 
 app.Run();
 

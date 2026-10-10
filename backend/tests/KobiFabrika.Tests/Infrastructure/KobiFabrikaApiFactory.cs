@@ -37,6 +37,8 @@ public sealed class KobiFabrikaApiFactory : WebApplicationFactory<Program>
         builder.UseSetting("RateLimiting:AuthPermitLimit", AuthPermitLimit.ToString());
         builder.UseSetting("Storage:LocalPath", StoragePath);
         builder.UseSetting("App:FrontendUrl", "http://localhost:3000");
+        // Arka plan işleri testte zamanlanmaz; iş sınıfları doğrudan çağrılır.
+        builder.UseSetting("Hangfire:Enabled", "false");
         builder.ConfigureTestServices(services =>
         {
             services.RemoveAll<IEmailSender>();

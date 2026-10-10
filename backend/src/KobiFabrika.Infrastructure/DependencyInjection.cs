@@ -3,6 +3,7 @@ using KobiFabrika.Infrastructure.Billing;
 using KobiFabrika.Infrastructure.Businesses;
 using KobiFabrika.Infrastructure.Email;
 using KobiFabrika.Infrastructure.Identity;
+using KobiFabrika.Infrastructure.Jobs;
 using KobiFabrika.Infrastructure.Locations;
 using KobiFabrika.Infrastructure.Notifications;
 using KobiFabrika.Infrastructure.Pdf;
@@ -75,6 +76,7 @@ public static class DependencyInjection
         // QuestPDF Community lisansı: yıllık geliri 1 milyon $ altındaki şirketler için ücretsiz (karar günlüğü).
         QuestPDF.Settings.License = QuestPDF.Infrastructure.LicenseType.Community;
         services.AddSingleton<IPdfRenderer, QuestPdfRenderer>();
+        services.AddBackgroundJobs(configuration, connectionString);
 
         return services;
     }
