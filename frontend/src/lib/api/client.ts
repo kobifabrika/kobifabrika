@@ -34,9 +34,7 @@ export class ApiError extends Error {
 }
 
 /** openapi-fetch sonucunu açar: hata varsa ApiError fırlatır, yoksa veriyi döner. */
-export async function unwrap<T>(
-  request: Promise<{ data?: T; error?: unknown; response: Response }>,
-): Promise<T> {
+export async function unwrap<T>(request: Promise<{ data?: T; error?: unknown; response: Response }>): Promise<T> {
   const { data, error, response } = await request;
   if (!response.ok || error !== undefined) {
     const problem = (error ?? {}) as ProblemDetails;

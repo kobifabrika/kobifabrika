@@ -64,12 +64,43 @@ export function formatPhone(e164: string | null | undefined): string {
 export const phoneSchema = z.string().refine((v) => normalizePhone(v) !== null, PHONE_MESSAGE);
 
 const TURKISH_MAP: Record<string, string> = {
-  ş: "s", Ş: "s", ğ: "g", Ğ: "g", ı: "i", I: "i", İ: "i", ö: "o", Ö: "o", ü: "u", Ü: "u", ç: "c", Ç: "c",
+  ş: "s",
+  Ş: "s",
+  ğ: "g",
+  Ğ: "g",
+  ı: "i",
+  I: "i",
+  İ: "i",
+  ö: "o",
+  Ö: "o",
+  ü: "u",
+  Ü: "u",
+  ç: "c",
+  Ç: "c",
 };
 
 export const RESERVED_SLUGS = new Set([
-  "admin", "api", "app", "panel", "giris", "kayit", "kurulum", "davet", "destek", "yardim", "kobifabrika", "www",
-  "mail", "static", "files", "r", "sifremi-unuttum", "sifre-sifirla", "e-posta-dogrula", "ayarlar", "test",
+  "admin",
+  "api",
+  "app",
+  "panel",
+  "giris",
+  "kayit",
+  "kurulum",
+  "davet",
+  "destek",
+  "yardim",
+  "kobifabrika",
+  "www",
+  "mail",
+  "static",
+  "files",
+  "r",
+  "sifremi-unuttum",
+  "sifre-sifirla",
+  "e-posta-dogrula",
+  "ayarlar",
+  "test",
 ]);
 
 /** İşletme adından slug (backend SlugGenerator.Generate ile aynı sonuç). */
@@ -102,4 +133,79 @@ export function isValidSlug(slug: string): boolean {
 export function safeReturnPath(value: string | null | undefined): string | null {
   if (!value || !value.startsWith("/panel") || value.startsWith("//") || value.includes("\\")) return null;
   return value;
+}
+
+// Para (backend Domain/Common/Money.cs ile aynı kurallar ve mesajlar).
+
+export const MONEY_MAX = 999_999_999_999.99;
+export const moneyMessages = {
+  required: "Tutar girin.",
+  positive: "Tutar 0'dan büyük olmalı.",
+  decimals: "Tutar en fazla 2 ondalık basamak içerebilir.",
+  max: "Tutar en fazla 999.999.999.999,99 TL olabilir.",
+  invalid: "Tutarı rakamla girin (ör. 1.250,50).",
+} as const;
+
+/**
+ * Kullanıcının yazdığı tutarı çözer: "1.250,50", "1250,5", "1250.50", "1.250" (binlik), "-300".
+ * Virgül varsa ondalık ayırıcıdır (Türkçe); yoksa tek nokta + 3 hane binlik sayılır.
+ * Ondalık hane sayısı korunur ki "10,001" hatası yakalansın: { value, decimals }.
+ */
+export function parseMoneyInput(text: string | null | undefined): { value: number; decimals: number } | null {
+  let t = (text ?? "").replace(/TL|₺|\s/gi, "");
+  if (!t) return null;
+  if (t.includes(",")) {
+    t = t.replace(/\./g, "").replace(",", ".");
+  } else {
+    const parts = t.split(".");
+    if (parts.length > 2 || (parts.length === 2 && parts[1].length === 3 && t.replace("-", "").length > 4))
+      t = t.replace(/\./g, "");
+  }
+  if (!/^-?\d+(\.\d+)?$/.test(t)) return null;
+  return { value: Number(t), decimals: t.split(".")[1]?.length ?? 0 };
+}
+
+/** Kurala uymuyorsa Türkçe hata mesajı, uyuyorsa null. Boş = "Tutar girin." */
+export function validateMoney(text: string | null | undefined): string | null {
+  if (!text?.trim()) return moneyMessages.required;
+  const parsed = parseMoneyInput(text);
+  if (!parsed) return moneyMessages.invalid;
+  if (parsed.value <= 0) return moneyMessages.positive;
+  if (parsed.value > MONEY_MAX) return moneyMessages.max;
+  if (parsed.decimals > 2) return moneyMessages.decimals;
+  return null;
+}
+
+/** Zod alanı: metin girilir, API'ye sayı gider. */
+export const moneySchema = z
+  .string()
+  .superRefine((v, ctx) => {
+    const message = validateMoney(v);
+    if (message) ctx.addIssue({ code: "custom", message });
+  })
+  .transform((v) => parseMoneyInput(v)!.value);
+
+/** API'den gelen sayıyı form alanına: 1250.5 → "1250,50". */
+export function moneyToInput(value: number): string {
+  return value.toFixed(2).replace(".", ",");
+}
+
+// IBAN (backend Domain/Common/Iban.cs ile aynı).
+
+export const IBAN_MESSAGE = "Geçerli bir TR IBAN girin (TR ile başlayan 26 karakter).";
+
+/** Boşluk/tire atılır, büyütülür; TR + 24 rakam ve mod-97 kontrolü. Geçersizse null. */
+export function normalizeIban(input: string | null | undefined): string | null {
+  const compact = (input ?? "").replace(/[\s-]/g, "").toUpperCase();
+  if (!/^TR\d{24}$/.test(compact)) return null;
+  const rearranged = compact.slice(4) + "2927" + compact.slice(2, 4);
+  return BigInt(rearranged) % BigInt(97) === BigInt(1) ? compact : null;
+}
+
+/** "TR400006200000000000000001" → "TR40 0006 2000 0000 0000 0000 01". */
+export function formatIban(iban: string): string {
+  return iban
+    .replace(/\s/g, "")
+    .replace(/(.{4})/g, "$1 ")
+    .trim();
 }

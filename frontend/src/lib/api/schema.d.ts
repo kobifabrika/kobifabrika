@@ -11,7 +11,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Genel arama (Ctrl+K). Sprint 1'de sağlayıcı yok; boş grup listesi döner. */
+        /** Genel arama (Ctrl+K): müşteriler (ad, telefon, e-posta); ürün ve satış Sprint 3'te. */
         get: {
             parameters: {
                 query?: {
@@ -76,6 +76,203 @@ export interface paths {
         };
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/ledger-entries/{entryId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Elle girilen hareketi sil (tahsilat kaydı 'Tahsilatı geri al' ile) */
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    entryId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description No Content */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/collections/{cashTransactionId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Tahsilatı geri al (kasa ve cari birlikte) */
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    cashTransactionId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description No Content */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/cash-accounts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Kasa ve banka hesapları (bakiyeyle) */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["CashAccountResponse"][];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/contacts/export.xlsx": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Müşteri/tedarikçi listesini Excel'e aktar (liste filtreleriyle) */
+        get: {
+            parameters: {
+                query?: {
+                    search?: string;
+                    type?: string;
+                    archived?: boolean;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/contacts/{id}/statement-shares": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Ekstre linki oluştur (WhatsApp/e-posta/kopyala) */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["StatementShareRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["StatementShareResponse"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+                    };
+                };
+            };
+        };
         delete?: never;
         options?: never;
         head?: never;
@@ -1145,6 +1342,55 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/business/payment-info": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Ödeme bilgileri (IBAN, hesap sahibi) — tahsilat linki için gerekli */
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["PaymentInfoRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["BusinessResponse"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/business/logo": {
         parameters: {
             query?: never;
@@ -1721,6 +1967,1955 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/contacts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Müşteri/tedarikçi listesi (arama, filtre, segment; sayfalı) */
+        get: {
+            parameters: {
+                query?: {
+                    search?: string;
+                    type?: string;
+                    tagIds?: string[];
+                    source?: components["schemas"]["ContactSource"];
+                    balance?: string;
+                    inactiveDays?: number;
+                    segment?: string;
+                    archived?: boolean;
+                    sort?: string;
+                    page?: number;
+                    pageSize?: number;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ContactListResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        /** Yeni müşteri/tedarikçi */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["ContactRequest"];
+                };
+            };
+            responses: {
+                /** @description Created */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ContactResponse"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/contacts/phone-check": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Telefon geçerli mi, başka kayıtta var mı? */
+        get: {
+            parameters: {
+                query?: {
+                    phone?: string;
+                    excludeId?: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PhoneCheckResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/contacts/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Kart */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ContactResponse"];
+                    };
+                };
+            };
+        };
+        /** Kartı güncelle */
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["ContactRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ContactResponse"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+                    };
+                };
+            };
+        };
+        post?: never;
+        /** Sil (cari hareketi olan kayıt silinmez, arşivlenir) */
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description No Content */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/contacts/{id}/archive": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Arşivle */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ContactResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/contacts/{id}/restore": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Arşivden çıkar */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ContactResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/contacts/{id}/consents": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** KVKK izinleri (SMS, e-posta, arama) */
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["ConsentsRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ContactResponse"];
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/contacts/{id}/tags": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Etiketleri değiştir */
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["SetTagsRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ContactResponse"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/contacts/{id}/notes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Notlar */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["NoteResponse"][];
+                    };
+                };
+            };
+        };
+        put?: never;
+        /** Not ekle */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["NoteRequest"];
+                };
+            };
+            responses: {
+                /** @description Created */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["NoteResponse"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/contacts/{id}/notes/{noteId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Notu sil (yazan veya Sahip/Yönetici) */
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                    noteId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description No Content */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/contacts/{id}/timeline": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Zaman çizelgesi (en yeni önce; before ile devam) */
+        get: {
+            parameters: {
+                query?: {
+                    before?: string;
+                    take?: number;
+                };
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["TimelineResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/tags": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Etiketler (kullanım sayısıyla) */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["TagListItem"][];
+                    };
+                };
+            };
+        };
+        put?: never;
+        /** Etiket ekle */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["TagRequest"];
+                };
+            };
+            responses: {
+                /** @description Created */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["TagDto"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/tags/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Etiketi düzenle */
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["TagRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["TagDto"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+                    };
+                };
+            };
+        };
+        post?: never;
+        /** Etiketi sil (tüm kayıtlardan kalkar) */
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description No Content */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/segments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Hazır ve kayıtlı segmentler */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["SegmentResponse"][];
+                    };
+                };
+            };
+        };
+        put?: never;
+        /** Filtreyi segment olarak kaydet */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["SegmentRequest"];
+                };
+            };
+            responses: {
+                /** @description Created */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["SegmentResponse"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/segments/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Segmenti düzenle */
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["SegmentRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["SegmentResponse"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+                    };
+                };
+            };
+        };
+        post?: never;
+        /** Segmenti sil */
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description No Content */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/contacts/{id}/ledger": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Cari hareketler (from/to; devreden ve yürüyen bakiye) */
+        get: {
+            parameters: {
+                query?: {
+                    from?: string;
+                    to?: string;
+                };
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["LedgerResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        /** Elle borç/alacak kaydı */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["LedgerEntryRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["LedgerResponse"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/contacts/{id}/opening-balance": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Açılış bakiyesini gir/değiştir */
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["OpeningBalanceRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["LedgerResponse"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+                    };
+                };
+            };
+        };
+        post?: never;
+        /** Açılış bakiyesini kaldır */
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description No Content */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/contacts/{id}/collections": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Tahsilat al (kasaya/bankaya giriş + cariye alacak) */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["CollectionRequest"];
+                };
+            };
+            responses: {
+                /** @description Created */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["CollectionResponse"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/contacts/{id}/statement.pdf": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** PDF ekstre */
+        get: {
+            parameters: {
+                query?: {
+                    from?: string;
+                    to?: string;
+                };
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/contacts/{id}/ledger.xlsx": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Cari hareketler Excel */
+        get: {
+            parameters: {
+                query?: {
+                    from?: string;
+                    to?: string;
+                };
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/contacts/import/template.xlsx": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Boş şablon (açıklama sayfasıyla) */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/contacts/import": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Dosyayı yükle; başlıklar ve eşleme önerisi döner */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "multipart/form-data": {
+                        file?: components["schemas"]["IFormFile"];
+                    };
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ImportUploadResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/contacts/import/{jobId}/preview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Eşlemeye göre satırları doğrula (sayfalı, status ile süzülür) */
+        post: {
+            parameters: {
+                query?: {
+                    status?: components["schemas"]["ImportRowStatus"];
+                    page?: number;
+                    pageSize?: number;
+                };
+                header?: never;
+                path: {
+                    jobId: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["ImportMappingRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ImportPreviewResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/contacts/import/{jobId}/commit": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Hatasız ve tekrar olmayan satırları kaydet */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    jobId: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["ImportMappingRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ImportCommitResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/contacts/import/{jobId}/report.xlsx": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Kaydetme raporu (Excel) */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    jobId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/reminders": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Hatırlatmalar (scope=mine|all, status=open|done, contactId) */
+        get: {
+            parameters: {
+                query?: {
+                    scope?: string;
+                    status?: string;
+                    contactId?: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ReminderResponse"][];
+                    };
+                };
+            };
+        };
+        put?: never;
+        /** Hatırlatma ekle */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["ReminderRequest"];
+                };
+            };
+            responses: {
+                /** @description Created */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ReminderResponse"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/reminders/assignees": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Hatırlatma atanabilecek ekip üyeleri */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["AssigneeResponse"][];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/reminders/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Hatırlatmayı düzenle */
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["ReminderRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ReminderResponse"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+                    };
+                };
+            };
+        };
+        post?: never;
+        /** Sil */
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description No Content */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/reminders/{id}/done": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Tamamlandı işaretle */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ReminderResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/reminders/{id}/reopen": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Tekrar aç */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ReminderResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/payment-requests": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Tahsilat linkleri (status, contactId); 'Ödedim' bekleyenler önce */
+        get: {
+            parameters: {
+                query?: {
+                    status?: components["schemas"]["PaymentRequestStatus"];
+                    contactId?: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PaymentRequestResponse"][];
+                    };
+                };
+            };
+        };
+        put?: never;
+        /** Tahsilat linki oluştur (IBAN gerekli) */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["CreatePaymentRequest"];
+                };
+            };
+            responses: {
+                /** @description Created */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PaymentRequestLinkResponse"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/payment-requests/{id}/share": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Linki yeniden paylaş (yeni link üretilir, eskisi geçersiz olur) */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["SharePaymentRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PaymentRequestLinkResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/payment-requests/{id}/confirm": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Ödemeyi onayla: kasaya tahsilat + cariye alacak */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["ConfirmPaymentRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PaymentRequestResponse"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/payment-requests/{id}/reject": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Ödeme gelmedi: 'Ödedim' bildirimi geri alınır, link açık kalır */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PaymentRequestResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/payment-requests/{id}/cancel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Linki iptal et */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PaymentRequestResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/public/statements/{token}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Herkese açık ekstre */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    token: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PublicStatementResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/public/statements/{token}/pdf": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Herkese açık ekstre PDF */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    token: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/public/payment-requests/{token}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Tahsilat linki: tutar ve IBAN */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    token: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PublicPaymentResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/public/payment-requests/{token}/claim": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Müşteri "Ödedim" der; Sahip ve Yöneticilere bildirim düşer */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    token: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["ClaimPaymentRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PublicPaymentResponse"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -1731,8 +3926,13 @@ export interface components {
             password: string;
             kvkkAccepted: boolean;
         };
+        AssigneeResponse: {
+            /** Format: uuid */
+            userId: string;
+            fullName: string;
+        };
         /** @enum {unknown} */
-        AuditAction: "Login" | "InvitationSent" | "InvitationResent" | "InvitationRevoked" | "InvitationAccepted" | "RoleChanged" | "MemberRemoved" | "BusinessUpdated" | "SlugChanged" | "WorkingHoursUpdated" | "LogoChanged" | "ModulesChanged";
+        AuditAction: "Login" | "InvitationSent" | "InvitationResent" | "InvitationRevoked" | "InvitationAccepted" | "RoleChanged" | "MemberRemoved" | "BusinessUpdated" | "SlugChanged" | "WorkingHoursUpdated" | "LogoChanged" | "ModulesChanged" | "PaymentInfoChanged" | "ContactCreated" | "ContactUpdated" | "ContactArchived" | "ContactRestored" | "ContactDeleted" | "ContactsImported" | "ContactsExported" | "LedgerEntryCreated" | "LedgerEntryDeleted" | "OpeningBalanceSet" | "CollectionRecorded" | "CollectionReverted" | "PaymentRequestCreated" | "PaymentRequestConfirmed" | "PaymentRequestRejected" | "PaymentRequestCancelled" | "StatementShared";
         AuditLogListResponse: {
             items: components["schemas"]["AuditLogResponse"][];
             /** Format: int32 */
@@ -1752,6 +3952,8 @@ export interface components {
             entityId: null | string;
             changes: null | components["schemas"]["JsonElement"];
         };
+        /** @enum {unknown} */
+        BalanceDirection: "Receivable" | "Payable";
         BusinessResponse: {
             /** Format: uuid */
             id: string;
@@ -1766,6 +3968,8 @@ export interface components {
             city: null | string;
             district: null | string;
             logoUrl: null | string;
+            iban: null | string;
+            ibanHolderName: null | string;
         };
         /** @enum {unknown} */
         BusinessRole: "Owner" | "Manager" | "Staff" | "Accountant" | null;
@@ -1773,6 +3977,17 @@ export interface components {
         BusinessSector: "HairBarber" | "BeautyCare" | "ClinicHealth" | "SportsFitness" | "AutoService" | "RetailStore" | "CafeRestaurant" | "Other";
         /** @enum {unknown} */
         BusinessTemplate: "Service" | "Retail" | "General";
+        CashAccountResponse: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+            type: components["schemas"]["CashAccountType"];
+            /** Format: double */
+            balance: number;
+            isDefault: boolean;
+        };
+        /** @enum {unknown} */
+        CashAccountType: "Cash" | "Bank";
         ChangePasswordRequest: {
             currentPassword: string;
             newPassword: string;
@@ -1785,10 +4000,151 @@ export interface components {
             name: string;
             districts: string[];
         };
+        ClaimPaymentRequest: {
+            note: null | string;
+        };
+        CollectionRequest: {
+            /** Format: double */
+            amount: null | number;
+            /** Format: date */
+            date: null | string;
+            /** Format: uuid */
+            cashAccountId: string;
+            description: null | string;
+        };
+        CollectionResponse: {
+            /** Format: uuid */
+            cashTransactionId: string;
+            /** Format: uuid */
+            ledgerEntryId: string;
+            /** Format: double */
+            contactBalance: number;
+        };
         ConfirmEmailRequest: {
             /** Format: uuid */
             userId: string;
             token: string;
+        };
+        ConfirmPaymentRequest: {
+            /** Format: uuid */
+            cashAccountId: string;
+            /** Format: double */
+            amount: null | number;
+            /** Format: date */
+            date: null | string;
+        };
+        /** @enum {unknown} */
+        ConsentChannel: "Sms" | "Email" | "Call";
+        /** @enum {unknown} */
+        ConsentSource: "Panel" | "Import" | "OnlineBooking" | null;
+        ConsentsRequest: {
+            sms: boolean;
+            email: boolean;
+            call: boolean;
+        };
+        ConsentStateDto: {
+            channel: components["schemas"]["ConsentChannel"];
+            granted: boolean;
+            /** Format: date-time */
+            at: null | string;
+            source: null | components["schemas"]["ConsentSource"];
+        };
+        ContactFilter: {
+            type?: null | string;
+            tagIds?: null | string[];
+            source?: null | components["schemas"]["ContactSource"];
+            balance?: null | string;
+            /** Format: int32 */
+            inactiveDays?: null | number;
+            usesBalance?: boolean;
+        };
+        ContactListItem: {
+            /** Format: uuid */
+            id: string;
+            displayName: string;
+            companyName: null | string;
+            phone: null | string;
+            email: null | string;
+            isCustomer: boolean;
+            isSupplier: boolean;
+            source: null | components["schemas"]["ContactSource"];
+            tags: components["schemas"]["TagDto"][];
+            /** Format: double */
+            balance: null | number;
+            /** Format: date-time */
+            lastVisitAt: null | string;
+            isArchived: boolean;
+            /** Format: date-time */
+            createdAt: string;
+        };
+        ContactListResponse: {
+            items: components["schemas"]["ContactListItem"][];
+            /** Format: int32 */
+            total: number;
+        };
+        ContactRequest: {
+            firstName: null | string;
+            lastName: null | string;
+            companyName: null | string;
+            isCustomer: boolean;
+            isSupplier: boolean;
+            phone: null | string;
+            email: null | string;
+            /** Format: date */
+            birthDate: null | string;
+            address: null | string;
+            city: null | string;
+            district: null | string;
+            source: null | components["schemas"]["ContactSource"];
+            notes: null | string;
+            taxNumber: null | string;
+            taxOffice: null | string;
+            tagIds: null | string[];
+            consents: null | components["schemas"]["ConsentsRequest"];
+            openingBalance: null | components["schemas"]["OpeningBalanceRequest"];
+        };
+        ContactResponse: {
+            /** Format: uuid */
+            id: string;
+            displayName: string;
+            firstName: null | string;
+            lastName: null | string;
+            companyName: null | string;
+            isCustomer: boolean;
+            isSupplier: boolean;
+            phone: null | string;
+            email: null | string;
+            /** Format: date */
+            birthDate: null | string;
+            address: null | string;
+            city: null | string;
+            district: null | string;
+            source: null | components["schemas"]["ContactSource"];
+            notes: null | string;
+            taxNumber: null | string;
+            taxOffice: null | string;
+            tags: components["schemas"]["TagDto"][];
+            consents: components["schemas"]["ConsentStateDto"][];
+            /** Format: double */
+            balance: null | number;
+            hasLedgerEntries: boolean;
+            /** Format: date-time */
+            lastVisitAt: null | string;
+            isArchived: boolean;
+            /** Format: date-time */
+            archivedAt: null | string;
+            /** Format: date-time */
+            createdAt: string;
+        };
+        /** @enum {unknown} */
+        ContactSource: "Instagram" | "Google" | "Referral" | "WalkIn" | "Facebook" | "TikTok" | "Other" | null;
+        CreatePaymentRequest: {
+            /** Format: uuid */
+            contactId: string;
+            /** Format: double */
+            amount: null | number;
+            note: null | string;
+            sendEmail: boolean;
         };
         /** @enum {unknown} */
         DayOfWeek: "Sunday" | "Monday" | "Tuesday" | "Wednesday" | "Thursday" | "Friday" | "Saturday";
@@ -1808,6 +4164,59 @@ export interface components {
         };
         /** Format: binary */
         IFormFile: string;
+        ImportCommitResponse: {
+            /** Format: int32 */
+            added: number;
+            /** Format: int32 */
+            duplicates: number;
+            /** Format: int32 */
+            errors: number;
+            notImported: components["schemas"]["ImportRowResult"][];
+            /** Format: int32 */
+            warnings: number;
+        };
+        ImportFieldInfo: {
+            key: string;
+            label: string;
+        };
+        ImportMappingRequest: {
+            mapping: {
+                [key: string]: number;
+            };
+        };
+        ImportPreviewResponse: {
+            /** Format: int32 */
+            total: number;
+            /** Format: int32 */
+            ok: number;
+            /** Format: int32 */
+            errors: number;
+            /** Format: int32 */
+            duplicates: number;
+            rows: components["schemas"]["ImportRowResult"][];
+        };
+        ImportRowResult: {
+            /** Format: int32 */
+            rowNumber: number;
+            name: null | string;
+            phone: null | string;
+            status: components["schemas"]["ImportRowStatus"];
+            messages: string[];
+        };
+        /** @enum {unknown} */
+        ImportRowStatus: "Ok" | "Error" | "Duplicate";
+        ImportUploadResponse: {
+            /** Format: uuid */
+            jobId: string;
+            fileName: string;
+            headers: string[];
+            /** Format: int32 */
+            rowCount: number;
+            mapping: {
+                [key: string]: number;
+            };
+            fields: components["schemas"]["ImportFieldInfo"][];
+        };
         InvitationPreviewResponse: {
             businessName: string;
             role: components["schemas"]["BusinessRole"];
@@ -1834,6 +4243,59 @@ export interface components {
             role: components["schemas"]["BusinessRole"];
         };
         JsonElement: unknown;
+        LedgerEntryRequest: {
+            kind: components["schemas"]["LedgerKind"];
+            /** Format: double */
+            amount: null | number;
+            /** Format: date */
+            date: null | string;
+            /** Format: date */
+            dueDate: null | string;
+            description: null | string;
+        };
+        LedgerItem: {
+            /** Format: uuid */
+            id: string;
+            /** Format: date */
+            date: string;
+            /** Format: date */
+            dueDate: null | string;
+            description: string;
+            /** Format: double */
+            debit: number;
+            /** Format: double */
+            credit: number;
+            /** Format: double */
+            balance: number;
+            refType: components["schemas"]["LedgerRefType"];
+            /** Format: uuid */
+            refId: null | string;
+            /** Format: date-time */
+            createdAt: string;
+        };
+        /** @enum {unknown} */
+        LedgerKind: "Debit" | "Credit";
+        /** @enum {unknown} */
+        LedgerRefType: "Opening" | "Manual" | "Collection" | "Sale";
+        LedgerResponse: {
+            /** Format: uuid */
+            contactId: string;
+            /** Format: date */
+            from: null | string;
+            /** Format: date */
+            to: string;
+            /** Format: double */
+            carriedBalance: number;
+            items: components["schemas"]["LedgerItem"][];
+            /** Format: double */
+            totalDebit: number;
+            /** Format: double */
+            totalCredit: number;
+            /** Format: double */
+            closingBalance: number;
+            /** Format: double */
+            currentBalance: number;
+        };
         LoginRequest: {
             email: string;
             password: string;
@@ -1889,6 +4351,19 @@ export interface components {
             appointments: boolean;
             stock: boolean;
         };
+        NoteRequest: {
+            body: string;
+        };
+        NoteResponse: {
+            /** Format: uuid */
+            id: string;
+            body: string;
+            authorName: null | string;
+            /** Format: uuid */
+            authorId: null | string;
+            /** Format: date-time */
+            createdAt: string;
+        };
         NotificationListResponse: {
             items: components["schemas"]["NotificationResponse"][];
             /** Format: int32 */
@@ -1908,12 +4383,136 @@ export interface components {
             /** Format: date-time */
             readAt: null | string;
         };
+        OpeningBalanceRequest: {
+            /** Format: double */
+            amount: null | number;
+            direction: components["schemas"]["BalanceDirection"];
+            /** Format: date */
+            date: null | string;
+        };
+        PaymentInfoRequest: {
+            iban: null | string;
+            ibanHolderName: null | string;
+        };
+        PaymentRequestLinkResponse: {
+            request: components["schemas"]["PaymentRequestResponse"];
+            url: string;
+            whatsappUrl: string;
+            emailSent: boolean;
+        };
+        PaymentRequestResponse: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            contactId: string;
+            contactName: string;
+            /** Format: double */
+            amount: number;
+            note: null | string;
+            status: components["schemas"]["PaymentRequestStatus"];
+            isExpired: boolean;
+            /** Format: date-time */
+            expiresAt: string;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            claimedAt: null | string;
+            claimNote: null | string;
+            /** Format: date-time */
+            confirmedAt: null | string;
+            /** Format: uuid */
+            cashTransactionId: null | string;
+        };
+        /** @enum {unknown} */
+        PaymentRequestStatus: "Open" | "ClaimedPaid" | "Confirmed" | "Cancelled";
+        PhoneCheckResponse: {
+            valid: boolean;
+            normalized: null | string;
+            /** Format: uuid */
+            existingContactId: null | string;
+            existingContactName: null | string;
+            existingIsArchived: boolean;
+        };
+        PublicPaymentResponse: {
+            businessName: string;
+            logoUrl: null | string;
+            businessPhone: null | string;
+            contactName: string;
+            /** Format: double */
+            amount: number;
+            note: null | string;
+            iban: null | string;
+            ibanHolderName: string;
+            status: components["schemas"]["PaymentRequestStatus"];
+            /** Format: date-time */
+            expiresAt: string;
+            /** Format: date-time */
+            claimedAt: null | string;
+        };
+        PublicStatementResponse: {
+            businessName: string;
+            logoUrl: null | string;
+            businessPhone: null | string;
+            businessEmail: null | string;
+            contactName: string;
+            /** Format: date */
+            from: null | string;
+            /** Format: date */
+            to: string;
+            /** Format: double */
+            carriedBalance: number;
+            items: components["schemas"]["PublicStatementRow"][];
+            /** Format: double */
+            totalDebit: number;
+            /** Format: double */
+            totalCredit: number;
+            /** Format: double */
+            closingBalance: number;
+            /** Format: date-time */
+            expiresAt: string;
+        };
+        PublicStatementRow: {
+            /** Format: date */
+            date: string;
+            description: string;
+            /** Format: double */
+            debit: number;
+            /** Format: double */
+            credit: number;
+            /** Format: double */
+            balance: number;
+        };
         RegisterRequest: {
             fullName: string;
             email: string;
             phone: string;
             password: string;
             kvkkAccepted: boolean;
+        };
+        ReminderRequest: {
+            title: string;
+            /** Format: date-time */
+            dueAt: null | string;
+            /** Format: uuid */
+            contactId: null | string;
+            /** Format: uuid */
+            assignedUserId: null | string;
+        };
+        ReminderResponse: {
+            /** Format: uuid */
+            id: string;
+            title: string;
+            /** Format: date-time */
+            dueAt: string;
+            /** Format: date-time */
+            doneAt: null | string;
+            /** Format: uuid */
+            contactId: null | string;
+            contactName: null | string;
+            /** Format: uuid */
+            assignedUserId: string;
+            assignedUserName: null | string;
+            isOverdue: boolean;
         };
         ResetPasswordRequest: {
             email: string;
@@ -1939,6 +4538,21 @@ export interface components {
             name: string;
             template: components["schemas"]["BusinessTemplate"];
         };
+        SegmentRequest: {
+            name: string;
+            filter: components["schemas"]["ContactFilter"];
+        };
+        SegmentResponse: {
+            /** Format: uuid */
+            id: null | string;
+            code: null | string;
+            name: string;
+            filter: null | components["schemas"]["ContactFilter"];
+            isSystem: boolean;
+        };
+        SetTagsRequest: {
+            tagIds: string[];
+        };
         SetupBusinessDto: {
             /** Format: uuid */
             id: string;
@@ -1961,11 +4575,32 @@ export interface components {
             business: null | components["schemas"]["SetupBusinessDto"];
             workingHours: components["schemas"]["WorkingHourDto"][];
         };
+        /** @enum {unknown} */
+        ShareChannel: "Link" | "WhatsApp" | "Email";
+        SharePaymentRequest: {
+            sendEmail: boolean;
+        };
         SlugAvailabilityResponse: {
             slug: string;
             valid: boolean;
             available: boolean;
             message: null | string;
+        };
+        StatementShareRequest: {
+            /** Format: date */
+            from: null | string;
+            /** Format: date */
+            to: null | string;
+            channel: components["schemas"]["ShareChannel"];
+        };
+        StatementShareResponse: {
+            /** Format: uuid */
+            id: string;
+            url: string;
+            whatsappUrl: string;
+            /** Format: date-time */
+            expiresAt: string;
+            emailSent: boolean;
         };
         SwitchBusinessRequest: {
             /** Format: uuid */
@@ -1977,6 +4612,42 @@ export interface components {
             environment: string;
             /** Format: date-time */
             serverTimeUtc: string;
+        };
+        /** @enum {unknown} */
+        TagColor: "Gray" | "Black" | "Blue" | "Outline";
+        TagDto: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+            color: components["schemas"]["TagColor"];
+        };
+        TagListItem: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+            color: components["schemas"]["TagColor"];
+            /** Format: int32 */
+            contactCount: number;
+        };
+        TagRequest: {
+            name: string;
+            color: components["schemas"]["TagColor"];
+        };
+        TimelineItem: {
+            kind: string;
+            /** Format: date-time */
+            at: string;
+            title: string;
+            detail: null | string;
+            /** Format: double */
+            amount: null | number;
+            /** Format: uuid */
+            refId: null | string;
+        };
+        TimelineResponse: {
+            items: components["schemas"]["TimelineItem"][];
+            /** Format: date-time */
+            nextBefore: null | string;
         };
         UnreadCountResponse: {
             /** Format: int32 */

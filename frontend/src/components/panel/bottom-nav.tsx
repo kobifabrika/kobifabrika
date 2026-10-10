@@ -12,12 +12,13 @@ import { NavList } from "@/components/panel/sidebar";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { useSession } from "@/components/providers/session-provider";
 import { bottomTabs, isActive, panelHref } from "@/lib/navigation";
+import { can } from "@/lib/permissions";
 
 const quickActions = [
   { label: "Yeni satış", href: "/panel/satislar", icon: ReceiptText },
   { label: "Yeni randevu", href: "/panel/randevular", icon: CalendarPlus, module: "appointments" as const },
-  { label: "Yeni müşteri", href: "/panel/musteriler", icon: UserPlus },
-  { label: "Tahsilat", href: "/panel/cari-kasa", icon: Banknote },
+  { label: "Yeni müşteri", href: "/panel/musteriler/yeni", icon: UserPlus, permission: "writeContacts" as const },
+  { label: "Tahsilat", href: "/panel/cari-kasa?sekme=bakiyeler", icon: Banknote, permission: "manageFinance" as const },
 ];
 
 const tabClass =
@@ -28,13 +29,16 @@ export function BottomNav() {
   const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
   const [quickOpen, setQuickOpen] = useState(false);
-  const { business } = useSession();
+  const { business, role } = useSession();
 
   // Randevular modülü kapalıysa (Perakende şablonu) o sekmenin yerinde Ürünler görünür.
   const tabs = bottomTabs.map((t) =>
     t.module && !business.modules[t.module] ? { slug: "urunler", label: "Ürün", icon: Package } : t,
   );
-  const actions = quickActions.filter((a) => !a.module || business.modules[a.module]);
+  const actions = quickActions.filter(
+    (a) =>
+      (!a.module || business.modules[a.module]) && (!("permission" in a) || !a.permission || can(role, a.permission)),
+  );
 
   const tab = (item: (typeof tabs)[number]) => {
     const active = isActive(pathname, item.slug);
@@ -100,7 +104,10 @@ export function BottomNav() {
               Menü
             </button>
           </SheetTrigger>
-          <SheetContent side="right" className="w-[85%] max-w-xs gap-0 border-sidebar-border bg-sidebar p-0 text-sidebar-foreground">
+          <SheetContent
+            side="right"
+            className="w-[85%] max-w-xs gap-0 border-sidebar-border bg-sidebar p-0 text-sidebar-foreground"
+          >
             <SheetHeader className="border-b border-sidebar-border px-5 py-4">
               <SheetTitle>
                 <Wordmark onDark className="text-xl" />

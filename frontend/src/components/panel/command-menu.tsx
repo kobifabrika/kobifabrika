@@ -2,7 +2,17 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { Command as CommandPrimitive } from "cmdk";
-import { Activity, Clock, Search, Settings, UserRound, Users, type LucideIcon } from "lucide-react";
+import {
+  Activity,
+  BellRing,
+  Clock,
+  FileSpreadsheet,
+  Search,
+  UserPlus,
+  UserRound,
+  Users,
+  type LucideIcon,
+} from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 
@@ -36,8 +46,8 @@ function useDebounced<T>(value: T, ms: number) {
 }
 
 /**
- * Ctrl+K / ⌘K genel arama. Sprint 1'de iskelet: sayfalar istemcide eşleşir; müşteri/ürün/satış
- * sonuçları API'den gelir (GET /api/search) ve ileriki sprintlerde dolar.
+ * Ctrl+K / ⌘K genel arama: sayfalar istemcide eşleşir; müşteriler (ad, telefon, e-posta) API'den gelir
+ * (GET /api/search); ürün ve satış Sprint 3'te eklenir.
  */
 export function CommandMenu() {
   const router = useRouter();
@@ -61,9 +71,42 @@ export function CommandMenu() {
     const links: PageLink[] = visibleNavGroups(role, business.modules)
       .flatMap((g) => g.items)
       .map((item) => ({ label: item.label, href: panelHref(item.slug), icon: item.icon }));
-    if (can(role, "viewSettings")) links.push({ label: "Çalışma saatleri", href: "/panel/ayarlar/calisma-saatleri", icon: Clock, keywords: "ayarlar" });
-    if (can(role, "manageTeam")) links.push({ label: "Ekip ve davetler", href: "/panel/ayarlar/ekip", icon: Users, keywords: "ayarlar personel kullanıcı davet" });
-    if (can(role, "viewAuditLog")) links.push({ label: "Aktivite günlüğü", href: "/panel/ayarlar/aktivite", icon: Activity, keywords: "ayarlar log kayıt" });
+    if (can(role, "writeContacts")) {
+      links.push({
+        label: "Yeni müşteri",
+        href: "/panel/musteriler/yeni",
+        icon: UserPlus,
+        keywords: "müşteri ekle kayıt",
+      });
+      links.push({
+        label: "Excel'den müşteri aktar",
+        href: "/panel/musteriler/ice-aktar",
+        icon: FileSpreadsheet,
+        keywords: "içe aktar excel",
+      });
+    }
+    links.push({ label: "Hatırlatmalar", href: "/panel/hatirlatmalar", icon: BellRing, keywords: "görev hatırlatma" });
+    if (can(role, "viewSettings"))
+      links.push({
+        label: "Çalışma saatleri",
+        href: "/panel/ayarlar/calisma-saatleri",
+        icon: Clock,
+        keywords: "ayarlar",
+      });
+    if (can(role, "manageTeam"))
+      links.push({
+        label: "Ekip ve davetler",
+        href: "/panel/ayarlar/ekip",
+        icon: Users,
+        keywords: "ayarlar personel kullanıcı davet",
+      });
+    if (can(role, "viewAuditLog"))
+      links.push({
+        label: "Aktivite günlüğü",
+        href: "/panel/ayarlar/aktivite",
+        icon: Activity,
+        keywords: "ayarlar log kayıt",
+      });
     links.push({ label: "Hesabım", href: "/panel/hesabim", icon: UserRound, keywords: "profil şifre" });
     return links;
   }, [role, business.modules]);
@@ -144,7 +187,8 @@ export function CommandMenu() {
               )}
             </CommandList>
             <p className="flex items-center gap-1 border-t border-border px-3 py-2 text-xs text-neutral-600">
-              <Settings aria-hidden className="size-3.5" /> Müşteri, ürün ve satış araması ilgili ekranlar gelince çalışacak.
+              <Search aria-hidden className="size-3.5" /> Müşteriyi ad, telefon veya e-postayla bulun. Ürün ve satış
+              araması yakında.
             </p>
           </CommandPrimitive>
         </DialogContent>

@@ -8,12 +8,17 @@ describe("aktivite günlüğü metinleri", () => {
   });
 
   it("ayrıntıları API'nin changes alanından Türkçe üretir", () => {
-    expect(auditDetail({ action: "InvitationSent", changes: { email: "a@b.com", role: "Staff" } })).toBe("a@b.com · Personel");
+    expect(auditDetail({ action: "InvitationSent", changes: { email: "a@b.com", role: "Staff" } })).toBe(
+      "a@b.com · Personel",
+    );
     expect(auditDetail({ action: "RoleChanged", changes: { userId: "x", from: "Staff", to: "Manager" } })).toBe(
       "Personel → Yönetici",
     );
     expect(
-      auditDetail({ action: "BusinessUpdated", changes: { name: { from: "A", to: "B" }, district: { from: "x", to: "y" } } }),
+      auditDetail({
+        action: "BusinessUpdated",
+        changes: { name: { from: "A", to: "B" }, district: { from: "x", to: "y" } },
+      }),
     ).toBe("Değişen: ad, ilçe");
     expect(auditDetail({ action: "ModulesChanged", changes: { to: { appointments: true, stock: false } } })).toBe(
       "Randevular açık, Stok kapalı",

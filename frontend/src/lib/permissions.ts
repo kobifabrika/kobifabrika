@@ -12,6 +12,16 @@ const matrix = {
   viewAuditLog: ["Owner", "Manager", "Accountant"],
   /** Finans raporları: Staff göremez (docs/01-faz1-kapsam.md, A). */
   viewReports: ["Owner", "Manager", "Accountant"],
+  /** Müşteri ekle/düzenle, not, etiket, hatırlatma, içe aktarma (Mali Müşavir salt okunur). */
+  writeContacts: ["Owner", "Manager", "Staff"],
+  /** Müşteri silme ve arşivleme. */
+  manageContacts: ["Owner", "Manager"],
+  /** Cari bakiye, hareketler, ekstre, kasa, tahsilat linkleri (Personel göremez). */
+  viewFinance: ["Owner", "Manager", "Accountant"],
+  /** Borç/alacak, tahsilat, tahsilat linki, ekstre paylaşımı. */
+  manageFinance: ["Owner", "Manager"],
+  /** Excel'e aktarma. */
+  exportData: ["Owner", "Manager", "Accountant"],
 } as const satisfies Record<string, readonly Role[]>;
 
 export type Permission = keyof typeof matrix;

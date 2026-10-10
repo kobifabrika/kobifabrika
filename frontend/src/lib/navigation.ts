@@ -43,7 +43,7 @@ export const navGroups: NavGroup[] = [
       { slug: "musteriler", label: "Müşteriler", icon: Users, sprint: 2 },
       { slug: "urunler", label: "Ürünler/Hizmetler", icon: Package, sprint: 3 },
       { slug: "stok", label: "Stok", icon: Boxes, sprint: 3, module: "stock" },
-      { slug: "cari-kasa", label: "Cari ve Kasa", icon: Wallet, sprint: 4 },
+      { slug: "cari-kasa", label: "Cari ve Kasa", icon: Wallet, sprint: 2, permission: "viewFinance" },
       { slug: "kampanyalar", label: "Kampanyalar", icon: Megaphone, sprint: 6 },
     ],
   },

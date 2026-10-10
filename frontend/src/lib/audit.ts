@@ -13,6 +13,24 @@ export const auditActionLabels: Record<AuditAction, string> = {
   WorkingHoursUpdated: "Çalışma saatlerini güncelledi",
   LogoChanged: "Logoyu değiştirdi",
   ModulesChanged: "Modülleri değiştirdi",
+  PaymentInfoChanged: "Ödeme bilgilerini (IBAN) değiştirdi",
+  ContactCreated: "Müşteri ekledi",
+  ContactUpdated: "Müşteri kartını güncelledi",
+  ContactArchived: "Müşteriyi arşivledi",
+  ContactRestored: "Müşteriyi arşivden çıkardı",
+  ContactDeleted: "Müşteriyi sildi",
+  ContactsImported: "Excel'den müşteri aktardı",
+  ContactsExported: "Müşteri listesini Excel'e aktardı",
+  LedgerEntryCreated: "Cari hareket girdi",
+  LedgerEntryDeleted: "Cari hareketi sildi",
+  OpeningBalanceSet: "Açılış bakiyesi girdi",
+  CollectionRecorded: "Tahsilat aldı",
+  CollectionReverted: "Tahsilatı geri aldı",
+  PaymentRequestCreated: "Tahsilat linki oluşturdu",
+  PaymentRequestConfirmed: "Tahsilat linkini onayladı",
+  PaymentRequestRejected: '"Ödeme gelmedi" dedi',
+  PaymentRequestCancelled: "Tahsilat linkini iptal etti",
+  StatementShared: "Ekstre paylaştı",
 };
 
 const fieldLabels: Record<string, string> = {
@@ -23,7 +41,21 @@ const fieldLabels: Record<string, string> = {
   address: "adres",
   city: "il",
   district: "ilçe",
+  firstName: "ad",
+  lastName: "soyad",
+  companyName: "firma",
+  birthDate: "doğum tarihi",
+  source: "kaynak",
+  isCustomer: "müşteri",
+  isSupplier: "tedarikçi",
+  taxNumber: "vergi no",
+  taxOffice: "vergi dairesi",
 };
+
+const money = (value: unknown) =>
+  typeof value === "number"
+    ? `${value.toLocaleString("tr-TR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} TL`
+    : "";
 
 type Changes = Record<string, unknown>;
 const role = (value: unknown) => roleNames[value as Role] ?? String(value ?? "");
@@ -44,6 +76,25 @@ export function auditDetail(item: Pick<AuditLogItem, "action" | "changes">): str
       return `${role(c.from)} → ${role(c.to)}`;
     case "MemberRemoved":
       return role(c.role);
+    case "ContactCreated":
+    case "ContactArchived":
+    case "ContactRestored":
+    case "ContactDeleted":
+      return text(c.name);
+    case "ContactsImported":
+      return `${text(c.file)} · ${c.added ?? 0} eklendi, ${c.duplicates ?? 0} tekrar, ${c.errors ?? 0} hatalı`;
+    case "ContactsExported":
+      return `${c.count ?? 0} kayıt`;
+    case "LedgerEntryCreated":
+      return `${c.kind === "Debit" ? "Borç" : "Alacak"} ${money(c.amount)} · ${text(c.description)}`;
+    case "CollectionRecorded":
+      return `${money(c.amount)} · ${text(c.cashAccount)}`;
+    case "PaymentRequestCreated":
+    case "PaymentRequestConfirmed":
+      return money(c.amount);
+    case "StatementShared":
+      return c.channel === "Email" ? "E-posta" : c.channel === "WhatsApp" ? "WhatsApp" : "Link";
+    case "ContactUpdated":
     case "BusinessUpdated": {
       const fields = Object.keys(c).map((f) => fieldLabels[f] ?? f);
       return fields.length ? `Değişen: ${fields.join(", ")}` : "";

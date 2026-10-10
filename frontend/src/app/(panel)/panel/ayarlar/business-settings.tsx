@@ -19,7 +19,7 @@ import { Switch } from "@/components/ui/switch";
 import { api, errorMessage, fieldErrors, unwrap } from "@/lib/api/client";
 import type { Business } from "@/lib/api/types";
 import { can } from "@/lib/permissions";
-import { emailSchema, formatPhone, isValidSlug } from "@/lib/validation/rules";
+import { emailSchema, formatIban, formatPhone, IBAN_MESSAGE, isValidSlug, normalizeIban } from "@/lib/validation/rules";
 
 const businessKey = ["business"] as const;
 
@@ -35,7 +35,12 @@ export function BusinessSettings() {
   const readOnly = !can(role, "manageBusiness");
   const business = useQuery({ queryKey: businessKey, queryFn: () => unwrap(api.GET("/api/business")) });
 
-  if (business.isPending) return <p role="status" className="text-sm text-neutral-600">Yükleniyor…</p>;
+  if (business.isPending)
+    return (
+      <p role="status" className="text-sm text-neutral-600">
+        Yükleniyor…
+      </p>
+    );
   if (business.isError) return <FormMessage>{errorMessage(business.error)}</FormMessage>;
 
   return (
@@ -43,6 +48,7 @@ export function BusinessSettings() {
       {readOnly && <FormMessage tone="info">Mali müşavir olarak ayarları sadece görüntüleyebilirsin.</FormMessage>}
       <InfoCard business={business.data} readOnly={readOnly} />
       <SlugCard business={business.data} readOnly={readOnly} />
+      <PaymentInfoCard business={business.data} readOnly={readOnly} />
       <ModulesCard business={business.data} readOnly={readOnly} />
       <SettingsCard title="Logo" description="Tekliflerde ve randevu sayfanda görünür.">
         <LogoSection business={business.data} readOnly={readOnly} />
@@ -123,12 +129,91 @@ function InfoCard({ business, readOnly }: { business: Business; readOnly: boolea
         </Field>
         {error && <FormMessage>{error}</FormMessage>}
         {!readOnly && (
-          <Button type="submit" size="lg" className="self-start" disabled={form.formState.isSubmitting || !form.formState.isDirty}>
+          <Button
+            type="submit"
+            size="lg"
+            className="self-start"
+            disabled={form.formState.isSubmitting || !form.formState.isDirty}
+          >
             {form.formState.isSubmitting ? "Kaydediliyor…" : "Kaydet"}
           </Button>
         )}
       </form>
     </SettingsCard>
+  );
+}
+
+/** Tahsilat linkinde müşteriye gösterilen IBAN ve hesap sahibi. Tahsilat linkindeki "IBAN girin" uyarısı buraya getirir (?odeme=1). */
+function PaymentInfoCard({ business, readOnly }: { business: Business; readOnly: boolean }) {
+  const refresh = useRefreshBusiness();
+  const [iban, setIban] = useState(business.iban ? formatIban(business.iban) : "");
+  const [holder, setHolder] = useState(business.ibanHolderName ?? "");
+  const [error, setError] = useState<string | null>(null);
+  const ibanError = iban.trim() && !normalizeIban(iban) ? IBAN_MESSAGE : null;
+  const dirty =
+    (normalizeIban(iban) ?? (iban.trim() ? iban : null)) !== (business.iban ?? null) ||
+    holder.trim() !== (business.ibanHolderName ?? "");
+  const highlight = typeof window !== "undefined" && new URLSearchParams(window.location.search).has("odeme");
+
+  const save = useMutation({
+    mutationFn: () =>
+      unwrap(
+        api.PUT("/api/business/payment-info", {
+          body: { iban: iban.trim() || null, ibanHolderName: holder.trim() || null },
+        }),
+      ),
+    onSuccess: async (next) => {
+      await refresh(next);
+      setIban(next.iban ? formatIban(next.iban) : "");
+      toast.success(next.iban ? "Ödeme bilgileri kaydedildi." : "IBAN kaldırıldı.");
+    },
+    onError: (e) => setError(fieldErrors(e).iban ?? errorMessage(e)),
+  });
+
+  return (
+    <div id="odeme" className={highlight ? "ring-2 ring-brand ring-offset-2" : undefined}>
+      <SettingsCard
+        title="Ödeme bilgileri"
+        description="Tahsilat linkinde müşterinize bu IBAN gösterilir. IBAN yoksa tahsilat linki oluşturulamaz."
+      >
+        <form
+          className="flex flex-col gap-5"
+          noValidate
+          onSubmit={(e) => {
+            e.preventDefault();
+            setError(null);
+            if (!ibanError) save.mutate();
+          }}
+        >
+          <Field
+            label="IBAN"
+            error={ibanError ?? error ?? undefined}
+            hint="TR ile başlayan 26 karakter; boşluklu yazabilirsiniz."
+          >
+            <Input
+              value={iban}
+              onChange={(e) => setIban(e.target.value.toUpperCase())}
+              placeholder="TR00 0000 0000 0000 0000 0000 00"
+              autoComplete="off"
+              inputMode="text"
+              maxLength={40}
+              disabled={readOnly}
+            />
+          </Field>
+          <Field
+            label="Hesap sahibi (isteğe bağlı)"
+            hint={`Boşsa "${business.name}" yazar. Havale yapan müşteri alıcı adı olarak bunu girer.`}
+          >
+            <Input value={holder} onChange={(e) => setHolder(e.target.value)} maxLength={200} disabled={readOnly} />
+          </Field>
+          {!readOnly && (
+            <Button type="submit" size="lg" className="self-start" disabled={!dirty || !!ibanError || save.isPending}>
+              {save.isPending ? "Kaydediliyor…" : "Kaydet"}
+            </Button>
+          )}
+        </form>
+      </SettingsCard>
+    </div>
   );
 }
 
@@ -166,7 +251,10 @@ function SlugCard({ business, readOnly }: { business: Business; readOnly: boolea
   const canSave = changed && !localInvalid && availability.data?.available === true && debounced === slug;
 
   return (
-    <SettingsCard title="Randevu linki" description="Müşterilerin online randevu alacağı adres. Değiştirirsen eski link çalışmaz.">
+    <SettingsCard
+      title="Randevu linki"
+      description="Müşterilerin online randevu alacağı adres. Değiştirirsen eski link çalışmaz."
+    >
       <div className="flex flex-col gap-4">
         <Field
           label="Adres"
@@ -199,7 +287,8 @@ function SlugCard({ business, readOnly }: { business: Business; readOnly: boolea
 function ModulesCard({ business, readOnly }: { business: Business; readOnly: boolean }) {
   const refresh = useRefreshBusiness();
   const save = useMutation({
-    mutationFn: (modules: { appointments: boolean; stock: boolean }) => unwrap(api.PUT("/api/business/modules", { body: modules })),
+    mutationFn: (modules: { appointments: boolean; stock: boolean }) =>
+      unwrap(api.PUT("/api/business/modules", { body: modules })),
     onSuccess: async (next) => {
       await refresh(next);
       toast.success("Menü güncellendi.");

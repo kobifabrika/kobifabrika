@@ -1,6 +1,19 @@
 import { describe, expect, it } from "vitest";
 
-import { formatPhone, isValidSlug, normalizePhone, passwordSchema, safeReturnPath, toSlug } from "./rules";
+import {
+  formatIban,
+  formatPhone,
+  isValidSlug,
+  moneySchema,
+  moneyToInput,
+  normalizeIban,
+  normalizePhone,
+  parseMoneyInput,
+  passwordSchema,
+  safeReturnPath,
+  toSlug,
+  validateMoney,
+} from "./rules";
 
 // Örnekler backend testleriyle aynı (SlugGeneratorTests, PhoneNumberTests).
 describe("slug", () => {
@@ -69,5 +82,57 @@ describe("geri dönüş adresi", () => {
     expect(safeReturnPath("//kotu.com/panel")).toBeNull();
     expect(safeReturnPath("/kurulum")).toBeNull();
     expect(safeReturnPath(null)).toBeNull();
+  });
+});
+
+// Backend tests/KobiFabrika.Tests/Domain/IbanAndMoneyTests.cs ile aynı örnekler.
+describe("para kuralları", () => {
+  it.each([
+    ["0,01", null],
+    ["1250", null],
+    ["1.250,50", null],
+    ["1250.5", null],
+    ["999.999.999.999,99", null],
+    ["", "Tutar girin."],
+    ["0", "Tutar 0'dan büyük olmalı."],
+    ["-5", "Tutar 0'dan büyük olmalı."],
+    ["10,001", "Tutar en fazla 2 ondalık basamak içerebilir."],
+    ["1.000.000.000.000", "Tutar en fazla 999.999.999.999,99 TL olabilir."],
+    ["on lira", "Tutarı rakamla girin (ör. 1.250,50)."],
+  ])("%s → %s", (input, expected) => {
+    expect(validateMoney(input)).toBe(expected);
+  });
+
+  it("Türkçe ve noktalı yazımı aynı sayıya çevirir", () => {
+    expect(parseMoneyInput("1.250,50")?.value).toBe(1250.5);
+    expect(parseMoneyInput("1250.50")?.value).toBe(1250.5);
+    expect(parseMoneyInput("1.250")?.value).toBe(1250);
+    expect(parseMoneyInput("1.250,50 TL")?.value).toBe(1250.5);
+    expect(moneySchema.parse("99,90")).toBe(99.9);
+    expect(moneyToInput(1250.5)).toBe("1250,50");
+  });
+});
+
+describe("IBAN", () => {
+  it.each([
+    ["TR400006200000000000000001", "TR400006200000000000000001"],
+    ["tr83 0001 0000 0000 0123 4567 89", "TR830001000000000123456789"],
+    [" TR10-0004-6000-0888-0000-0123-45 ", "TR100004600008880000012345"],
+  ])("geçerli: %s", (input, expected) => {
+    expect(normalizeIban(input)).toBe(expected);
+  });
+
+  it.each([
+    "",
+    "TR410006200000000000000001",
+    "TR40000620000000000000000",
+    "DE89370400440532013000",
+    "TR40000620000000000000000A",
+  ])("geçersiz: %s", (input) => {
+    expect(normalizeIban(input)).toBeNull();
+  });
+
+  it("4'erli gruplar", () => {
+    expect(formatIban("TR400006200000000000000001")).toBe("TR40 0006 2000 0000 0000 0000 01");
   });
 });

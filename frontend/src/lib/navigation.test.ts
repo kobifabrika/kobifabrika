@@ -51,4 +51,11 @@ describe("şablona ve role göre menü", () => {
     expect(labels(visibleNavGroups("Accountant", all))).toContain("Ayarlar");
     expect(labels(visibleNavGroups("Manager", all))).toContain("Ayarlar");
   });
+
+  it("Cari ve Kasa'yı Personel görmez; Müşteriler'i herkes görür", () => {
+    const all = { appointments: true, stock: true };
+    expect(labels(visibleNavGroups("Staff", all))).not.toContain("Cari ve Kasa");
+    expect(labels(visibleNavGroups("Staff", all))).toContain("Müşteriler");
+    expect(labels(visibleNavGroups("Accountant", all))).toContain("Cari ve Kasa");
+  });
 });

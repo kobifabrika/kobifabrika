@@ -34,7 +34,7 @@ public interface IPdfRenderer
 
 /// <summary>
 /// Cari hesap ekstresi: üstte işletme logosu ve bilgileri, müşteri, tarih aralığı, devreden bakiye, hareket tablosu
-/// (Tarih, Açıklama, Borç, Alacak, Bakiye), son bakiye "Alacak"/"Borç" diliyle. Sadece siyah/gri (docs/04-tasarim.md).
+/// (Tarih, Açıklama, Borç, Alacak, Bakiye), son bakiye müşterinin bakışıyla ("Borcunuz"/"Alacağınız"). Sadece siyah/gri (docs/04-tasarim.md).
 /// QuestPDF'in gömülü Lato fontu Türkçe karakterleri destekler.
 /// </summary>
 internal sealed class QuestPdfRenderer : IPdfRenderer
@@ -45,12 +45,15 @@ internal sealed class QuestPdfRenderer : IPdfRenderer
 
     public static string Money(decimal value) => value.ToString("N2", Tr) + " TL";
 
-    /// <summary>Bakiye etiketi: pozitif = Alacak (müşteri bize borçlu), negatif = Borç (biz borçluyuz).</summary>
+    /// <summary>
+    /// Ekstre müşteriye gider; son bakiye onun bakışıyla yazılır: pozitif = "Borcunuz", negatif = "Alacağınız".
+    /// (Panelde aynı bakiye işletmenin bakışıyla "Alacak"/"Borç" görünür.)
+    /// </summary>
     public static string BalanceText(decimal balance) => balance switch
     {
-        > 0 => $"Alacak {Money(balance)}",
-        < 0 => $"Borç {Money(-balance)}",
-        _ => "Bakiye yok",
+        > 0 => $"Borcunuz {Money(balance)}",
+        < 0 => $"Alacağınız {Money(-balance)}",
+        _ => "Borç yok",
     };
 
     public byte[] Statement(StatementData d) => Document.Create(container => container.Page(page =>
@@ -191,11 +194,11 @@ internal sealed class QuestPdfRenderer : IPdfRenderer
         });
     })).GeneratePdf();
 
-    /// <summary>Tablodaki bakiye: Alacak "(A)", Borç "(B)" ekiyle; renge dayanmaz.</summary>
+    /// <summary>Tablodaki bakiye, ekstre usulü: borç bakiyesi "(B)", alacak bakiyesi "(A)"; renge dayanmaz.</summary>
     private static string Signed(decimal balance) => balance switch
     {
-        > 0 => Money(balance) + " (A)",
-        < 0 => Money(-balance) + " (B)",
+        > 0 => Money(balance) + " (B)",
+        < 0 => Money(-balance) + " (A)",
         _ => Money(0),
     };
 

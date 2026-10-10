@@ -71,10 +71,13 @@ describe("kontrast kuralları", () => {
     expect(contrast(WHITE, BLACK)).toBeGreaterThanOrEqual(AA_TEXT);
   });
 
-  it.each(["neutral-600", "neutral-700", "danger-600"])("%s beyaz ve neutral-50/100 zeminde yazı olarak okunur", (name) => {
-    for (const bg of [WHITE, token("neutral-50"), token("neutral-100")])
-      expect(contrast(token(name), bg)).toBeGreaterThanOrEqual(AA_TEXT);
-  });
+  it.each(["neutral-600", "neutral-700", "danger-600"])(
+    "%s beyaz ve neutral-50/100 zeminde yazı olarak okunur",
+    (name) => {
+      for (const bg of [WHITE, token("neutral-50"), token("neutral-100")])
+        expect(contrast(token(name), bg)).toBeGreaterThanOrEqual(AA_TEXT);
+    },
+  );
 
   it("hata yazısı kendi açık zemininde (danger-50) okunur", () => {
     expect(contrast(token("danger-600"), token("danger-50"))).toBeGreaterThanOrEqual(AA_TEXT);
