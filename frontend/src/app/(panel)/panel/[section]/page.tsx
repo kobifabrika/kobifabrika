@@ -6,7 +6,8 @@ import { allNavItems, findNavItem } from "@/lib/navigation";
 
 /** Menüdeki her ekran için geçici iskelet; ekranlar ilgili sprintlerde gerçek sayfalarla değişir. */
 export function generateStaticParams() {
-  return allNavItems.filter((item) => item.slug).map((item) => ({ section: item.slug }));
+  // Sprint 1 ekranları (Ayarlar) kendi klasöründe; burada sadece henüz gelmemiş ekranlar.
+  return allNavItems.filter((item) => item.slug && item.sprint !== 1).map((item) => ({ section: item.slug }));
 }
 
 export async function generateMetadata({ params }: PageProps<"/panel/[section]">): Promise<Metadata> {

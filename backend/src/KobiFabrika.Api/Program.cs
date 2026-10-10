@@ -74,7 +74,11 @@ builder.Services.AddValidatorsFromAssemblyContaining<Program>(includeInternalTyp
 Validation.ConfigureDefaults();
 
 builder.Services.ConfigureHttpJsonOptions(options =>
-    options.SerializerOptions.Converters.Add(new JsonStringEnumConverter()));
+{
+    options.SerializerOptions.Converters.Add(new JsonStringEnumConverter());
+    // Sayılar metin olarak kabul edilmez; OpenAPI'de int alanlar "integer" olarak çıkar (frontend tipleri).
+    options.SerializerOptions.NumberHandling = JsonNumberHandling.Strict;
+});
 
 builder.Services.AddRateLimiter(options =>
 {

@@ -3,18 +3,19 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
-import { Banknote, CalendarPlus, Menu, Plus, ReceiptText, UserPlus } from "lucide-react";
+import { Banknote, CalendarPlus, Menu, Package, Plus, ReceiptText, UserPlus } from "lucide-react";
 import { cn } from "cn";
 
 import { Wordmark } from "@/components/brand/wordmark";
 import { ApiStatus } from "@/components/panel/api-status";
 import { NavList } from "@/components/panel/sidebar";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import { useSession } from "@/components/providers/session-provider";
 import { bottomTabs, isActive, panelHref } from "@/lib/navigation";
 
 const quickActions = [
   { label: "Yeni satış", href: "/panel/satislar", icon: ReceiptText },
-  { label: "Yeni randevu", href: "/panel/randevular", icon: CalendarPlus },
+  { label: "Yeni randevu", href: "/panel/randevular", icon: CalendarPlus, module: "appointments" as const },
   { label: "Yeni müşteri", href: "/panel/musteriler", icon: UserPlus },
   { label: "Tahsilat", href: "/panel/cari-kasa", icon: Banknote },
 ];
@@ -27,8 +28,15 @@ export function BottomNav() {
   const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
   const [quickOpen, setQuickOpen] = useState(false);
+  const { business } = useSession();
 
-  const tab = (item: (typeof bottomTabs)[number]) => {
+  // Randevular modülü kapalıysa (Perakende şablonu) o sekmenin yerinde Ürünler görünür.
+  const tabs = bottomTabs.map((t) =>
+    t.module && !business.modules[t.module] ? { slug: "urunler", label: "Ürün", icon: Package } : t,
+  );
+  const actions = quickActions.filter((a) => !a.module || business.modules[a.module]);
+
+  const tab = (item: (typeof tabs)[number]) => {
     const active = isActive(pathname, item.slug);
     const Icon = item.icon;
     return (
@@ -50,8 +58,8 @@ export function BottomNav() {
       className="fixed inset-x-0 bottom-0 z-30 border-t border-border bg-white pb-[env(safe-area-inset-bottom)] lg:hidden"
     >
       <div className="mx-auto flex max-w-xl items-stretch px-1">
-        {tab(bottomTabs[0])}
-        {tab(bottomTabs[1])}
+        {tab(tabs[0])}
+        {tab(tabs[1])}
 
         <Sheet open={quickOpen} onOpenChange={setQuickOpen}>
           <SheetTrigger asChild>
@@ -67,7 +75,7 @@ export function BottomNav() {
               <SheetDescription>Ne yapmak istiyorsunuz?</SheetDescription>
             </SheetHeader>
             <div className="grid grid-cols-2 gap-3 px-4">
-              {quickActions.map(({ label, href, icon: Icon }) => (
+              {actions.map(({ label, href, icon: Icon }) => (
                 <Link
                   key={label}
                   href={href}
@@ -82,8 +90,8 @@ export function BottomNav() {
           </SheetContent>
         </Sheet>
 
-        {tab(bottomTabs[2])}
-        {tab(bottomTabs[3])}
+        {tab(tabs[2])}
+        {tab(tabs[3])}
 
         <Sheet open={menuOpen} onOpenChange={setMenuOpen}>
           <SheetTrigger asChild>

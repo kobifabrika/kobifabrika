@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { allNavItems, isActive, navGroups, panelHref } from "./navigation";
+import { allNavItems, isActive, navGroups, panelHref, visibleNavGroups } from "./navigation";
 
 describe("panel menüsü", () => {
   it("Faz 1 menüsündeki 12 ekranı iki grupta içerir", () => {
@@ -32,5 +32,23 @@ describe("panel menüsü", () => {
     expect(isActive("/panel", "")).toBe(true);
     expect(isActive("/panel/musteriler", "")).toBe(false);
     expect(isActive("/panel/musteriler/123", "musteriler")).toBe(true);
+  });
+});
+
+describe("şablona ve role göre menü", () => {
+  const labels = (groups: ReturnType<typeof visibleNavGroups>) => groups.flatMap((g) => g.items.map((i) => i.label));
+
+  it("Hizmet şablonunda Stok, Perakende şablonunda Randevular gizlenir", () => {
+    expect(labels(visibleNavGroups("Owner", { appointments: true, stock: false }))).not.toContain("Stok");
+    expect(labels(visibleNavGroups("Owner", { appointments: false, stock: true }))).not.toContain("Randevular");
+    expect(labels(visibleNavGroups("Owner", { appointments: true, stock: true }))).toHaveLength(12);
+  });
+
+  it("Personel Ayarlar ve Raporlar'ı görmez; Mali Müşavir görür", () => {
+    const all = { appointments: true, stock: true };
+    expect(labels(visibleNavGroups("Staff", all))).not.toContain("Ayarlar");
+    expect(labels(visibleNavGroups("Staff", all))).not.toContain("Raporlar");
+    expect(labels(visibleNavGroups("Accountant", all))).toContain("Ayarlar");
+    expect(labels(visibleNavGroups("Manager", all))).toContain("Ayarlar");
   });
 });

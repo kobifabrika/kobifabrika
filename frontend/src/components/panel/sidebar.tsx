@@ -6,15 +6,17 @@ import { cn } from "cn";
 
 import { Wordmark } from "@/components/brand/wordmark";
 import { ApiStatus } from "@/components/panel/api-status";
-import { isActive, navGroups, panelHref } from "@/lib/navigation";
+import { useSession } from "@/components/providers/session-provider";
+import { isActive, panelHref, visibleNavGroups } from "@/lib/navigation";
 
 /** Panel menü listesi. Masaüstü sol menüde ve telefondaki "Menü" panelinde kullanılır. */
 export function NavList({ onNavigate }: { onNavigate?: () => void }) {
   const pathname = usePathname();
+  const { role, business } = useSession();
 
   return (
     <nav aria-label="Ana menü" className="flex flex-col gap-6">
-      {navGroups.map((group) => (
+      {visibleNavGroups(role, business.modules).map((group) => (
         <div key={group.title}>
           <p className="mb-2 px-3 text-xs font-semibold tracking-wider text-sidebar-foreground/70 uppercase">
             {group.title}

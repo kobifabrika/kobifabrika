@@ -44,3 +44,34 @@ export async function unwrap<T>(
   }
   return data as T;
 }
+
+/** Alan bazlı doğrulama hataları (ilk mesaj); form alanlarına bağlamak için. */
+export function fieldErrors(error: unknown): Record<string, string> {
+  if (!(error instanceof ApiError) || !error.problem.errors) return {};
+  return Object.fromEntries(
+    Object.entries(error.problem.errors)
+      .filter(([, messages]) => messages.length > 0)
+      .map(([field, messages]) => [field, messages[0]]),
+  );
+}
+
+/** Kullanıcıya gösterilecek tek satırlık Türkçe hata. */
+export function errorMessage(error: unknown, fallback = "Bir şeyler ters gitti. Lütfen tekrar deneyin."): string {
+  if (error instanceof ApiError) {
+    if (error.status === 429) return "Çok fazla deneme yaptınız. Biraz bekleyip tekrar deneyin.";
+    const first = Object.values(fieldErrors(error))[0];
+    return error.problem.detail ?? first ?? error.problem.title ?? fallback;
+  }
+  if (error instanceof TypeError) return "Sunucuya ulaşılamıyor. İnternet bağlantınızı kontrol edin.";
+  return fallback;
+}
+
+/** Hata kodu (ör. "setup_required", "email_not_confirmed"); ProblemDetails `code` alanı. */
+export function problemCode(error: unknown): string | undefined {
+  return error instanceof ApiError ? (error.problem as { code?: string }).code : undefined;
+}
+
+/** API'nin döndürdüğü göreli dosya yolunu (/files/...) tam URL'ye çevirir. */
+export function fileUrl(path: string | null | undefined): string | null {
+  return path ? `${API_URL}${path}` : null;
+}
