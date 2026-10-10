@@ -25,7 +25,8 @@ public sealed class KobiFabrikaApiFactory : WebApplicationFactory<Program>
     }
 
     public CapturingEmailSender Emails { get; } = new();
-    public FakeTimeProvider Clock { get; } = new(DateTimeOffset.UtcNow);
+    /// <summary>Her okumada 1 ms ilerler; aynı istekte yazılan kayıtların sırası gerçek hayattaki gibi belirli olur.</summary>
+    public FakeTimeProvider Clock { get; } = new(DateTimeOffset.UtcNow) { AutoAdvanceAmount = TimeSpan.FromMilliseconds(1) };
     public int AuthPermitLimit { get; init; } = 100_000;
     public string StoragePath { get; } = Path.Combine(Path.GetTempPath(), "kf-tests-" + Guid.NewGuid().ToString("N"));
 

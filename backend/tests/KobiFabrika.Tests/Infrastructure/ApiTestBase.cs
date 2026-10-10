@@ -85,6 +85,31 @@ public abstract class ApiTestBase(SqlServerFixture db) : IAsyncLifetime
         return owner;
     }
 
+    protected string InvitationTokenFor(string email) => Factory.Emails.LinkTo(email, "/davet/").Split('/').Last();
+
+    /// <summary>Owner davet eder, davetli linkten kayıt olur. Davetlinin aktif işletmesi Owner'ınki olur.</summary>
+    protected async Task<(TestUser User, Guid MembershipId)> AddMemberAsync(TestUser owner, string role)
+    {
+        var email = UniqueEmail(role.ToLowerInvariant());
+        await EnsureSuccessAsync(await owner.Client.PostAsJsonAsync("/api/team/invitations", new { email, role }, Ct));
+
+        var client = NewClient();
+        var response = await client.PostAsJsonAsync($"/api/invitations/{InvitationTokenFor(email)}/register", new
+        {
+            fullName = $"{role} Kişi",
+            phone = "0532 111 22 33",
+            password = DefaultPassword,
+            kvkkAccepted = true,
+        }, Ct);
+        await EnsureSuccessAsync(response);
+        var me = await response.Content.ReadFromJsonAsync<JsonElement>(Json, Ct);
+        var userId = me.GetProperty("user").GetProperty("id").GetGuid();
+
+        var members = await GetJsonAsync(owner.Client, "/api/team/members");
+        var membershipId = members.EnumerateArray().Single(m => m.GetProperty("userId").GetGuid() == userId).GetProperty("membershipId").GetGuid();
+        return (new TestUser(client, email, DefaultPassword, userId), membershipId);
+    }
+
     protected async Task ConfirmEmailAsync(TestUser user)
     {
         var query = QueryHelpers.ParseQuery(new Uri(new Uri("https://x"), Factory.Emails.LinkTo(user.Email, "/e-posta-dogrula")).Query);

@@ -4,12 +4,16 @@ using System.Threading.RateLimiting;
 using FluentValidation;
 using KobiFabrika.Api.Common;
 using KobiFabrika.Api.Common.Authorization;
+using KobiFabrika.Api.Features.AuditLogs;
 using KobiFabrika.Api.Features.Auth;
 using KobiFabrika.Api.Features.Businesses;
+using KobiFabrika.Api.Features.Invitations;
+using KobiFabrika.Api.Features.Notifications;
 using KobiFabrika.Api.Features.Reference;
 using KobiFabrika.Api.Features.Search;
 using KobiFabrika.Api.Features.Setup;
 using KobiFabrika.Api.Features.SystemInfo;
+using KobiFabrika.Api.Features.Team;
 using KobiFabrika.Infrastructure;
 using KobiFabrika.Infrastructure.Persistence;
 using KobiFabrika.Infrastructure.Storage;
@@ -64,6 +68,8 @@ builder.Services.AddScoped<SessionService>();
 builder.Services.AddScoped<AccountEmails>();
 builder.Services.AddScoped<EmailDispatch>();
 builder.Services.AddScoped<BusinessOperations>();
+builder.Services.AddScoped<InvitationMailer>();
+builder.Services.AddScoped<InvitationAcceptor>();
 builder.Services.AddValidatorsFromAssemblyContaining<Program>(includeInternalTypes: true);
 Validation.ConfigureDefaults();
 
@@ -142,6 +148,10 @@ app.MapSearchEndpoints();
 app.MapReferenceEndpoints();
 app.MapSetupEndpoints();
 app.MapBusinessEndpoints();
+app.MapTeamEndpoints();
+app.MapInvitationEndpoints();
+app.MapNotificationEndpoints();
+app.MapAuditLogEndpoints();
 
 app.Run();
 
