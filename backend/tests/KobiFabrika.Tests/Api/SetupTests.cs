@@ -162,6 +162,25 @@ public sealed class SetupTests(SqlServerFixture db) : ApiTestBase(db)
     }
 
     [Fact]
+    public async Task Unreadable_request_body_returns_400_not_500()
+    {
+        var user = await RegisterAsync();
+        // "İstanbul" Windows-1254 ile kodlanmış: geçersiz UTF-8 (Windows terminalinden gönderilen istek gibi).
+        var body = new ByteArrayContent(
+        [
+            .."{\"name\":\"Test\",\"sector\":\"HairBarber\",\"phone\":\"2125554433\",\"city\":\""u8.ToArray(),
+            0xDD, .."stanbul\",\"district\":\"Kad\""u8.ToArray(), 0xFD, .."köy\"}"u8.ToArray(),
+        ]);
+        body.Headers.ContentType = new("application/json");
+
+        var response = await user.Client.PostAsync("/api/setup/business", body, Ct);
+
+        // Development'ta Minimal API BadHttpRequestException fırlatır (ApiExceptionHandler 400'e çevirir);
+        // diğer ortamlarda 400'ü kendisi yazar. İkisinde de 500 değil.
+        response.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
+    }
+
+    [Fact]
     public async Task Reference_lists_are_public()
     {
         var client = NewClient();
