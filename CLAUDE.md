@@ -98,5 +98,5 @@ Windows'ta API çalışırken backend derlenmez (DLL kilitli); önce API'yi durd
 
 ## Güncel durum
 
-- Sprint: **0 (kurulum)** tamamlandı (2026-10-10). Sıradaki: **Sprint 1 (Çekirdek)**.
+- Sprint: **1 (Çekirdek)** tamamlandı (2026-10-10): kayıt/giriş, kurulum sihirbazı, roller ve davet, bildirim, aktivite günlüğü, Ctrl+K iskeleti. Sıradaki: **Sprint 2 (Müşteriler ve cari)**.
 - GitHub: github.com/kobifabrika/kobifabrika (private)

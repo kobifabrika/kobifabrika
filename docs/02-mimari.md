@@ -40,11 +40,17 @@ Tek kişilik/küçük ekip için **modüler monolit**: tek deploy, tek veritaban
 
 ### Kimlik ve yetki
 
-- ASP.NET Core Identity, httpOnly + Secure + SameSite=Lax cookie. Cookie domain canlıda `.kobifabrika.com` (app ve api alt alan adları paylaşır).
+- ASP.NET Core Identity, httpOnly + Secure + SameSite=Lax cookie (`kf.auth`). Cookie domain canlıda `.kobifabrika.com` (app ve api alt alan adları paylaşır).
+- "Beni hatırla" işaretliyse kalıcı cookie (30 gün, kayan süre), değilse oturum cookie'si. Security stamp 5 dakikada bir kontrol edilir: şifre sıfırlama/değiştirme diğer oturumları düşürür.
+- E-posta doğrulanmadan giriş yapılır (`RequireConfirmedEmail = false`); davet gibi işlemler `VerifiedEmail` policy'si ister.
 - Geliştirmede frontend `localhost:3000`, API `localhost:5080`; CORS `AllowCredentials` ile sadece frontend origin'i.
-- Roller: `Owner`, `Manager`, `Staff`, `Accountant`. Yetki policy'leri endpoint gruplarında tanımlanır (`RequireRole`), alan bazlı kısıtlar (maaş) handler'da.
+- Cookie'de sadece kullanıcı ve aktif işletme (`kf:business_id`, `AppUser.LastBusinessId`'den) var; **rol cookie'de tutulmaz.** `TenantResolutionMiddleware` her istekte (UserId, BusinessId) üyeliğini tek sorguyla doğrular, `TenantContext` ve `CurrentMember`'ı (rol, e-posta doğrulandı mı, kurulum bitti mi) doldurur. Üyelik yok/pasifse kiracı bağlamı boş kalır (fail-closed). Rol değişikliği ve ekipten çıkarma bir sonraki istekte geçerli olur.
+- Roller: `Owner`, `Manager`, `Staff`, `Accountant`. Policy'ler (`Api/Common/Authorization/Policies.cs`): `Panel` (her üye, kurulum bitmiş), `CanWrite` (Accountant hariç), `ViewSettings` (Owner, Manager, Accountant), `ManageBusiness` ve `ManageTeam` (Owner, Manager), `ViewAuditLog` (Owner, Manager, Accountant), `OwnerOnly`, `Setup` (işletmesi olmayan veya kurulumu bitmemiş Owner), `VerifiedEmail`. Ret yanıtı Türkçe ProblemDetails + `code` (ör. `setup_required`, `email_not_confirmed`); frontend yönlendirmeyi buna göre yapar. Alan bazlı kısıtlar (maaş) ve "Owner rolüne sadece Owner dokunur" gibi kurallar handler'da.
+- Frontend'deki `src/lib/permissions.ts` aynı matrisi sadece menü/buton görünürlüğü için tutar.
 - Süper admin ayrı bir `PlatformAdmin` rolü. Kiracı filtresi rol bazında kapatılmaz; sadece `Features/Admin` endpoint'leri `IgnoreQueryFilters([QueryFilters.Tenant])` ile açıkça kapatır.
-- Şifre sıfırlama ve e-posta doğrulama Identity token'ları ile.
+- Herkese açık davet uçları (`/api/invitations/{token}`) kiracıyı token özetinden çözer; kabul işlemi davetin işletmesine ait ayrı bir DI scope'unda yapılır (oturumdaki kullanıcının başka aktif işletmesi olsa da kiracı bağlamı karışmaz).
+- Şifre sıfırlama (2 saat) ve e-posta doğrulama (1 gün) Identity token'larıyla; link token'ları Base64Url. Kayıt, giriş ve şifre uçlarında IP başına dakikada sınır (`RateLimiting:AuthPermitLimit`), doğrulama e-postası kullanıcı başına 60 sn'de bir.
+- Şifre kuralı: en az 8 karakter, bir harf, bir rakam; Identity hataları Türkçe (`TurkishIdentityErrorDescriber`).
 
 ### API kuralları
 
@@ -53,6 +59,7 @@ Tek kişilik/küçük ekip için **modüler monolit**: tek deploy, tek veritaban
 - Hata yanıtları ProblemDetails (RFC 9457), doğrulama hataları Türkçe mesajlı.
 - OpenAPI dokümanı `/openapi/v1.json`; geliştirmede Scalar arayüzü `/scalar`.
 - Para alanları `decimal`, tarih alanları ISO 8601 UTC.
+- JSON: enum'lar metin (`"Owner"`), sayılar katı (`JsonNumberHandling.Strict`; OpenAPI'de `integer`). Doğrulama FluentValidation ile (`.Validate<T>()` uç filtresi), alan adları camelCase.
 
 ### Arka plan işleri (Hangfire)
 
@@ -66,7 +73,9 @@ Tek kişilik/küçük ekip için **modüler monolit**: tek deploy, tek veritaban
 ### Dış servisler (arayüz + sahte uygulama)
 
 Her dış servis bir arayüzün arkasında: `ISmsSender`, `IEmailSender`, `IPaymentProvider`, `IPdfRenderer`.
-Geliştirmede sahte (fake) uygulamalar çalışır: SMS'ler veritabanındaki `MessageLog`'a ve konsola yazılır, e-postalar Mailpit'e gider. Gerçek sağlayıcılar pilot öncesi bağlanır.
+Geliştirmede sahte (fake) uygulamalar çalışır: SMS'ler veritabanındaki `MessageLog`'a ve konsola yazılır, e-postalar MailKit ile SMTP üzerinden Mailpit'e gider (`Email:Smtp`). Gerçek sağlayıcılar pilot öncesi bağlanır.
+E-posta Sprint 1'de istek içinde gönderilir (hata loglanır, istek düşmez); Hangfire gelince (Sprint 5) kuyruğa alınacak.
+Dosyalar (logo) `IFileStorage` arkasında: geliştirmede yerel disk (`Storage:LocalPath`, varsayılan `App_Data/files`, git dışı), API'den `/files/...` altında sunulur.
 
 ### Loglama ve izleme
 
@@ -75,7 +84,8 @@ Serilog (konsol + dosya), canlıda Sentry (ücretsiz katman). Her istek için co
 ## Frontend
 
 - Next.js App Router, TypeScript strict, Tailwind CSS, shadcn/ui bileşenleri, lucide-react ikonları.
-- Route grupları: `(site)` tanıtım sitesi (SEO, statik), `(auth)`, `(panel)/panel` (oturum gerekli, istemci ağırlıklı; URL `/panel/...`, canlıda `app.kobifabrika.com` `proxy.ts` ile buraya yönlenir), `r/[slug]` randevu sayfası. Frontend URL'leri Türkçe.
+- Route grupları: `(site)` tanıtım sitesi (SEO, statik), `(auth)`, `(panel)/panel` (oturum gerekli, istemci ağırlıklı; URL `/panel/...`, canlıda `app.kobifabrika.com` `proxy.ts` ile buraya yönlenir), `r/[slug]` randevu sayfası. `(auth)` grubunda `/giris`, `/kayit`, `/sifremi-unuttum`, `/sifre-sifirla`, `/e-posta-dogrula`, `/davet/[token]`; kurulum sihirbazı `/kurulum`. Frontend URL'leri Türkçe.
+- Oturum: `src/proxy.ts` sadece `kf.auth` cookie'sinin varlığına bakar (yoksa `/giris?donus=…`). Asıl kontrol `PanelGate`'te: `GET /api/auth/me` 401 → giriş, kurulum bitmemiş → `/kurulum`. Panel içeriği istemcide render edildiği için panel segmentleri `export const instant = false` ile anında gezinme doğrulamasının dışında.
 - Veri çekme: `openapi-typescript` ile üretilen tipler + küçük bir `apiClient` (fetch, `credentials: "include"`). Sunucu durumu için TanStack Query.
 - Formlar: react-hook-form + zod (backend doğrulamasıyla aynı kurallar).
 - Tema: `docs/04-tasarim.md`'deki renkler Tailwind tema token'larına ve CSS değişkenlerine işlenir. Açık tema öncelikli; koyu tema sonra.

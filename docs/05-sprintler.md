@@ -2,7 +2,7 @@
 
 Tahmini, yarı zamanlı. Toplam yaklaşık 15-18 hafta. Her sprint sonunda: build ve testler geçer, ekranlar 375px'te kontrol edilir, bu dosyada maddeler işaretlenir, `docs/karar-gunlugu.md` güncellenir, commit atılır.
 
-**Durum:** Sprint 0 tamamlandı (2026-10-10). Sıradaki: Sprint 1.
+**Durum:** Sprint 1 tamamlandı (2026-10-10). Sıradaki: Sprint 2 (Müşteriler ve cari).
 
 ---
 
@@ -22,12 +22,12 @@ Tahmini, yarı zamanlı. Toplam yaklaşık 15-18 hafta. Her sprint sonunda: buil
 
 ## Sprint 1 — Çekirdek (2 hafta)
 
-- [ ] Kayıt, e-posta doğrulama (Mailpit), giriş/çıkış, şifremi unuttum (cookie auth)
-- [ ] Kurulum sihirbazı: işletme bilgileri, çalışma saatleri, sektör şablonu, slug
-- [ ] Roller (Owner/Manager/Staff/Accountant), davet akışı, yetki policy'leri
-- [ ] Bildirimler, aktivite günlüğü, Ctrl+K arama iskeleti
-- [ ] Giriş ekranı tasarımı (taslaktaki düzen, mobil düzeltmelerle)
-- [ ] Kiracı izolasyonu entegrasyon testleri
+- [x] Kayıt, e-posta doğrulama (Mailpit), giriş/çıkış, şifremi unuttum (cookie auth)
+- [x] Kurulum sihirbazı: işletme bilgileri, çalışma saatleri, sektör şablonu, slug
+- [x] Roller (Owner/Manager/Staff/Accountant), davet akışı, yetki policy'leri
+- [x] Bildirimler, aktivite günlüğü, Ctrl+K arama iskeleti
+- [x] Giriş ekranı tasarımı (taslaktaki düzen, mobil düzeltmelerle)
+- [x] Kiracı izolasyonu entegrasyon testleri
 
 ## Sprint 2 — Müşteriler ve cari (2 hafta)
 

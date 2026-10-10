@@ -2,6 +2,39 @@
 
 En yeni en üstte. Notion'daki "Proje Planı ve Kararlar" sayfasıyla aynı kararlar; teknik kararlar burada daha ayrıntılı.
 
+- **2026-10-10 (Sprint 1, ürün):**
+  - Adresler: `/kayit`, `/giris`, `/sifremi-unuttum`, `/sifre-sifirla`, `/e-posta-dogrula`, `/kurulum`, `/davet/[token]`, `/panel/...` (Ayarlar: `/panel/ayarlar`, `/calisma-saatleri`, `/ekip`, `/aktivite`; `/panel/hesabim`).
+  - Kayıt formu: ad soyad, e-posta, telefon, şifre, KVKK aydınlatma metni onayı (sürümüyle `UserConsents`'e yazılır). İşletme adı kurulum sihirbazında sorulur. Hesap oluşturan kişi işletmenin Owner'ı olur.
+  - Şifre: en az 8 karakter, en az 1 harf ve 1 rakam; hata mesajları Türkçe.
+  - E-posta doğrulanmadan giriş yapılabilir ve sihirbaz tamamlanabilir; panelde üstte "E-postanı doğrula" uyarısı ve "Tekrar gönder" (60 sn'de bir). Davet gönderme (ve ileride SMS gönderme) doğrulanmış e-posta ister.
+  - "Beni hatırla" işaretliyse oturum 30 gün, değilse tarayıcı kapanınca biter.
+  - Sihirbaz bitmeden panele girilmez, `/kurulum`'a yönlendirilir. 3 adım: (1) işletme adı, sektör, telefon, il/ilçe; (2) çalışma saatleri (varsayılan Pzt-Cmt 09:00-19:00, Pazar kapalı); (3) logo (isteğe bağlı, atlanabilir). Yarıda bırakılırsa 1. adım kayıtlıysa 2. adımdan devam eder.
+  - Sektörler ve şablon: Kuaför/Berber, Güzellik ve Bakım, Klinik/Sağlık, Spor ve Fitness, Oto Servis → Hizmet; Perakende/Mağaza, Kafe/Restoran → Perakende; Diğer → Genel.
+  - Şablon menüyü belirler: Hizmet'te Stok, Perakende'de Randevular varsayılan gizli; Ayarlar → Modüller'den açılır. Genel'de hepsi açık. Randevular kapalıyken telefondaki alt çubukta Randevu sekmesinin yerine Ürün gelir.
+  - Slug işletme adından otomatik (ş→s, ğ→g, ı→i, ö→o, ü→u, ç→c), benzersiz (`-2`, `-3`…), ayrılmış adlar (`panel`, `api`, `giris`…) kullanılamaz; Ayarlar'dan değiştirilebilir.
+  - Ekip: Manager; Manager/Staff/Accountant davet eder, rollerini değiştirir, çıkarır. Owner rolünü sadece Owner verir/alır. Son aktif Owner çıkarılamaz/düşürülemez; kimse kendi rolünü değiştiremez veya kendini çıkaramaz.
+  - Davet 7 gün geçerli, tek kullanımlık. Hesabı olmayan davetli linkten kayıt olur (e-postası doğrulanmış sayılır); hesabı olan giriş yapıp kabul eder. Ekipten çıkarılan kişi yeni davetle geri dönebilir. Mali Müşavir kullanıcı sınırına sayılmaz.
+  - Paket limitleri bu sprintte uygulanmaz; yeri hazır (`IPlanLimits`, sayım: aktif üyeler + bekleyen davetler, Mali Müşavir hariç).
+  - Menüde Personel rolü Ayarlar ve Raporlar'ı görmez; Mali Müşavir Ayarlar'ı salt okunur görür.
+  - Bildirimler: zil, okunmamış sayısı (60 sn'de bir yenilenir), okundu işaretleme. Bu sprintte üretilenler: davet kabul edildi (davet edene), ekibe katıldın, rolün değişti.
+  - Ctrl+K araması iskelet: sayfalar istemcide eşleşir; müşteri/ürün/satış sonuçları `GET /api/search` (`ISearchProvider`) ile ileriki sprintlerde dolar.
+  - Aktivite günlüğü: giriş, davet (gönder/yeniden gönder/iptal/kabul), rol değişikliği, ekipten çıkarma, işletme ayarı değişiklikleri (bilgiler, slug, çalışma saatleri, logo, modüller). Owner, Manager ve Mali Müşavir görür.
+  - KVKK aydınlatma metni taslak (`frontend/src/content/kvkk-aydinlatma.ts`); hukuki metin Sprint 8'de.
+- **2026-10-10 (Sprint 1, teknik):**
+  - Rol cookie'de tutulmaz; her istekte üyelikten okunur (`TenantResolutionMiddleware` + `CurrentMember`). Aktif işletme `AppUser.LastBusinessId` → claim (`AppClaimsPrincipalFactory`). Bir kullanıcı birden çok işletmeye üye olabilir; kullanıcı menüsünden işletme değiştirilir.
+  - Yetki policy'leri ve Türkçe ret yanıtları (`code` alanıyla) `Api/Common/Authorization/`. Davet kabulü davetin işletmesine ait ayrı DI scope'unda.
+  - Davet token'ı 32 bayt rastgele (Base64Url); veritabanında SHA-256 özeti. Şifre sıfırlama token'ı 2 saat (ayrı token sağlayıcı), e-posta doğrulama 1 gün.
+  - E-posta: MailKit ile SMTP (geliştirmede Mailpit). Sprint 1'de istek içinde gönderilir, hata loglanır; Hangfire Sprint 5'te gelince kuyruğa alınacak.
+  - Logolar geliştirmede yerel diskte; Sprint 8'de canlı sunucuda kalıcı volume'a (veya nesne depolamaya) bağlanacak.
+  - Logo PNG/JPG/WebP, en fazla 2 MB; tür dosya imzasından belirlenir. Görsel işleme (yeniden boyutlandırma) yok.
+  - İl/ilçe listesi (81 il, 973 ilçe) `turkey-neighbourhoods@4.0.3` (MIT) paketinden üretildi, API'ye gömülü (`Infrastructure/Locations/tr-locations.json`, lisans yanında); arayüz ve sunucu doğrulaması aynı listeyi kullanır.
+  - FluentValidation 12 (Türkçe mesajlar), MailKit 4.18 eklendi; testlerde `Microsoft.Extensions.TimeProvider.Testing` (her okumada 1 ms ilerleyen sahte saat).
+  - API JSON'u: enum'lar metin, sayılar katı (`JsonNumberHandling.Strict`) — OpenAPI'de int alanlar `integer` çıkar.
+  - Aynı adı aynı anda alan iki işletmede slug benzersiz indeksi çakışırsa slug yeniden üretilip kayıt tekrarlanır.
+  - Frontend: panel segmentleri `instant = false` (içerik istemcide oturum doğrulanınca render edilir; Next.js 16 anında gezinme doğrulaması bunu ölçemiyor). `proxy.ts` sadece cookie varlığına bakar.
+  - shadcn bileşenleri eklendi (dialog, popover, dropdown-menu, switch, badge, command, checkbox, sonner); dokunma alanları 44px, input yazısı 16px'e ayarlandı; `next-themes` kullanılmıyor (açık tema).
+  - Frontend form kuralları backend'le aynı (`src/lib/validation/rules.ts`), aynı örneklerle test edilir.
+
 - **2026-10-10 (Sprint 0, ürün/tasarım):**
   - Panel yolları `/panel/...` altında; tanıtım sitesi `/`. Canlıda `app.kobifabrika.com` isteklerini `proxy.ts` `/panel/*`'a yönlendirecek (Sprint 8, deploy ile).
   - Frontend URL'leri Türkçe (`/giris`, `/kayit`, `/panel/musteriler`); API yolları İngilizce.

@@ -33,12 +33,15 @@ Benzersiz indeksler `BusinessId`'yi içerir (ör. `BusinessId + Phone`).
 
 ## Çekirdek
 
-- **Businesses:** Name, Slug (benzersiz, randevu linki), Sector (Service/Retail/General), Phone, Email, Address, City, District, LogoUrl, TimeZone, Iban, GoogleReviewUrl, WhatsappNumber, Settings (JSON), PlanId, SmsBalance.
-- **AspNetUsers (Identity) + AppUser alanları:** FullName, Phone. **BusinessMemberships:** UserId, BusinessId, Role (Owner/Manager/Staff/Accountant), IsActive. (Bir kullanıcı ileride birden çok işletmeye üye olabilir.)
-- **Invitations:** Email, Role, Token, ExpiresAt, AcceptedAt.
-- **WorkingHours:** DayOfWeek, OpensAt, ClosesAt, IsClosed (işletme geneli). **Holidays:** Date, Name.
-- **Notifications:** UserId, Type, Title, Body, Link, ReadAt.
-- **AuditLogs:** UserId, Entity, EntityId, Action, Changes (JSON), At.
+- **Businesses:** Name, Slug (benzersiz, randevu linki), Sector, Template (Service/Retail/General, sektörden türer), Modules (int bayrak: Appointments=1, Stock=2), SetupCompletedAt (null → kurulum bitmedi), Phone, Email, Address, City, District, LogoUrl, TimeZone, Iban, GoogleReviewUrl, WhatsappNumber, Settings (JSON), PlanId (Sprint 8), SmsBalance.
+  - Sektör → şablon: HairBarber (Kuaför/Berber), BeautyCare (Güzellik ve Bakım), ClinicHealth (Klinik/Sağlık), SportsFitness (Spor ve Fitness), AutoService (Oto Servis) → **Service**; RetailStore (Perakende/Mağaza), CafeRestaurant (Kafe/Restoran) → **Retail**; Other (Diğer) → **General**. Kod: `Domain/Businesses/SectorCatalog.cs`.
+  - Varsayılan modüller: Service → sadece Randevular; Retail → sadece Stok; General → ikisi de. Ayarlar'dan değiştirilir; sektör sonradan değişince modüller korunur.
+- **AspNetUsers (Identity) + AppUser alanları:** FullName, PhoneNumber (E.164), CreatedAt, LastBusinessId (girişte açılacak işletme; cookie'ye claim olarak yazılır). **BusinessMemberships:** UserId, BusinessId, Role (Owner/Manager/Staff/Accountant), IsActive; benzersiz (UserId, BusinessId). Kiracı filtresi dışında (`[TenantExempt]`); sorgular UserId veya BusinessId ile açıkça süzülür.
+- **UserConsents (kiracı dışı, kullanıcı düzeyi):** UserId, Kind (KvkkPrivacyNotice), Version (ör. "2026-10"), AcceptedAt, IpAddress. Kayıtta ve davetle kayıtta yazılır.
+- **Invitations:** Email, Role, TokenHash (`binary(32)`, SHA-256; ham token sadece e-postadaki linkte), ExpiresAt (7 gün), InvitedByUserId, AcceptedAt, AcceptedByUserId, RevokedAt. Durum (Pending/Accepted/Revoked/Expired) hesaplanır. Benzersiz TokenHash.
+- **WorkingHours:** DayOfWeek (tinyint), IsClosed, OpensAt, ClosesAt (`time`, işletmenin yerel saati); benzersiz (BusinessId, DayOfWeek). Varsayılan: Pzt-Cmt 09:00-19:00, Pazar kapalı. **Holidays:** Date, Name (Sprint 5).
+- **Notifications:** UserId, Type (ör. `invitation.accepted`, `team.role_changed`, `team.joined`), Title, Body, Link, ReadAt.
+- **AuditLogs:** UserId, Action (Login, InvitationSent, InvitationResent, InvitationRevoked, InvitationAccepted, RoleChanged, MemberRemoved, BusinessUpdated, SlugChanged, WorkingHoursUpdated, LogoChanged, ModulesChanged), EntityType, EntityId, Changes (`json`), IpAddress, At. Sadece eklenir: güncelleme/silme `AppDbContext`'te engellenir; soft delete yok.
 - **Consents:** ContactId, Channel (Sms/Email/Call), Granted, Source, At, IysStatus.
 
 ## Müşteriler
