@@ -76,6 +76,10 @@ describe("nötr ve durum renkleri", () => {
     },
   );
 
+  it.each(["success", "warning", "danger"])("%s-600 kendi açık zemininde (%s-50) okunur (banner, rozet)", (name) => {
+    expect(contrast(token(`${name}-600`), token(`${name}-50`))).toBeGreaterThanOrEqual(AA_TEXT);
+  });
+
   it("Tailwind'in hazır paleti kapalı", () => {
     expect(css).toMatch(/--color-\*:\s*initial/);
   });

@@ -5,8 +5,16 @@ import { cn } from "cn";
 
 import { api, unwrap } from "@/lib/api/client";
 
-/** API bağlantısını gösterir; apiClient + CORS + OpenAPI tiplerinin uçtan uca çalıştığını doğrular. */
+/**
+ * API bağlantısını gösterir; apiClient + CORS + OpenAPI tiplerinin uçtan uca çalıştığını doğrular.
+ * Sadece geliştirme ortamında görünür; production build'de hiç render edilmez.
+ */
 export function ApiStatus({ className }: { className?: string }) {
+  if (process.env.NODE_ENV !== "development") return null;
+  return <ApiStatusIndicator className={className} />;
+}
+
+function ApiStatusIndicator({ className }: { className?: string }) {
   const { data, isPending, isError } = useQuery({
     queryKey: ["system", "info"],
     queryFn: () => unwrap(api.GET("/api/system/info")),
