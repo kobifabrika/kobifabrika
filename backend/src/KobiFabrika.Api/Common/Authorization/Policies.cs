@@ -27,6 +27,18 @@ public static class Policies
     /// <summary>Aktivite günlüğü: Owner, Manager, Accountant.</summary>
     public const string ViewAuditLog = nameof(ViewAuditLog);
 
+    /// <summary>Müşteri/tedarikçi silme ve arşivleme: Owner, Manager.</summary>
+    public const string ManageContacts = nameof(ManageContacts);
+
+    /// <summary>Cari bakiye, hareketler, ekstre, kasa, tahsilat linkleri: Owner, Manager, Accountant (salt okunur).</summary>
+    public const string ViewFinance = nameof(ViewFinance);
+
+    /// <summary>Cari/kasa kaydı, tahsilat, tahsilat linki, ekstre paylaşımı: Owner, Manager.</summary>
+    public const string ManageFinance = nameof(ManageFinance);
+
+    /// <summary>Excel'e aktarma: Owner, Manager, Accountant.</summary>
+    public const string Export = nameof(Export);
+
     /// <summary>Sadece Owner (ileride maaş, abonelik).</summary>
     public const string OwnerOnly = nameof(OwnerOnly);
 
@@ -43,9 +55,20 @@ public static class Policies
         .AddPolicy(ManageBusiness, p => p.AddRequirements(new MemberRequirement(BusinessRole.Owner, BusinessRole.Manager)))
         .AddPolicy(ManageTeam, p => p.AddRequirements(new MemberRequirement(BusinessRole.Owner, BusinessRole.Manager)))
         .AddPolicy(ViewAuditLog, p => p.AddRequirements(new MemberRequirement(BusinessRole.Owner, BusinessRole.Manager, BusinessRole.Accountant)))
+        .AddPolicy(ManageContacts, p => p.AddRequirements(new MemberRequirement(RoleSets.Managers)))
+        .AddPolicy(ViewFinance, p => p.AddRequirements(new MemberRequirement(RoleSets.FinanceViewers)))
+        .AddPolicy(ManageFinance, p => p.AddRequirements(new MemberRequirement(RoleSets.Managers)))
+        .AddPolicy(Export, p => p.AddRequirements(new MemberRequirement(RoleSets.FinanceViewers)))
         .AddPolicy(OwnerOnly, p => p.AddRequirements(new MemberRequirement(BusinessRole.Owner)))
         .AddPolicy(Setup, p => p.AddRequirements(new SetupRequirement()))
         .AddPolicy(VerifiedEmail, p => p.AddRequirements(new VerifiedEmailRequirement()));
+}
+
+/// <summary>Policy'lerde ve alan bazlı kontrollerde (ör. Staff'a bakiye gösterilmez) ortak rol kümeleri.</summary>
+public static class RoleSets
+{
+    public static readonly BusinessRole[] Managers = [BusinessRole.Owner, BusinessRole.Manager];
+    public static readonly BusinessRole[] FinanceViewers = [BusinessRole.Owner, BusinessRole.Manager, BusinessRole.Accountant];
 }
 
 /// <summary>Aktif üyelik + kurulum tamam + (varsa) izin verilen roller.</summary>

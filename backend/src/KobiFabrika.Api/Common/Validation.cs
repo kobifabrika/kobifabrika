@@ -62,6 +62,13 @@ public static class Validation
     public static IRuleBuilderOptions<T, string?> ValidPhone<T>(this IRuleBuilder<T, string?> rule) => rule
         .Must(p => PhoneNumber.TryNormalize(p, out _)).WithMessage(PhoneNumber.InvalidMessage);
 
+    /// <summary>Para tutarı: boş geçilemez, 0'dan büyük, en fazla 2 ondalık (<see cref="Money"/>).</summary>
+    public static IRuleBuilderOptions<T, decimal?> ValidMoney<T>(this IRuleBuilder<T, decimal?> rule) => rule
+        .Must(v => Money.Validate(v) is null).WithMessage((_, v) => Money.Validate(v)!);
+
+    public static IRuleBuilderOptions<T, string?> ValidIban<T>(this IRuleBuilder<T, string?> rule) => rule
+        .Must(i => Iban.TryNormalize(i, out _)).WithMessage(Iban.InvalidMessage);
+
     /// <summary>Doğrulamadan geçmiş telefonu E.164'e çevirir.</summary>
     public static string NormalizePhone(string phone) =>
         PhoneNumber.TryNormalize(phone, out var e164) ? e164 : throw new ArgumentException(PhoneNumber.InvalidMessage);

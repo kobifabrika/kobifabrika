@@ -40,7 +40,7 @@ public static class SearchEndpoints
             })
             .RequireAuthorization(Policies.Panel)
             .WithTags("Search")
-            .WithSummary("Genel arama (Ctrl+K). Sprint 1'de sağlayıcı yok; boş grup listesi döner.");
+            .WithSummary("Genel arama (Ctrl+K): müşteriler (ad, telefon, e-posta); ürün ve satış Sprint 3'te.");
 
         return app;
     }

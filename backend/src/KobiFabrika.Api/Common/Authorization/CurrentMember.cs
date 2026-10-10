@@ -16,6 +16,15 @@ public sealed class CurrentMember
 
     public bool IsMember => Role is not null;
 
+    /// <summary>Owner veya Manager.</summary>
+    public bool IsManager => Role is { } r && RoleSets.Managers.Contains(r);
+
+    /// <summary>Cari bakiye ve hareketleri görebilir mi (Staff göremez).</summary>
+    public bool CanViewFinance => Role is { } r && RoleSets.FinanceViewers.Contains(r);
+
+    /// <summary>Cari/kasa kaydı girebilir mi (Owner, Manager).</summary>
+    public bool CanManageFinance => Role is { } r && RoleSets.Managers.Contains(r);
+
     internal void SetUser(Guid userId, bool emailConfirmed)
     {
         UserId = userId;

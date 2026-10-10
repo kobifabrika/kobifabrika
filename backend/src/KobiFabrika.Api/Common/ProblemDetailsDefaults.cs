@@ -12,6 +12,8 @@ internal static class ProblemDetailsDefaults
         [404] = "Bulunamadı",
         [405] = "Bu işlem desteklenmiyor",
         [409] = "Çakışma",
+        [410] = "Bağlantının süresi doldu",
+        [413] = "Dosya çok büyük",
         [422] = "Doğrulama hatası",
         [429] = "Çok fazla istek",
         [500] = "Sunucu hatası",

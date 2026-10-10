@@ -13,6 +13,9 @@ public interface IPlanLimits
     /// <summary>Bu role sahip yeni bir kullanıcı (üye veya bekleyen davet) eklenebilir mi?</summary>
     Task<bool> CanAddUserAsync(BusinessRole role, CancellationToken cancellationToken = default);
 
+    /// <summary>Bu kadar yeni müşteri/tedarikçi eklenebilir mi? (Sprint 8'e kadar sınırsız.)</summary>
+    Task<bool> CanAddContactsAsync(int count, CancellationToken cancellationToken = default);
+
     /// <summary>Kullanıcı sınırına sayılanlar: aktif üyeler + bekleyen davetler; Mali Müşavir hariç.</summary>
     Task<int> CountBillableUsersAsync(CancellationToken cancellationToken = default);
 }
@@ -21,6 +24,18 @@ internal sealed class PlanLimits(AppDbContext db, TimeProvider clock) : IPlanLim
 {
     /// <summary>Null = sınırsız.</summary>
     private static int? MaxUsers => null;
+
+    private static int? MaxContacts => null;
+
+    public async Task<bool> CanAddContactsAsync(int count, CancellationToken cancellationToken = default)
+    {
+        if (MaxContacts is not { } max)
+        {
+            return true;
+        }
+
+        return await db.Contacts.CountAsync(cancellationToken) + count <= max;
+    }
 
     public async Task<bool> CanAddUserAsync(BusinessRole role, CancellationToken cancellationToken = default)
     {

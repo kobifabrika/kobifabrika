@@ -7,6 +7,8 @@ using KobiFabrika.Api.Common.Authorization;
 using KobiFabrika.Api.Features.AuditLogs;
 using KobiFabrika.Api.Features.Auth;
 using KobiFabrika.Api.Features.Businesses;
+using KobiFabrika.Api.Features.Customers;
+using KobiFabrika.Api.Features.Finance;
 using KobiFabrika.Api.Features.Invitations;
 using KobiFabrika.Api.Features.Notifications;
 using KobiFabrika.Api.Features.Reference;
@@ -70,6 +72,8 @@ builder.Services.AddScoped<EmailDispatch>();
 builder.Services.AddScoped<BusinessOperations>();
 builder.Services.AddScoped<InvitationMailer>();
 builder.Services.AddScoped<InvitationAcceptor>();
+builder.Services.AddScoped<LedgerService>();
+builder.Services.AddScoped<ISearchProvider, ContactSearchProvider>();
 builder.Services.AddValidatorsFromAssemblyContaining<Program>(includeInternalTypes: true);
 Validation.ConfigureDefaults();
 
@@ -156,6 +160,8 @@ app.MapTeamEndpoints();
 app.MapInvitationEndpoints();
 app.MapNotificationEndpoints();
 app.MapAuditLogEndpoints();
+app.MapContactEndpoints();
+app.MapTagAndSegmentEndpoints();
 
 app.Run();
 

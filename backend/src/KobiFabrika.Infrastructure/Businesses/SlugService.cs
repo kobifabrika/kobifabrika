@@ -23,7 +23,8 @@ public sealed class SlugService(AppDbContext db)
 
     /// <summary>
     /// Kaydeder; aynı anda aynı slug'ı alan başka bir kayıt yüzünden benzersiz indeks çakışırsa
-    /// slug'ı yeniden üretip tekrar dener.
+    /// slug'ı yeniden üretip tekrar dener. İkinci çakışmadan sonra rastgele sayı eki kullanılır; aynı adı
+    /// aynı anda alan çok sayıda işletme sıralı ekte (-2, -3…) tekrar tekrar çakışmasın.
     /// </summary>
     public async Task SaveWithUniqueSlugAsync(Business business, string name, CancellationToken cancellationToken = default)
     {
@@ -34,9 +35,11 @@ public sealed class SlugService(AppDbContext db)
                 await db.SaveChangesAsync(cancellationToken);
                 return;
             }
-            catch (DbUpdateException ex) when (attempt < 5 && IsSlugConflict(ex))
+            catch (DbUpdateException ex) when (attempt < 8 && IsSlugConflict(ex))
             {
-                business.Slug = await GenerateUniqueAsync(name, business.Id, cancellationToken);
+                business.Slug = attempt < 2
+                    ? await GenerateUniqueAsync(name, business.Id, cancellationToken)
+                    : SlugGenerator.WithSuffix(SlugGenerator.Generate(name), Random.Shared.Next(100, 10_000));
             }
         }
     }
