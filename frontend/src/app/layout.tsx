@@ -26,7 +26,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     <html lang="tr" className="h-full">
       <body className="min-h-full">
         <QueryProvider>{children}</QueryProvider>
-        <Toaster position="top-center" closeButton />
+        <Toaster position="top-center" />
       </body>
     </html>
   );

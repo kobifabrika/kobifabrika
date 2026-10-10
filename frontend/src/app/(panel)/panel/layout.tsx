@@ -5,6 +5,12 @@ import { Sidebar } from "@/components/panel/sidebar";
 import { Topbar } from "@/components/panel/topbar";
 
 /**
+ * Panel içeriği istemcide oturum doğrulandıktan sonra render edilir (oturum API cookie'sinde; Next sunucusu
+ * oturumu bilmez). Bu yüzden panel anında gezinme (instant navigation) doğrulamasının dışında.
+ */
+export const instant = false;
+
+/**
  * İşletme paneli düzeni: masaüstünde (lg+) koyu sol menü, telefonda alt sekme çubuğu.
  * PanelGate oturumu ve kurulumu kontrol eder. Canlıda app.kobifabrika.com bu yollara yönlenecek.
  */

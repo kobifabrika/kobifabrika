@@ -4,6 +4,9 @@ import { notFound } from "next/navigation";
 import { Card, CardContent } from "@/components/ui/card";
 import { allNavItems, findNavItem } from "@/lib/navigation";
 
+// Panel layout'u gibi: içerik istemcide oturum doğrulanınca render edilir.
+export const instant = false;
+
 /** Menüdeki her ekran için geçici iskelet; ekranlar ilgili sprintlerde gerçek sayfalarla değişir. */
 export function generateStaticParams() {
   // Sprint 1 ekranları (Ayarlar) kendi klasöründe; burada sadece henüz gelmemiş ekranlar.

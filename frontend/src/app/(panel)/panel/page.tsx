@@ -3,6 +3,9 @@ import { AlertTriangle, CalendarDays, HandCoins, ReceiptText, type LucideIcon } 
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
+// Panel layout'u gibi: içerik istemcide oturum doğrulanınca render edilir.
+export const instant = false;
+
 export const metadata: Metadata = { title: "Bugün" };
 
 const stats: { label: string; icon: LucideIcon }[] = [
