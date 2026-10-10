@@ -1,0 +1,10 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/KobiFabrika.Api/KobiFabrika.Api.csproj" />
+    <Project Path="src/KobiFabrika.Domain/KobiFabrika.Domain.csproj" />
+    <Project Path="src/KobiFabrika.Infrastructure/KobiFabrika.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/KobiFabrika.Tests/KobiFabrika.Tests.csproj" />
+  </Folder>
+</Solution>
