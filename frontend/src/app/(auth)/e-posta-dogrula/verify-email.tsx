@@ -41,7 +41,7 @@ export function VerifyEmail() {
   }
 
   return (
-    <p role="status" className="mt-8 text-sm text-neutral-600">
+    <p role="status" className="mt-8 text-sm text-muted-foreground">
       Doğrulanıyor…
     </p>
   );
@@ -51,9 +51,12 @@ function Result({ ok, title, text }: { ok: boolean; title: string; text: string 
   const Icon = ok ? CircleCheck : CircleX;
   return (
     <div className="mt-8 flex flex-col items-start gap-4" role={ok ? "status" : "alert"}>
-      <Icon aria-hidden className={ok ? "size-10 text-success-600" : "size-10 text-danger-600"} />
-      <h2 className="text-xl font-bold text-brand-900">{title}</h2>
-      <p className="text-sm text-neutral-600">{text}</p>
+      {/* Durum renkleri koyu zeminde yeterli kontrast vermez; ikon açık daire içinde. */}
+      <span className={ok ? "rounded-full bg-success-50 p-2 text-success-600" : "rounded-full bg-danger-50 p-2 text-danger-600"}>
+        <Icon aria-hidden className="size-8" />
+      </span>
+      <h2 className="text-xl font-bold text-foreground">{title}</h2>
+      <p className="text-sm text-muted-foreground">{text}</p>
       <Button asChild size="lg" className="w-full">
         <Link href="/panel">Panele git</Link>
       </Button>

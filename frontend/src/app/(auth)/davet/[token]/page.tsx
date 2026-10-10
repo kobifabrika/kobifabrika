@@ -8,7 +8,7 @@ export const metadata: Metadata = { title: "Ekip daveti" };
 export default function InvitationPage() {
   return (
     <>
-      <h1 className="text-3xl font-bold tracking-tight text-brand-900">Ekip daveti</h1>
+      <h1 className="text-3xl font-bold tracking-tight text-foreground">Ekip daveti</h1>
       <Suspense>
         <InvitationView />
       </Suspense>

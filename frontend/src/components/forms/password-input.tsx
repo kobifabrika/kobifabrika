@@ -19,7 +19,7 @@ export function PasswordInput({ className, ...props }: ComponentProps<"input">) 
         onClick={() => setVisible((v) => !v)}
         aria-pressed={visible}
         aria-label={visible ? "Şifreyi gizle" : "Şifreyi göster"}
-        className="absolute inset-y-0 right-0 min-w-16 rounded-r-lg px-3 text-sm font-medium text-brand-500"
+        className="absolute inset-y-0 right-0 min-w-16 rounded-r-lg px-3 text-sm font-medium text-primary"
       >
         {visible ? "Gizle" : "Göster"}
       </button>
@@ -34,7 +34,7 @@ export function PasswordHints({ value }: { value: string }) {
       {passwordHints.map(({ label, test }) => {
         const ok = test(value);
         return (
-          <li key={label} className={cn("flex items-center gap-2 text-xs", ok ? "text-success-600" : "text-neutral-600")}>
+          <li key={label} className={cn("flex items-center gap-2 text-xs", ok ? "text-success-600 dark:text-brand-100" : "text-muted-foreground")}>
             {ok ? <Check aria-hidden className="size-4" /> : <Circle aria-hidden className="size-3" />}
             {label}
             <span className="sr-only">{ok ? " (tamam)" : " (eksik)"}</span>

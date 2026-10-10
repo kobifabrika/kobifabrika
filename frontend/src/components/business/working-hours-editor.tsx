@@ -50,14 +50,14 @@ export function WorkingHoursEditor({ value, onChange, disabled }: Props) {
 
   return (
     <div className="flex flex-col gap-3">
-      <ul className="flex flex-col divide-y divide-border rounded-lg border border-border bg-white">
+      <ul className="flex flex-col divide-y divide-border rounded-lg border border-border bg-card">
         {days.map((d) => {
           const invalid = !d.isClosed && d.opensAt >= d.closesAt;
           return (
             <li key={d.day} className="flex flex-col gap-2 px-3 py-3 sm:flex-row sm:items-center sm:gap-4">
               <label className="flex min-h-11 items-center justify-between gap-3 sm:w-48">
-                <span className="text-sm font-semibold text-brand-900">{dayNames[d.day]}</span>
-                <span className="flex items-center gap-2 text-sm text-neutral-600">
+                <span className="text-sm font-semibold text-foreground">{dayNames[d.day]}</span>
+                <span className="flex items-center gap-2 text-sm text-muted-foreground">
                   {d.isClosed ? "Kapalı" : "Açık"}
                   <Switch
                     checked={!d.isClosed}
@@ -79,7 +79,7 @@ export function WorkingHoursEditor({ value, onChange, disabled }: Props) {
                     onChange={(e) => update(d.day, { opensAt: e.target.value })}
                     className={cn(timeClass, invalid && "border-danger-600")}
                   />
-                  <span aria-hidden className="text-neutral-600">
+                  <span aria-hidden className="text-muted-foreground">
                     –
                   </span>
                   <input
@@ -109,4 +109,4 @@ export function WorkingHoursEditor({ value, onChange, disabled }: Props) {
 }
 
 const timeClass =
-  "h-11 min-w-0 flex-1 rounded-lg border border-input bg-background px-3 text-base text-brand-900 tabular-nums outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring disabled:bg-neutral-100";
+  "h-11 min-w-0 flex-1 rounded-lg border border-input bg-background px-3 text-base text-foreground tabular-nums outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring disabled:bg-muted";

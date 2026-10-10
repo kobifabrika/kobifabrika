@@ -59,7 +59,7 @@ export function NotificationBell() {
         <Button
           variant="ghost"
           size="icon"
-          className="relative text-brand-900"
+          className="relative text-foreground"
           aria-label={unread > 0 ? `Bildirimler, ${unread} okunmamış` : "Bildirimler"}
         >
           <Bell aria-hidden className="size-5" />

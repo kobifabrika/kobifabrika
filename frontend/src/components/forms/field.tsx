@@ -19,17 +19,17 @@ export function Field({ label, error, hint, className, children }: FieldProps) {
 
   return (
     <div className={cn("flex flex-col gap-2", className)}>
-      <Label htmlFor={id} className="text-sm font-semibold text-brand-900">
+      <Label htmlFor={id} className="text-sm font-semibold text-foreground">
         {label}
       </Label>
       {cloneElement(children, { id, "aria-invalid": error ? true : undefined, "aria-describedby": describedBy })}
       {hint && !error && (
-        <div id={`${id}-hint`} className="text-xs text-neutral-600">
+        <div id={`${id}-hint`} className="text-xs text-muted-foreground">
           {hint}
         </div>
       )}
       {error && (
-        <p id={`${id}-error`} role="alert" className="text-sm text-danger-600">
+        <p id={`${id}-error`} role="alert" className="text-sm text-danger-600 dark:self-start dark:rounded-md dark:bg-danger-50 dark:px-2 dark:py-1">
           {error}
         </p>
       )}
@@ -37,7 +37,7 @@ export function Field({ label, error, hint, className, children }: FieldProps) {
   );
 }
 
-/** Form üstünde/altında genel hata veya bilgi kutusu. */
+/** Form üstünde/altında genel hata veya bilgi kutusu. Koyu zeminde de açık kutu olarak kalır (kontrast). */
 export function FormMessage({ tone = "error", children }: { tone?: "error" | "success" | "info"; children: ReactNode }) {
   return (
     <div

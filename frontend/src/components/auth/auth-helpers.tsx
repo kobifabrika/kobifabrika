@@ -27,7 +27,7 @@ export function useAfterAuth() {
 export function PhoneInput(props: ComponentProps<"input">) {
   return (
     <div className="relative">
-      <span aria-hidden className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-base text-neutral-600">
+      <span aria-hidden className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-base text-muted-foreground">
         +90
       </span>
       <Input type="tel" inputMode="tel" autoComplete="tel-national" placeholder="532 123 45 67" className="pl-12" {...props} />

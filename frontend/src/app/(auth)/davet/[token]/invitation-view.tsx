@@ -43,7 +43,7 @@ export function InvitationView() {
 
   if (preview.isPending || mePending) {
     return (
-      <p role="status" className="mt-8 text-sm text-neutral-600">
+      <p role="status" className="mt-8 text-sm text-muted-foreground">
         Davet yükleniyor…
       </p>
     );
@@ -62,12 +62,12 @@ export function InvitationView() {
 
   return (
     <div className="mt-6 flex flex-col gap-6">
-      <div className="rounded-lg border border-border bg-neutral-50 p-4">
-        <p className="text-sm text-neutral-600">
-          <span className="font-semibold text-brand-900">{invitation.invitedBy}</span> seni davet etti:
+      <div className="rounded-lg border border-border bg-muted p-4">
+        <p className="text-sm text-muted-foreground">
+          <span className="font-semibold text-foreground">{invitation.invitedBy}</span> seni davet etti:
         </p>
-        <p className="mt-1 text-xl font-bold text-brand-900">{invitation.businessName}</p>
-        <p className="mt-2 text-sm text-brand-700">
+        <p className="mt-1 text-xl font-bold text-foreground">{invitation.businessName}</p>
+        <p className="mt-2 text-sm text-neutral-300">
           Rol: <span className="font-semibold">{roleNames[role]}</span> — {roleDescriptions[role]}
         </p>
       </div>
@@ -176,9 +176,9 @@ function LoginAndAccept({ token, email, onJoined }: { token: string; email: stri
         }
       }}
     >
-      <p className="text-sm text-neutral-600">Bu e-postayla bir hesabın var. Daveti kabul etmek için giriş yap.</p>
+      <p className="text-sm text-muted-foreground">Bu e-postayla bir hesabın var. Daveti kabul etmek için giriş yap.</p>
       <Field label="E-posta">
-        <Input type="email" value={email} readOnly className="bg-neutral-100" />
+        <Input type="email" value={email} readOnly className="bg-muted" />
       </Field>
       <Field label="Şifre">
         <PasswordInput autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} />
@@ -229,9 +229,9 @@ function RegisterAndAccept({ token, email, onJoined }: { token: string; email: s
 
   return (
     <form className="flex flex-col gap-5" onSubmit={onSubmit} noValidate>
-      <p className="text-sm text-neutral-600">Hesabını oluştur; ekibe hemen katılırsın.</p>
+      <p className="text-sm text-muted-foreground">Hesabını oluştur; ekibe hemen katılırsın.</p>
       <Field label="E-posta" hint="Davet bu adrese gönderildi.">
-        <Input type="email" value={email} readOnly className="bg-neutral-100" />
+        <Input type="email" value={email} readOnly className="bg-muted" />
       </Field>
       <Field label="Ad soyad" error={errors.fullName?.message}>
         <Input autoComplete="name" {...register("fullName")} />

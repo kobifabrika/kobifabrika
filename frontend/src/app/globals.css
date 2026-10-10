@@ -36,7 +36,7 @@
   --color-neutral-100: #edf1f6;
   --color-neutral-200: #e3e8ef; /* kenarlık */
   --color-neutral-300: #cbd3de;
-  --color-neutral-400: #98a2b3; /* sadece dekor/devre dışı; yazı için değil */
+  --color-neutral-400: #98a2b3; /* açık zeminde sadece dekor; koyu zeminde ikincil metin */
   --color-neutral-500: #6b7685;
   --color-neutral-600: #5b6676; /* ikincil metin */
   --color-neutral-700: #3d4757;
@@ -98,8 +98,10 @@
   --radius-4xl: calc(var(--radius) * 4);
 }
 
-/* Açık tema (öncelikli) */
-:root {
+/* Açık tema (öncelikli). `.light`: koyu kapsam içindeki açık ada (ör. sitedeki panel önizlemesi). */
+:root,
+.light {
+  color-scheme: light;
   --radius: 8px;
 
   --background: var(--color-neutral-50);
@@ -129,17 +131,42 @@
 
   /* Koyu sol menü */
   --sidebar: var(--color-brand-900);
-  --sidebar-foreground: #c9d3e0;
+  --sidebar-foreground: var(--color-neutral-300);
   --sidebar-primary: var(--color-brand-300);
   --sidebar-primary-foreground: var(--color-brand-900);
   --sidebar-accent: var(--color-brand-700);
   --sidebar-accent-foreground: var(--color-white);
-  --sidebar-border: #14223a;
+  --sidebar-border: color-mix(in srgb, var(--color-brand-700) 45%, var(--color-brand-900));
   --sidebar-ring: var(--color-brand-100); /* koyu zeminde odak halkası */
 }
 
-/* Koyu tema: sonra doldurulacak (docs/02-mimari.md: açık tema öncelikli). */
+/*
+ * Koyu kapsam (docs/04-tasarim.md → "Site ve kimlik ekranları koyu tema"): tanıtım sitesi, giriş/kayıt/şifre/davet,
+ * kurulum sihirbazı ve panelin üst çubuğu. Kapsayıcıya `dark` sınıfı verilir; içindeki shadcn bileşenleri ve
+ * semantik sınıflar (bg-card, text-foreground, text-muted-foreground, text-primary…) kendiliğinden koyuya döner.
+ * Yeni renk yok: yüzeyler brand-700 ile brand-900'ün karışımı, metinler beyaz ve nötr griler.
+ * Kontrast: src/lib/theme/contrast.test.ts bu bloktaki değerleri de doğrular.
+ */
 .dark {
+  color-scheme: dark;
+
+  --background: var(--color-brand-900);
+  --foreground: var(--color-white);
+  --card: color-mix(in srgb, var(--color-brand-700) 40%, var(--color-brand-900)); /* form kartı */
+  --card-foreground: var(--color-white);
+  --popover: color-mix(in srgb, var(--color-brand-700) 40%, var(--color-brand-900));
+  --popover-foreground: var(--color-white);
+  --primary: var(--color-brand-300); /* buton zemini (yazı brand-900), link */
+  --primary-foreground: var(--color-brand-900);
+  --secondary: var(--color-brand-700);
+  --secondary-foreground: var(--color-white);
+  --muted: color-mix(in srgb, var(--color-brand-700) 60%, var(--color-brand-900));
+  --muted-foreground: var(--color-neutral-400); /* ikincil metin, placeholder */
+  --accent: var(--color-brand-700);
+  --accent-foreground: var(--color-white);
+  --border: color-mix(in srgb, var(--color-brand-700) 80%, var(--color-brand-900));
+  --input: var(--color-neutral-500);
+  --ring: var(--color-brand-100); /* koyu zeminde odak halkası */
 }
 
 @layer base {
@@ -168,8 +195,42 @@
     outline-offset: 2px;
   }
 
+  /* Sabit üst menünün altında kalmasın (sayfa içi bağlantılar). */
+  [id] {
+    scroll-margin-top: 5rem;
+  }
+
   button:not(:disabled),
   [role="button"]:not(:disabled) {
     cursor: pointer;
   }
+}
+
+/*
+ * Tanıtım sitesi: kaydırınca hafif giriş animasyonu. Saf CSS (scroll-driven); desteklemeyen tarayıcıda ve
+ * "hareketi azalt" açıkken içerik doğrudan görünür.
+ */
+@keyframes kf-reveal {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+}
+
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .kf-reveal {
+      animation: kf-reveal linear both;
+      animation-timeline: view();
+      animation-range: entry 0% entry 35%;
+    }
+  }
+}
+
+/* İnce çizgi ızgara (koyu zeminde dekor). */
+.kf-grid {
+  background-image:
+    linear-gradient(to right, color-mix(in srgb, var(--color-brand-300) 8%, transparent) 1px, transparent 1px),
+    linear-gradient(to bottom, color-mix(in srgb, var(--color-brand-300) 8%, transparent) 1px, transparent 1px);
+  background-size: 48px 48px;
 }

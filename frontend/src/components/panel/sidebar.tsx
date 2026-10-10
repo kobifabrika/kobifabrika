@@ -18,7 +18,7 @@ export function NavList({ onNavigate }: { onNavigate?: () => void }) {
     <nav aria-label="Ana menü" className="flex flex-col gap-6">
       {visibleNavGroups(role, business.modules).map((group) => (
         <div key={group.title}>
-          <p className="mb-2 px-3 text-xs font-semibold tracking-wider text-sidebar-foreground/70 uppercase">
+          <p className="mb-2 px-3 text-xs font-semibold tracking-wider text-neutral-400 uppercase">
             {group.title}
           </p>
           <ul className="flex flex-col gap-1">
@@ -33,7 +33,7 @@ export function NavList({ onNavigate }: { onNavigate?: () => void }) {
                     className={cn(
                       "flex min-h-11 items-center gap-3 rounded-md px-3 text-sm transition-colors outline-sidebar-ring",
                       active
-                        ? "bg-sidebar-accent font-semibold text-white"
+                        ? "bg-sidebar-accent font-semibold text-white shadow-[inset_3px_0_0_var(--color-brand-300)]"
                         : "text-sidebar-foreground hover:bg-sidebar-accent/60 hover:text-white",
                     )}
                   >
@@ -56,13 +56,15 @@ export function NavList({ onNavigate }: { onNavigate?: () => void }) {
 /** Masaüstünde (lg ve üstü) sabit koyu sol menü. */
 export function Sidebar() {
   return (
-    <aside className="fixed inset-y-0 left-0 z-30 hidden w-64 flex-col bg-sidebar text-sidebar-foreground lg:flex">
-      <div className="flex h-16 items-center border-b border-sidebar-border px-6">
+    <aside className="fixed inset-y-0 left-0 z-30 hidden w-64 flex-col overflow-hidden border-r border-sidebar-border bg-sidebar text-sidebar-foreground lg:flex">
+      {/* Siteyle aynı dil: üstte hafif turkuaz ışıma. */}
+      <div aria-hidden className="pointer-events-none absolute -top-24 -left-16 size-64 rounded-full bg-brand-300/10 blur-3xl" />
+      <div className="relative flex h-16 items-center border-b border-sidebar-border px-6">
         <Link href="/panel" className="rounded-md outline-sidebar-ring" aria-label="KobiFabrika — Bugün">
           <Wordmark onDark className="text-2xl" />
         </Link>
       </div>
-      <div className="flex-1 overflow-y-auto px-3 py-6">
+      <div className="relative flex-1 overflow-y-auto px-3 py-6">
         <NavList />
       </div>
       <div className="border-t border-sidebar-border px-6 py-4">

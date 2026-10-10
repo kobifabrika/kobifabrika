@@ -2,6 +2,7 @@
 
 En yeni en üstte. Notion'daki "Proje Planı ve Kararlar" sayfasıyla aynı kararlar; teknik kararlar burada daha ayrıntılı.
 
+- **2026-10-10 (Sprint 2 öncesi tasarım düzeltmesi):** Tanıtım sitesi, giriş/kayıt/şifre/davet ekranları ve kurulum sihirbazı koyu temaya geçti; panelde içerik alanı açık, sol menü ve üst çubuk koyu. Yeni renk eklenmedi; koyu kapsam `.dark` semantik değişkenleriyle (`globals.css`), kontrast testleri koyu kombinasyonları da kapsıyor. Paket fiyatları `frontend/src/content/plans.ts`'te; fiyat açıklanana kadar "Lansman fiyatı yakında". Paket özellik listeleri taslak (Sprint 8'de kesinleşecek). Site sayfalarına `/kvkk` eklendi.
 - **2026-10-10 (Sprint 1, ürün):**
   - Adresler: `/kayit`, `/giris`, `/sifremi-unuttum`, `/sifre-sifirla`, `/e-posta-dogrula`, `/kurulum`, `/davet/[token]`, `/panel/...` (Ayarlar: `/panel/ayarlar`, `/calisma-saatleri`, `/ekip`, `/aktivite`; `/panel/hesabim`).
   - Kayıt formu: ad soyad, e-posta, telefon, şifre, KVKK aydınlatma metni onayı (sürümüyle `UserConsents`'e yazılır). İşletme adı kurulum sihirbazında sorulur. Hesap oluşturan kişi işletmenin Owner'ı olur.

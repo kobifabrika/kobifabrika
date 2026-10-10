@@ -33,7 +33,7 @@ export function useLocations() {
 }
 
 const selectClass =
-  "h-11 w-full rounded-lg border border-input bg-background px-3 text-base text-brand-900 outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring aria-invalid:border-destructive disabled:bg-neutral-100 disabled:text-neutral-600";
+  "h-11 w-full rounded-lg border border-input bg-background px-3 text-base text-foreground outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring aria-invalid:border-destructive disabled:bg-muted disabled:text-muted-foreground";
 
 type Props<T extends BusinessBasics> = {
   control: Control<T>;
@@ -60,7 +60,7 @@ export function BusinessFields<T extends BusinessBasics>({ control, register, er
       </Field>
 
       <fieldset className="flex flex-col gap-2" disabled={disabled}>
-        <legend className="mb-2 text-sm font-semibold text-brand-900">Sektör</legend>
+        <legend className="mb-2 text-sm font-semibold text-foreground">Sektör</legend>
         <Controller
           control={c}
           name="sector"
@@ -78,11 +78,11 @@ export function BusinessFields<T extends BusinessBasics>({ control, register, er
                     className={cn(
                       "flex min-h-20 flex-col items-start justify-center gap-2 rounded-lg border px-3 py-2 text-left text-sm font-semibold transition-colors",
                       selected
-                        ? "border-brand-500 bg-brand-500 text-white"
-                        : "border-border bg-white text-brand-900 hover:border-brand-500",
+                        ? "border-primary bg-primary text-primary-foreground"
+                        : "border-border bg-card text-foreground hover:border-primary",
                     )}
                   >
-                    <Icon aria-hidden className={cn("size-6", selected ? "text-white" : "text-brand-500")} />
+                    <Icon aria-hidden className={cn("size-6", selected ? "text-primary-foreground" : "text-primary")} />
                     {label}
                   </button>
                 );
@@ -91,7 +91,7 @@ export function BusinessFields<T extends BusinessBasics>({ control, register, er
           )}
         />
         {errors.sector?.message && (
-          <p role="alert" className="text-sm text-danger-600">
+          <p role="alert" className="text-sm text-danger-600 dark:self-start dark:rounded-md dark:bg-danger-50 dark:px-2 dark:py-1">
             {errors.sector.message}
           </p>
         )}

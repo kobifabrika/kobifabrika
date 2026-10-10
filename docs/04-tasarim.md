@@ -26,6 +26,18 @@ Token'ların kodu: `frontend/src/app/globals.css` (Tailwind sınıfları: `bg-br
 - Koyu zeminde (`#000a1d`): `#00b0ff` (8.2:1) ve `#00fdff` (15.5:1) rahat okunur.
 - `#00b0ff` buton → yazı `#000a1d`. `#006ea6` buton → yazı beyaz.
 
+### Site ve kimlik ekranları koyu tema (2026-10-10)
+
+- **Koyu:** tanıtım sitesi (`/`, `/kvkk`), giriş/kayıt/şifre/davet/e-posta doğrulama ekranları, kurulum sihirbazı (`/kurulum`), panelin sol menüsü ve üst çubuğu. **Açık:** panelin içerik alanı (ve alt sekme çubuğu).
+- Uygulama: kapsayıcıya `dark` sınıfı verilir; `globals.css` → `.dark` bloğu semantik değişkenleri koyuya çevirir. Bileşenlerde sabit renk yerine semantik sınıf kullan (`bg-card`, `text-foreground`, `text-muted-foreground`, link için `text-primary`); böylece aynı bileşen panelde açık, kimlik ekranlarında koyu görünür. Koyu kapsam içinde açık bir ada gerekirse (ör. sitedeki panel önizlemesi) `light` sınıfı.
+- Yeni renk yok. Zemin `#000a1d`; kart/yüzey `#00385a` ile `#000a1d` karışımı (`color-mix`) veya `#000a1d` üstünde %3-4 şeffaf beyaz (cam kart).
+- Koyu zeminde yazı: başlık/ana metin beyaz, ikincil metin `neutral-300`/`neutral-400`; link ve vurgu `#00b0ff`, güçlü vurgu `#00fdff`. **`#006ea6` ve `neutral-600` koyu zeminde yazı olarak kullanılmaz.**
+- Ana buton `#00b0ff` zemin + `#000a1d` yazı (hover `#00fdff`). Odak halkası `#00fdff`. Input koyu zemin (`#000a1d`), açık yazı, kenarlık `neutral-500`.
+- Durum renkleri (`danger-600`, `success-600`) koyu zeminde yazı olamaz (3:1 altı): hata ve başarı mesajları açık kutuda (`bg-danger-50 text-danger-600`) gösterilir.
+- Efektler ölçülü: hafif turkuaz ışıma, ince çizgi ızgara (`.kf-grid`), cam kart. Kaydırmada giriş animasyonu (`.kf-reveal`, saf CSS) sadece `prefers-reduced-motion: no-preference` iken.
+- Paket fiyatları tek dosyada: `frontend/src/content/plans.ts` (`monthlyPrice: null` → "Lansman fiyatı yakında").
+- Kontrast testleri (`src/lib/theme/contrast.test.ts`) `.dark` bloğunu okuyup koyu kombinasyonları da doğrular.
+
 ## Tipografi
 
 Sistem fontu yığını: `-apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif` (Türkçe karakter sorunu yok, hızlı).
@@ -34,7 +46,7 @@ Sistem fontu yığını: `-apple-system, "Segoe UI", Roboto, "Helvetica Neue", A
 ## Taslaklardan alınan dil
 
 - Minimal, sakin, beyaz kartlar, ince kenarlıklar, 6-8px köşe yuvarlaklığı, gölge az.
-- Giriş ekranı: solda koyu marka paneli (KobiFabrika, slogan, şirket unvanı), sağda beyaz form (kullanıcı adı/e-posta, şifre + Göster, Beni hatırla, Şifremi unuttum, Giriş Yap, Üye Ol).
+- Giriş ekranı: solda koyu marka paneli (KobiFabrika, slogan, şirket unvanı), sağda form (2026-10-10'dan beri form da koyu kart; yukarıya bak) (kullanıcı adı/e-posta, şifre + Göster, Beni hatırla, Şifremi unuttum, Giriş Yap, Üye Ol).
 - Panel: koyu sol menü (YÖNETİM ve İŞLETME grupları, sayı rozetleri), üstte selamlama ("Günaydın, Emir."), 4 istatistik kartı, satış grafiği, personel durumu, son satışlar tablosu.
 - Menü (Faz 1): **İşletme:** Bugün · Randevular · Satışlar · Müşteriler · Ürünler/Hizmetler · Stok · Cari ve Kasa · Kampanyalar. **Yönetim:** Personel · Mesai ve İzin · Raporlar · Ayarlar.
 

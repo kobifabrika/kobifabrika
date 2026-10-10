@@ -65,7 +65,7 @@ export function LogoUpload({ logoUrl, endpoint, onChange, disabled }: Props) {
   return (
     <div className="flex flex-col gap-3">
       <div className="flex items-center gap-4">
-        <div className="flex size-24 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-border bg-neutral-50">
+        <div className="flex size-24 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-border bg-muted">
           {src ? (
             // eslint-disable-next-line @next/next/no-img-element -- API'den gelen kullanıcı dosyası; next/image optimizasyonu gerekmez.
             <img src={src} alt="İşletme logosu" className="size-full object-contain" />
@@ -87,13 +87,13 @@ export function LogoUpload({ logoUrl, endpoint, onChange, disabled }: Props) {
             {busy ? "Yükleniyor…" : src ? "Logoyu değiştir" : "Logo seç"}
           </Button>
           {src && !disabled && (
-            <Button type="button" variant="ghost" className="text-danger-600" disabled={busy} onClick={remove}>
+            <Button type="button" variant="ghost" className="text-danger-600 dark:text-neutral-300" disabled={busy} onClick={remove}>
               <Trash2 aria-hidden className="size-4" /> Kaldır
             </Button>
           )}
         </div>
       </div>
-      <p className="text-xs text-neutral-600">PNG, JPG veya WebP; en fazla 2 MB. Kare logo en iyi görünür.</p>
+      <p className="text-xs text-muted-foreground">PNG, JPG veya WebP; en fazla 2 MB. Kare logo en iyi görünür.</p>
       {error && <FormMessage>{error}</FormMessage>}
     </div>
   );

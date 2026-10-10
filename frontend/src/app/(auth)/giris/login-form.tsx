@@ -61,11 +61,11 @@ export function LoginForm() {
       </Field>
 
       <div className="flex items-center justify-between gap-3 text-sm">
-        <label className="flex min-h-11 items-center gap-2 text-neutral-600">
-          <input type="checkbox" className="size-5 accent-brand-500" {...register("rememberMe")} />
+        <label className="flex min-h-11 items-center gap-2 text-muted-foreground">
+          <input type="checkbox" className="size-5 accent-primary" {...register("rememberMe")} />
           Beni hatırla
         </label>
-        <Link href="/sifremi-unuttum" className="flex min-h-11 items-center font-semibold text-brand-500 hover:underline">
+        <Link href="/sifremi-unuttum" className="flex min-h-11 items-center font-semibold text-primary hover:underline">
           Şifremi unuttum
         </Link>
       </div>

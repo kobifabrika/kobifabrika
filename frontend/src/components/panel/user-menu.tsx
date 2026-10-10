@@ -50,7 +50,7 @@ export function UserMenu() {
     <DropdownMenu>
       <DropdownMenuTrigger
         aria-label={`Kullanıcı menüsü: ${me.user.fullName}`}
-        className="flex size-11 items-center justify-center rounded-full bg-brand-900 text-sm font-bold text-white"
+        className="flex size-11 items-center justify-center rounded-full bg-brand-300 text-sm font-bold text-brand-900"
       >
         {initials(me.user.fullName)}
       </DropdownMenuTrigger>

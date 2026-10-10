@@ -84,3 +84,110 @@ describe("nötr ve durum renkleri", () => {
     expect(css).toMatch(/--color-\*:\s*initial/);
   });
 });
+
+/**
+ * Koyu kapsam (.dark): değişkenler var(--color-x) veya color-mix(in srgb, var(--color-a) N%, var(--color-b))
+ * olarak yazılır; burada gerçek hex'e çözülür.
+ */
+function block(selector: string): string {
+  const start = css.indexOf(`\n${selector}`);
+  const match = start < 0 ? null : css.slice(start).match(/\{([\s\S]*?)\n\}/);
+  if (!match) throw new Error(`Blok bulunamadı: ${selector}`);
+  return match[1];
+}
+
+function mix(a: string, b: string, weightA: number): string {
+  const channel = (i: number) =>
+    Math.round(parseInt(a.slice(i, i + 2), 16) * weightA + parseInt(b.slice(i, i + 2), 16) * (1 - weightA));
+  return `#${[1, 3, 5].map((i) => channel(i).toString(16).padStart(2, "0")).join("")}`;
+}
+
+function resolve(value: string): string {
+  const v = value.trim();
+  const ref = v.match(/^var\(--color-([\w-]+)\)$/);
+  if (ref) return token(ref[1]);
+  const m = v.match(/^color-mix\(in srgb, var\(--color-([\w-]+)\) (\d+)%, var\(--color-([\w-]+)\)\)$/);
+  if (m) return mix(token(m[1]), token(m[3]), Number(m[2]) / 100);
+  throw new Error(`Çözülemeyen değer: ${v}`);
+}
+
+function variable(selector: string, name: string): string {
+  const match = block(selector).match(new RegExp(`--${name}:\\s*([^;]+);`));
+  if (!match) throw new Error(`Değişken bulunamadı: ${selector} --${name}`);
+  return resolve(match[1]);
+}
+
+const dark = (name: string) => variable(".dark", name);
+
+describe("koyu kapsam: site, kimlik ekranları, kurulum (docs/04-tasarim.md)", () => {
+  const surfaces = ["background", "card", "popover", "muted"] as const;
+
+  it("zemin brand-900, birincil renk brand-300 + brand-900 yazı, odak halkası brand-100", () => {
+    expect(dark("background")).toBe(token("brand-900"));
+    expect(dark("primary")).toBe(token("brand-300"));
+    expect(dark("primary-foreground")).toBe(token("brand-900"));
+    expect(dark("ring")).toBe(token("brand-100"));
+  });
+
+  it("yüzeyler koyu kalır (beyaz yazı en az 12:1)", () => {
+    for (const s of surfaces) expect(contrast(dark(s), WHITE)).toBeGreaterThanOrEqual(12);
+  });
+
+  it.each(surfaces)("ana metin (foreground) %s üstünde okunur", (s) => {
+    expect(contrast(dark("foreground"), dark(s))).toBeGreaterThanOrEqual(AA_TEXT);
+  });
+
+  it.each(surfaces)("ikincil gri metin (muted-foreground, neutral-300) %s üstünde okunur", (s) => {
+    expect(contrast(dark("muted-foreground"), dark(s))).toBeGreaterThanOrEqual(AA_TEXT);
+    expect(contrast(token("neutral-300"), dark(s))).toBeGreaterThanOrEqual(AA_TEXT);
+  });
+
+  it.each(surfaces)("link/vurgu (brand-300, brand-100) %s üstünde okunur", (s) => {
+    expect(contrast(dark("primary"), dark(s))).toBeGreaterThanOrEqual(AA_TEXT);
+    expect(contrast(token("brand-100"), dark(s))).toBeGreaterThanOrEqual(AA_TEXT);
+  });
+
+  it("buton: brand-300 zemin + brand-900 yazı; hover brand-100 + brand-900", () => {
+    expect(contrast(dark("primary-foreground"), dark("primary"))).toBeGreaterThanOrEqual(AA_TEXT);
+    expect(contrast(token("brand-900"), token("brand-100"))).toBeGreaterThanOrEqual(AA_TEXT);
+  });
+
+  it("ikincil ve vurgu yüzeyleri (brand-700) beyaz yazıyla okunur", () => {
+    expect(contrast(dark("secondary-foreground"), dark("secondary"))).toBeGreaterThanOrEqual(AA_TEXT);
+    expect(contrast(dark("accent-foreground"), dark("accent"))).toBeGreaterThanOrEqual(AA_TEXT);
+  });
+
+  it.each(surfaces)("odak halkası %s üstünde en az 3:1", (s) => {
+    expect(contrast(dark("ring"), dark(s))).toBeGreaterThanOrEqual(AA_NON_TEXT);
+  });
+
+  it("input kenarlığı kart ve zeminde en az 3:1", () => {
+    expect(contrast(dark("input"), dark("card"))).toBeGreaterThanOrEqual(AA_NON_TEXT);
+    expect(contrast(dark("input"), dark("background"))).toBeGreaterThanOrEqual(AA_NON_TEXT);
+  });
+
+  it("koyu zeminde hata/başarı mesajları açık kutuda gösterilir (durum renkleri koyu zeminde yazı olamaz)", () => {
+    expect(contrast(token("danger-600"), token("brand-900"))).toBeLessThan(AA_TEXT);
+    expect(contrast(token("danger-600"), token("danger-50"))).toBeGreaterThanOrEqual(AA_TEXT);
+  });
+
+  it("brand-500 koyu zeminde yazı için yetersiz; koyu kapsamda link rengi brand-300", () => {
+    expect(contrast(token("brand-500"), token("brand-900"))).toBeLessThan(AA_TEXT);
+  });
+});
+
+describe("panel sol menü ve üst çubuk (koyu)", () => {
+  const sidebar = (name: string) => variable(":root", name);
+
+  it("menü yazısı, aktif öğe ve grup başlıkları okunur", () => {
+    expect(contrast(sidebar("sidebar-foreground"), sidebar("sidebar"))).toBeGreaterThanOrEqual(AA_TEXT);
+    expect(contrast(sidebar("sidebar-accent-foreground"), sidebar("sidebar-accent"))).toBeGreaterThanOrEqual(AA_TEXT);
+    expect(contrast(sidebar("sidebar-primary"), sidebar("sidebar-accent"))).toBeGreaterThanOrEqual(AA_NON_TEXT);
+    expect(contrast(token("neutral-400"), sidebar("sidebar"))).toBeGreaterThanOrEqual(AA_TEXT);
+  });
+
+  it("odak halkası koyu menüde en az 3:1", () => {
+    expect(contrast(sidebar("sidebar-ring"), sidebar("sidebar"))).toBeGreaterThanOrEqual(AA_NON_TEXT);
+    expect(contrast(sidebar("sidebar-ring"), sidebar("sidebar-accent"))).toBeGreaterThanOrEqual(AA_NON_TEXT);
+  });
+});
