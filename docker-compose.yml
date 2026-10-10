@@ -1,0 +1,33 @@
+# Geliştirme ortamı: SQL Server 2025 + Mailpit
+# Kullanım: .env.example -> .env kopyala, sonra `docker compose up -d`
+name: kobifabrika
+
+services:
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2025-latest
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_PID: Developer
+      MSSQL_SA_PASSWORD: ${MSSQL_SA_PASSWORD:?.env içinde MSSQL_SA_PASSWORD tanımlayın}
+      TZ: UTC
+    ports:
+      - "${MSSQL_PORT:-1433}:1433"
+    volumes:
+      - sqldata:/var/opt/mssql
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -C -S localhost -U sa -P \"$$MSSQL_SA_PASSWORD\" -Q 'SELECT 1' -b -o /dev/null"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 30s
+    restart: unless-stopped
+
+  mailpit:
+    image: axllent/mailpit:v1.31
+    ports:
+      - "1025:1025" # SMTP
+      - "8025:8025" # Web arayüzü
+    restart: unless-stopped
+
+volumes:
+  sqldata:
