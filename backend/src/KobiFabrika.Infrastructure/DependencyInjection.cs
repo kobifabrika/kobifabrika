@@ -48,6 +48,7 @@ public static class DependencyInjection
                 options.Tokens.PasswordResetTokenProvider = PasswordResetTokenProviderOptions.ProviderName;
             })
             .AddRoles<AppRole>()
+            .AddClaimsPrincipalFactory<AppClaimsPrincipalFactory>()
             .AddEntityFrameworkStores<AppDbContext>()
             .AddSignInManager()
             .AddDefaultTokenProviders()

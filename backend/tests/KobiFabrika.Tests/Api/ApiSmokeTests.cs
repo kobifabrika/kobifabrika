@@ -1,20 +1,9 @@
 using System.Net;
 using System.Net.Http.Json;
 using KobiFabrika.Tests.Infrastructure;
-using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Testing;
 
 namespace KobiFabrika.Tests.Api;
-
-public sealed class KobiFabrikaApiFactory(SqlServerFixture db) : WebApplicationFactory<Program>
-{
-    protected override void ConfigureWebHost(IWebHostBuilder builder)
-    {
-        builder.UseEnvironment("Testing");
-        builder.UseSetting("ConnectionStrings:Default", db.AppDatabase);
-    }
-}
 
 /// <summary>API'nin gerçek veritabanıyla ayağa kalktığını ve ortak altyapının çalıştığını doğrular.</summary>
 public sealed class ApiSmokeTests(SqlServerFixture db) : IAsyncLifetime

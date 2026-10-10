@@ -29,3 +29,6 @@ Thumbs.db
 # Loglar
 logs/
 *.log
+
+# Yüklenen dosyalar (geliştirmede yerel disk)
+App_Data/
