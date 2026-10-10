@@ -1,12 +1,10 @@
 "use client";
 
-import { useQueryClient } from "@tanstack/react-query";
 import { Building2, Check, LogOut, UserRound } from "lucide-react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { toast } from "sonner";
 
-import { meQueryKey, useLogout, useSession } from "@/components/providers/session-provider";
+import { useSwitchBusiness } from "@/components/panel/business-switcher";
+import { useLogout, useSession } from "@/components/providers/session-provider";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -15,7 +13,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { api, errorMessage, unwrap } from "@/lib/api/client";
 import { roleNames, type Role } from "@/lib/api/types";
 
 function initials(name: string) {
@@ -31,20 +28,7 @@ function initials(name: string) {
 export function UserMenu() {
   const { me, business, role } = useSession();
   const logout = useLogout();
-  const queryClient = useQueryClient();
-  const router = useRouter();
-
-  const switchTo = async (businessId: string) => {
-    try {
-      const next = await unwrap(api.POST("/api/auth/switch-business", { body: { businessId } }));
-      queryClient.clear();
-      queryClient.setQueryData(meQueryKey, next);
-      router.push("/panel");
-      toast.success(`${next.business?.name} işletmesine geçildi.`);
-    } catch (e) {
-      toast.error(errorMessage(e));
-    }
-  };
+  const switchTo = useSwitchBusiness();
 
   return (
     <DropdownMenu>

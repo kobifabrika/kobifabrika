@@ -2,6 +2,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { cn } from "cn";
+import { Fragment } from "react";
 import { Controller, type Control, type FieldErrors, type UseFormRegister, useWatch } from "react-hook-form";
 import { z } from "zod";
 
@@ -44,6 +45,20 @@ type Props<T extends BusinessBasics> = {
   disabled?: boolean;
 };
 
+/** "Perakende/Mağaza" gibi boşluksuz adlar "/" sonrasında alt satıra inebilsin diye araya <wbr> koyar. */
+function breakAfterSlash(label: string) {
+  return label.split("/").map((part, i, parts) => (
+    <Fragment key={i}>
+      {part}
+      {i < parts.length - 1 && (
+        <>
+          /<wbr />
+        </>
+      )}
+    </Fragment>
+  ));
+}
+
 /** İşletme adı, sektör kartları, telefon, il/ilçe. Kurulum 1. adım ve Ayarlar'da ortak. */
 export function BusinessFields<T extends BusinessBasics>({ control, register, errors, onCityChange, disabled }: Props<T>) {
   // Ortak alanlar BusinessBasics'te; genel form tipi T bu alanları içerir.
@@ -65,7 +80,8 @@ export function BusinessFields<T extends BusinessBasics>({ control, register, er
           control={c}
           name="sector"
           render={({ field }) => (
-            <div role="radiogroup" aria-label="Sektör" className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+            // auto-rows-fr: tüm kartlar en uzun kart kadar yüksek; uzun ad kartın içinde alt satıra iner.
+            <div role="radiogroup" aria-label="Sektör" className="grid auto-rows-fr grid-cols-2 gap-2 sm:grid-cols-4">
               {sectors.map(({ value, label, icon: Icon }) => {
                 const selected = field.value === value;
                 return (
@@ -76,14 +92,14 @@ export function BusinessFields<T extends BusinessBasics>({ control, register, er
                     aria-checked={selected}
                     onClick={() => field.onChange(value)}
                     className={cn(
-                      "flex min-h-20 flex-col items-start justify-center gap-2 rounded-lg border px-3 py-2 text-left text-sm font-semibold transition-colors",
+                      "flex min-h-20 min-w-0 flex-col items-start justify-center gap-2 rounded-lg border px-3 py-2 text-left text-sm font-semibold transition-colors",
                       selected
                         ? "border-primary bg-primary text-primary-foreground"
                         : "border-border bg-card text-foreground hover:border-primary",
                     )}
                   >
-                    <Icon aria-hidden className={cn("size-6", selected ? "text-primary-foreground" : "text-primary")} />
-                    {label}
+                    <Icon aria-hidden className={cn("size-6 shrink-0", selected ? "text-primary-foreground" : "text-primary")} />
+                    <span className="w-full leading-snug [overflow-wrap:anywhere]">{breakAfterSlash(label)}</span>
                   </button>
                 );
               })}

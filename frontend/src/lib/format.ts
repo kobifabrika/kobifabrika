@@ -29,3 +29,14 @@ export function formatRelative(iso: string, now = new Date()): string {
   if (hours < 24) return `${hours} sa önce`;
   return formatDateTime(iso);
 }
+
+const hourFormat = new Intl.DateTimeFormat("en-GB", { timeZone: TIME_ZONE, hour: "numeric", hourCycle: "h23" });
+
+/** İstanbul saatine göre selamlama: "Günaydın", "İyi günler", "İyi akşamlar", "İyi geceler". */
+export function greeting(now = new Date()): string {
+  const hour = Number(hourFormat.format(now));
+  if (hour >= 5 && hour < 12) return "Günaydın";
+  if (hour >= 12 && hour < 18) return "İyi günler";
+  if (hour >= 18 && hour < 23) return "İyi akşamlar";
+  return "İyi geceler";
+}

@@ -3,6 +3,8 @@ import { AlertTriangle, CalendarDays, HandCoins, ReceiptText, type LucideIcon } 
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
+import { TodayGreeting } from "./today-greeting";
+
 // Panel layout'u gibi: içerik istemcide oturum doğrulanınca render edilir.
 export const instant = false;
 
@@ -19,10 +21,7 @@ const stats: { label: string; icon: LucideIcon }[] = [
 export default function TodayPage() {
   return (
     <div className="mx-auto flex max-w-6xl flex-col gap-6">
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight text-black">Bugün</h1>
-        <p className="mt-1 text-sm text-neutral-600">İşletmenizde bugün olanlar burada görünecek.</p>
-      </div>
+      <TodayGreeting />
 
       <section aria-label="Özet" className="grid grid-cols-2 gap-3 lg:grid-cols-4 lg:gap-4">
         {stats.map(({ label, icon: Icon }) => (

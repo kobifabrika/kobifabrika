@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { cn } from "cn";
 
 import { Wordmark } from "@/components/brand/wordmark";
+import { BusinessSwitcher } from "@/components/panel/business-switcher";
 import { ApiStatus } from "@/components/panel/api-status";
 import { useSession } from "@/components/providers/session-provider";
 import { isActive, panelHref, visibleNavGroups } from "@/lib/navigation";
@@ -53,14 +54,15 @@ export function NavList({ onNavigate }: { onNavigate?: () => void }) {
   );
 }
 
-/** Masaüstünde (lg ve üstü) sabit siyah sol menü; aktif öğe mavi zemin + siyah yazı. */
+/** Masaüstünde (lg ve üstü) sabit siyah sol menü: wordmark, altında işletme adı; aktif öğe mavi zemin + siyah yazı. */
 export function Sidebar() {
   return (
     <aside className="fixed inset-y-0 left-0 z-30 hidden w-64 flex-col overflow-hidden border-r border-sidebar-border bg-sidebar text-sidebar-foreground lg:flex">
-      <div className="relative flex h-16 items-center border-b border-sidebar-border px-6">
-        <Link href="/panel" className="rounded-md outline-sidebar-ring" aria-label="KobiFabrika — Bugün">
+      <div className="flex flex-col gap-3 border-b border-sidebar-border px-3 pt-4 pb-3">
+        <Link href="/panel" className="self-start rounded-md px-3 outline-sidebar-ring" aria-label="KobiFabrika — Bugün">
           <Wordmark onDark className="text-2xl" />
         </Link>
+        <BusinessSwitcher variant="sidebar" />
       </div>
       <div className="relative flex-1 overflow-y-auto px-3 py-6">
         <NavList />
