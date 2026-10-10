@@ -35,7 +35,8 @@ Tek kişilik/küçük ekip için **modüler monolit**: tek deploy, tek veritaban
 - Oturumdaki kullanıcının işletmesi claim'den okunur → `ITenantContext`.
 - `AppDbContext` içinde iki adlı global query filter (EF Core 10): `ITenantScoped` için `Tenant` (`e.BusinessId == tenant.BusinessId`), `ISoftDeletable` için `SoftDelete` (`!e.IsDeleted`). Kiracı yoksa sorgu boş döner.
 - Kayıt eklenirken `BusinessId` SaveChanges'te otomatik atanır; elle verilen farklı bir değer exception fırlatır.
-- Herkese açık endpoint'ler (`/public/...`) kiracıyı slug veya imzalı token'dan çözer; oturum gerektirmez.
+- Herkese açık endpoint'ler (`/api/public/...`) kiracıyı slug veya token'dan çözer; oturum gerektirmez. Token: 32 bayt rastgele (Base64Url), veritabanında SHA-256 özeti (`SecureTokens`); süreli ve iptal edilebilir. Kayıt `IgnoreQueryFilters([Tenant])` ile token özetinden bulunur, işlem o işletmenin kiracı bağlamındaki yeni DI scope'unda yapılır. Yanıtlar `X-Robots-Tag: noindex`, `Referrer-Policy: no-referrer`, `Cache-Control: no-store`; IP başına dakikada sınır (`RateLimiting:PublicPermitLimit`).
+- **Bakiye eşzamanlılığı:** `Contact.Balance` ve `CashAccount.Balance` önbellektir ve SaveChanges'te yazılmaz (`PropertySaveBehavior.Ignore`). `LedgerService` hareketi ve atomik `UPDATE … SET Balance = Balance + @delta`'yı aynı transaction'da yazar; kilit sırası tahsilat linki → cari → kasa. Tahsilat linki onayı koşullu UPDATE (`Status IN (Open, ClaimedPaid)`) ile tek kez yapılır.
 - **Zorunlu test:** her yeni modülde "A işletmesi B'nin kaydını göremez/değiştiremez" entegrasyon testi.
 
 ### Kimlik ve yetki
@@ -63,6 +64,8 @@ Tek kişilik/küçük ekip için **modüler monolit**: tek deploy, tek veritaban
 
 ### Arka plan işleri (Hangfire)
 
+Sprint 2'de kuruldu (`Infrastructure/Jobs/BackgroundJobs.cs`): SQL Server depolama, aynı veritabanında `hangfire` şeması, 2 worker. Testlerde `Hangfire:Enabled=false`; iş sınıfları doğrudan çağrılarak test edilir. İşler kiracıdan bağımsız başlar, her işletme için ayrı DI scope'unda `TenantContext.Set` ile çalışır. Şu an: `reminders-due` (dakikada bir, vakti gelen hatırlatmaya bildirim), `import-jobs-cleanup` (saatlik). Hangfire paneli açık değil (PlatformAdmin, Sprint 8).
+
 - Randevu hatırlatma SMS'i (dakikalık tarama).
 - Zamanlanmış kampanya gönderimi, doğum günü ve geri kazanma otomasyonları (günlük).
 - Vade hatırlatmaları (günlük).
@@ -72,7 +75,7 @@ Tek kişilik/küçük ekip için **modüler monolit**: tek deploy, tek veritaban
 
 ### Dış servisler (arayüz + sahte uygulama)
 
-Her dış servis bir arayüzün arkasında: `ISmsSender`, `IEmailSender`, `IPaymentProvider`, `IPdfRenderer`.
+Her dış servis bir arayüzün arkasında: `ISmsSender`, `IEmailSender`, `IPaymentProvider`, `IPdfRenderer` (Sprint 2: QuestPDF Community lisansı, gömülü Lato fontu Türkçe karakterleri destekler). Excel okuma/yazma ClosedXML ile.
 Geliştirmede sahte (fake) uygulamalar çalışır: SMS'ler veritabanındaki `MessageLog`'a ve konsola yazılır, e-postalar MailKit ile SMTP üzerinden Mailpit'e gider (`Email:Smtp`). Gerçek sağlayıcılar pilot öncesi bağlanır.
 E-posta Sprint 1'de istek içinde gönderilir (hata loglanır, istek düşmez); Hangfire gelince (Sprint 5) kuyruğa alınacak.
 Dosyalar (logo) `IFileStorage` arkasında: geliştirmede yerel disk (`Storage:LocalPath`, varsayılan `App_Data/files`, git dışı), API'den `/files/...` altında sunulur.
@@ -84,7 +87,7 @@ Serilog (konsol + dosya), canlıda Sentry (ücretsiz katman). Her istek için co
 ## Frontend
 
 - Next.js App Router, TypeScript strict, Tailwind CSS, shadcn/ui bileşenleri, lucide-react ikonları.
-- Route grupları: `(site)` tanıtım sitesi (SEO, statik), `(auth)`, `(panel)/panel` (oturum gerekli, istemci ağırlıklı; URL `/panel/...`, canlıda `app.kobifabrika.com` `proxy.ts` ile buraya yönlenir), `r/[slug]` randevu sayfası. `(auth)` grubunda `/giris`, `/kayit`, `/sifremi-unuttum`, `/sifre-sifirla`, `/e-posta-dogrula`, `/davet/[token]`; kurulum sihirbazı `/kurulum`. Frontend URL'leri Türkçe.
+- Route grupları: `(site)` tanıtım sitesi (SEO, statik), `(auth)`, `(panel)/panel` (oturum gerekli, istemci ağırlıklı; URL `/panel/...`, canlıda `app.kobifabrika.com` `proxy.ts` ile buraya yönlenir), `r/[slug]` randevu sayfası, `ekstre/[token]` ve `odeme/[token]` (işletmenin müşterisinin göreceği herkese açık sayfalar; noindex). `(auth)` grubunda `/giris`, `/kayit`, `/sifremi-unuttum`, `/sifre-sifirla`, `/e-posta-dogrula`, `/davet/[token]`; kurulum sihirbazı `/kurulum`. Frontend URL'leri Türkçe.
 - Oturum: `src/proxy.ts` sadece `kf.auth` cookie'sinin varlığına bakar (yoksa `/giris?donus=…`). Asıl kontrol `PanelGate`'te: `GET /api/auth/me` 401 → giriş, kurulum bitmemiş → `/kurulum`. Panel içeriği istemcide render edildiği için panel segmentleri `export const instant = false` ile anında gezinme doğrulamasının dışında.
 - Veri çekme: `openapi-typescript` ile üretilen tipler + küçük bir `apiClient` (fetch, `credentials: "include"`). Sunucu durumu için TanStack Query.
 - Formlar: react-hook-form + zod (backend doğrulamasıyla aynı kurallar).

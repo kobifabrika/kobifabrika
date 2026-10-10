@@ -100,5 +100,6 @@ Windows'ta API çalışırken backend derlenmez (DLL kilitli); önce API'yi durd
 
 ## Güncel durum
 
-- Sprint: **1 (Çekirdek)** tamamlandı (2026-10-10): kayıt/giriş, kurulum sihirbazı, roller ve davet, bildirim, aktivite günlüğü, Ctrl+K iskeleti. Sıradaki: **Sprint 2 (Müşteriler ve cari)**.
+- Sprint: **2 (Müşteriler ve cari)** tamamlandı (2026-10-11): müşteri/tedarikçi kartı, etiket, segment, KVKK izinleri, hatırlatma (Hangfire), Excel içe aktarma, cari hareket ve tahsilat, PDF ekstre, ekstre paylaşımı, tahsilat linki. Sıradaki: **Sprint 3 (Ürün, satış, teklif)**.
+- Bakiyeler (`Contact.Balance`, `CashAccount.Balance`) sadece `LedgerService` ile, SQL'de atomik güncellenir; entity üzerinden yazılmaz.
 - GitHub: github.com/kobifabrika/kobifabrika (private)

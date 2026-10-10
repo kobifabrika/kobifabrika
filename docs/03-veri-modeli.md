@@ -33,7 +33,7 @@ Benzersiz indeksler `BusinessId`'yi içerir (ör. `BusinessId + Phone`).
 
 ## Çekirdek
 
-- **Businesses:** Name, Slug (benzersiz, randevu linki), Sector, Template (Service/Retail/General, sektörden türer), Modules (int bayrak: Appointments=1, Stock=2), SetupCompletedAt (null → kurulum bitmedi), Phone, Email, Address, City, District, LogoUrl, TimeZone, Iban, GoogleReviewUrl, WhatsappNumber, Settings (JSON), PlanId (Sprint 8), SmsBalance.
+- **Businesses:** Name, Slug (benzersiz, randevu linki), Sector, Template (Service/Retail/General, sektörden türer), Modules (int bayrak: Appointments=1, Stock=2), SetupCompletedAt (null → kurulum bitmedi), Phone, Email, Address, City, District, LogoUrl, TimeZone, Iban (TR, boşluksuz; tahsilat linki için), IbanHolderName (Sprint 2), GoogleReviewUrl, WhatsappNumber, Settings (JSON), PlanId (Sprint 8), SmsBalance.
   - Sektör → şablon: HairBarber (Kuaför/Berber), BeautyCare (Güzellik ve Bakım), ClinicHealth (Klinik/Sağlık), SportsFitness (Spor ve Fitness), AutoService (Oto Servis) → **Service**; RetailStore (Perakende/Mağaza), CafeRestaurant (Kafe/Restoran) → **Retail**; Other (Diğer) → **General**. Kod: `Domain/Businesses/SectorCatalog.cs`.
   - Varsayılan modüller: Service → sadece Randevular; Retail → sadece Stok; General → ikisi de. Ayarlar'dan değiştirilir; sektör sonradan değişince modüller korunur.
 - **AspNetUsers (Identity) + AppUser alanları:** FullName, PhoneNumber (E.164), CreatedAt, LastBusinessId (girişte açılacak işletme; cookie'ye claim olarak yazılır). **BusinessMemberships:** UserId, BusinessId, Role (Owner/Manager/Staff/Accountant), IsActive; benzersiz (UserId, BusinessId). Kiracı filtresi dışında (`[TenantExempt]`); sorgular UserId veya BusinessId ile açıkça süzülür.
@@ -42,15 +42,16 @@ Benzersiz indeksler `BusinessId`'yi içerir (ör. `BusinessId + Phone`).
 - **WorkingHours:** DayOfWeek (tinyint), IsClosed, OpensAt, ClosesAt (`time`, işletmenin yerel saati); benzersiz (BusinessId, DayOfWeek). Varsayılan: Pzt-Cmt 09:00-19:00, Pazar kapalı. **Holidays:** Date, Name (Sprint 5).
 - **Notifications:** UserId, Type (ör. `invitation.accepted`, `team.role_changed`, `team.joined`), Title, Body, Link, ReadAt.
 - **AuditLogs:** UserId, Action (Login, InvitationSent, InvitationResent, InvitationRevoked, InvitationAccepted, RoleChanged, MemberRemoved, BusinessUpdated, SlugChanged, WorkingHoursUpdated, LogoChanged, ModulesChanged), EntityType, EntityId, Changes (`json`), IpAddress, At. Sadece eklenir: güncelleme/silme `AppDbContext`'te engellenir; soft delete yok.
-- **Consents:** ContactId, Channel (Sms/Email/Call), Granted, Source, At, IysStatus.
 
-## Müşteriler
+## Müşteriler (Sprint 2, migration `Sprint2Contacts`)
 
-- **Contacts:** IsCustomer, IsSupplier, FirstName, LastName, CompanyName, Phone, Email, BirthDate, Address, Source, Notes, TaxNumber, TaxOffice, Balance (hesaplanmış, önbellek), LastVisitAt, AvgVisitIntervalDays, NoShowCount.
-- **Tags, ContactTags.**
+- **Contacts:** IsCustomer, IsSupplier (ikisi birden olabilir), FirstName, LastName, CompanyName (ad/soyad/firmadan biri zorunlu), DisplayName (aranır), Phone (E.164; benzersiz `BusinessId + Phone`, filtre: Phone dolu ve silinmemiş), Email, BirthDate (`date`), Address, City, District, Source (Instagram/Google/Referral/WalkIn/Facebook/TikTok/Other), Notes (kısa sabit not), TaxNumber, TaxOffice, Balance (önbellek; sadece SQL'de atomik `Balance = Balance + @delta`), LastVisitAt (Sprint 3/5'te dolar), IsArchived, ArchivedAt, SmsConsent/EmailConsent/CallConsent (güncel izin; varsayılan kapalı). AvgVisitIntervalDays, NoShowCount Sprint 5/6'da.
+- **ContactConsents** (izin geçmişi, sadece eklenir): ContactId, Channel (Sms/Email/Call), Granted, Source (Panel/Import/OnlineBooking), At, IysStatus.
+- **Tags:** Name (benzersiz, işletme içinde), Color (Gray/Black/Blue/Outline). **ContactTags:** ContactId, TagId (soft delete yok).
 - **ContactNotes:** ContactId, Body.
-- **Reminders:** ContactId (opsiyonel), AssignedUserId, DueAt, Title, DoneAt.
-- **Segments:** Name, Definition (JSON filtre), IsSystem.
+- **Reminders:** ContactId (opsiyonel), AssignedUserId, DueAt (UTC), Title, DoneAt, NotifiedAt (Hangfire bildirimi bir kez).
+- **Segments:** Name, Definition (`json`: type, tagIds, source, balance, inactiveDays). Hazır 4 segment kodda (`inactive-60`, `debtors`, `birthday-this-month`, `new-30`), tabloda değil.
+- **ImportJobs:** FileName, Status, Headers (`json`), Rows (`json`, ≤5000), Result (`json`), ExpiresAt (24 saat; saatlik iş siler).
 
 ## Katalog ve stok
 
@@ -67,11 +68,12 @@ Benzersiz indeksler `BusinessId`'yi içerir (ör. `BusinessId + Phone`).
 
 ## Finans
 
-- **CashAccounts:** Name, Type (Cash/Bank), Iban, Balance (önbellek).
-- **CashTransactions:** CashAccountId, Type (Collection/Payment/TransferIn/TransferOut/Expense/Income), Amount, Date, ContactId, ExpenseCategoryId, Description, RefType, RefId.
+- **CashAccounts:** Name, Type (Cash/Bank), Iban, Balance (önbellek, atomik), IsDefault. Her işletmede "Nakit Kasa" ve "Banka" (kurulumda; mevcut işletmelere migration'da).
+- **CashTransactions:** CashAccountId, Type (Collection/Payment/TransferIn/TransferOut/Expense/Income), Amount (> 0, check), Date (`date`), ContactId, Description, PaymentRequestId. ExpenseCategoryId Sprint 4'te.
 - **ExpenseCategories:** Name, Kind (Expense/Income).
-- **LedgerEntries (cari hareket):** ContactId, Date, DueDate, Debit, Credit, Description, RefType (Sale/Collection/Payment/Opening), RefId. Bakiye = Σ(Debit − Credit).
-- **PaymentRequests (tahsilat linki):** ContactId, Amount, PublicToken, Status (Open/ClaimedPaid/Confirmed/Cancelled), ClaimedAt, ConfirmedAt, CashTransactionId.
+- **LedgerEntries (cari hareket):** ContactId, Date (`date`), DueDate, Debit, Credit (biri > 0, check), Description, RefType (Opening/Manual/Collection/Sale), RefId. Bakiye = Σ(Debit − Credit); pozitif = müşteri borçlu (panelde "Alacak").
+- **PaymentRequests (tahsilat linki):** ContactId, Amount, Note, TokenHash (`binary(32)`, SHA-256; ham token sadece linkte), ExpiresAt (30 gün), Status (Open/ClaimedPaid/Confirmed/Cancelled), ClaimedAt, ClaimNote, ConfirmedAt, ConfirmedBy, CashTransactionId, CancelledAt.
+- **StatementShares (ekstre linki):** ContactId, From, To, TokenHash, ExpiresAt (30 gün), Channel (Link/WhatsApp/Email), LastViewedAt.
 
 ## Randevu
 

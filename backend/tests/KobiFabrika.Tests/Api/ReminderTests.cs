@@ -2,6 +2,8 @@ using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
 using KobiFabrika.Infrastructure.Jobs;
+using KobiFabrika.Infrastructure.Persistence;
+using Microsoft.EntityFrameworkCore;
 using KobiFabrika.Tests.Infrastructure;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -136,9 +138,13 @@ public sealed class ReminderTests(SqlServerFixture db) : ApiTestBase(db)
         var jobId = (await (await owner.Client.PostAsync("/api/contacts/import", content, Ct)).Content.ReadFromJsonAsync<JsonElement>(Json, Ct))
             .GetProperty("jobId").GetGuid();
 
-        Factory.Clock.Advance(TimeSpan.FromHours(25));
+        // Saat ileri alınmaz: temizlik işi tüm veritabanına bakar, paralel testlerin oturumlarını silmesin.
+        // Sadece bu oturumun süresi geçmişe çekilir.
         await using (var scope = Factory.Services.CreateAsyncScope())
         {
+            var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            await db.ImportJobs.IgnoreQueryFilters().Where(j => j.Id == jobId)
+                .ExecuteUpdateAsync(s => s.SetProperty(j => j.ExpiresAt, Now.AddHours(-1)), Ct);
             (await scope.ServiceProvider.GetRequiredService<ImportCleanupJob>().RunAsync(Ct)).ShouldBeGreaterThanOrEqualTo(1);
         }
 

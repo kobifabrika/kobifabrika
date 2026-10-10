@@ -2,7 +2,7 @@
 
 Tahmini, yarı zamanlı. Toplam yaklaşık 15-18 hafta. Her sprint sonunda: build ve testler geçer, ekranlar 375px'te kontrol edilir, bu dosyada maddeler işaretlenir, `docs/karar-gunlugu.md` güncellenir, commit atılır.
 
-**Durum:** Sprint 1 tamamlandı (2026-10-10). Sıradaki: Sprint 2 (Müşteriler ve cari).
+**Durum:** Sprint 2 tamamlandı (2026-10-11). Sıradaki: Sprint 3 (Ürün, satış, teklif). Hangfire Sprint 5'ten öne çekildi (Sprint 2).
 
 ---
 
@@ -31,12 +31,13 @@ Tahmini, yarı zamanlı. Toplam yaklaşık 15-18 hafta. Her sprint sonunda: buil
 
 ## Sprint 2 — Müşteriler ve cari (2 hafta)
 
-- [ ] Müşteri/tedarikçi CRUD, etiketler, notlar, kaynak, KVKK izinleri
-- [ ] Zaman çizelgesi, segmentler, hatırlatmalar
-- [ ] Excel'den içe aktarma (şablon indir → yükle → önizle → kaydet)
-- [ ] Cari hareketler ve bakiye, PDF ekstre (QuestPDF)
-- [ ] Cari ekstre paylaşımı (WhatsApp/SMS/e-posta linki)
-- [ ] Tahsilat linki (herkese açık sayfa, "Ödedim" → bildirim → onay → tahsilat kaydı)
+- [x] Müşteri/tedarikçi CRUD, etiketler, notlar, kaynak, KVKK izinleri
+- [x] Zaman çizelgesi, segmentler, hatırlatmalar (Hangfire ile vakti gelince bildirim)
+- [x] Excel'den içe aktarma (şablon indir → yükle → sütun eşle → önizle → kaydet → rapor)
+- [x] Cari hareketler ve bakiye (açılış, elle borç/alacak, Tahsilat al), PDF ekstre (QuestPDF)
+- [x] Cari ekstre paylaşımı (WhatsApp/e-posta linki; SMS butonu "Yakında", Sprint 6)
+- [x] Tahsilat linki (herkese açık sayfa, "Ödedim" → bildirim → onay → tahsilat kaydı)
+- [x] Ayarlar'da IBAN (TR doğrulama); her işletmede Nakit Kasa ve Banka hesabı
 
 ## Sprint 3 — Ürün, satış, teklif (2 hafta)
 
