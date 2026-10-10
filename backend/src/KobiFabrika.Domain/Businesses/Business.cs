@@ -27,7 +27,11 @@ public class Business : Entity, ISoftDeletable, IAuditable
     public string? District { get; set; }
     public string? LogoUrl { get; set; }
     public string TimeZone { get; set; } = "Europe/Istanbul";
+    /// <summary>Tahsilat linkinde gösterilen TR IBAN (boşluksuz, büyük harf).</summary>
     public string? Iban { get; set; }
+
+    /// <summary>IBAN'ın hesap sahibi (havale alıcı adı); boşsa işletme adı gösterilir.</summary>
+    public string? IbanHolderName { get; set; }
     public string? GoogleReviewUrl { get; set; }
     public string? WhatsappNumber { get; set; }
 

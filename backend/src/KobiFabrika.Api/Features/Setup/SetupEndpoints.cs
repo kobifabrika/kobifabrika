@@ -4,6 +4,7 @@ using KobiFabrika.Api.Common.Authorization;
 using KobiFabrika.Api.Features.Auth;
 using KobiFabrika.Api.Features.Businesses;
 using KobiFabrika.Domain.Businesses;
+using KobiFabrika.Domain.Finance;
 using KobiFabrika.Infrastructure.Businesses;
 using KobiFabrika.Infrastructure.Identity;
 using KobiFabrika.Infrastructure.Locations;
@@ -90,6 +91,7 @@ public static class SetupEndpoints
 
             tenant.Set(business.Id, user.Id);
             db.WorkingHours.AddRange(WorkingHour.DefaultWeek());
+            db.CashAccounts.AddRange(CashAccount.DefaultAccounts());
         }
 
         business.Name = name;

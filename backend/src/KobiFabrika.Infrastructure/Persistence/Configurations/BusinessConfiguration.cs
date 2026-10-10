@@ -25,6 +25,7 @@ internal sealed class BusinessConfiguration : IEntityTypeConfiguration<Business>
         b.Property(x => x.GoogleReviewUrl).HasMaxLength(500);
         b.Property(x => x.TimeZone).HasMaxLength(64);
         b.Property(x => x.Iban).HasMaxLength(34).IsUnicode(false);
+        b.Property(x => x.IbanHolderName).HasMaxLength(200);
         b.Property(x => x.Settings).HasColumnType("json").Metadata.SetMaxLength(null);
     }
 }

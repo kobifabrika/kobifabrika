@@ -3,6 +3,9 @@ using System.Reflection;
 using KobiFabrika.Domain.Auditing;
 using KobiFabrika.Domain.Businesses;
 using KobiFabrika.Domain.Common;
+using KobiFabrika.Domain.Contacts;
+using KobiFabrika.Domain.Finance;
+using KobiFabrika.Domain.Imports;
 using KobiFabrika.Domain.Notifications;
 using KobiFabrika.Domain.Users;
 using KobiFabrika.Infrastructure.Identity;
@@ -39,6 +42,19 @@ public class AppDbContext : IdentityDbContext<AppUser, AppRole, Guid>
     public DbSet<Notification> Notifications => Set<Notification>();
     public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
     public DbSet<UserConsent> UserConsents => Set<UserConsent>();
+    public DbSet<Contact> Contacts => Set<Contact>();
+    public DbSet<ContactConsent> ContactConsents => Set<ContactConsent>();
+    public DbSet<Tag> Tags => Set<Tag>();
+    public DbSet<ContactTag> ContactTags => Set<ContactTag>();
+    public DbSet<ContactNote> ContactNotes => Set<ContactNote>();
+    public DbSet<Reminder> Reminders => Set<Reminder>();
+    public DbSet<Segment> Segments => Set<Segment>();
+    public DbSet<LedgerEntry> LedgerEntries => Set<LedgerEntry>();
+    public DbSet<CashAccount> CashAccounts => Set<CashAccount>();
+    public DbSet<CashTransaction> CashTransactions => Set<CashTransaction>();
+    public DbSet<PaymentRequest> PaymentRequests => Set<PaymentRequest>();
+    public DbSet<StatementShare> StatementShares => Set<StatementShare>();
+    public DbSet<ImportJob> ImportJobs => Set<ImportJob>();
 
     /// <summary>
     /// Query filter'lar bu özelliğe başvurur; EF her sorguda bu context örneğinin

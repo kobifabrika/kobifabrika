@@ -13,6 +13,13 @@
     <PackageVersion Include="FluentValidation.DependencyInjectionExtensions" Version="12.1.1" />
     <!-- E-posta -->
     <PackageVersion Include="MailKit" Version="4.18.1" />
+    <!-- PDF, Excel, arka plan işleri -->
+    <PackageVersion Include="QuestPDF" Version="2026.9.0" />
+    <PackageVersion Include="ClosedXML" Version="0.105.0" />
+    <PackageVersion Include="Hangfire.AspNetCore" Version="1.8.24" />
+    <PackageVersion Include="Hangfire.SqlServer" Version="1.8.24" />
+    <!-- Hangfire.Core 11.0.1 çeker (GHSA-5crp-9r3c-p9vr); güncel sürüm sabitlenir. -->
+    <PackageVersion Include="Newtonsoft.Json" Version="13.0.4" />
     <!-- Loglama -->
     <PackageVersion Include="Serilog.AspNetCore" Version="10.0.0" />
     <PackageVersion Include="Serilog.Sinks.File" Version="7.0.0" />

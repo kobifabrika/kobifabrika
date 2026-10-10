@@ -11,6 +11,9 @@ public interface IFileStorage
 {
     Task<string> SaveAsync(string folder, string fileName, Stream content, CancellationToken cancellationToken = default);
     Task DeleteAsync(string url, CancellationToken cancellationToken = default);
+
+    /// <summary>Kayıtlı dosyanın içeriği (PDF'e logo basmak için); yoksa null.</summary>
+    Task<byte[]?> ReadAsync(string url, CancellationToken cancellationToken = default);
 }
 
 public sealed class StorageOptions
@@ -52,6 +55,17 @@ public sealed class LocalFileStorage(IOptions<StorageOptions> options, IHostEnvi
         }
 
         return Task.CompletedTask;
+    }
+
+    public async Task<byte[]?> ReadAsync(string url, CancellationToken cancellationToken = default)
+    {
+        if (!url.StartsWith(StorageOptions.PublicBasePath + "/", StringComparison.Ordinal))
+        {
+            return null;
+        }
+
+        var fullPath = Resolve(url[(StorageOptions.PublicBasePath.Length + 1)..]);
+        return File.Exists(fullPath) ? await File.ReadAllBytesAsync(fullPath, cancellationToken) : null;
     }
 
     /// <summary>Kök dışına çıkan yolları (../) reddeder.</summary>
