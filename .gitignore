@@ -1,0 +1,31 @@
+# Gizli değerler
+.env
+.env.*
+!.env.example
+
+# .NET
+bin/
+obj/
+*.user
+.vs/
+TestResults/
+
+# Node / Next.js
+node_modules/
+.next/
+out/
+*.tsbuildinfo
+next-env.d.ts
+
+# Editör ve işletim sistemi
+.vscode/*
+!.vscode/extensions.json
+.DS_Store
+Thumbs.db
+
+# Claude Code kişisel ayarları
+.claude/settings.local.json
+
+# Loglar
+logs/
+*.log

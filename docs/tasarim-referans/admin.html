@@ -1,0 +1,2012 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>KOBIOS — Yönetim Paneli</title>
+
+    <style>
+
+        /* =========================================
+           TEMEL
+        ========================================= */
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont,
+                         "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+
+            background: #f6f6f6;
+            color: #111;
+
+            min-height: 100vh;
+        }
+
+        button,
+        input,
+        select {
+            font-family: inherit;
+        }
+
+        a {
+            text-decoration: none;
+            color: inherit;
+        }
+
+
+        /* =========================================
+           ANA YAPI
+        ========================================= */
+
+        .app {
+            display: flex;
+            min-height: 100vh;
+        }
+
+
+        /* =========================================
+           SIDEBAR
+        ========================================= */
+
+        .sidebar {
+            width: 245px;
+            background: #050505;
+            color: white;
+
+            position: fixed;
+            left: 0;
+            top: 0;
+            bottom: 0;
+
+            display: flex;
+            flex-direction: column;
+
+            z-index: 100;
+        }
+
+
+        /* LOGO */
+
+        .sidebar-logo {
+            height: 90px;
+
+            display: flex;
+            align-items: center;
+
+            padding: 0 28px;
+
+            border-bottom: 1px solid #1d1d1d;
+        }
+
+        .logo {
+            font-family: "Helvetica Neue", Arial, sans-serif;
+
+            font-size: 27px;
+
+            font-weight: 800;
+
+            letter-spacing: -1.8px;
+        }
+
+
+        .logo-version {
+            font-size: 8px;
+
+            color: #666;
+
+            margin-left: 9px;
+
+            letter-spacing: 1px;
+        }
+
+
+        /* =========================================
+           MENÜ
+        ========================================= */
+
+        .menu {
+            padding: 25px 14px;
+
+            flex: 1;
+
+            overflow-y: auto;
+        }
+
+        .menu-title {
+            font-size: 9px;
+
+            color: #555;
+
+            letter-spacing: 1.5px;
+
+            font-weight: 600;
+
+            padding: 0 13px;
+
+            margin-bottom: 10px;
+        }
+
+
+        .menu-item {
+            height: 43px;
+
+            display: flex;
+
+            align-items: center;
+
+            gap: 12px;
+
+            padding: 0 13px;
+
+            border-radius: 6px;
+
+            color: #888;
+
+            font-size: 12px;
+
+            margin-bottom: 3px;
+
+            cursor: pointer;
+
+            transition: .2s;
+        }
+
+        .menu-item:hover {
+            background: #111;
+
+            color: white;
+        }
+
+        .menu-item.active {
+            background: #fff;
+
+            color: #050505;
+
+            font-weight: 600;
+        }
+
+
+        .menu-icon {
+            width: 17px;
+
+            display: flex;
+
+            justify-content: center;
+
+            font-size: 14px;
+        }
+
+
+        .menu-badge {
+            margin-left: auto;
+
+            background: #333;
+
+            color: #aaa;
+
+            min-width: 19px;
+
+            height: 19px;
+
+            border-radius: 50%;
+
+            display: flex;
+
+            align-items: center;
+
+            justify-content: center;
+
+            font-size: 9px;
+        }
+
+        .menu-item.active .menu-badge {
+            background: #111;
+
+            color: white;
+        }
+
+
+        /* =========================================
+           SIDEBAR ALT
+        ========================================= */
+
+        .sidebar-bottom {
+            border-top: 1px solid #1d1d1d;
+
+            padding: 16px;
+        }
+
+        .sidebar-user {
+            display: flex;
+
+            align-items: center;
+
+            gap: 10px;
+
+            padding: 7px;
+        }
+
+        .avatar {
+            width: 34px;
+            height: 34px;
+
+            border-radius: 50%;
+
+            background: #fff;
+
+            color: #111;
+
+            display: flex;
+
+            align-items: center;
+
+            justify-content: center;
+
+            font-size: 11px;
+
+            font-weight: 700;
+        }
+
+        .user-info {
+            overflow: hidden;
+        }
+
+        .user-name {
+            font-size: 11px;
+
+            color: #eee;
+
+            white-space: nowrap;
+        }
+
+        .user-role {
+            font-size: 9px;
+
+            color: #666;
+
+            margin-top: 2px;
+        }
+
+
+        /* =========================================
+           ANA İÇERİK
+        ========================================= */
+
+        .main {
+            margin-left: 245px;
+
+            width: calc(100% - 245px);
+
+            min-height: 100vh;
+        }
+
+
+        /* =========================================
+           TOPBAR
+        ========================================= */
+
+        .topbar {
+            height: 76px;
+
+            background: #fff;
+
+            border-bottom: 1px solid #e8e8e8;
+
+            display: flex;
+
+            align-items: center;
+
+            justify-content: space-between;
+
+            padding: 0 35px;
+        }
+
+        .page-title h1 {
+            font-size: 20px;
+
+            font-weight: 700;
+
+            letter-spacing: -0.6px;
+        }
+
+        .page-title p {
+            font-size: 10px;
+
+            color: #999;
+
+            margin-top: 4px;
+        }
+
+
+        .topbar-right {
+            display: flex;
+
+            align-items: center;
+
+            gap: 22px;
+        }
+
+
+        .notification {
+            position: relative;
+
+            font-size: 17px;
+
+            cursor: pointer;
+        }
+
+        .notification-dot {
+            position: absolute;
+
+            top: -2px;
+            right: -4px;
+
+            width: 6px;
+            height: 6px;
+
+            background: #111;
+
+            border-radius: 50%;
+        }
+
+
+        .top-user {
+            display: flex;
+
+            align-items: center;
+
+            gap: 9px;
+
+            cursor: pointer;
+        }
+
+        .top-avatar {
+            width: 32px;
+            height: 32px;
+
+            background: #111;
+
+            color: white;
+
+            border-radius: 50%;
+
+            display: flex;
+
+            align-items: center;
+
+            justify-content: center;
+
+            font-size: 10px;
+
+            font-weight: 700;
+        }
+
+        .top-user-name {
+            font-size: 11px;
+
+            font-weight: 600;
+        }
+
+        .top-user-arrow {
+            font-size: 9px;
+
+            color: #999;
+        }
+
+
+        /* =========================================
+           CONTENT
+        ========================================= */
+
+        .content {
+            padding: 30px 35px 45px;
+        }
+
+
+        /* =========================================
+           WELCOME
+        ========================================= */
+
+        .welcome {
+            margin-bottom: 25px;
+        }
+
+        .welcome h2 {
+            font-size: 24px;
+
+            font-weight: 700;
+
+            letter-spacing: -1px;
+        }
+
+        .welcome p {
+            color: #888;
+
+            font-size: 12px;
+
+            margin-top: 5px;
+        }
+
+
+        /* =========================================
+           İSTATİSTİK KARTLARI
+        ========================================= */
+
+        .stats {
+            display: grid;
+
+            grid-template-columns:
+                repeat(4, 1fr);
+
+            gap: 15px;
+
+            margin-bottom: 25px;
+        }
+
+
+        .stat-card {
+            background: white;
+
+            border: 1px solid #e9e9e9;
+
+            border-radius: 8px;
+
+            padding: 20px;
+
+            min-height: 135px;
+
+            position: relative;
+        }
+
+        .stat-top {
+            display: flex;
+
+            align-items: center;
+
+            justify-content: space-between;
+        }
+
+        .stat-label {
+            font-size: 10px;
+
+            color: #888;
+
+            font-weight: 500;
+        }
+
+        .stat-icon {
+            width: 29px;
+            height: 29px;
+
+            background: #f5f5f5;
+
+            border-radius: 6px;
+
+            display: flex;
+
+            align-items: center;
+
+            justify-content: center;
+
+            font-size: 12px;
+        }
+
+        .stat-value {
+            font-size: 26px;
+
+            font-weight: 700;
+
+            letter-spacing: -1px;
+
+            margin-top: 15px;
+        }
+
+        .stat-change {
+            font-size: 9px;
+
+            color: #777;
+
+            margin-top: 5px;
+        }
+
+        .positive {
+            color: #333;
+        }
+
+
+        /* =========================================
+           GRID
+        ========================================= */
+
+        .dashboard-grid {
+            display: grid;
+
+            grid-template-columns:
+                1.6fr 1fr;
+
+            gap: 20px;
+
+            margin-bottom: 20px;
+        }
+
+
+        .card {
+            background: #fff;
+
+            border: 1px solid #e8e8e8;
+
+            border-radius: 8px;
+
+            overflow: hidden;
+        }
+
+
+        .card-header {
+            height: 62px;
+
+            display: flex;
+
+            align-items: center;
+
+            justify-content: space-between;
+
+            padding: 0 20px;
+
+            border-bottom: 1px solid #eee;
+        }
+
+        .card-title {
+            font-size: 13px;
+
+            font-weight: 700;
+
+            letter-spacing: -0.2px;
+        }
+
+        .card-link {
+            font-size: 10px;
+
+            color: #777;
+
+            cursor: pointer;
+        }
+
+        .card-link:hover {
+            color: #111;
+        }
+
+
+        /* =========================================
+           SATIŞ GRAFİĞİ
+        ========================================= */
+
+        .chart {
+            height: 240px;
+
+            padding: 25px 20px;
+
+            position: relative;
+        }
+
+        .chart-lines {
+            position: absolute;
+
+            left: 20px;
+            right: 20px;
+            top: 25px;
+            bottom: 40px;
+
+            display: flex;
+
+            flex-direction: column;
+
+            justify-content: space-between;
+        }
+
+        .chart-line {
+            border-top: 1px dashed #e8e8e8;
+
+            width: 100%;
+        }
+
+        .chart-graph {
+            position: absolute;
+
+            left: 25px;
+            right: 25px;
+            top: 35px;
+            bottom: 42px;
+        }
+
+        .chart-svg {
+            width: 100%;
+            height: 100%;
+        }
+
+        .chart-labels {
+            position: absolute;
+
+            left: 20px;
+            right: 20px;
+
+            bottom: 15px;
+
+            display: flex;
+
+            justify-content: space-between;
+
+            font-size: 8px;
+
+            color: #aaa;
+        }
+
+
+        /* =========================================
+           PERSONEL DURUMU
+        ========================================= */
+
+        .employee-list {
+            padding: 5px 20px 12px;
+        }
+
+        .employee {
+            display: flex;
+
+            align-items: center;
+
+            padding: 13px 0;
+
+            border-bottom: 1px solid #f1f1f1;
+        }
+
+        .employee:last-child {
+            border-bottom: none;
+        }
+
+        .employee-avatar {
+            width: 31px;
+            height: 31px;
+
+            background: #f1f1f1;
+
+            border-radius: 50%;
+
+            display: flex;
+
+            align-items: center;
+
+            justify-content: center;
+
+            font-size: 9px;
+
+            font-weight: 700;
+
+            margin-right: 10px;
+        }
+
+        .employee-info {
+            flex: 1;
+        }
+
+        .employee-name {
+            font-size: 10px;
+
+            font-weight: 600;
+        }
+
+        .employee-role {
+            font-size: 8px;
+
+            color: #999;
+
+            margin-top: 3px;
+        }
+
+        .status {
+            display: flex;
+
+            align-items: center;
+
+            gap: 5px;
+
+            font-size: 8px;
+
+            color: #777;
+        }
+
+        .status-dot {
+            width: 6px;
+            height: 6px;
+
+            border-radius: 50%;
+
+            background: #222;
+        }
+
+        .status-dot.offline {
+            background: #ccc;
+        }
+
+
+        /* =========================================
+           ALT GRID
+        ========================================= */
+
+        .bottom-grid {
+            display: grid;
+
+            grid-template-columns:
+                1.5fr 1fr 1fr;
+
+            gap: 20px;
+        }
+
+
+        /* =========================================
+           TABLO
+        ========================================= */
+
+        .table-wrapper {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+
+            border-collapse: collapse;
+        }
+
+        th {
+            text-align: left;
+
+            font-size: 9px;
+
+            font-weight: 600;
+
+            color: #999;
+
+            padding: 14px 20px;
+
+            border-bottom: 1px solid #eee;
+        }
+
+        td {
+            padding: 14px 20px;
+
+            font-size: 10px;
+
+            border-bottom: 1px solid #f2f2f2;
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        .product-name {
+            font-weight: 600;
+        }
+
+        .stock-low {
+            color: #777;
+
+            font-weight: 600;
+        }
+
+        .stock-ok {
+            color: #222;
+
+            font-weight: 600;
+        }
+
+
+        /* =========================================
+           HIZLI İŞLEMLER
+        ========================================= */
+
+        .quick-actions {
+            padding: 15px 20px 20px;
+
+            display: grid;
+
+            grid-template-columns: 1fr 1fr;
+
+            gap: 9px;
+        }
+
+        .quick-action {
+            height: 62px;
+
+            border: 1px solid #eee;
+
+            border-radius: 6px;
+
+            background: #fafafa;
+
+            display: flex;
+
+            flex-direction: column;
+
+            align-items: flex-start;
+
+            justify-content: center;
+
+            padding: 0 13px;
+
+            cursor: pointer;
+
+            transition: .2s;
+        }
+
+        .quick-action:hover {
+            border-color: #ccc;
+
+            background: #fff;
+        }
+
+        .quick-icon {
+            font-size: 14px;
+
+            margin-bottom: 5px;
+        }
+
+        .quick-title {
+            font-size: 9px;
+
+            font-weight: 600;
+        }
+
+
+        /* =========================================
+           STOK DURUMU
+        ========================================= */
+
+        .stock-content {
+            padding: 20px;
+        }
+
+        .stock-total {
+            font-size: 25px;
+
+            font-weight: 700;
+
+            letter-spacing: -1px;
+
+            margin-bottom: 17px;
+        }
+
+        .progress-item {
+            margin-bottom: 16px;
+        }
+
+        .progress-header {
+            display: flex;
+
+            justify-content: space-between;
+
+            margin-bottom: 7px;
+
+            font-size: 9px;
+
+            color: #777;
+        }
+
+        .progress {
+            width: 100%;
+
+            height: 5px;
+
+            background: #eee;
+
+            border-radius: 5px;
+
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            height: 100%;
+
+            background: #111;
+
+            border-radius: 5px;
+        }
+
+
+        /* =========================================
+           RESPONSIVE
+        ========================================= */
+
+        @media (max-width: 1100px) {
+
+            .stats {
+                grid-template-columns:
+                    repeat(2, 1fr);
+            }
+
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .bottom-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+
+        @media (max-width: 800px) {
+
+            .sidebar {
+                width: 65px;
+            }
+
+            .sidebar-logo {
+                padding: 0;
+
+                justify-content: center;
+            }
+
+            .logo {
+                font-size: 20px;
+            }
+
+            .logo-version,
+            .menu-title,
+            .menu-item span,
+            .menu-badge,
+            .sidebar-user .user-info {
+                display: none;
+            }
+
+            .menu-item {
+                justify-content: center;
+
+                padding: 0;
+            }
+
+            .menu-icon {
+                font-size: 16px;
+            }
+
+            .sidebar-user {
+                justify-content: center;
+            }
+
+            .main {
+                margin-left: 65px;
+
+                width: calc(100% - 65px);
+            }
+
+            .topbar {
+                padding: 0 20px;
+            }
+
+            .content {
+                padding: 25px 20px;
+            }
+
+            .bottom-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+
+        @media (max-width: 550px) {
+
+            .stats {
+                grid-template-columns: 1fr;
+            }
+
+            .top-user-name,
+            .top-user-arrow {
+                display: none;
+            }
+
+            .welcome h2 {
+                font-size: 20px;
+            }
+        }
+
+    </style>
+</head>
+
+
+<body>
+
+<div class="app">
+
+
+    <!-- =========================================
+         SIDEBAR
+    ========================================== -->
+
+    <aside class="sidebar">
+
+
+        <!-- LOGO -->
+
+        <div class="sidebar-logo">
+
+            <div class="logo">
+                KOBIOS
+            </div>
+
+            <div class="logo-version">
+                v1.0
+            </div>
+
+        </div>
+
+
+        <!-- MENÜ -->
+
+        <nav class="menu">
+
+
+            <div class="menu-title">
+                YÖNETİM
+            </div>
+
+
+            <div class="menu-item active">
+
+                <div class="menu-icon">⌂</div>
+
+                <span>
+                    Genel Bakış
+                </span>
+
+            </div>
+
+
+            <div class="menu-item">
+
+                <div class="menu-icon">♙</div>
+
+                <span>
+                    Personel Takibi
+                </span>
+
+                <div class="menu-badge">
+                    12
+                </div>
+
+            </div>
+
+
+            <div class="menu-item">
+
+                <div class="menu-icon">▦</div>
+
+                <span>
+                    Ürünler
+                </span>
+
+            </div>
+
+
+            <div class="menu-item">
+
+                <div class="menu-icon">▥</div>
+
+                <span>
+                    Stok Takibi
+                </span>
+
+                <div class="menu-badge">
+                    4
+                </div>
+
+            </div>
+
+
+            <div class="menu-item">
+
+                <div class="menu-icon">₺</div>
+
+                <span>
+                    Satışlar
+                </span>
+
+            </div>
+
+
+            <div class="menu-item">
+
+                <div class="menu-icon">♧</div>
+
+                <span>
+                    Müşteriler
+                </span>
+
+            </div>
+
+
+            <br>
+
+
+            <div class="menu-title">
+                İŞLETME
+            </div>
+
+
+            <div class="menu-item">
+
+                <div class="menu-icon">◫</div>
+
+                <span>
+                    Raporlar
+                </span>
+
+            </div>
+
+
+            <div class="menu-item">
+
+                <div class="menu-icon">◷</div>
+
+                <span>
+                    Mesai & İzin
+                </span>
+
+            </div>
+
+
+            <div class="menu-item">
+
+                <div class="menu-icon">▤</div>
+
+                <span>
+                    Belgeler
+                </span>
+
+            </div>
+
+
+            <div class="menu-item">
+
+                <div class="menu-icon">⚙</div>
+
+                <span>
+                    Ayarlar
+                </span>
+
+            </div>
+
+
+        </nav>
+
+
+        <!-- KULLANICI -->
+
+        <div class="sidebar-bottom">
+
+            <div class="sidebar-user">
+
+                <div class="avatar">
+                    EK
+                </div>
+
+                <div class="user-info">
+
+                    <div class="user-name">
+                        Emir Kaya
+                    </div>
+
+                    <div class="user-role">
+                        Yönetici
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </aside>
+
+
+
+    <!-- =========================================
+         ANA ALAN
+    ========================================== -->
+
+    <main class="main">
+
+
+        <!-- TOPBAR -->
+
+        <header class="topbar">
+
+
+            <div class="page-title">
+
+                <h1>
+                    Genel Bakış
+                </h1>
+
+                <p>
+                    İşletmenizin genel durumu
+                </p>
+
+            </div>
+
+
+            <div class="topbar-right">
+
+
+                <div class="notification">
+                    ♧
+
+                    <div class="notification-dot"></div>
+                </div>
+
+
+                <div class="top-user">
+
+                    <div class="top-avatar">
+                        EK
+                    </div>
+
+                    <div class="top-user-name">
+                        Emir Kaya
+                    </div>
+
+                    <div class="top-user-arrow">
+                        ▼
+                    </div>
+
+                </div>
+
+            </div>
+
+        </header>
+
+
+
+        <!-- CONTENT -->
+
+        <section class="content">
+
+
+            <!-- HOŞ GELDİN -->
+
+            <div class="welcome">
+
+                <h2>
+                    Günaydın, Emir.
+                </h2>
+
+                <p>
+                    İşletmenizde bugün neler olduğunu buradan takip edebilirsiniz.
+                </p>
+
+            </div>
+
+
+
+            <!-- =====================================
+                 İSTATİSTİKLER
+            ====================================== -->
+
+            <div class="stats">
+
+
+                <!-- CİRO -->
+
+                <div class="stat-card">
+
+                    <div class="stat-top">
+
+                        <div class="stat-label">
+                            BUGÜNKÜ CİRO
+                        </div>
+
+                        <div class="stat-icon">
+                            ₺
+                        </div>
+
+                    </div>
+
+                    <div class="stat-value">
+                        ₺48.250
+                    </div>
+
+                    <div class="stat-change positive">
+                        ↑ %12.4 &nbsp; önceki güne göre
+                    </div>
+
+                </div>
+
+
+                <!-- SATIŞ -->
+
+                <div class="stat-card">
+
+                    <div class="stat-top">
+
+                        <div class="stat-label">
+                            BUGÜNÜN SATIŞI
+                        </div>
+
+                        <div class="stat-icon">
+                            ↗
+                        </div>
+
+                    </div>
+
+                    <div class="stat-value">
+                        184
+                    </div>
+
+                    <div class="stat-change positive">
+                        ↑ %8.2 &nbsp; önceki güne göre
+                    </div>
+
+                </div>
+
+
+                <!-- PERSONEL -->
+
+                <div class="stat-card">
+
+                    <div class="stat-top">
+
+                        <div class="stat-label">
+                            AKTİF PERSONEL
+                        </div>
+
+                        <div class="stat-icon">
+                            ♙
+                        </div>
+
+                    </div>
+
+                    <div class="stat-value">
+                        12 / 15
+                    </div>
+
+                    <div class="stat-change">
+                        12 personel şu anda çalışıyor
+                    </div>
+
+                </div>
+
+
+                <!-- STOK -->
+
+                <div class="stat-card">
+
+                    <div class="stat-top">
+
+                        <div class="stat-label">
+                            TOPLAM ÜRÜN
+                        </div>
+
+                        <div class="stat-icon">
+                            ▦
+                        </div>
+
+                    </div>
+
+                    <div class="stat-value">
+                        2.481
+                    </div>
+
+                    <div class="stat-change">
+                        4 ürün kritik stok seviyesinde
+                    </div>
+
+                </div>
+
+
+            </div>
+
+
+
+            <!-- =====================================
+                 GRAFİK + PERSONEL
+            ====================================== -->
+
+            <div class="dashboard-grid">
+
+
+                <!-- SATIŞ GRAFİĞİ -->
+
+                <div class="card">
+
+                    <div class="card-header">
+
+                        <div class="card-title">
+                            Satış Performansı
+                        </div>
+
+                        <div class="card-link">
+                            Son 7 gün ▾
+                        </div>
+
+                    </div>
+
+
+                    <div class="chart">
+
+
+                        <div class="chart-lines">
+
+                            <div class="chart-line"></div>
+                            <div class="chart-line"></div>
+                            <div class="chart-line"></div>
+                            <div class="chart-line"></div>
+                            <div class="chart-line"></div>
+
+                        </div>
+
+
+                        <div class="chart-graph">
+
+                            <svg
+                                class="chart-svg"
+                                viewBox="0 0 600 180"
+                                preserveAspectRatio="none"
+                            >
+
+                                <polyline
+                                    points="
+                                    0,145
+                                    85,125
+                                    170,138
+                                    255,90
+                                    340,110
+                                    425,55
+                                    510,70
+                                    600,25
+                                    "
+                                    fill="none"
+                                    stroke="#111"
+                                    stroke-width="3"
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                />
+
+                            </svg>
+
+                        </div>
+
+
+                        <div class="chart-labels">
+
+                            <span>Pzt</span>
+                            <span>Sal</span>
+                            <span>Çar</span>
+                            <span>Per</span>
+                            <span>Cum</span>
+                            <span>Cmt</span>
+                            <span>Paz</span>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+
+                <!-- PERSONEL -->
+
+                <div class="card">
+
+                    <div class="card-header">
+
+                        <div class="card-title">
+                            Personel Durumu
+                        </div>
+
+                        <div class="card-link">
+                            Tümünü gör →
+                        </div>
+
+                    </div>
+
+
+                    <div class="employee-list">
+
+
+                        <div class="employee">
+
+                            <div class="employee-avatar">
+                                AY
+                            </div>
+
+                            <div class="employee-info">
+
+                                <div class="employee-name">
+                                    Ahmet Yılmaz
+                                </div>
+
+                                <div class="employee-role">
+                                    Satış Sorumlusu
+                                </div>
+
+                            </div>
+
+                            <div class="status">
+
+                                <div class="status-dot"></div>
+
+                                Aktif
+
+                            </div>
+
+                        </div>
+
+
+                        <div class="employee">
+
+                            <div class="employee-avatar">
+                                MK
+                            </div>
+
+                            <div class="employee-info">
+
+                                <div class="employee-name">
+                                    Mehmet Kaya
+                                </div>
+
+                                <div class="employee-role">
+                                    Depo Sorumlusu
+                                </div>
+
+                            </div>
+
+                            <div class="status">
+
+                                <div class="status-dot"></div>
+
+                                Aktif
+
+                            </div>
+
+                        </div>
+
+
+                        <div class="employee">
+
+                            <div class="employee-avatar">
+                                ED
+                            </div>
+
+                            <div class="employee-info">
+
+                                <div class="employee-name">
+                                    Elif Demir
+                                </div>
+
+                                <div class="employee-role">
+                                    Muhasebe
+                                </div>
+
+                            </div>
+
+                            <div class="status">
+
+                                <div class="status-dot"></div>
+
+                                Aktif
+
+                            </div>
+
+                        </div>
+
+
+                        <div class="employee">
+
+                            <div class="employee-avatar">
+                                CA
+                            </div>
+
+                            <div class="employee-info">
+
+                                <div class="employee-name">
+                                    Can Arslan
+                                </div>
+
+                                <div class="employee-role">
+                                    Satış Danışmanı
+                                </div>
+
+                            </div>
+
+                            <div class="status">
+
+                                <div class="status-dot offline"></div>
+
+                                İzinli
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+
+            <!-- =====================================
+                 ALT KARTLAR
+            ====================================== -->
+
+            <div class="bottom-grid">
+
+
+                <!-- SON SATIŞLAR -->
+
+                <div class="card">
+
+                    <div class="card-header">
+
+                        <div class="card-title">
+                            Son Satışlar
+                        </div>
+
+                        <div class="card-link">
+                            Tüm satışlar →
+                        </div>
+
+                    </div>
+
+
+                    <div class="table-wrapper">
+
+                        <table>
+
+                            <thead>
+
+                                <tr>
+
+                                    <th>
+                                        ÜRÜN
+                                    </th>
+
+                                    <th>
+                                        MÜŞTERİ
+                                    </th>
+
+                                    <th>
+                                        TUTAR
+                                    </th>
+
+                                </tr>
+
+                            </thead>
+
+
+                            <tbody>
+
+                                <tr>
+
+                                    <td class="product-name">
+                                        MacBook Air M3
+                                    </td>
+
+                                    <td>
+                                        Ahmet K.
+                                    </td>
+
+                                    <td>
+                                        ₺42.500
+                                    </td>
+
+                                </tr>
+
+
+                                <tr>
+
+                                    <td class="product-name">
+                                        iPhone 16
+                                    </td>
+
+                                    <td>
+                                        Burak T.
+                                    </td>
+
+                                    <td>
+                                        ₺58.999
+                                    </td>
+
+                                </tr>
+
+
+                                <tr>
+
+                                    <td class="product-name">
+                                        AirPods Pro
+                                    </td>
+
+                                    <td>
+                                        Selin A.
+                                    </td>
+
+                                    <td>
+                                        ₺9.499
+                                    </td>
+
+                                </tr>
+
+
+                                <tr>
+
+                                    <td class="product-name">
+                                        Magic Mouse
+                                    </td>
+
+                                    <td>
+                                        Mert D.
+                                    </td>
+
+                                    <td>
+                                        ₺3.299
+                                    </td>
+
+                                </tr>
+
+                            </tbody>
+
+                        </table>
+
+                    </div>
+
+                </div>
+
+
+
+                <!-- STOK DURUMU -->
+
+                <div class="card">
+
+                    <div class="card-header">
+
+                        <div class="card-title">
+                            Stok Durumu
+                        </div>
+
+                        <div class="card-link">
+                            Yönet →
+                        </div>
+
+                    </div>
+
+
+                    <div class="stock-content">
+
+                        <div class="stock-total">
+                            2.481
+                        </div>
+
+
+                        <div class="progress-item">
+
+                            <div class="progress-header">
+
+                                <span>
+                                    Yeterli stok
+                                </span>
+
+                                <span>
+                                    %78
+                                </span>
+
+                            </div>
+
+                            <div class="progress">
+
+                                <div
+                                    class="progress-bar"
+                                    style="width:78%"
+                                ></div>
+
+                            </div>
+
+                        </div>
+
+
+                        <div class="progress-item">
+
+                            <div class="progress-header">
+
+                                <span>
+                                    Orta seviye
+                                </span>
+
+                                <span>
+                                    %16
+                                </span>
+
+                            </div>
+
+                            <div class="progress">
+
+                                <div
+                                    class="progress-bar"
+                                    style="width:16%"
+                                ></div>
+
+                            </div>
+
+                        </div>
+
+
+                        <div class="progress-item">
+
+                            <div class="progress-header">
+
+                                <span>
+                                    Kritik stok
+                                </span>
+
+                                <span>
+                                    %6
+                                </span>
+
+                            </div>
+
+                            <div class="progress">
+
+                                <div
+                                    class="progress-bar"
+                                    style="width:6%"
+                                ></div>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+
+                <!-- HIZLI İŞLEMLER -->
+
+                <div class="card">
+
+                    <div class="card-header">
+
+                        <div class="card-title">
+                            Hızlı İşlemler
+                        </div>
+
+                    </div>
+
+
+                    <div class="quick-actions">
+
+
+                        <div
+                            class="quick-action"
+                            onclick="quickAction('Yeni ürün')"
+                        >
+
+                            <div class="quick-icon">
+                                +
+                            </div>
+
+                            <div class="quick-title">
+                                Yeni Ürün
+                            </div>
+
+                        </div>
+
+
+                        <div
+                            class="quick-action"
+                            onclick="quickAction('Yeni personel')"
+                        >
+
+                            <div class="quick-icon">
+                                ♙
+                            </div>
+
+                            <div class="quick-title">
+                                Personel Ekle
+                            </div>
+
+                        </div>
+
+
+                        <div
+                            class="quick-action"
+                            onclick="quickAction('Yeni satış')"
+                        >
+
+                            <div class="quick-icon">
+                                ₺
+                            </div>
+
+                            <div class="quick-title">
+                                Satış Oluştur
+                            </div>
+
+                        </div>
+
+
+                        <div
+                            class="quick-action"
+                            onclick="quickAction('Raporlar')"
+                        >
+
+                            <div class="quick-icon">
+                                ▤
+                            </div>
+
+                            <div class="quick-title">
+                                Raporlar
+                            </div>
+
+                        </div>
+
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </section>
+
+    </main>
+
+</div>
+
+
+
+<script>
+
+    /* =========================================
+       MENÜ AKTİFLİĞİ
+    ========================================== */
+
+    const menuItems =
+        document.querySelectorAll(".menu-item");
+
+
+    menuItems.forEach(item => {
+
+        item.addEventListener("click", function () {
+
+            menuItems.forEach(menu => {
+                menu.classList.remove("active");
+            });
+
+            this.classList.add("active");
+
+        });
+
+    });
+
+
+    /* =========================================
+       HIZLI İŞLEM
+    ========================================== */
+
+    function quickAction(action) {
+
+        alert(
+            action +
+            " ekranı yakında kullanılabilir olacak."
+        );
+
+    }
+
+</script>
+
+</body>
+</html>

@@ -1,0 +1,49 @@
+{
+  "permissions": {
+    "defaultMode": "acceptEdits",
+    "allow": [
+      "Bash(dotnet *)",
+      "Bash(npm *)",
+      "Bash(npx *)",
+      "Bash(node *)",
+      "Bash(docker compose *)",
+      "Bash(docker ps *)",
+      "Bash(docker logs *)",
+      "Bash(git status *)",
+      "Bash(git diff *)",
+      "Bash(git log *)",
+      "Bash(git add *)",
+      "Bash(git commit *)",
+      "Bash(git init *)",
+      "Bash(git branch *)",
+      "Bash(git checkout *)",
+      "PowerShell(dotnet *)",
+      "PowerShell(npm *)",
+      "PowerShell(npx *)",
+      "PowerShell(docker compose *)",
+      "PowerShell(git status *)",
+      "PowerShell(git diff *)",
+      "PowerShell(git add *)",
+      "PowerShell(git commit *)",
+      "PowerShell(node *)",
+      "PowerShell(docker ps *)",
+      "PowerShell(docker logs *)",
+      "PowerShell(git log *)",
+      "PowerShell(git init *)",
+      "PowerShell(git branch *)",
+      "PowerShell(git checkout *)",
+      "WebFetch(domain:learn.microsoft.com)",
+      "WebFetch(domain:nextjs.org)",
+      "WebFetch(domain:ui.shadcn.com)",
+      "WebFetch(domain:www.nuget.org)",
+      "WebFetch(domain:www.npmjs.com)"
+    ],
+    "deny": [
+      "Bash(git push *)",
+      "Bash(rm -rf *)",
+      "PowerShell(git push *)",
+      "Read(./.env)",
+      "PowerShell(Remove-Item -Recurse *)"
+    ]
+  }
+}

@@ -1,0 +1,774 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>KOBIOS — Kobi’nin İşletim Sistemi</title>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            width: 100%;
+            height: 100%;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI",
+                         "Helvetica Neue", Arial, sans-serif;
+            background: #fff;
+            color: #111;
+            overflow: hidden;
+        }
+
+        /* =========================================
+           ANA SAYFA
+        ========================================= */
+
+        .page {
+            width: 100%;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: row;
+        }
+
+
+        /* =========================================
+           SOL — MARKA ALANI
+        ========================================= */
+
+        .brand-side {
+            width: 50%;
+            min-height: 100vh;
+
+            background: #050505;
+            color: #fff;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            position: relative;
+        }
+
+        .brand-content {
+            text-align: center;
+            transform: translateY(-10px);
+        }
+
+
+        /* KOBIOS LOGO */
+
+        .logo {
+            font-family: "Helvetica Neue", Arial, sans-serif;
+
+            font-size: clamp(58px, 6.5vw, 100px);
+
+            font-weight: 800;
+
+            letter-spacing: -5px;
+
+            line-height: 0.9;
+
+            color: #fff;
+        }
+
+
+        /* ALT SLOGAN */
+
+        .slogan {
+            margin-top: 18px;
+
+            font-size: 12px;
+
+            font-weight: 400;
+
+            letter-spacing: 0.5px;
+
+            color: #777;
+        }
+
+
+        /* =========================================
+           SOL ALT BİLGİ
+        ========================================= */
+
+        .copyright {
+            position: absolute;
+
+            bottom: 28px;
+
+            left: 50px;
+            right: 50px;
+
+            text-align: center;
+        }
+
+        .company {
+            font-size: 9px;
+
+            font-weight: 500;
+
+            letter-spacing: 1.2px;
+
+            color: #777;
+
+            margin-bottom: 5px;
+        }
+
+        .rights {
+            font-size: 8px;
+
+            font-weight: 400;
+
+            color: #555;
+
+            letter-spacing: 0.4px;
+        }
+
+
+        /* =========================================
+           SAĞ — GİRİŞ ALANI
+        ========================================= */
+
+        .login-side {
+            width: 50%;
+            min-height: 100vh;
+
+            background: #fff;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            padding: 50px;
+        }
+
+
+        .login-container {
+            width: 100%;
+            max-width: 380px;
+        }
+
+
+        /* BAŞLIK */
+
+        .login-title {
+            font-size: 31px;
+
+            font-weight: 700;
+
+            letter-spacing: -1.2px;
+
+            color: #111;
+
+            margin-bottom: 8px;
+        }
+
+        .login-subtitle {
+            font-size: 13px;
+
+            font-weight: 400;
+
+            color: #888;
+
+            margin-bottom: 36px;
+        }
+
+
+        /* =========================================
+           FORM
+        ========================================= */
+
+        .form-group {
+            margin-bottom: 19px;
+        }
+
+        .form-group label {
+            display: block;
+
+            font-size: 12px;
+
+            font-weight: 600;
+
+            color: #222;
+
+            margin-bottom: 8px;
+        }
+
+
+        .input {
+            width: 100%;
+            height: 50px;
+
+            border: 1px solid #dedede;
+
+            border-radius: 7px;
+
+            background: #fafafa;
+
+            padding: 0 15px;
+
+            font-family: inherit;
+
+            font-size: 13px;
+
+            color: #111;
+
+            outline: none;
+
+            transition: all 0.2s ease;
+        }
+
+        .input::placeholder {
+            color: #aaa;
+        }
+
+        .input:focus {
+            background: #fff;
+
+            border-color: #111;
+
+            box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.04);
+        }
+
+
+        /* ŞİFRE */
+
+        .password-row {
+            position: relative;
+        }
+
+        .password-row .input {
+            padding-right: 65px;
+        }
+
+        .show-password {
+            position: absolute;
+
+            right: 14px;
+            top: 50%;
+
+            transform: translateY(-50%);
+
+            border: none;
+
+            background: transparent;
+
+            color: #777;
+
+            font-family: inherit;
+
+            font-size: 11px;
+
+            cursor: pointer;
+
+            padding: 5px;
+        }
+
+        .show-password:hover {
+            color: #111;
+        }
+
+
+        /* =========================================
+           SEÇENEKLER
+        ========================================= */
+
+        .options {
+            display: flex;
+
+            align-items: center;
+
+            justify-content: space-between;
+
+            margin-top: 4px;
+
+            margin-bottom: 24px;
+
+            font-size: 11px;
+        }
+
+        .remember {
+            display: flex;
+
+            align-items: center;
+
+            gap: 7px;
+
+            color: #777;
+
+            cursor: pointer;
+        }
+
+        .remember input {
+            width: 13px;
+            height: 13px;
+
+            accent-color: #111;
+
+            cursor: pointer;
+        }
+
+        .forgot {
+            color: #222;
+
+            font-weight: 600;
+
+            text-decoration: none;
+        }
+
+        .forgot:hover {
+            text-decoration: underline;
+        }
+
+
+        /* =========================================
+           GİRİŞ BUTONU
+        ========================================= */
+
+        .login-button {
+            width: 100%;
+            height: 51px;
+
+            border: none;
+
+            border-radius: 7px;
+
+            background: #050505;
+
+            color: #fff;
+
+            font-family: inherit;
+
+            font-size: 13px;
+
+            font-weight: 600;
+
+            letter-spacing: 0.2px;
+
+            cursor: pointer;
+
+            transition: all 0.2s ease;
+        }
+
+        .login-button:hover {
+            background: #222;
+
+            transform: translateY(-1px);
+        }
+
+        .login-button:active {
+            transform: translateY(0);
+        }
+
+
+        /* =========================================
+           ÜYE OL
+        ========================================= */
+
+        .register {
+            text-align: center;
+
+            margin-top: 25px;
+
+            font-size: 11px;
+
+            color: #999;
+        }
+
+        .register a {
+            color: #111;
+
+            font-weight: 600;
+
+            text-decoration: none;
+
+            margin-left: 4px;
+        }
+
+        .register a:hover {
+            text-decoration: underline;
+        }
+
+
+        /* =========================================
+           AYIRICI
+        ========================================= */
+
+        .divider {
+            display: flex;
+
+            align-items: center;
+
+            gap: 12px;
+
+            margin: 27px 0 20px;
+
+            color: #aaa;
+
+            font-size: 10px;
+        }
+
+        .divider::before,
+        .divider::after {
+            content: "";
+
+            height: 1px;
+
+            background: #eeeeee;
+
+            flex: 1;
+        }
+
+
+        /* ALT AÇIKLAMA */
+
+        .demo-info {
+            text-align: center;
+
+            font-size: 10px;
+
+            color: #aaa;
+
+            letter-spacing: 0.1px;
+        }
+
+
+        /* =========================================
+           RESPONSIVE
+           
+           DİKEY BÖLÜNME KORUNUR
+        ========================================= */
+
+        @media (max-width: 900px) {
+
+            .login-side {
+                padding: 30px;
+            }
+
+            .login-container {
+                max-width: 330px;
+            }
+
+            .logo {
+                font-size: 55px;
+                letter-spacing: -4px;
+            }
+
+            .slogan {
+                font-size: 10px;
+            }
+
+            .copyright {
+                left: 20px;
+                right: 20px;
+            }
+        }
+
+
+        @media (max-width: 600px) {
+
+            .brand-side {
+                padding: 20px;
+            }
+
+            .login-side {
+                padding: 20px;
+            }
+
+            .logo {
+                font-size: 38px;
+                letter-spacing: -3px;
+            }
+
+            .slogan {
+                font-size: 9px;
+                margin-top: 12px;
+            }
+
+            .company {
+                font-size: 7px;
+                letter-spacing: 0.7px;
+            }
+
+            .rights {
+                font-size: 6px;
+            }
+
+            .login-title {
+                font-size: 23px;
+            }
+
+            .login-subtitle {
+                font-size: 10px;
+                margin-bottom: 25px;
+            }
+
+            .form-group label {
+                font-size: 10px;
+            }
+
+            .input {
+                height: 44px;
+                font-size: 11px;
+            }
+
+            .login-button {
+                height: 45px;
+                font-size: 11px;
+            }
+        }
+
+    </style>
+</head>
+
+
+<body>
+
+    <main class="page">
+
+        <!-- =====================================
+             SOL TARAF
+        ====================================== -->
+
+        <section class="brand-side">
+
+            <div class="brand-content">
+
+                <div class="logo">
+                    KOBIOS
+                </div>
+
+                <div class="slogan">
+                    Kobi’nin işletim sistemi
+                </div>
+
+            </div>
+
+
+            <div class="copyright">
+
+                <div class="company">
+                    KOBIOS YAZILIM A.Ş.
+                </div>
+
+                <div class="rights">
+                    Tüm hakları saklıdır.
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- =====================================
+             SAĞ TARAF
+        ====================================== -->
+
+        <section class="login-side">
+
+            <div class="login-container">
+
+                <h1 class="login-title">
+                    Hoş geldiniz
+                </h1>
+
+                <p class="login-subtitle">
+                    KOBIOS hesabınıza giriş yapın.
+                </p>
+
+
+                <form id="loginForm">
+
+
+                    <!-- KULLANICI ADI -->
+
+                    <div class="form-group">
+
+                        <label for="username">
+                            Kullanıcı adı
+                        </label>
+
+                        <input
+                            class="input"
+                            type="text"
+                            id="username"
+                            placeholder="Kullanıcı adınızı girin"
+                            autocomplete="username"
+                            required
+                        >
+
+                    </div>
+
+
+                    <!-- ŞİFRE -->
+
+                    <div class="form-group">
+
+                        <label for="password">
+                            Şifre
+                        </label>
+
+                        <div class="password-row">
+
+                            <input
+                                class="input"
+                                type="password"
+                                id="password"
+                                placeholder="Şifrenizi girin"
+                                autocomplete="current-password"
+                                required
+                            >
+
+                            <button
+                                type="button"
+                                class="show-password"
+                                id="passwordToggle"
+                            >
+                                Göster
+                            </button>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- SEÇENEKLER -->
+
+                    <div class="options">
+
+                        <label class="remember">
+
+                            <input
+                                type="checkbox"
+                            >
+
+                            Beni hatırla
+
+                        </label>
+
+
+                        <a
+                            href="#"
+                            class="forgot"
+                        >
+                            Şifremi unuttum
+                        </a>
+
+                    </div>
+
+
+                    <!-- GİRİŞ -->
+
+                    <button
+                        type="submit"
+                        class="login-button"
+                    >
+                        Giriş Yap
+                    </button>
+
+                </form>
+
+
+                <!-- ÜYE OL -->
+
+                <div class="register">
+
+                    KOBIOS hesabınız yok mu?
+
+                    <a href="#">
+                        Üye Ol
+                    </a>
+
+                </div>
+
+
+                <!-- AYIRICI -->
+
+                <div class="divider">
+                    <span>veya</span>
+                </div>
+
+
+                <div class="demo-info">
+                    İşletmenizi tek bir yerden yönetin.
+                </div>
+
+            </div>
+
+        </section>
+
+    </main>
+
+
+    <!-- =========================================
+         JAVASCRIPT
+    ========================================= -->
+
+    <script>
+
+        // Şifre göster / gizle
+
+        const passwordInput =
+            document.getElementById("password");
+
+        const passwordToggle =
+            document.getElementById("passwordToggle");
+
+
+        passwordToggle.addEventListener("click", function () {
+
+            if (passwordInput.type === "password") {
+
+                passwordInput.type = "text";
+
+                passwordToggle.textContent = "Gizle";
+
+            } else {
+
+                passwordInput.type = "password";
+
+                passwordToggle.textContent = "Göster";
+
+            }
+
+        });
+
+
+        // Demo giriş
+
+        const loginForm =
+            document.getElementById("loginForm");
+
+
+        loginForm.addEventListener("submit", function (event) {
+
+            event.preventDefault();
+
+            const username =
+                document.getElementById("username").value.trim();
+
+
+            if (username !== "") {
+
+                alert(
+                    "Hoş geldiniz, " +
+                    username +
+                    "!"
+                );
+
+            }
+
+        });
+
+    </script>
+
+</body>
+</html>
