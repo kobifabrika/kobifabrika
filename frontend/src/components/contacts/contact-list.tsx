@@ -337,7 +337,7 @@ function ContactCards({ items, finance }: { items: ContactListItem[]; finance: b
           <Link href={contactHref(c)} className="flex min-h-11 min-w-0 flex-1 flex-col gap-1">
             <span className="truncate text-base font-semibold text-black">{c.displayName}</span>
             {c.phone && <span className="text-sm text-neutral-700 tabular-nums">{displayPhone(c.phone)}</span>}
-            {(c.tags.length > 0 || (finance && c.balance)) && (
+            {(c.tags.length > 0 || (finance && !!c.balance)) && (
               <span className="flex flex-wrap items-center gap-2">
                 <TagList tags={c.tags} max={2} />
                 {finance && c.balance != null && c.balance !== 0 && <Balance value={c.balance} className="text-sm" />}

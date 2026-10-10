@@ -473,10 +473,10 @@ export function TagPicker({ value, onChange }: { value: string[]; onChange: (ids
           placeholder="Yeni etiket (ör. VIP)"
           maxLength={50}
           aria-label="Yeni etiket adı"
-          className="min-w-0 flex-1"
+          className="min-w-0 flex-1 basis-full sm:basis-0"
         />
         <select
-          className={cn(selectClass, "w-32")}
+          className={cn(selectClass, "w-auto flex-1 sm:w-32 sm:flex-none")}
           value={color}
           onChange={(e) => setColor(e.target.value as TagColor)}
           aria-label="Etiket rengi"
