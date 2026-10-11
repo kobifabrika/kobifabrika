@@ -13,6 +13,12 @@ TestResults/
 # Node / Next.js
 node_modules/
 .next/
+.next-e2e/
+
+# Playwright (E2E): çalışma klasörü, raporlar, hata kayıtları
+frontend/e2e/.run/
+frontend/playwright-report/
+frontend/test-results/
 out/
 *.tsbuildinfo
 next-env.d.ts

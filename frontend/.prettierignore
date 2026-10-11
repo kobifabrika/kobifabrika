@@ -1,4 +1,8 @@
 .next
+.next-e2e
+playwright-report
+test-results
+e2e/.run
 node_modules
 src/lib/api/schema.d.ts
 package-lock.json

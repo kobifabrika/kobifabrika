@@ -55,7 +55,8 @@ builder.Services.AddAuthentication(IdentityConstants.ApplicationScheme)
         options.Cookie.Name = "kf.auth";
         options.Cookie.HttpOnly = true;
         options.Cookie.SameSite = SameSiteMode.Lax;
-        options.Cookie.SecurePolicy = builder.Environment.IsDevelopment()
+        // Canlıda sadece HTTPS. Yerel E2E (http://localhost:5180) Auth:AllowHttpCookie=true ile açar; varsayılan kapalı.
+        options.Cookie.SecurePolicy = builder.Environment.IsDevelopment() || builder.Configuration.GetValue("Auth:AllowHttpCookie", false)
             ? CookieSecurePolicy.SameAsRequest
             : CookieSecurePolicy.Always;
         options.Cookie.Domain = builder.Configuration["Auth:CookieDomain"];

@@ -1,0 +1,54 @@
+// E2E ortamının adresleri ve veritabanı bağlantısı. Playwright yapılandırması ve başlatma betikleri ortak kullanır.
+// Geliştirme ortamından (API 5080, frontend 3000, KobiFabrika veritabanı) tamamen ayrıdır; baslat.ps1 açıkken de çalışır.
+import { existsSync, readFileSync } from "node:fs";
+import path from "node:path";
+
+/** frontend klasörü (playwright.config.ts'nin yeri): çalışma klasöründen yukarı doğru aranır. Playwright bu dosyayı
+ * CommonJS'e çevirdiği için import.meta kullanılamıyor. */
+function findFrontendDir() {
+  for (let dir = process.cwd(); ; dir = path.dirname(dir)) {
+    if (existsSync(path.join(dir, "playwright.config.ts"))) return dir;
+    if (existsSync(path.join(dir, "frontend", "playwright.config.ts"))) return path.join(dir, "frontend");
+    if (path.dirname(dir) === dir)
+      throw new Error("frontend/playwright.config.ts bulunamadı; komutu repo içinden çalıştırın.");
+  }
+}
+
+export const frontendDir = findFrontendDir();
+export const repoRoot = path.dirname(frontendDir);
+/** API'nin çalışma klasörü (log, logo, anahtar); her çalıştırmada silinir, git'e girmez. */
+export const runDir = path.join(frontendDir, "e2e", ".run");
+
+export const apiPort = Number(process.env.E2E_API_PORT || 5180);
+export const webPort = Number(process.env.E2E_WEB_PORT || 3100);
+export const apiUrl = `http://localhost:${apiPort}`;
+export const webUrl = `http://localhost:${webPort}`;
+export const mailpitUrl = process.env.E2E_MAILPIT_URL || "http://localhost:8025";
+
+/** Sadece adı _E2E ile biten veritabanına izin verilir: geliştirme veritabanı asla silinmez. */
+export const databaseName = "KobiFabrika_E2E";
+
+function readDotEnv(file) {
+  if (!existsSync(file)) return {};
+  const values = {};
+  for (const line of readFileSync(file, "utf8").split(/\r?\n/)) {
+    const match = line.match(/^\s*([A-Z0-9_]+)\s*=\s*(.*?)\s*$/i);
+    if (match) values[match[1]] = match[2].replace(/^(['"])(.*)\1$/, "$2");
+  }
+  return values;
+}
+
+/** E2E_CONNECTION_STRING (CI) ya da repo kökündeki .env'deki SA şifresiyle yerel SQL Server. */
+export function connectionString() {
+  let value = process.env.E2E_CONNECTION_STRING;
+  if (!value) {
+    const dotenv = readDotEnv(path.join(repoRoot, ".env"));
+    const password = process.env.MSSQL_SA_PASSWORD || dotenv.MSSQL_SA_PASSWORD;
+    const port = process.env.MSSQL_PORT || dotenv.MSSQL_PORT || "1433";
+    if (!password) throw new Error(".env içinde MSSQL_SA_PASSWORD yok (README → İlk çalıştırma).");
+    value = `Server=localhost,${port};Database=${databaseName};User Id=sa;Password=${password};TrustServerCertificate=True`;
+  }
+  const db = value.match(/(?:Database|Initial Catalog)\s*=\s*([^;]+)/i)?.[1]?.trim();
+  if (!db || !/_E2E$/i.test(db)) throw new Error(`E2E veritabanının adı _E2E ile bitmeli (bulunan: ${db ?? "yok"}).`);
+  return value;
+}
