@@ -267,6 +267,7 @@ function SlugCard({ business, readOnly }: { business: Business; readOnly: boolea
           <div className="flex items-stretch overflow-hidden rounded-lg border border-input focus-within:border-ring focus-within:ring-3 focus-within:ring-ring">
             <span className="flex items-center bg-neutral-100 px-3 text-sm text-neutral-600">kobifabrika.com/r/</span>
             <input
+              aria-label="Randevu linki adresi"
               value={slug}
               disabled={readOnly}
               onChange={(e) => setSlug(e.target.value.trim().toLowerCase())}

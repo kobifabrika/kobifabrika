@@ -80,6 +80,7 @@ export function LogoUpload({ logoUrl, endpoint, onChange, disabled }: Props) {
             accept={ACCEPT}
             className="sr-only"
             id="logo-file"
+            aria-label="Logo dosyası"
             disabled={disabled || busy}
             onChange={(e) => e.target.files?.[0] && upload(e.target.files[0])}
           />

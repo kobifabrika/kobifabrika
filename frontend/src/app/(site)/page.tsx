@@ -247,7 +247,13 @@ export default function HomePage() {
             title="Bugün iki program, iki abonelik ödüyorsun."
             text="Muhasebe programında randevu yok, randevu programında veresiye yok. Müşterin iki ayrı listede, şifren iki ayrı yerde."
           />
-          <div className="-mx-4 overflow-x-auto px-4 sm:mx-0 sm:px-0">
+          {/* Dar ekranda tablo yatay kayar; klavyeyle de kaydırılabilsin diye odaklanabilir bölge. */}
+          <div
+            role="region"
+            aria-label="Karşılaştırma tablosu"
+            tabIndex={0}
+            className="-mx-4 overflow-x-auto px-4 focus-visible:outline-2 sm:mx-0 sm:px-0"
+          >
             <table className="w-full min-w-[22rem] text-sm sm:text-base">
               <caption className="sr-only">Ön muhasebe programı, randevu programı ve KobiFabrika karşılaştırması</caption>
               <thead>
