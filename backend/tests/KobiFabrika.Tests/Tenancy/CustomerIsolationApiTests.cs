@@ -126,11 +126,19 @@ public sealed class CustomerIsolationApiTests(SqlServerFixture db) : ApiTestBase
             .StatusCode.ShouldBe(HttpStatusCode.NotFound);
         (await c.PostAsync($"/api/payment-requests/{bLinkId}/cancel", null, Ct)).StatusCode.ShouldBe(HttpStatusCode.NotFound);
         (await c.PostAsJsonAsync($"/api/payment-requests/{bLinkId}/share", new { sendEmail = false }, Ct)).StatusCode.ShouldBe(HttpStatusCode.NotFound);
+        (await c.PostAsJsonAsync($"/api/payment-requests/{bLinkId}/renew", new { sendEmail = false }, Ct)).StatusCode.ShouldBe(HttpStatusCode.NotFound);
         (await c.PostAsJsonAsync($"/api/contacts/{b.ContactId}/statement-shares", new { channel = "Link" }, Ct)).StatusCode.ShouldBe(HttpStatusCode.NotFound);
 
         // B'de hiçbir şey değişmedi: 100 açılış − 10 tahsilat.
         (await GetJsonAsync(b.Owner.Client, $"/api/contacts/{b.ContactId}")).GetProperty("balance").GetDecimal().ShouldBe(90m);
         (await GetJsonAsync(b.Owner.Client, "/api/payment-requests"))[0].GetProperty("status").GetString().ShouldBe("Open");
+        // B'nin müşterisine gönderdiği link A'nın denemelerinden etkilenmedi; B paylaşınca aynı link döner.
+        var bUrl = bLink.GetProperty("url").GetString()!;
+        (await GetJsonAsync(NewClient(), $"/api/public/payment-requests/{bUrl.Split('/').Last()}")).GetProperty("businessName").GetString()
+            .ShouldBe("B İşletmesi");
+        var bShared = await (await b.Owner.Client.PostAsJsonAsync($"/api/payment-requests/{bLinkId}/share", new { sendEmail = false }, Ct))
+            .Content.ReadFromJsonAsync<JsonElement>(Json, Ct);
+        bShared.GetProperty("url").GetString().ShouldBe(bUrl);
         (await GetJsonAsync(b.Owner.Client, "/api/cash-accounts")).EnumerateArray()
             .Single(x => x.GetProperty("type").GetString() == "Cash").GetProperty("balance").GetDecimal().ShouldBe(10m);
     }

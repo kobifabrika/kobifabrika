@@ -3,7 +3,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Check, Copy, Mail, MessageCircle, MessageSquareText } from "lucide-react";
 import Link from "next/link";
-import { useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { toast } from "sonner";
 
 import { contactsKey } from "@/components/contacts/contact-list";
@@ -22,7 +22,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { API_URL, ApiError, api, errorMessage, fieldErrors, unwrap } from "@/lib/api/client";
 import type { Contact, PaymentRequest } from "@/lib/api/types";
-import { formatMoney, todayIstanbul } from "@/lib/format";
+import { formatDate, formatMoney, todayIstanbul } from "@/lib/format";
 import { moneyToInput, parseMoneyInput, validateMoney } from "@/lib/validation/rules";
 
 export const cashAccountsKey = ["cash-accounts"] as const;
@@ -627,7 +627,10 @@ export function ConfirmPaymentDialog({
   );
 }
 
-/** Linki yeniden paylaş: yeni link üretilir (eskisi çalışmaz). */
+/**
+ * Linki tekrar paylaş: geçerli link aynen gösterilir (müşteriye gönderilen link çalışmaya devam eder); süresi dolmuşsa
+ * yenisi üretilir. "Linki yenile" eski linki bilerek geçersiz kılar, onay ister.
+ */
 export function SharePaymentDialog({
   request,
   open,
@@ -637,37 +640,87 @@ export function SharePaymentDialog({
   open: boolean;
   onOpenChange: (v: boolean) => void;
 }) {
-  const [link, setLink] = useState<{ url: string; whatsappUrl: string } | null>(null);
+  const refresh = useFinanceRefresh();
+  const [link, setLink] = useState<{ url: string; whatsappUrl: string; expiresAt: string; isNewLink: boolean } | null>(
+    null,
+  );
+  const [confirmRenew, setConfirmRenew] = useState(false);
   const share = useMutation({
-    mutationFn: () =>
+    mutationFn: (action: "share" | "renew") =>
       unwrap(
-        api.POST("/api/payment-requests/{id}/share", {
-          params: { path: { id: request.id } },
-          body: { sendEmail: false },
-        }),
+        action === "share"
+          ? api.POST("/api/payment-requests/{id}/share", {
+              params: { path: { id: request.id } },
+              body: { sendEmail: false },
+            })
+          : api.POST("/api/payment-requests/{id}/renew", {
+              params: { path: { id: request.id } },
+              body: { sendEmail: false },
+            }),
       ),
-    onSuccess: (r) => setLink({ url: r.url, whatsappUrl: r.whatsappUrl }),
+    onSuccess: async (r, action) => {
+      setLink({ url: r.url, whatsappUrl: r.whatsappUrl, expiresAt: r.request.expiresAt, isNewLink: r.isNewLink });
+      setConfirmRenew(false);
+      if (action === "renew") toast.success("Link yenilendi; eski link artık çalışmıyor.");
+      if (r.isNewLink) await refresh();
+    },
     onError: (e) => toast.error(errorMessage(e)),
   });
+
+  // Diyalog açılınca mevcut link istenir (StrictMode'da iki kez çalışmasın).
+  const requested = useRef(false);
+  const { mutate } = share;
+  useEffect(() => {
+    if (open && !requested.current) {
+      requested.current = true;
+      mutate("share");
+    }
+  }, [open, mutate]);
+
   return (
     <DialogShell
       open={open}
-      onOpenChange={(v) => {
-        onOpenChange(v);
-        if (!v) setLink(null);
-      }}
-      title="Linki yeniden paylaş"
+      onOpenChange={onOpenChange}
+      title="Linki paylaş"
       description={`${request.contactName} · ${formatMoney(request.amount)}`}
     >
       {link ? (
-        <ShareButtons url={link.url} whatsappUrl={link.whatsappUrl} />
-      ) : (
-        <div className="flex flex-col gap-3">
-          <Notice>Yeni bir link oluşturulur ve süre 30 gün uzar; daha önce gönderdiğiniz link çalışmaz.</Notice>
-          <Button onClick={() => share.mutate()} disabled={share.isPending}>
-            {share.isPending ? "Hazırlanıyor…" : "Yeni link oluştur"}
-          </Button>
+        <div className="flex flex-col gap-4">
+          {link.isNewLink && share.variables === "share" && (
+            <Notice>Yeni link oluşturuldu; müşteriye daha önce gönderilen link artık çalışmıyor. Bu linki gönderin.</Notice>
+          )}
+          <ShareButtons url={link.url} whatsappUrl={link.whatsappUrl} />
+          <p className="text-sm text-neutral-600">{formatDate(link.expiresAt)} tarihine kadar geçerli.</p>
+          {confirmRenew ? (
+            <div className="flex flex-col gap-3 border-t border-border pt-4">
+              <Notice>
+                Yeni bir link oluşturulur ve süre 30 gün uzar. Müşteriye daha önce gönderdiğiniz link çalışmaz. Emin
+                misiniz?
+              </Notice>
+              <div className="grid grid-cols-2 gap-2">
+                <Button variant="outline" onClick={() => setConfirmRenew(false)} disabled={share.isPending}>
+                  Vazgeç
+                </Button>
+                <Button onClick={() => share.mutate("renew")} disabled={share.isPending}>
+                  {share.isPending ? "Yenileniyor…" : "Evet, yenile"}
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <Button variant="ghost" className="self-start" onClick={() => setConfirmRenew(true)}>
+              Linki yenile
+            </Button>
+          )}
         </div>
+      ) : share.isError ? (
+        <div className="flex flex-col gap-3">
+          <Notice>{errorMessage(share.error)}</Notice>
+          <Button onClick={() => share.mutate("share")}>Tekrar dene</Button>
+        </div>
+      ) : (
+        <p role="status" className="text-sm text-neutral-600">
+          Link hazırlanıyor…
+        </p>
       )}
     </DialogShell>
   );

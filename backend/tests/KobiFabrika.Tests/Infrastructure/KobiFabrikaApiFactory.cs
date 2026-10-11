@@ -38,6 +38,7 @@ public sealed class KobiFabrikaApiFactory : WebApplicationFactory<Program>
         builder.UseSetting("RateLimiting:AuthPermitLimit", AuthPermitLimit.ToString());
         builder.UseSetting("RateLimiting:PublicPermitLimit", PublicPermitLimit.ToString());
         builder.UseSetting("Storage:LocalPath", StoragePath);
+        builder.UseSetting("DataProtection:KeysPath", Path.Combine(StoragePath, "keys"));
         builder.UseSetting("App:FrontendUrl", "http://localhost:3000");
         // Arka plan işleri testte zamanlanmaz; iş sınıfları doğrudan çağrılır.
         builder.UseSetting("Hangfire:Enabled", "false");

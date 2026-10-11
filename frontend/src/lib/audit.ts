@@ -30,6 +30,7 @@ export const auditActionLabels: Record<AuditAction, string> = {
   PaymentRequestConfirmed: "Tahsilat linkini onayladı",
   PaymentRequestRejected: '"Ödeme gelmedi" dedi',
   PaymentRequestCancelled: "Tahsilat linkini iptal etti",
+  PaymentRequestRenewed: "Tahsilat linkini yeniledi",
   StatementShared: "Ekstre paylaştı",
 };
 
@@ -91,6 +92,7 @@ export function auditDetail(item: Pick<AuditLogItem, "action" | "changes">): str
       return `${money(c.amount)} · ${text(c.cashAccount)}`;
     case "PaymentRequestCreated":
     case "PaymentRequestConfirmed":
+    case "PaymentRequestRenewed":
       return money(c.amount);
     case "StatementShared":
       return c.channel === "Email" ? "E-posta" : c.channel === "WhatsApp" ? "WhatsApp" : "Link";

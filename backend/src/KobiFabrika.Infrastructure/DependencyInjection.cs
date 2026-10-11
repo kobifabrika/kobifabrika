@@ -8,12 +8,18 @@ using KobiFabrika.Infrastructure.Locations;
 using KobiFabrika.Infrastructure.Notifications;
 using KobiFabrika.Infrastructure.Pdf;
 using KobiFabrika.Infrastructure.Persistence;
+using KobiFabrika.Infrastructure.Security;
 using KobiFabrika.Infrastructure.Storage;
 using KobiFabrika.Infrastructure.Tenancy;
+using Microsoft.AspNetCore.DataProtection;
+using Microsoft.AspNetCore.DataProtection.KeyManagement;
+using Microsoft.AspNetCore.DataProtection.Repositories;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 
 namespace KobiFabrika.Infrastructure;
 
@@ -57,6 +63,16 @@ public static class DependencyInjection
             .AddTokenProvider<PasswordResetTokenProvider>(PasswordResetTokenProviderOptions.ProviderName)
             .AddErrorDescriber<TurkishIdentityErrorDescriber>()
             .AddPasswordValidator<LetterPasswordValidator>();
+
+        // Data Protection anahtarları kalıcı: yeniden başlatınca oturum cookie'leri ve şifreli link token'ları geçerli kalır.
+        // Yerelde dosya sistemi (DataProtection:KeysPath, içerik köküne göre). Canlıda kalıcı volume + anahtar şifreleme (karar günlüğü).
+        services.AddDataProtection().SetApplicationName("KobiFabrika");
+        services.AddOptions<KeyManagementOptions>().Configure<IHostEnvironment, ILoggerFactory>((o, env, loggers) =>
+        {
+            var path = Path.GetFullPath(Path.Combine(env.ContentRootPath, configuration["DataProtection:KeysPath"] ?? "App_Data/keys"));
+            o.XmlRepository = new FileSystemXmlRepository(new DirectoryInfo(path), loggers);
+        });
+        services.AddSingleton<LinkTokenProtector>();
 
         services.Configure<DataProtectionTokenProviderOptions>(o => o.TokenLifespan = TimeSpan.FromDays(1));
         services.Configure<SecurityStampValidatorOptions>(o => o.ValidationInterval = TimeSpan.FromMinutes(5));

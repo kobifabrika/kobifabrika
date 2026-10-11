@@ -1,12 +1,18 @@
 using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
+using KobiFabrika.Domain.Auditing;
 using KobiFabrika.Domain.Common;
+using KobiFabrika.Domain.Finance;
+using KobiFabrika.Infrastructure.Persistence;
+using KobiFabrika.Infrastructure.Security;
 using KobiFabrika.Tests.Infrastructure;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace KobiFabrika.Tests.Api;
 
-/// <summary>Tahsilat linki: IBAN zorunluluğu, herkese açık sayfa, "Ödedim" bildirimi, onay/ret/iptal, süre ve eşzamanlılık.</summary>
+/// <summary>Tahsilat linki: IBAN zorunluluğu, herkese açık sayfa, "Ödedim" bildirimi, onay/ret/iptal, paylaş/yenile, süre ve eşzamanlılık.</summary>
 public sealed class PaymentRequestTests(SqlServerFixture db) : ApiTestBase(db)
 {
     public const string ValidIban = "TR400006200000000000000001";
@@ -152,25 +158,143 @@ public sealed class PaymentRequestTests(SqlServerFixture db) : ApiTestBase(db)
         (await NewClient().GetAsync("/api/public/payment-requests/olmayan-token", Ct)).StatusCode.ShouldBe(HttpStatusCode.NotFound);
     }
 
+    private async Task<JsonElement> ShareAsync(HttpClient client, Guid id, string action = "share", bool sendEmail = false)
+    {
+        var response = await client.PostAsJsonAsync($"/api/payment-requests/{id}/{action}", new { sendEmail }, Ct);
+        await EnsureSuccessAsync(response);
+        return await response.Content.ReadFromJsonAsync<JsonElement>(Json, Ct);
+    }
+
+    private static string TokenOf(JsonElement link) => link.GetProperty("url").GetString()!.Split('/').Last();
+
+    private static DateTime ExpiresAt(JsonElement link) => link.GetProperty("request").GetProperty("expiresAt").GetDateTime();
+
+    private async Task<PaymentRequest> RowAsync(Guid id)
+    {
+        using var scope = Factory.Services.CreateScope();
+        return await scope.ServiceProvider.GetRequiredService<AppDbContext>().PaymentRequests
+            .IgnoreQueryFilters().AsNoTracking().SingleAsync(p => p.Id == id, Ct);
+    }
+
     [Fact]
-    public async Task Sharing_again_rotates_the_link_and_email_is_sent_in_business_name()
+    public async Task Sharing_again_returns_the_same_link_and_email_is_sent_in_business_name()
     {
         var (owner, contactId) = await SetupAsync();
-        var (id, oldToken, link) = await CreateLinkAsync(owner.Client, contactId, 100m, sendEmail: true);
+        var (id, token, link) = await CreateLinkAsync(owner.Client, contactId, 100m, sendEmail: true);
         link.GetProperty("emailSent").GetBoolean().ShouldBeTrue();
+        link.GetProperty("isNewLink").GetBoolean().ShouldBeTrue();
 
         var mail = Factory.Emails.To("ayse@ornek.com").Single();
         mail.Subject.ShouldBe("Şık Kuaför ödeme bilgileri");
         mail.TextBody.ShouldContain("100,00 TL");
-        mail.TextBody.ShouldContain($"/odeme/{oldToken}");
+        mail.TextBody.ShouldContain($"/odeme/{token}");
         mail.TextBody.ShouldContain("KobiFabrika ile gönderildi");
 
-        var shared = await (await owner.Client.PostAsJsonAsync($"/api/payment-requests/{id}/share", new { sendEmail = false }, Ct))
-            .Content.ReadFromJsonAsync<JsonElement>(Json, Ct);
-        var newToken = shared.GetProperty("url").GetString()!.Split('/').Last();
+        Factory.Clock.Advance(TimeSpan.FromDays(10));
+        var shared = await ShareAsync(owner.Client, id, sendEmail: true);
+        TokenOf(shared).ShouldBe(token);
+        shared.GetProperty("isNewLink").GetBoolean().ShouldBeFalse();
+        ExpiresAt(shared).ShouldBe(ExpiresAt(link));
+        Factory.Emails.To("ayse@ornek.com").Last().TextBody.ShouldContain($"/odeme/{token}");
+        (await NewClient().GetAsync($"/api/public/payment-requests/{token}", Ct)).StatusCode.ShouldBe(HttpStatusCode.OK);
+
+        // "Ödedim" sonrası da aynı link.
+        await EnsureSuccessAsync(await NewClient().PostAsJsonAsync($"/api/public/payment-requests/{token}/claim", new { }, Ct));
+        TokenOf(await ShareAsync(owner.Client, id)).ShouldBe(token);
+
+        // Token düz metin saklanmaz: SHA-256 özeti + Data Protection ile şifreli kopya.
+        var row = await RowAsync(id);
+        row.TokenHash.ShouldBe(SecureTokens.Hash(token));
+        row.ProtectedToken.ShouldNotBeNullOrEmpty();
+        row.ProtectedToken.ShouldNotContain(token);
+    }
+
+    [Fact]
+    public async Task Sharing_an_expired_link_creates_a_new_one()
+    {
+        var (owner, contactId) = await SetupAsync();
+        var (id, oldToken, _) = await CreateLinkAsync(owner.Client, contactId, 100m);
+
+        Factory.Clock.Advance(TimeSpan.FromDays(31));
+        (await NewClient().GetAsync($"/api/public/payment-requests/{oldToken}", Ct)).StatusCode.ShouldBe(HttpStatusCode.Gone);
+        await EnsureSuccessAsync(await LoginAsync(owner.Client, owner.Email)); // oturum cookie'si de doldu
+
+        var shared = await ShareAsync(owner.Client, id);
+        var newToken = TokenOf(shared);
         newToken.ShouldNotBe(oldToken);
-        (await NewClient().GetAsync($"/api/public/payment-requests/{oldToken}", Ct)).StatusCode.ShouldBe(HttpStatusCode.NotFound);
+        shared.GetProperty("isNewLink").GetBoolean().ShouldBeTrue();
+        shared.GetProperty("request").GetProperty("isExpired").GetBoolean().ShouldBeFalse();
+        ExpiresAt(shared).ShouldBeGreaterThan(Factory.Clock.GetUtcNow().UtcDateTime.AddDays(29));
         (await NewClient().GetAsync($"/api/public/payment-requests/{newToken}", Ct)).StatusCode.ShouldBe(HttpStatusCode.OK);
+        (await NewClient().GetAsync($"/api/public/payment-requests/{oldToken}", Ct)).StatusCode.ShouldBe(HttpStatusCode.NotFound);
+
+        // Yeni link de bir sonraki paylaşımda aynen döner.
+        TokenOf(await ShareAsync(owner.Client, id)).ShouldBe(newToken);
+    }
+
+    [Fact]
+    public async Task Link_without_stored_token_gets_a_new_one_on_share()
+    {
+        // Bu özellikten önce oluşturulan kayıtlarda şifreli kopya yok.
+        var (owner, contactId) = await SetupAsync();
+        var (id, oldToken, _) = await CreateLinkAsync(owner.Client, contactId, 100m);
+        using (var scope = Factory.Services.CreateScope())
+        {
+            await scope.ServiceProvider.GetRequiredService<AppDbContext>().PaymentRequests.IgnoreQueryFilters()
+                .Where(p => p.Id == id).ExecuteUpdateAsync(x => x.SetProperty(p => p.ProtectedToken, (string?)null), Ct);
+        }
+
+        var shared = await ShareAsync(owner.Client, id);
+        TokenOf(shared).ShouldNotBe(oldToken);
+        shared.GetProperty("isNewLink").GetBoolean().ShouldBeTrue();
+        TokenOf(await ShareAsync(owner.Client, id)).ShouldBe(TokenOf(shared));
+    }
+
+    [Fact]
+    public async Task Renew_invalidates_the_old_link_and_is_logged()
+    {
+        var (owner, contactId) = await SetupAsync();
+        var (id, oldToken, link) = await CreateLinkAsync(owner.Client, contactId, 100m);
+        Factory.Clock.Advance(TimeSpan.FromDays(5));
+
+        var renewed = await ShareAsync(owner.Client, id, "renew");
+        var newToken = TokenOf(renewed);
+        newToken.ShouldNotBe(oldToken);
+        renewed.GetProperty("isNewLink").GetBoolean().ShouldBeTrue();
+        ExpiresAt(renewed).ShouldBeGreaterThan(ExpiresAt(link));
+        (await NewClient().GetAsync($"/api/public/payment-requests/{oldToken}", Ct)).StatusCode.ShouldBe(HttpStatusCode.NotFound);
+        (await NewClient().PostAsJsonAsync($"/api/public/payment-requests/{oldToken}/claim", new { }, Ct)).StatusCode.ShouldBe(HttpStatusCode.NotFound);
+        (await NewClient().GetAsync($"/api/public/payment-requests/{newToken}", Ct)).StatusCode.ShouldBe(HttpStatusCode.OK);
+        TokenOf(await ShareAsync(owner.Client, id)).ShouldBe(newToken);
+
+        using var scope = Factory.Services.CreateScope();
+        (await scope.ServiceProvider.GetRequiredService<AppDbContext>().AuditLogs.IgnoreQueryFilters()
+            .CountAsync(l => l.EntityId == id && l.Action == AuditAction.PaymentRequestRenewed, Ct)).ShouldBe(1);
+    }
+
+    [Fact]
+    public async Task Closed_links_cannot_be_shared_or_renewed()
+    {
+        var (owner, contactId) = await SetupAsync();
+        var accounts = await CashAccountsAsync(owner.Client);
+        var (confirmedId, _, _) = await CreateLinkAsync(owner.Client, contactId, 100m);
+        await EnsureSuccessAsync(await owner.Client.PostAsJsonAsync($"/api/payment-requests/{confirmedId}/confirm",
+            new { cashAccountId = accounts["Bank"], amount = 100m }, Ct));
+        var (cancelledId, _, _) = await CreateLinkAsync(owner.Client, contactId, 50m);
+        await EnsureSuccessAsync(await owner.Client.PostAsync($"/api/payment-requests/{cancelledId}/cancel", null, Ct));
+
+        foreach (var id in new[] { confirmedId, cancelledId })
+        {
+            foreach (var action in new[] { "share", "renew" })
+            {
+                (await ProblemAsync(await owner.Client.PostAsJsonAsync($"/api/payment-requests/{id}/{action}", new { sendEmail = false }, Ct),
+                    HttpStatusCode.Conflict)).GetProperty("code").GetString().ShouldBe("payment_request_closed");
+            }
+        }
+
+        // Kapanan linkin yerine yeni tahsilat linki oluşturulur.
+        var (_, freshToken, _) = await CreateLinkAsync(owner.Client, contactId, 50m);
+        (await NewClient().GetAsync($"/api/public/payment-requests/{freshToken}", Ct)).StatusCode.ShouldBe(HttpStatusCode.OK);
     }
 
     [Fact]
@@ -246,6 +370,8 @@ public sealed class PaymentRequestTests(SqlServerFixture db) : ApiTestBase(db)
         {
             (await client.PostAsJsonAsync("/api/payment-requests", new { contactId, amount = 5m }, Ct)).StatusCode.ShouldBe(HttpStatusCode.Forbidden);
             (await client.PostAsync($"/api/payment-requests/{id}/cancel", null, Ct)).StatusCode.ShouldBe(HttpStatusCode.Forbidden);
+            (await client.PostAsJsonAsync($"/api/payment-requests/{id}/share", new { sendEmail = false }, Ct)).StatusCode.ShouldBe(HttpStatusCode.Forbidden);
+            (await client.PostAsJsonAsync($"/api/payment-requests/{id}/renew", new { sendEmail = false }, Ct)).StatusCode.ShouldBe(HttpStatusCode.Forbidden);
         }
     }
 }

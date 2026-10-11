@@ -106,3 +106,5 @@ Serilog (konsol + dosya), canlıda Sentry (ücretsiz katman). Her istek için co
 ## Canlı ortam (pilot öncesi)
 
 Tek VPS (4-8 GB RAM), Docker Compose: API, Next.js, SQL Server Express, Caddy (otomatik HTTPS). GitHub Actions ile build ve deploy. Cloudflare DNS. Ayrıntılar Sprint 8'de.
+
+- Data Protection anahtarları (`DataProtection:KeysPath`) kalıcı volume'da tutulur ve sertifikayla şifrelenir; birden fazla API örneği aynı depoyu paylaşır. Kaybolursa oturumlar düşer ve tahsilat linkleri "Paylaş"ta yeniden üretilir (karar günlüğü 2026-10-11).

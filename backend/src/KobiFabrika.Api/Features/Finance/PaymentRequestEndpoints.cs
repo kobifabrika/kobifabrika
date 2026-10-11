@@ -28,12 +28,16 @@ public sealed record PaymentRequestResponse(
     Guid Id, Guid ContactId, string ContactName, decimal Amount, string? Note, PaymentRequestStatus Status, bool IsExpired,
     DateTime ExpiresAt, DateTime CreatedAt, DateTime? ClaimedAt, string? ClaimNote, DateTime? ConfirmedAt, Guid? CashTransactionId);
 
-/// <summary>Link sadece oluşturulurken (veya yeniden paylaşılırken) döner; veritabanında token'ın sadece özeti var.</summary>
-public sealed record PaymentRequestLinkResponse(PaymentRequestResponse Request, string Url, string WhatsappUrl, bool EmailSent);
+/// <summary>
+/// Link sadece oluşturma, paylaşma ve yenileme yanıtında döner; veritabanında token'ın özeti ve şifreli hâli var.
+/// <see cref="IsNewLink"/> false ise müşteriye daha önce gönderilen link aynen geçerli.
+/// </summary>
+public sealed record PaymentRequestLinkResponse(PaymentRequestResponse Request, string Url, string WhatsappUrl, bool EmailSent, bool IsNewLink);
 
 /// <summary>
 /// Tahsilat linki (/odeme/[token]): işletmenin IBAN'ı ve borç tutarı. Müşteri "Ödedim" der → Sahip ve Yöneticilere bildirim;
 /// işletme onaylarsa seçilen kasa/bankaya tahsilat ve cariye alacak yazılır. 30 gün geçerli, tek tahsilat için.
+/// "Paylaş" geçerli linki aynen tekrar gösterir; süresi dolmuşsa yeni link üretir. "Yenile" eski linki bilerek geçersiz kılar.
 /// Onay eşzamanlılığa karşı koşullu UPDATE ile yapılır: aynı link iki kez onaylanamaz.
 /// </summary>
 public static class PaymentRequestEndpoints
@@ -46,7 +50,9 @@ public static class PaymentRequestEndpoints
         group.MapPost("/", Create).RequireAuthorization(Policies.ManageFinance).Validate<CreatePaymentRequest>()
             .WithSummary("Tahsilat linki oluştur (IBAN gerekli)");
         group.MapPost("/{id:guid}/share", Share).RequireAuthorization(Policies.ManageFinance)
-            .WithSummary("Linki yeniden paylaş (yeni link üretilir, eskisi geçersiz olur)");
+            .WithSummary("Linki tekrar paylaş: geçerli link aynen döner; süresi dolmuşsa yeni link üretilir");
+        group.MapPost("/{id:guid}/renew", Renew).RequireAuthorization(Policies.ManageFinance)
+            .WithSummary("Linki yenile: yeni link üretilir, eskisi geçersiz olur, süre 30 gün uzar");
         group.MapPost("/{id:guid}/confirm", Confirm).RequireAuthorization(Policies.ManageFinance).Validate<ConfirmPaymentRequest>()
             .WithSummary("Ödemeyi onayla: kasaya tahsilat + cariye alacak");
         group.MapPost("/{id:guid}/reject", Reject).RequireAuthorization(Policies.ManageFinance)
@@ -86,7 +92,7 @@ public static class PaymentRequestEndpoints
 
     private static async Task<Results<Created<PaymentRequestLinkResponse>, ProblemHttpResult, ValidationProblem>> Create(
         CreatePaymentRequest request, CurrentMember member, AppDbContext db, IAuditLogger audit, EmailDispatch email,
-        IOptions<AppOptions> options, TimeProvider clock, CancellationToken ct)
+        LinkTokenProtector protector, IOptions<AppOptions> options, TimeProvider clock, CancellationToken ct)
     {
         var business = await db.Businesses.AsNoTracking().FirstAsync(b => b.Id == member.BusinessId, ct);
         if (business.Iban is null)
@@ -119,6 +125,7 @@ public static class PaymentRequestEndpoints
             Amount = amount!.Value,
             Note = string.IsNullOrWhiteSpace(request.Note) ? null : request.Note.Trim(),
             TokenHash = hash,
+            ProtectedToken = protector.Protect(token),
             ExpiresAt = clock.GetUtcNow().UtcDateTime + PaymentRequest.Lifetime,
             Status = PaymentRequestStatus.Open,
         };
@@ -126,12 +133,12 @@ public static class PaymentRequestEndpoints
         audit.Log(AuditAction.PaymentRequestCreated, nameof(PaymentRequest), paymentRequest.Id, new { contactId = contact.Id, amount });
         await db.SaveChangesAsync(ct);
 
-        var link = await LinkAsync(db, paymentRequest.Id, token, contact, business.Name, request.SendEmail, email, options, clock, ct);
+        var link = await LinkAsync(db, paymentRequest.Id, token, true, contact, business.Name, request.SendEmail, email, options, clock, ct);
         return TypedResults.Created($"/api/payment-requests/{paymentRequest.Id}", link);
     }
 
     private static async Task<PaymentRequestLinkResponse> LinkAsync(
-        AppDbContext db, Guid id, string token, Contact contact, string businessName, bool sendEmail, EmailDispatch email,
+        AppDbContext db, Guid id, string token, bool isNew, Contact contact, string businessName, bool sendEmail, EmailDispatch email,
         IOptions<AppOptions> options, TimeProvider clock, CancellationToken ct)
     {
         var response = await LoadAsync(db, id, clock, ct);
@@ -139,12 +146,26 @@ public static class PaymentRequestEndpoints
         var sent = sendEmail && await email.TrySendAsync(
             EmailTemplates.PaymentRequest(contact.Email!, businessName, contact.DisplayName, ShareLinks.Money(response.Amount), url), ct);
         return new PaymentRequestLinkResponse(
-            response, url, ShareLinks.WhatsApp(contact.Phone, ShareLinks.PaymentMessage(contact.DisplayName, businessName, response.Amount, url)), sent);
+            response, url, ShareLinks.WhatsApp(contact.Phone, ShareLinks.PaymentMessage(contact.DisplayName, businessName, response.Amount, url)), sent, isNew);
     }
 
-    private static async Task<Results<Ok<PaymentRequestLinkResponse>, ProblemHttpResult>> Share(
-        Guid id, SharePaymentRequest request, CurrentMember member, AppDbContext db, EmailDispatch email,
-        IOptions<AppOptions> options, TimeProvider clock, CancellationToken ct)
+    private static Task<Results<Ok<PaymentRequestLinkResponse>, ProblemHttpResult>> Share(
+        Guid id, SharePaymentRequest request, CurrentMember member, AppDbContext db, IAuditLogger audit, EmailDispatch email,
+        LinkTokenProtector protector, IOptions<AppOptions> options, TimeProvider clock, CancellationToken ct) =>
+        ShareOrRenewAsync(id, request.SendEmail, renew: false, member, db, audit, email, protector, options, clock, ct);
+
+    private static Task<Results<Ok<PaymentRequestLinkResponse>, ProblemHttpResult>> Renew(
+        Guid id, SharePaymentRequest request, CurrentMember member, AppDbContext db, IAuditLogger audit, EmailDispatch email,
+        LinkTokenProtector protector, IOptions<AppOptions> options, TimeProvider clock, CancellationToken ct) =>
+        ShareOrRenewAsync(id, request.SendEmail, renew: true, member, db, audit, email, protector, options, clock, ct);
+
+    /// <summary>
+    /// Geçerli (açık, süresi dolmamış) linkin token'ı şifreli kopyadan çözülür ve aynen döner. Süresi dolmuşsa, eski kayıtta
+    /// şifreli kopya yoksa veya <paramref name="renew"/> istenmişse yeni token üretilir ve süre 30 gün uzar; eski link 404 olur.
+    /// </summary>
+    private static async Task<Results<Ok<PaymentRequestLinkResponse>, ProblemHttpResult>> ShareOrRenewAsync(
+        Guid id, bool sendEmail, bool renew, CurrentMember member, AppDbContext db, IAuditLogger audit, EmailDispatch email,
+        LinkTokenProtector protector, IOptions<AppOptions> options, TimeProvider clock, CancellationToken ct)
     {
         var paymentRequest = await db.PaymentRequests.FirstOrDefaultAsync(p => p.Id == id, ct);
         if (paymentRequest is null)
@@ -152,24 +173,36 @@ public static class PaymentRequestEndpoints
             return NotFound();
         }
 
-        if (paymentRequest.Status is PaymentRequestStatus.Confirmed or PaymentRequestStatus.Cancelled)
+        if (!paymentRequest.IsActive)
         {
-            return Problems.Conflict("payment_request_closed", "Bu tahsilat linki kapandı; yeni bir link oluşturun.");
+            return Problems.Conflict("payment_request_closed", "Bu tahsilat linki kapandı; müşteriye yeni bir tahsilat linki oluşturun.");
         }
 
         var contact = await db.Contacts.AsNoTracking().FirstAsync(c => c.Id == paymentRequest.ContactId, ct);
-        if (request.SendEmail && string.IsNullOrEmpty(contact.Email))
+        if (sendEmail && string.IsNullOrEmpty(contact.Email))
         {
             return Problems.BadRequest("email_required", "Müşterinin e-posta adresi yok. Önce kartına e-posta ekleyin.");
         }
 
-        var (token, hash) = SecureTokens.Create();
-        paymentRequest.TokenHash = hash;
-        paymentRequest.ExpiresAt = clock.GetUtcNow().UtcDateTime + PaymentRequest.Lifetime;
-        await db.SaveChangesAsync(ct);
+        var now = clock.GetUtcNow().UtcDateTime;
+        var token = renew || paymentRequest.IsExpired(now) ? null : protector.TryUnprotect(paymentRequest.ProtectedToken, paymentRequest.TokenHash);
+        var isNew = token is null;
+        if (token is null)
+        {
+            (token, var hash) = SecureTokens.Create();
+            paymentRequest.TokenHash = hash;
+            paymentRequest.ProtectedToken = protector.Protect(token);
+            paymentRequest.ExpiresAt = now + PaymentRequest.Lifetime;
+            if (renew)
+            {
+                audit.Log(AuditAction.PaymentRequestRenewed, nameof(PaymentRequest), id, new { contactId = contact.Id, amount = paymentRequest.Amount });
+            }
+
+            await db.SaveChangesAsync(ct);
+        }
 
         var businessName = await db.Businesses.Where(b => b.Id == member.BusinessId).Select(b => b.Name).FirstAsync(ct);
-        return TypedResults.Ok(await LinkAsync(db, id, token, contact, businessName, request.SendEmail, email, options, clock, ct));
+        return TypedResults.Ok(await LinkAsync(db, id, token, isNew, contact, businessName, sendEmail, email, options, clock, ct));
     }
 
     private static ProblemHttpResult NotFound() => Problems.NotFound("Tahsilat linki bulunamadı.");

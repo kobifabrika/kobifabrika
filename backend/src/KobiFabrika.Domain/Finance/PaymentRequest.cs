@@ -25,6 +25,13 @@ public class PaymentRequest : TenantEntity
     public decimal Amount { get; set; }
     public string? Note { get; set; }
     public required byte[] TokenHash { get; set; }
+
+    /// <summary>
+    /// Token'ın Data Protection ile şifrelenmiş hâli; "Paylaş" aynı linki tekrar gösterebilsin diye. Doğrulama
+    /// <see cref="TokenHash"/> ile yapılır. Eski kayıtlarda veya anahtar kaybolursa boş/çözülemez olur → yeni link üretilir.
+    /// </summary>
+    public string? ProtectedToken { get; set; }
+
     public DateTime ExpiresAt { get; set; }
     public PaymentRequestStatus Status { get; set; }
     public DateTime? ClaimedAt { get; set; }
@@ -35,6 +42,9 @@ public class PaymentRequest : TenantEntity
     public DateTime? CancelledAt { get; set; }
 
     public bool IsExpired(DateTime now) => ExpiresAt <= now;
+
+    /// <summary>Açık veya "Ödedim" bekleyen link; paylaşılabilir ve yenilenebilir.</summary>
+    public bool IsActive => Status is PaymentRequestStatus.Open or PaymentRequestStatus.ClaimedPaid;
 }
 
 public enum ShareChannel

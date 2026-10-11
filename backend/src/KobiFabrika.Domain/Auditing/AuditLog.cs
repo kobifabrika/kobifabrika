@@ -34,6 +34,7 @@ public enum AuditAction
     PaymentRequestConfirmed,
     PaymentRequestRejected,
     PaymentRequestCancelled,
+    PaymentRequestRenewed,
     StatementShared,
 }
 

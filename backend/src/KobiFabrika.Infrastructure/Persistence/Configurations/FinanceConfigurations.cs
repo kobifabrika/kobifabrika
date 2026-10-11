@@ -60,6 +60,7 @@ internal sealed class PaymentRequestConfiguration : IEntityTypeConfiguration<Pay
         b.Property(x => x.ClaimNote).HasMaxLength(500);
         b.Property(x => x.Status).HasConversion<string>().HasMaxLength(20);
         b.Property(x => x.TokenHash).HasMaxLength(32).IsFixedLength();
+        b.Property(x => x.ProtectedToken).HasMaxLength(500).IsUnicode(false);
         b.HasIndex(x => x.TokenHash).IsUnique();
         b.HasIndex(x => new { x.BusinessId, x.Status });
         b.HasIndex(x => new { x.BusinessId, x.ContactId });
