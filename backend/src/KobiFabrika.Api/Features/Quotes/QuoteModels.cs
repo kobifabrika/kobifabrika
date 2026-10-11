@@ -18,7 +18,8 @@ public sealed record ConvertQuoteRequest(List<SalePaymentRequest>? Payments, str
 /// <summary>IsExpired: geçerlilik günü geçti ve müşteri cevap vermedi. HasLink: müşteriye link gönderildi.</summary>
 public sealed record QuoteResponse(
     Guid Id, string No, Guid ContactId, string ContactName, string? ContactPhone, string? ContactEmail, DateOnly Date, DateOnly ValidUntil,
-    QuoteStatus Status, bool IsExpired, bool HasLink, decimal SubTotal, decimal LineDiscountTotal, decimal DiscountTotal, decimal VatTotal,
+    QuoteStatus Status, bool IsExpired, bool HasLink, decimal SubTotal, decimal LineDiscountTotal, decimal DiscountTotal, DiscountSpec? Discount,
+    decimal VatTotal,
     decimal Total, IReadOnlyList<VatBreakdown> Vat, IReadOnlyList<DocumentLineResponse> Lines, string? Notes, DateTime? SentAt,
     DateTime? LastViewedAt, DateTime? RespondedAt, string? ResponseNote, QuoteResponseChannel? RespondedVia, Guid? SaleId, string? SaleNo,
     Guid? CreatedBy, string? CreatedByName, DateTime CreatedAt);

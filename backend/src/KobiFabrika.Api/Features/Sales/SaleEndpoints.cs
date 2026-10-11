@@ -71,7 +71,8 @@ public static class SaleEndpoints
 
         return new SaleResponse(
             sale.Id, sale.No, sale.Date, sale.ContactId, contact?.DisplayName, contact?.Phone, sale.Status,
-            sale.SubTotal, sale.LineDiscountTotal, sale.DiscountTotal, sale.VatTotal, sale.Total, DocumentLines.Vat(sale.Lines),
+            sale.SubTotal, sale.LineDiscountTotal, sale.DiscountTotal, DiscountSpec.From(sale.DiscountType, sale.DiscountValue), sale.VatTotal,
+            sale.Total, DocumentLines.Vat(sale.Lines),
             sale.Lines.Select(DocumentLines.ToResponse).ToList(),
             sale.Payments.OrderBy(p => p.Method).Select(p => new SalePaymentResponse(
                 p.Id, p.Method, p.Amount, p.CashAccountId, p.CashAccountId is { } a ? accounts.GetValueOrDefault(a) : null)).ToList(),

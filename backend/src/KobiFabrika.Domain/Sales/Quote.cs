@@ -51,6 +51,12 @@ public class Quote : TenantEntity
     public decimal SubTotal { get; set; }
     public decimal LineDiscountTotal { get; set; }
     public decimal DiscountTotal { get; set; }
+
+    /// <summary>Toplam indirim girildiği şekliyle (TL veya %); düzenleme ekranı bununla açılır. İndirim yoksa null.</summary>
+    public DiscountType? DiscountType { get; set; }
+
+    public decimal? DiscountValue { get; set; }
+
     public decimal VatTotal { get; set; }
     public decimal Total { get; set; }
     public string? Notes { get; set; }

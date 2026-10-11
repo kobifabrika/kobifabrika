@@ -9,7 +9,14 @@ public enum DiscountType
     Percent,
 }
 
-public sealed record DiscountSpec(DiscountType Type, decimal Value);
+public sealed record DiscountSpec(DiscountType Type, decimal Value)
+{
+    /// <summary>Saklanacak indirim: değeri 0 olan indirim yok sayılır.</summary>
+    public static DiscountSpec? Normalize(DiscountSpec? spec) => spec is { Value: > 0 } ? spec : null;
+
+    /// <summary>Kayıtlı tür ve değerden indirim.</summary>
+    public static DiscountSpec? From(DiscountType? type, decimal? value) => type is { } t && value is { } v ? new DiscountSpec(t, v) : null;
+}
 
 /// <summary>Hesaplanacak satır: birim fiyat KDV dahil.</summary>
 public sealed record CalcLineInput(decimal Quantity, decimal UnitPrice, decimal VatRate, DiscountSpec? Discount = null);

@@ -18,6 +18,7 @@ internal static class DocumentLineMapping
         });
         b.Property(x => x.Description).HasMaxLength(Product.MaxNameLength);
         b.Property(x => x.Unit).HasConversion<string>().HasMaxLength(10);
+        b.Property(x => x.DiscountType).HasConversion<string>().HasMaxLength(10);
         b.Property(x => x.Quantity).HasPrecision(18, 3);
         b.Property(x => x.VatRate).HasPrecision(5, 2);
         b.HasOne<Product>().WithMany().HasForeignKey(x => x.ProductId).OnDelete(DeleteBehavior.Restrict);
@@ -31,6 +32,7 @@ internal sealed class SaleConfiguration : IEntityTypeConfiguration<Sale>
         b.ToTable("Sales", t => t.HasCheckConstraint("CK_Sales_Total", "[Total] >= 0"));
         b.Property(x => x.No).HasMaxLength(20).IsUnicode(false);
         b.Property(x => x.Status).HasConversion<string>().HasMaxLength(10);
+        b.Property(x => x.DiscountType).HasConversion<string>().HasMaxLength(10);
         b.Property(x => x.CancelReason).HasMaxLength(500);
         b.Property(x => x.Note).HasMaxLength(500);
         b.HasIndex(x => new { x.BusinessId, x.Year, x.Seq }).IsUnique();
@@ -73,6 +75,7 @@ internal sealed class QuoteConfiguration : IEntityTypeConfiguration<Quote>
         b.Property(x => x.No).HasMaxLength(20).IsUnicode(false);
         b.Property(x => x.Status).HasConversion<string>().HasMaxLength(10);
         b.Property(x => x.RespondedVia).HasConversion<string>().HasMaxLength(10);
+        b.Property(x => x.DiscountType).HasConversion<string>().HasMaxLength(10);
         b.Property(x => x.TokenHash).HasMaxLength(32).IsFixedLength();
         b.Property(x => x.ProtectedToken).HasMaxLength(500).IsUnicode(false);
         b.Property(x => x.ResponseNote).HasMaxLength(500);

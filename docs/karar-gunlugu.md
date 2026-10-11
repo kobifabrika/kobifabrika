@@ -2,6 +2,8 @@
 
 En yeni en üstte. Notion'daki "Proje Planı ve Kararlar" sayfasıyla aynı kararlar; teknik kararlar burada daha ayrıntılı.
 
+- **2026-10-11 (Sprint 3 açıkları):** İndirim girildiği şekliyle saklanır: satır ve toplam indirimde tür (TL/%) ve değer (`DiscountType`, `DiscountValue`; Sales, SaleLines, Quotes, QuoteLines). TL karşılığı (`LineDiscount`, `DiscountTotal`) yine saklanır; belgeler ve raporlar onu kullanır. Teklif düzenleme ekranı indirimi girilen şekliyle (ör. %10) açar; teklif satışa dönüşünce tür ve değer satışa geçer. Eski kayıtlar migration'da TL tutarı olarak işaretlendi. Değeri 0 olan indirim saklanmaz (null).
+
 - **2026-10-11 (Sprint 3 sonu, geliştirme veritabanı temizliği):** Önce SELECT ile listelendi, onaydan sonra silindi. Silinen: Sprint 3 uçtan uca denemesinin 2 test hesabı (`sprint3-…@test.com`) ve sadece onlara ait 2 "Deneme Butik" işletmesi, tüm verileriyle (ürün, kategori, stok hareketi, satış, ödeme, teklif, cari, kasa, belge sayacı, bildirim, aktivite günlüğü). Tek transaction; hedef sayısı ve korunan kayıtların sayımı (emirkayaco@gmail.com, "Kaya Restaurant" ve üyeliği, müşterileri, kasaları) silmeden önce ve sonra karşılaştırıldı, tutmasa geri alınacaktı. BusinessId kolonu olan tablolar FK sırası bilinmeden turlarla silindi (FK hatası alan tablo sonraki turda).
 
 - **2026-10-11 (Sprint 3, ürün):**

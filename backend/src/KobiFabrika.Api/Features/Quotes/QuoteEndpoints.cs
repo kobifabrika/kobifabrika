@@ -93,7 +93,7 @@ public static class QuoteEndpoints
         return new QuoteResponse(
             quote.Id, quote.No, quote.ContactId, contact.DisplayName, contact.Phone, contact.Email, quote.Date, quote.ValidUntil, quote.Status,
             IsExpired(quote.Status, quote.ValidUntil, BusinessTime.Today(clock)), quote.TokenHash is not null,
-            quote.SubTotal, quote.LineDiscountTotal, quote.DiscountTotal, quote.VatTotal, quote.Total, DocumentLines.Vat(quote.Lines),
+            quote.SubTotal, quote.LineDiscountTotal, quote.DiscountTotal, DiscountSpec.From(quote.DiscountType, quote.DiscountValue), quote.VatTotal, quote.Total, DocumentLines.Vat(quote.Lines),
             quote.Lines.Select(DocumentLines.ToResponse).ToList(), quote.Notes, quote.SentAt, quote.LastViewedAt, quote.RespondedAt,
             quote.ResponseNote, quote.RespondedVia, quote.SaleId, saleNo, quote.CreatedBy, createdByName, quote.CreatedAt);
     }
@@ -143,8 +143,11 @@ public static class QuoteEndpoints
         Guid id, CurrentMember member, AppDbContext db, TimeProvider clock, CancellationToken ct) =>
         await LoadAsync(db, member, id, clock, ct) is { } quote ? TypedResults.Ok(quote) : QuoteNotFound();
 
-    private static void ApplyTotals(Quote quote, CalcResult totals)
+    private static void ApplyTotals(Quote quote, ResolvedDocument document)
     {
+        var totals = document.Totals;
+        quote.DiscountType = document.Discount?.Type;
+        quote.DiscountValue = document.Discount?.Value;
         quote.SubTotal = totals.SubTotal;
         quote.LineDiscountTotal = totals.LineDiscountTotal;
         quote.DiscountTotal = totals.DiscountTotal;
@@ -182,7 +185,7 @@ public static class QuoteEndpoints
                 Status = QuoteStatus.Draft,
                 Notes = string.IsNullOrWhiteSpace(request.Notes) ? null : request.Notes.Trim(),
             };
-            ApplyTotals(quote, document.Totals);
+            ApplyTotals(quote, document);
             quote.Lines.AddRange(document.Lines.Select((l, i) => DocumentLines.ToEntity<QuoteLine>(l, i)));
             db.Quotes.Add(quote);
             audit.Log(AuditAction.QuoteCreated, nameof(Quote), quote.Id, new { no, contactId = request.ContactId, total = quote.Total });
@@ -235,7 +238,7 @@ public static class QuoteEndpoints
         quote.Date = request.Date ?? quote.Date;
         quote.ValidUntil = request.ValidUntil ?? quote.ValidUntil;
         quote.Notes = string.IsNullOrWhiteSpace(request.Notes) ? null : request.Notes.Trim();
-        ApplyTotals(quote, document.Totals);
+        ApplyTotals(quote, document);
         audit.Log(AuditAction.QuoteUpdated, nameof(Quote), id, new { quote.No, total = quote.Total });
         await db.SaveChangesAsync(ct);
         return TypedResults.Ok(await LoadAsync(db, member, id, clock, ct));
@@ -358,10 +361,10 @@ public static class QuoteEndpoints
         var lines = quote.Lines.OrderBy(l => l.SortOrder).Select(l => new ResolvedLine(
             l.ProductId is { } pid ? products.GetValueOrDefault(pid) : null, l.Description, l.Unit,
             new CalcLine(l.Quantity, l.UnitPrice, l.VatRate, SaleCalculator.Round(l.Quantity * l.UnitPrice), l.LineDiscount, l.AllocatedDiscount,
-                l.LineTotal, l.VatAmount))).ToList();
+                l.LineTotal, l.VatAmount), DiscountSpec.From(l.DiscountType, l.DiscountValue))).ToList();
         var totals = new CalcResult(lines.Select(l => l.Calc).ToList(), quote.SubTotal, quote.LineDiscountTotal, quote.DiscountTotal, quote.VatTotal,
             quote.Total, DocumentLines.Vat(quote.Lines));
-        return new ResolvedDocument(lines, totals);
+        return new ResolvedDocument(lines, totals, DiscountSpec.From(quote.DiscountType, quote.DiscountValue));
     }
 
     private static async Task<IResult> Convert(

@@ -67,10 +67,10 @@ Miktarlar `decimal(18,3)` (kg, lt, m için).
 
 Tutarlar KDV dahil; KDV satır tutarının içinden ayrılır. Hesap: `Domain/Sales/SaleCalculator.cs` (frontend `src/lib/sales.ts` aynı algoritma ve test vektörleri).
 
-- **Sales:** Year, Seq, No (SAT-2026-000001), ContactId (opsiyonel), Date (UTC), SubTotal (brüt), LineDiscountTotal, DiscountTotal, VatTotal, Total, Status (Completed/Cancelled), CancelledAt, CancelledBy, CancelReason, QuoteId, Note. StaffMemberId ve AppointmentId Sprint 5/7'de.
-- **SaleLines / QuoteLines** (ortak taban `DocumentLine`): ProductId (opsiyonel; serbest kalem), Description (ad kopyası), Unit, Quantity, UnitPrice (KDV dahil), LineDiscount, AllocatedDiscount (toplam indirimden pay), VatRate, VatAmount, LineTotal, SortOrder.
+- **Sales:** Year, Seq, No (SAT-2026-000001), ContactId (opsiyonel), Date (UTC), SubTotal (brüt), LineDiscountTotal, DiscountTotal, DiscountType/DiscountValue (girilen indirim: TL/%), VatTotal, Total, Status (Completed/Cancelled), CancelledAt, CancelledBy, CancelReason, QuoteId, Note. StaffMemberId ve AppointmentId Sprint 5/7'de.
+- **SaleLines / QuoteLines** (ortak taban `DocumentLine`): ProductId (opsiyonel; serbest kalem), Description (ad kopyası), Unit, Quantity, UnitPrice (KDV dahil), LineDiscount, DiscountType/DiscountValue (girilen satır indirimi: TL/%), AllocatedDiscount (toplam indirimden pay), VatRate, VatAmount, LineTotal, SortOrder.
 - **SalePayments:** SaleId, Method (Cash/Card/Transfer/Credit), Amount, CashAccountId, CashTransactionId, LedgerEntryId. Bölünmüş ödemede birden fazla; toplam = satış tutarı.
-- **Quotes:** Year, Seq, No (TKL-2026-0001), ContactId, Date, ValidUntil (varsayılan +15 gün), Status (Draft/Sent/Accepted/Rejected/Converted), TokenHash + ProtectedToken (tahsilat linkiyle aynı), SentAt, LastViewedAt, RespondedAt, ResponseNote, RespondedVia (Link/Panel), toplamlar, Notes, SaleId.
+- **Quotes:** Year, Seq, No (TKL-2026-0001), ContactId, Date, ValidUntil (varsayılan +15 gün), Status (Draft/Sent/Accepted/Rejected/Converted), TokenHash + ProtectedToken (tahsilat linkiyle aynı), SentAt, LastViewedAt, RespondedAt, ResponseNote, RespondedVia (Link/Panel), toplamlar, DiscountType/DiscountValue (girilen toplam indirim), Notes, SaleId.
 - Mevcut tablolara: **CashTransactions.SaleId** ve türler `SaleIncome`/`SaleRefund`; **LedgerEntries.RefType** `Sale`/`SaleCancel`; **ImportJobs.Kind** (Contacts/Products).
 
 ## Finans

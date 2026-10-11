@@ -7,9 +7,11 @@ using Microsoft.EntityFrameworkCore;
 namespace KobiFabrika.Api.Features.Sales;
 
 /// <summary>Çözümlenmiş kalem: ürün bilgisi kopyalanmış, tutarlar hesaplanmış.</summary>
-public sealed record ResolvedLine(Product? Product, string Description, ProductUnit Unit, CalcLine Calc);
+/// <summary>Discount: satır indirimi girildiği şekliyle (belgede saklanır).</summary>
+public sealed record ResolvedLine(Product? Product, string Description, ProductUnit Unit, CalcLine Calc, DiscountSpec? Discount);
 
-public sealed record ResolvedDocument(IReadOnlyList<ResolvedLine> Lines, CalcResult Totals);
+/// <summary>Discount: toplam indirim girildiği şekliyle (belgede saklanır).</summary>
+public sealed record ResolvedDocument(IReadOnlyList<ResolvedLine> Lines, CalcResult Totals, DiscountSpec? Discount);
 
 /// <summary>
 /// Satış ve teklif kalemlerini doğrular ve hesaplar: ürün işletmenin (kiracı filtresi) ve satışa açık olmalı, miktar birime uymalı.
@@ -27,6 +29,7 @@ public static class DocumentLines
         var vatRates = (await db.VatRates.Where(r => r.IsActive).Select(r => r.Rate).ToListAsync(ct)).ToHashSet();
 
         var inputs = new List<(Product? Product, string Description, ProductUnit Unit, CalcLineInput Input)>();
+        discount = DiscountSpec.Normalize(discount);
         for (var i = 0; i < lines.Count; i++)
         {
             var line = lines[i];
@@ -59,12 +62,13 @@ public static class DocumentLines
 
             var description = string.IsNullOrWhiteSpace(line.Description) ? product!.Name : line.Description.Trim();
             var unitPrice = line.UnitPrice ?? product!.GrossSalePrice;
-            inputs.Add((product, description, unit, new CalcLineInput(line.Quantity!.Value, unitPrice, vatRate, line.Discount)));
+            inputs.Add((product, description, unit, new CalcLineInput(line.Quantity!.Value, unitPrice, vatRate, DiscountSpec.Normalize(line.Discount))));
         }
 
         var totals = SaleCalculator.Calculate(inputs.Select(i => i.Input).ToList(), discount);
-        var resolved = inputs.Select((i, index) => new ResolvedLine(i.Product, i.Description, i.Unit, totals.Lines[index])).ToList();
-        return (new ResolvedDocument(resolved, totals), null, null);
+        var resolved = inputs.Select((i, index) => new ResolvedLine(i.Product, i.Description, i.Unit, totals.Lines[index], i.Input.Discount))
+            .ToList();
+        return (new ResolvedDocument(resolved, totals, discount), null, null);
     }
 
     /// <summary>Hesaplanmış kalemi belge satırına yazar.</summary>
@@ -76,6 +80,8 @@ public static class DocumentLines
         Quantity = line.Calc.Quantity,
         UnitPrice = line.Calc.UnitPrice,
         LineDiscount = line.Calc.LineDiscount,
+        DiscountType = line.Discount?.Type,
+        DiscountValue = line.Discount?.Value,
         AllocatedDiscount = line.Calc.AllocatedDiscount,
         VatRate = line.Calc.VatRate,
         VatAmount = line.Calc.VatAmount,
@@ -84,7 +90,8 @@ public static class DocumentLines
     };
 
     public static DocumentLineResponse ToResponse(DocumentLine l) => new(
-        l.Id, l.ProductId, l.Description, l.Unit, l.Quantity, l.UnitPrice, l.LineDiscount, l.AllocatedDiscount, l.VatRate, l.VatAmount, l.LineTotal);
+        l.Id, l.ProductId, l.Description, l.Unit, l.Quantity, l.UnitPrice, l.LineDiscount,
+        DiscountSpec.From(l.DiscountType, l.DiscountValue), l.AllocatedDiscount, l.VatRate, l.VatAmount, l.LineTotal);
 
     /// <summary>Kayıtlı kalemlerden KDV dökümü.</summary>
     public static IReadOnlyList<VatBreakdown> Vat(IEnumerable<DocumentLine> lines) =>

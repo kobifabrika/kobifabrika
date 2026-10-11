@@ -6085,6 +6085,7 @@ export interface components {
             unitPrice: number;
             /** Format: double */
             lineDiscount: number;
+            discount: null | components["schemas"]["DiscountSpec"];
             /** Format: double */
             allocatedDiscount: number;
             /** Format: double */
@@ -6604,6 +6605,7 @@ export interface components {
             lineDiscountTotal: number;
             /** Format: double */
             discountTotal: number;
+            discount: null | components["schemas"]["DiscountSpec"];
             /** Format: double */
             vatTotal: number;
             /** Format: double */
@@ -6746,6 +6748,7 @@ export interface components {
             lineDiscountTotal: number;
             /** Format: double */
             discountTotal: number;
+            discount: null | components["schemas"]["DiscountSpec"];
             /** Format: double */
             vatTotal: number;
             /** Format: double */

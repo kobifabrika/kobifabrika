@@ -21,16 +21,17 @@ public sealed record SaleRequest(
 
 public sealed record CancelSaleRequest(string? Reason);
 
+/// <summary>Discount: satır indirimi girildiği şekliyle (TL veya %); LineDiscount TL karşılığı.</summary>
 public sealed record DocumentLineResponse(
-    Guid Id, Guid? ProductId, string Description, ProductUnit Unit, decimal Quantity, decimal UnitPrice, decimal LineDiscount,
+    Guid Id, Guid? ProductId, string Description, ProductUnit Unit, decimal Quantity, decimal UnitPrice, decimal LineDiscount, DiscountSpec? Discount,
     decimal AllocatedDiscount, decimal VatRate, decimal VatAmount, decimal LineTotal);
 
 public sealed record SalePaymentResponse(Guid Id, PaymentMethod Method, decimal Amount, Guid? CashAccountId, string? CashAccountName);
 
 public sealed record SaleResponse(
     Guid Id, string No, DateTime Date, Guid? ContactId, string? ContactName, string? ContactPhone, SaleStatus Status,
-    decimal SubTotal, decimal LineDiscountTotal, decimal DiscountTotal, decimal VatTotal, decimal Total, IReadOnlyList<VatBreakdown> Vat,
-    IReadOnlyList<DocumentLineResponse> Lines, IReadOnlyList<SalePaymentResponse> Payments, string? Note, Guid? CreatedBy, string? CreatedByName,
+    decimal SubTotal, decimal LineDiscountTotal, decimal DiscountTotal, DiscountSpec? Discount, decimal VatTotal, decimal Total,
+    IReadOnlyList<VatBreakdown> Vat, IReadOnlyList<DocumentLineResponse> Lines, IReadOnlyList<SalePaymentResponse> Payments, string? Note, Guid? CreatedBy, string? CreatedByName,
     DateTime? CancelledAt, string? CancelledByName, string? CancelReason, Guid? QuoteId, string? QuoteNo);
 
 public sealed record SaleListItem(

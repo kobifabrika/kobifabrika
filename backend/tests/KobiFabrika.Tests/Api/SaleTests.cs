@@ -160,6 +160,10 @@ public sealed partial class SaleTests(SqlServerFixture db) : ApiTestBase(db)
         sale.GetProperty("subTotal").GetDecimal().ShouldBe(190m);
         sale.GetProperty("lineDiscountTotal").GetDecimal().ShouldBe(9m);
         sale.GetProperty("discountTotal").GetDecimal().ShouldBe(12.7m);
+        sale.GetProperty("discount").GetProperty("type").GetString().ShouldBe("Amount");
+        sale.GetProperty("lines")[0].GetProperty("discount").ValueKind.ShouldBe(JsonValueKind.Null);
+        sale.GetProperty("lines")[1].GetProperty("discount").GetProperty("type").GetString().ShouldBe("Percent");
+        sale.GetProperty("lines")[1].GetProperty("discount").GetProperty("value").GetDecimal().ShouldBe(10m);
         sale.GetProperty("total").GetDecimal().ShouldBe(168.3m);
         sale.GetProperty("vat").EnumerateArray().Select(v => v.GetProperty("rate").GetDecimal()).ShouldBe([10m, 20m]);
 

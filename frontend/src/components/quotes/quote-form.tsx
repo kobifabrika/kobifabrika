@@ -19,7 +19,7 @@ import { api, errorMessage, fieldErrors, unwrap } from "@/lib/api/client";
 import type { Quote } from "@/lib/api/types";
 import { cartReducer, cartTotals, emptyCart, toLineRequests, type Cart } from "@/lib/cart";
 import { todayIstanbul } from "@/lib/format";
-import type { DiscountType } from "@/lib/sales";
+import type { Discount, DiscountType } from "@/lib/sales";
 
 function addDays(isoDate: string, days: number) {
   const d = new Date(`${isoDate}T00:00:00Z`);
@@ -27,11 +27,16 @@ function addDays(isoDate: string, days: number) {
   return d.toISOString().slice(0, 10);
 }
 
-/** Kayıtlı teklifi düzenlenebilir sepete çevirir (satır indirimleri TL olarak gelir). */
+/** Kayıtlı indirim girildiği şekliyle (TL/%); eski kayıtlarda tür yoksa TL karşılığı. */
+function storedDiscount(spec: Discount | null, amount: number): Discount | null {
+  return spec ?? (amount > 0 ? { type: "Amount", value: amount } : null);
+}
+
+/** Kayıtlı teklifi düzenlenebilir sepete çevirir; indirimler girildiği şekliyle (TL/%) açılır. */
 function cartFromQuote(q: Quote): Cart {
   return {
     contact: { id: q.contactId, name: q.contactName, phone: q.contactPhone },
-    discount: q.discountTotal > 0 ? { type: "Amount", value: q.discountTotal } : null,
+    discount: storedDiscount(q.discount, q.discountTotal),
     note: "",
     lines: q.lines.map((l) => ({
       key: l.id,
@@ -41,7 +46,7 @@ function cartFromQuote(q: Quote): Cart {
       unitPrice: l.unitPrice,
       vatRate: l.vatRate,
       quantity: l.quantity,
-      discount: l.lineDiscount > 0 ? { type: "Amount", value: l.lineDiscount } : null,
+      discount: storedDiscount(l.discount, l.lineDiscount),
       trackStock: false,
       stock: null,
     })),
@@ -57,8 +62,9 @@ export function QuoteForm({ quote }: { quote?: Quote }) {
   const [date, setDate] = useState(quote?.date ?? todayIstanbul());
   const [validUntil, setValidUntil] = useState(quote?.validUntil ?? addDays(todayIstanbul(), 15));
   const [notes, setNotes] = useState(quote?.notes ?? "");
-  const [discountType, setDiscountType] = useState<DiscountType>(quote && quote.discountTotal > 0 ? "Amount" : "Percent");
-  const [discountText, setDiscountText] = useState(quote && quote.discountTotal > 0 ? String(quote.discountTotal).replace(".", ",") : "");
+  const initialDiscount = quote ? storedDiscount(quote.discount, quote.discountTotal) : null;
+  const [discountType, setDiscountType] = useState<DiscountType>(initialDiscount?.type ?? "Percent");
+  const [discountText, setDiscountText] = useState(initialDiscount ? String(initialDiscount.value).replace(".", ",") : "");
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   // Müşteri kartından "Teklif hazırla": ?musteri={id}

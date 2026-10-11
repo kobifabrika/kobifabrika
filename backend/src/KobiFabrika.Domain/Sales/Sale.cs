@@ -35,6 +35,12 @@ public class Sale : TenantEntity
     public decimal SubTotal { get; set; }
     public decimal LineDiscountTotal { get; set; }
     public decimal DiscountTotal { get; set; }
+
+    /// <summary>Toplam indirim girildiği şekliyle (TL veya %). İndirim yoksa null.</summary>
+    public DiscountType? DiscountType { get; set; }
+
+    public decimal? DiscountValue { get; set; }
+
     public decimal VatTotal { get; set; }
     public decimal Total { get; set; }
     public SaleStatus Status { get; set; }
@@ -60,6 +66,12 @@ public abstract class DocumentLine : TenantEntity
     public decimal UnitPrice { get; set; }
 
     public decimal LineDiscount { get; set; }
+
+    /// <summary>Satır indirimi kullanıcının girdiği şekliyle (TL veya %); düzenleme ekranı bununla açılır. İndirim yoksa null.</summary>
+    public DiscountType? DiscountType { get; set; }
+
+    public decimal? DiscountValue { get; set; }
+
     public decimal AllocatedDiscount { get; set; }
     public decimal VatRate { get; set; }
     public decimal VatAmount { get; set; }

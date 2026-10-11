@@ -78,6 +78,40 @@ public sealed partial class QuoteTests(SqlServerFixture db) : ApiTestBase(db)
     }
 
     [Fact]
+    public async Task Discounts_keep_their_type_and_value_through_edit_and_conversion()
+    {
+        var (owner, contactId, productId) = await ShopAsync();
+        var percent = new { type = "Percent", value = 10 };
+        var quote = await CreateQuoteAsync(owner.Client, Body(contactId,
+            [SaleTests.Line(productId, 2, discount: percent), SaleTests.Line(null, 1, 1500m, new { type = "Percent", value = 0 }, "Montaj", 20)],
+            discount: new { type = "Amount", value = 500 }));
+
+        var line = quote.GetProperty("lines")[0];
+        line.GetProperty("lineDiscount").GetDecimal().ShouldBe(1000m);
+        line.GetProperty("discount").GetProperty("type").GetString().ShouldBe("Percent");
+        line.GetProperty("discount").GetProperty("value").GetDecimal().ShouldBe(10m);
+        quote.GetProperty("lines")[1].GetProperty("discount").ValueKind.ShouldBe(JsonValueKind.Null);
+        quote.GetProperty("discount").GetProperty("type").GetString().ShouldBe("Amount");
+        quote.GetProperty("discount").GetProperty("value").GetDecimal().ShouldBe(500m);
+
+        var id = quote.GetProperty("id").GetGuid();
+        await EnsureSuccessAsync(await owner.Client.PutAsJsonAsync($"/api/quotes/{id}",
+            Body(contactId, [SaleTests.Line(productId, 2, discount: percent)], discount: new { type = "Percent", value = 12.5 }), Json, Ct));
+        var edited = await GetJsonAsync(owner.Client, $"/api/quotes/{id}");
+        edited.GetProperty("discount").GetProperty("type").GetString().ShouldBe("Percent");
+        edited.GetProperty("discount").GetProperty("value").GetDecimal().ShouldBe(12.5m);
+        edited.GetProperty("discountTotal").GetDecimal().ShouldBe(1125m);
+        edited.GetProperty("lines")[0].GetProperty("discount").GetProperty("value").GetDecimal().ShouldBe(10m);
+
+        await PostAsync(owner.Client, $"/api/quotes/{id}/mark-accepted");
+        var sale = (await PostAsync(owner.Client, $"/api/quotes/{id}/convert")).GetProperty("sale");
+        sale.GetProperty("discount").GetProperty("type").GetString().ShouldBe("Percent");
+        sale.GetProperty("discount").GetProperty("value").GetDecimal().ShouldBe(12.5m);
+        sale.GetProperty("lines")[0].GetProperty("discount").GetProperty("type").GetString().ShouldBe("Percent");
+        sale.GetProperty("total").GetDecimal().ShouldBe(7875m);
+    }
+
+    [Fact]
     public async Task Share_returns_the_same_link_and_public_page_shows_quote()
     {
         var (owner, contactId, productId) = await ShopAsync();

@@ -99,6 +99,8 @@ public sealed class SaleService(
                 SubTotal = totals.SubTotal,
                 LineDiscountTotal = totals.LineDiscountTotal,
                 DiscountTotal = totals.DiscountTotal,
+                DiscountType = draft.Document.Discount?.Type,
+                DiscountValue = draft.Document.Discount?.Value,
                 VatTotal = totals.VatTotal,
                 Total = totals.Total,
                 Status = SaleStatus.Completed,
