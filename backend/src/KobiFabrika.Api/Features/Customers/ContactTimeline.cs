@@ -6,8 +6,8 @@ using Microsoft.EntityFrameworkCore;
 namespace KobiFabrika.Api.Features.Customers;
 
 /// <summary>
-/// Zaman çizelgesi öğesi. Kind: created, note, reminder, consent, sale, sale_cancelled, ledger, collection, payment_request,
-/// payment_claimed, payment_confirmed, statement_shared. Randevu ve mesajlar ilgili sprintlerde eklenir. RefId satışta satışın Id'si.
+/// Zaman çizelgesi öğesi. Kind: created, note, reminder, consent, sale, sale_cancelled, quote, quote_accepted, quote_rejected, ledger, collection, payment_request,
+/// payment_claimed, payment_confirmed, statement_shared. Randevu ve mesajlar ilgili sprintlerde eklenir. RefId satış/teklifte belgenin Id'si.
 /// </summary>
 public sealed record TimelineItem(string Kind, DateTime At, string Title, string? Detail, decimal? Amount, Guid? RefId);
 
@@ -79,6 +79,23 @@ public static class ContactTimeline
             if (sale.CancelledAt is { } cancelled && cancelled < limit)
             {
                 items.Add(new TimelineItem("sale_cancelled", cancelled, $"Satış iptal edildi: {sale.No}", null, sale.Total, sale.Id));
+            }
+        }
+
+        var quotes = await db.Quotes.AsNoTracking()
+            .Where(x => x.ContactId == contactId && x.CreatedAt < limit && (salesBy == null || x.CreatedBy == salesBy))
+            .OrderByDescending(x => x.CreatedAt).Take(take)
+            .Select(x => new { x.Id, x.No, x.CreatedAt, x.SentAt, x.Total, x.Status, x.RespondedAt, x.ResponseNote })
+            .ToListAsync(ct);
+        foreach (var quote in quotes)
+        {
+            items.Add(new TimelineItem("quote", quote.SentAt ?? quote.CreatedAt, quote.SentAt is null ? $"Teklif hazırlandı: {quote.No}" : $"Teklif gönderildi: {quote.No}",
+                null, quote.Total, quote.Id));
+            if (quote.RespondedAt is { } responded && responded < limit && quote.Status != Domain.Sales.QuoteStatus.Sent)
+            {
+                var accepted = quote.Status is Domain.Sales.QuoteStatus.Accepted or Domain.Sales.QuoteStatus.Converted;
+                items.Add(new TimelineItem(accepted ? "quote_accepted" : "quote_rejected", responded,
+                    accepted ? $"Teklif onaylandı: {quote.No}" : $"Teklif reddedildi: {quote.No}", quote.ResponseNote, quote.Total, quote.Id));
             }
         }
 

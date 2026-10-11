@@ -36,8 +36,7 @@ public static class StockEndpoints
 {
     public static IEndpointRouteBuilder MapStockEndpoints(this IEndpointRouteBuilder app)
     {
-        app.MapGet("/api/products/{id:guid}/stock-movements", (Guid id, CurrentMember member, AppDbContext db, CancellationToken ct, int page = 1, int pageSize = 25) =>
-                ListAsync(db, member, id, null, page, pageSize, ct))
+        app.MapGet("/api/products/{id:guid}/stock-movements", ProductMovements)
             .WithTags("Stock").RequireAuthorization(Policies.Panel).WithSummary("Ürünün stok hareketleri (en yeni önce)");
 
         var group = app.MapGroup("/api/stock").WithTags("Stock").RequireAuthorization(Policies.Panel);
@@ -50,6 +49,12 @@ public static class StockEndpoints
 
         return app;
     }
+
+    private static async Task<Results<Ok<StockMovementListResponse>, ProblemHttpResult>> ProductMovements(
+        Guid id, CurrentMember member, AppDbContext db, CancellationToken ct, int page = 1, int pageSize = 25) =>
+        await db.Products.IgnoreQueryFilters([QueryFilters.SoftDelete]).AnyAsync(p => p.Id == id, ct)
+            ? await ListAsync(db, member, id, null, page, pageSize, ct)
+            : ProductEndpoints.ProductNotFound();
 
     private static async Task<Ok<StockMovementListResponse>> ListAsync(
         AppDbContext db, CurrentMember member, Guid? productId, StockMovementType? type, int page, int pageSize, CancellationToken ct)

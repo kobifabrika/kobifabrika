@@ -23,6 +23,9 @@ public static class ShareLinks
     public static string PaymentMessage(string contactName, string businessName, decimal amount, string link) =>
         $"Merhaba {contactName}, {businessName} için {Money(amount)} ödeme bilgileri: {link}";
 
+    public static string QuoteMessage(string contactName, string businessName, string quoteNo, decimal total, string link) =>
+        $"Merhaba {contactName}, {businessName} teklifi ({quoteNo}, {Money(total)}): {link}";
+
     public static string Range(DateOnly? from, DateOnly to) => from is { } f
         ? $"{f.ToString("dd.MM.yyyy", Tr)} – {to.ToString("dd.MM.yyyy", Tr)}"
         : $"{to.ToString("dd.MM.yyyy", Tr)} tarihine kadarki";

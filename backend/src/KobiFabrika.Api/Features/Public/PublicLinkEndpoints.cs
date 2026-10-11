@@ -30,7 +30,7 @@ public sealed record PublicPaymentResponse(
 public sealed record ClaimPaymentRequest(string? Note);
 
 /// <summary>
-/// İşletmenin müşterisinin açtığı herkese açık sayfaların uçları: /ekstre/[token] ve /odeme/[token]. Oturum yok;
+/// İşletmenin müşterisinin açtığı herkese açık sayfaların uçları: /ekstre/[token], /odeme/[token] ve /teklif/[token]. Oturum yok;
 /// kiracı token özetinden çözülür ve işlem o işletmenin kiracı bağlamındaki ayrı bir DI scope'unda yapılır.
 /// IP başına dakikada sınırlı; yanıtlar arama motorlarına kapalı ve referrer göndermez.
 /// </summary>
@@ -55,6 +55,7 @@ public static class PublicLinkEndpoints
         group.MapGet("/payment-requests/{token}", Payment).WithSummary("Tahsilat linki: tutar ve IBAN");
         group.MapPost("/payment-requests/{token}/claim", Claim).Validate<ClaimPaymentRequest>()
             .WithSummary("Müşteri \"Ödedim\" der; Sahip ve Yöneticilere bildirim düşer");
+        group.MapPublicQuoteEndpoints();
 
         return app;
     }

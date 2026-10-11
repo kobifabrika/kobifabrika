@@ -69,6 +69,16 @@ public static class EmailTemplates
         "Bağlantı 30 gün geçerlidir. Sorunuz varsa doğrudan işletmeyle iletişime geçin.",
         senderName: businessName);
 
+    public static EmailMessage Quote(string to, string businessName, string contactName, string quoteNo, string total, string validUntil, string link) => Build(
+        to,
+        $"{businessName} teklifi: {quoteNo}",
+        $"Merhaba {contactName},",
+        $"{businessName} size {total} tutarında bir teklif gönderdi. Teklifi aşağıdaki bağlantıdan inceleyip onaylayabilir veya reddedebilirsiniz.",
+        "Teklifi gör",
+        link,
+        $"Teklif {validUntil} tarihine kadar geçerlidir. Sorunuz varsa doğrudan işletmeyle iletişime geçin.",
+        senderName: businessName);
+
     /// <param name="senderName">Doluysa e-posta işletme adına gider: üstte işletme adı, altta "KobiFabrika ile gönderildi".</param>
     private static EmailMessage Build(
         string to, string subject, string greeting, string body, string? buttonText, string? link, string footnote, string? senderName = null)

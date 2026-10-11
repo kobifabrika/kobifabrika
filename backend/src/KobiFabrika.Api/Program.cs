@@ -8,6 +8,7 @@ using KobiFabrika.Api.Features.AuditLogs;
 using KobiFabrika.Api.Features.Auth;
 using KobiFabrika.Api.Features.Businesses;
 using KobiFabrika.Api.Features.Catalog;
+using KobiFabrika.Api.Features.Quotes;
 using KobiFabrika.Api.Features.Sales;
 using KobiFabrika.Api.Features.Customers;
 using KobiFabrika.Api.Features.Finance;
@@ -190,6 +191,7 @@ app.MapCategoryEndpoints();
 app.MapProductImportEndpoints();
 app.MapStockEndpoints();
 app.MapSaleEndpoints();
+app.MapQuoteEndpoints();
 
 if (BackgroundJobs.IsEnabled(app.Configuration))
 {

@@ -217,7 +217,7 @@ public static class SaleEndpoints
         var business = await db.Businesses.AsNoTracking().FirstAsync(b => b.Id == member.BusinessId, ct);
         var data = new ReceiptData(
             await PdfBusinessAsync(business, storage, ct), sale.No, BusinessTime.ToLocal(sale.Date), sale.CreatedByName, sale.ContactName,
-            sale.Lines.Select(l => new PdfLine(l.Description, CatalogLabels.Quantity(l.Quantity, l.Unit), l.UnitPrice, l.LineDiscount, l.VatRate, l.LineTotal + l.AllocatedDiscount)).ToList(),
+            sale.Lines.Select(l => new PdfLine(l.Description, CatalogLabels.Quantity(l.Quantity, l.Unit), l.UnitPrice, l.LineDiscount, l.VatRate, l.LineTotal + l.AllocatedDiscount + l.LineDiscount)).ToList(),
             Totals(sale.SubTotal, sale.LineDiscountTotal + sale.DiscountTotal, sale.VatTotal, sale.Total, sale.Vat),
             sale.Payments.Select(p => new PdfPayment(SaleLabels.Methods[p.Method], p.Amount)).ToList(),
             sale.Status == SaleStatus.Cancelled, sale.Note);

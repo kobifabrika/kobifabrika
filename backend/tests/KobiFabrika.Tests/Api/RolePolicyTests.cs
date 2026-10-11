@@ -35,6 +35,13 @@ public sealed class RolePolicyTests(SqlServerFixture db) : ApiTestBase(db)
             (HttpMethod.Get, "/api/team/members", null, ["Owner", "Manager"]),
             (HttpMethod.Get, "/api/team/invitations", null, ["Owner", "Manager"]),
             (HttpMethod.Get, "/api/audit-logs", null, ["Owner", "Manager", "Accountant"]),
+            (HttpMethod.Get, "/api/products", null, ["Owner", "Manager", "Staff", "Accountant"]),
+            (HttpMethod.Get, "/api/products/export.xlsx", null, ["Owner", "Manager", "Accountant"]),
+            (HttpMethod.Get, "/api/products/import/template.xlsx", null, ["Owner", "Manager"]),
+            (HttpMethod.Get, "/api/stock/summary", null, ["Owner", "Manager", "Staff", "Accountant"]),
+            (HttpMethod.Get, "/api/sales", null, ["Owner", "Manager", "Staff", "Accountant"]),
+            (HttpMethod.Get, "/api/sales/export.xlsx", null, ["Owner", "Manager", "Accountant"]),
+            (HttpMethod.Get, "/api/quotes", null, ["Owner", "Manager", "Staff", "Accountant"]),
         };
 
         foreach (var (method, url, body, allowed) in matrix)
