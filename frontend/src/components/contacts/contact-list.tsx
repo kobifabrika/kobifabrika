@@ -7,7 +7,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 
-import { Balance, ContactActions, EmptyState, Notice, selectClass, TagList } from "@/components/contacts/contact-bits";
+import { Balance, ContactActions, EmptyState, selectClass, TagList } from "@/components/contacts/contact-bits";
 import { QueryError } from "@/components/feedback/query-error";
 import { Field } from "@/components/forms/field";
 import { useSession } from "@/components/providers/session-provider";
@@ -176,10 +176,6 @@ export function ContactList({ mode = "customer" }: { mode?: Mode }) {
 
       {mode === "customer" && (segments.data?.length ?? 0) > 0 && (
         <SegmentChips segments={segments.data!} active={segment} onChange={setSegment} />
-      )}
-
-      {segment === "inactive-60" && (
-        <Notice>Son ziyaret bilgisi satış ve randevularla dolacak; şimdilik bu liste boş görünebilir.</Notice>
       )}
 
       {list.isPending ? (

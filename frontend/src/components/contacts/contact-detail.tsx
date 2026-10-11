@@ -12,6 +12,7 @@ import {
   Mail,
   MoreHorizontal,
   Pencil,
+  ReceiptText,
   ShieldCheck,
   StickyNote,
   Trash2,
@@ -23,6 +24,8 @@ import { useState, type ReactNode } from "react";
 import { toast } from "sonner";
 
 import { Balance, ContactActions, Notice, TabNav, TagList } from "@/components/contacts/contact-bits";
+import { QuoteList } from "@/components/quotes/quote-list";
+import { SaleList } from "@/components/sales/sale-list";
 import { contactsKey } from "@/components/contacts/contact-list";
 import { ReminderList } from "@/components/contacts/reminders";
 import { LedgerPanel } from "@/components/finance/ledger-panel";
@@ -43,7 +46,7 @@ import { displayPhone } from "@/lib/contacts";
 import { formatDate, formatDateTime, formatDay, formatMoney } from "@/lib/format";
 import { can } from "@/lib/permissions";
 
-type TabKey = "ozet" | "zaman" | "cari" | "notlar" | "hatirlatmalar";
+type TabKey = "ozet" | "zaman" | "satislar" | "cari" | "notlar" | "hatirlatmalar";
 
 /** Müşteri/tedarikçi kartı. basePath: /panel/musteriler veya /panel/cari-kasa/tedarikciler. */
 export function ContactDetail({ id, basePath }: { id: string; basePath: string }) {
@@ -80,6 +83,7 @@ export function ContactDetail({ id, basePath }: { id: string; basePath: string }
   const tabs: { key: TabKey; label: string }[] = [
     { key: "ozet", label: "Özet" },
     { key: "zaman", label: "Zaman çizelgesi" },
+    ...(c.isCustomer ? [{ key: "satislar" as const, label: "Satışlar" }] : []),
     ...(finance ? [{ key: "cari" as const, label: "Cari" }] : []),
     { key: "notlar", label: "Notlar" },
     { key: "hatirlatmalar", label: "Hatırlatmalar" },
@@ -126,6 +130,22 @@ export function ContactDetail({ id, basePath }: { id: string; basePath: string }
           )}
           {finance && c.balance != null && <Balance value={c.balance} className="text-base" />}
         </div>
+        {c.isCustomer && !c.isArchived && can(role, "createSales") && (
+          <div className="grid grid-cols-2 gap-2 sm:flex">
+            <Button asChild>
+              <Link href={`/panel/satislar/yeni?musteri=${c.id}`}>
+                <ReceiptText aria-hidden />
+                Satış yap
+              </Link>
+            </Button>
+            <Button asChild variant="outline">
+              <Link href={`/panel/teklifler/yeni?musteri=${c.id}`}>
+                <FileText aria-hidden />
+                Teklif hazırla
+              </Link>
+            </Button>
+          </div>
+        )}
         {c.notes && <Notice>{c.notes}</Notice>}
       </header>
 
@@ -133,6 +153,15 @@ export function ContactDetail({ id, basePath }: { id: string; basePath: string }
 
       {active === "ozet" && <Overview contact={c} />}
       {active === "zaman" && <Timeline id={c.id} />}
+      {active === "satislar" && (
+        <div className="flex flex-col gap-6">
+          <SaleList contactId={c.id} />
+          <section className="flex flex-col gap-2">
+            <h2 className="text-lg font-semibold text-black">Teklifler</h2>
+            <QuoteList contactId={c.id} />
+          </section>
+        </div>
+      )}
       {active === "cari" && finance && <LedgerPanel contact={c} />}
       {active === "notlar" && <Notes id={c.id} />}
       {active === "hatirlatmalar" && <ReminderList contactId={c.id} contactName={c.displayName} />}
@@ -275,7 +304,20 @@ const timelineIcons: Record<string, typeof StickyNote> = {
   payment_claimed: Link2,
   payment_confirmed: HandCoins,
   statement_shared: FileText,
+  sale: ReceiptText,
+  sale_cancelled: ReceiptText,
+  quote: FileText,
+  quote_accepted: FileText,
+  quote_rejected: FileText,
 };
+
+/** Satış ve teklif öğeleri belgenin sayfasına gider. */
+function timelineHref(item: TimelineItem): string | null {
+  if (!item.refId) return null;
+  if (item.kind.startsWith("sale")) return `/panel/satislar/${item.refId}`;
+  if (item.kind.startsWith("quote")) return `/panel/teklifler/${item.refId}`;
+  return null;
+}
 
 function Timeline({ id }: { id: string }) {
   const timeline = useInfiniteQuery({
@@ -333,7 +375,13 @@ function TimelineRow({ item }: { item: TimelineItem }) {
       </span>
       <div className="flex min-w-0 flex-1 flex-col gap-0.5">
         <span className="flex flex-wrap items-baseline justify-between gap-x-3">
-          <span className="text-sm font-semibold text-black">{item.title}</span>
+          {timelineHref(item) ? (
+            <Link href={timelineHref(item)!} className="text-sm font-semibold text-black underline">
+              {item.title}
+            </Link>
+          ) : (
+            <span className="text-sm font-semibold text-black">{item.title}</span>
+          )}
           {item.amount != null && (
             <span className="text-sm font-semibold text-black tabular-nums">
               {item.kind === "ledger" || item.kind === "collection" ? (item.amount > 0 ? "Borç " : "Alacak ") : ""}

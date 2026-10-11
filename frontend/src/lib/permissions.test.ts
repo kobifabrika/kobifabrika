@@ -8,6 +8,11 @@ describe("yetki matrisi (backend Policies.cs ile aynı)", () => {
     ["manageBusiness", ["Owner", "Manager"]],
     ["manageTeam", ["Owner", "Manager"]],
     ["viewAuditLog", ["Owner", "Manager", "Accountant"]],
+    ["manageCatalog", ["Owner", "Manager"]],
+    ["viewPurchasePrice", ["Owner", "Manager", "Accountant"]],
+    ["createSales", ["Owner", "Manager", "Staff"]],
+    ["viewAllSales", ["Owner", "Manager", "Accountant"]],
+    ["cancelSales", ["Owner", "Manager"]],
   ] as const)("%s → %j", (permission, allowed) => {
     for (const role of ["Owner", "Manager", "Staff", "Accountant"] as const) {
       expect(can(role, permission)).toBe((allowed as readonly string[]).includes(role));

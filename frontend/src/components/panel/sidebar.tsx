@@ -1,5 +1,6 @@
 "use client";
 
+import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "cn";
@@ -8,12 +9,21 @@ import { Wordmark } from "@/components/brand/wordmark";
 import { BusinessSwitcher } from "@/components/panel/business-switcher";
 import { ApiStatus } from "@/components/panel/api-status";
 import { useSession } from "@/components/providers/session-provider";
+import { api, unwrap } from "@/lib/api/client";
 import { isActive, panelHref, visibleNavGroups } from "@/lib/navigation";
 
 /** Panel menü listesi. Masaüstü sol menüde ve telefondaki "Menü" panelinde kullanılır. */
 export function NavList({ onNavigate }: { onNavigate?: () => void }) {
   const pathname = usePathname();
   const { role, business } = useSession();
+  // Stok menüsünde kritik ve eksi stoktaki ürün sayısı (sayı rozeti).
+  const stock = useQuery({
+    queryKey: ["stock", "summary"],
+    queryFn: () => unwrap(api.GET("/api/stock/summary")),
+    enabled: business.modules.stock,
+    staleTime: 60_000,
+  });
+  const lowStock = (stock.data?.low ?? 0) + (stock.data?.negative ?? 0);
 
   return (
     <nav aria-label="Ana menü" className="flex flex-col gap-6">
@@ -42,7 +52,15 @@ export function NavList({ onNavigate }: { onNavigate?: () => void }) {
                       aria-hidden
                       className={cn("size-5 shrink-0", active ? "text-sidebar-primary-foreground" : "text-sidebar-foreground")}
                     />
-                    {label}
+                    <span className="flex-1">{label}</span>
+                    {slug === "stok" && lowStock > 0 && (
+                      <span
+                        className="rounded-full bg-white px-2 text-xs font-semibold text-black tabular-nums"
+                        aria-label={`${lowStock} ürün kritik seviyede`}
+                      >
+                        {lowStock}
+                      </span>
+                    )}
                   </Link>
                 </li>
               );

@@ -3,6 +3,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Check, FileDown, Plus, Printer, ReceiptText, ShoppingCart } from "lucide-react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { useEffect, useReducer, useRef, useState } from "react";
 import { toast } from "sonner";
 
@@ -38,32 +39,33 @@ export function QuickSale() {
   const { business } = useSession();
   const queryClient = useQueryClient();
   const draftKey = `kf-cart-${business.id}`;
-  const [cart, dispatch] = useReducer(cartReducer, emptyCart);
-  const [loaded, setLoaded] = useState(false);
+  // Taslak: bileşen sadece istemcide (oturum doğrulanınca) render edilir; ilk durum tarayıcıdaki taslaktan gelir.
+  const [initialDraft] = useState(() => loadDraft(draftKey));
+  const [cart, dispatch] = useReducer(cartReducer, initialDraft ?? emptyCart);
   const [payment, setPayment] = useState<PaymentState>(initialPayment());
-  const [discountType, setDiscountType] = useState<DiscountType>("Percent");
-  const [discountText, setDiscountText] = useState("");
+  const [discountType, setDiscountType] = useState<DiscountType>(initialDraft?.discount?.type ?? "Percent");
+  const [discountText, setDiscountText] = useState(
+    initialDraft?.discount ? String(initialDraft.discount.value).replace(".", ",") : "",
+  );
   const [checkoutOpen, setCheckoutOpen] = useState(false);
   const [freeOpen, setFreeOpen] = useState(false);
   const [done, setDone] = useState<{ sale: Sale; warnings: string[] } | null>(null);
   const [submitted, setSubmitted] = useState(false);
   const searchRef = useRef<HTMLInputElement>(null);
 
-  // Taslak: ilk açılışta yüklenir, her değişiklikte saklanır.
+  useEffect(() => saveDraft(draftKey, cart), [cart, draftKey]);
+
+  // Müşteri kartından "Satış yap": ?musteri={id}
+  const preset = useSearchParams().get("musteri");
+  const presetContact = useQuery({
+    queryKey: ["contacts", "detail", preset],
+    queryFn: () => unwrap(api.GET("/api/contacts/{id}", { params: { path: { id: preset! } } })),
+    enabled: !!preset,
+  });
   useEffect(() => {
-    const draft = loadDraft(draftKey);
-    if (draft) {
-      dispatch({ type: "load", cart: draft });
-      if (draft.discount) {
-        setDiscountType(draft.discount.type);
-        setDiscountText(String(draft.discount.value).replace(".", ","));
-      }
-    }
-    setLoaded(true);
-  }, [draftKey]);
-  useEffect(() => {
-    if (loaded) saveDraft(draftKey, cart);
-  }, [cart, loaded, draftKey]);
+    if (presetContact.data)
+      dispatch({ type: "contact", contact: { id: presetContact.data.id, name: presetContact.data.displayName, phone: presetContact.data.phone } });
+  }, [presetContact.data]);
 
   // Masaüstünde arama kutusu hazır odakta (telefonda klavye kendiliğinden açılmasın).
   useEffect(() => {
