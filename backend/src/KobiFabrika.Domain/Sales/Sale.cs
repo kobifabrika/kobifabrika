@@ -52,7 +52,7 @@ public class Sale : TenantEntity
 public abstract class DocumentLine : TenantEntity
 {
     public Guid? ProductId { get; set; }
-    public required string Description { get; set; }
+    public string Description { get; set; } = "";
     public ProductUnit Unit { get; set; }
     public decimal Quantity { get; set; }
 

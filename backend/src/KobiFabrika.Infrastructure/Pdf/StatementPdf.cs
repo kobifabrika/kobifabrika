@@ -30,6 +30,12 @@ public sealed record StatementData(
 public interface IPdfRenderer
 {
     byte[] Statement(StatementData data);
+
+    /// <summary>80 mm satış fişi.</summary>
+    byte[] Receipt(ReceiptData data);
+
+    /// <summary>Logolu A4 teklif.</summary>
+    byte[] Quote(QuoteDocumentData data);
 }
 
 /// <summary>
@@ -37,7 +43,7 @@ public interface IPdfRenderer
 /// (Tarih, Açıklama, Borç, Alacak, Bakiye), son bakiye müşterinin bakışıyla ("Borcunuz"/"Alacağınız"). Sadece siyah/gri (docs/04-tasarim.md).
 /// QuestPDF'in gömülü Lato fontu Türkçe karakterleri destekler.
 /// </summary>
-internal sealed class QuestPdfRenderer : IPdfRenderer
+internal sealed partial class QuestPdfRenderer : IPdfRenderer
 {
     private static readonly CultureInfo Tr = CultureInfo.GetCultureInfo("tr-TR");
     private const string Gray = "#525252";

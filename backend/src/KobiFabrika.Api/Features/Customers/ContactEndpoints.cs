@@ -529,6 +529,6 @@ public static class ContactEndpoints
             return ContactNotFound();
         }
 
-        return TypedResults.Ok(await ContactTimeline.BuildAsync(db, id, member.CanViewFinance, before, Math.Clamp(take, 1, 100), ct));
+        return TypedResults.Ok(await ContactTimeline.BuildAsync(db, id, member.CanViewFinance, member.CanViewAllSales ? null : member.UserId, before, Math.Clamp(take, 1, 100), ct));
     }
 }

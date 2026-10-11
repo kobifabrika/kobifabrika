@@ -6,8 +6,8 @@ using Microsoft.EntityFrameworkCore;
 namespace KobiFabrika.Api.Features.Customers;
 
 /// <summary>
-/// Zaman çizelgesi öğesi. Kind: created, note, reminder, consent, ledger, collection, payment_request,
-/// payment_claimed, payment_confirmed, statement_shared. Satış, randevu ve mesajlar ilgili sprintlerde eklenir.
+/// Zaman çizelgesi öğesi. Kind: created, note, reminder, consent, sale, sale_cancelled, ledger, collection, payment_request,
+/// payment_claimed, payment_confirmed, statement_shared. Randevu ve mesajlar ilgili sprintlerde eklenir. RefId satışta satışın Id'si.
 /// </summary>
 public sealed record TimelineItem(string Kind, DateTime At, string Title, string? Detail, decimal? Amount, Guid? RefId);
 
@@ -30,9 +30,12 @@ public static class ContactTimeline
         [ConsentSource.OnlineBooking] = "online randevu",
     };
 
-    /// <summary>Her kaynaktan en fazla <paramref name="take"/> öğe alınır, birleştirilip en yeni <paramref name="take"/> öğe döner.</summary>
+    /// <summary>
+    /// Her kaynaktan en fazla <paramref name="take"/> öğe alınır, birleştirilip en yeni <paramref name="take"/> öğe döner.
+    /// <paramref name="salesBy"/> doluysa sadece o kullanıcının girdiği satışlar (Personel).
+    /// </summary>
     public static async Task<TimelineResponse> BuildAsync(
-        AppDbContext db, Guid contactId, bool includeFinance, DateTime? before, int take, CancellationToken ct)
+        AppDbContext db, Guid contactId, bool includeFinance, Guid? salesBy, DateTime? before, int take, CancellationToken ct)
     {
         var limit = before ?? DateTime.MaxValue;
         var items = new List<TimelineItem>();
@@ -63,6 +66,22 @@ public static class ContactTimeline
             .Select(c => new TimelineItem(
                 "consent", c.At, $"{ChannelNames[c.Channel]} izni {(c.Granted ? "verildi" : "geri alındı")}", $"Kaynak: {SourceNames[c.Source]}", null, c.Id)));
 
+        var sales = await db.Sales.AsNoTracking()
+            .Where(x => x.ContactId == contactId && x.CreatedAt < limit && (salesBy == null || x.CreatedBy == salesBy))
+            .OrderByDescending(x => x.CreatedAt).Take(take)
+            .Select(x => new { x.Id, x.No, x.Date, x.Total, x.Status, x.CancelledAt, Items = x.Lines.Count, Methods = x.Payments.Select(p => p.Method).ToList() })
+            .ToListAsync(ct);
+        foreach (var sale in sales)
+        {
+            var methods = string.Join(", ", sale.Methods.Distinct().Order().Select(m => Sales.SaleLabels.Methods[m]));
+            items.Add(new TimelineItem("sale", sale.Date, $"Satış {sale.No}", methods.Length > 0 ? $"{sale.Items} kalem · {methods}" : $"{sale.Items} kalem",
+                sale.Total, sale.Id));
+            if (sale.CancelledAt is { } cancelled && cancelled < limit)
+            {
+                items.Add(new TimelineItem("sale_cancelled", cancelled, $"Satış iptal edildi: {sale.No}", null, sale.Total, sale.Id));
+            }
+        }
+
         if (includeFinance)
         {
             items.AddRange((await db.LedgerEntries.AsNoTracking()
@@ -76,6 +95,8 @@ public static class ContactTimeline
                     {
                         LedgerRefType.Collection => "Tahsilat",
                         LedgerRefType.Opening => "Açılış bakiyesi",
+                        LedgerRefType.Sale => "Veresiye satış",
+                        LedgerRefType.SaleCancel => "Veresiye satış iptali",
                         _ => e.Debit > 0 ? "Borç kaydı" : "Alacak kaydı",
                     },
                     e.Description,
