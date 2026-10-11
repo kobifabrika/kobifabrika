@@ -102,6 +102,6 @@ kopar, sahipsiz Next dev sunucusu `write EPIPE` ile bozulur (sayfalar dakikalarc
 
 ## Güncel durum
 
-- Sprint: **2 (Müşteriler ve cari)** tamamlandı (2026-10-11): müşteri/tedarikçi kartı, etiket, segment, KVKK izinleri, hatırlatma (Hangfire), Excel içe aktarma, cari hareket ve tahsilat, PDF ekstre, ekstre paylaşımı, tahsilat linki. Sıradaki: **Sprint 3 (Ürün, satış, teklif)**.
-- Bakiyeler (`Contact.Balance`, `CashAccount.Balance`) sadece `LedgerService` ile, SQL'de atomik güncellenir; entity üzerinden yazılmaz.
+- Sprint: **3 (Ürün, satış, teklif)** tamamlandı (2026-10-11): katalog, KDV, Excel'den ürün aktarma, stok hareketleri ve kritik stok, hızlı satış (barkod, bölünmüş ödeme, veresiye → cari), 80 mm fiş, iptal (ters kayıt), teklif linki ve satışa dönüştürme. Sıradaki: **Sprint 4 (Finans ve dashboard)**.
+- Bakiyeler (`Contact.Balance`, `CashAccount.Balance`) sadece `LedgerService` ile, stok (`Product.StockQuantity`) sadece `StockService` ile, SQL'de atomik güncellenir; entity üzerinden yazılmaz. Satış sadece `SaleService` ile yazılır (numara, cari, kasa, stok aynı transaction'da).
 - GitHub: github.com/kobifabrika/kobifabrika (private)

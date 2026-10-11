@@ -53,18 +53,25 @@ Benzersiz indeksler `BusinessId`'yi içerir (ör. `BusinessId + Phone`).
 - **Segments:** Name, Definition (`json`: type, tagIds, source, balance, inactiveDays). Hazır 4 segment kodda (`inactive-60`, `debtors`, `birthday-this-month`, `new-30`), tabloda değil.
 - **ImportJobs:** FileName, Status, Headers (`json`), Rows (`json`, ≤5000), Result (`json`), ExpiresAt (24 saat; saatlik iş siler).
 
-## Katalog ve stok
+## Katalog ve stok (Sprint 3, migration `Sprint3Sales`)
 
-- **ProductCategories:** Name, ParentId.
-- **Products:** Type (Product/Service), Name, CategoryId, Unit, VatRate, PurchasePrice, SalePrice, Barcode, DurationMinutes (hizmet), TrackStock, CriticalStockLevel, StockQuantity (önbellek), IsActive.
-- **StockMovements:** ProductId, Type (In/Out/Adjustment/Sale), Quantity, UnitCost, RefType, RefId, Note.
+Miktarlar `decimal(18,3)` (kg, lt, m için).
 
-## Satış ve teklif
+- **VatRates (global, işletmeye ait değil):** Rate (PK, `decimal(5,2)`), Name, SortOrder, IsActive. Seed: %0, %1, %10, %20. Products.VatRate buna FK.
+- **ProductCategories:** Name (işletme içinde benzersiz), ParentId (şimdilik kullanılmaz). Kurulumda sektöre göre örnek kategoriler.
+- **Products:** Type (Product/Service), Name, CategoryId, Unit (Piece/Kg/Liter/Meter/Package/Hour/Session), VatRate, PricesIncludeVat (varsayılan true), PurchasePrice, SalePrice, Barcode (benzersiz `BusinessId + Barcode`, filtreli), DurationMinutes (hizmet), TrackStock (hizmette hep false), CriticalStockLevel, StockQuantity (önbellek; sadece `StockService` ile atomik), LowStockNotifiedAt, IsActive, Notes.
+- **StockMovements:** ProductId, Type (In/Out/Adjustment/Sale/SaleCancel), Quantity (işaretli), QuantityAfter, UnitCost, Date (`date`), SaleId, Note. Silinmez.
+- **DocumentSequences:** Kind (Sale/Quote), Year, LastValue; benzersiz (BusinessId, Kind, Year). Soft delete yok. Numara belgeyle aynı transaction'da `MERGE … OUTPUT` ile alınır.
 
-- **Sales:** No (işletme içinde sıralı), ContactId (opsiyonel), StaffMemberId (opsiyonel), Date, SubTotal, DiscountTotal, VatTotal, Total, PaymentType (Cash/Card/Transfer/Credit), Status (Completed/Cancelled), AppointmentId (opsiyonel).
-- **SaleLines:** SaleId, ProductId, Description, Quantity, UnitPrice, DiscountRate, VatRate, LineTotal, StaffMemberId.
-- **Quotes:** No, ContactId, Date, ValidUntil, Status (Draft/Sent/Accepted/Rejected/Converted), PublicToken, totals, Notes, SaleId.
-- **QuoteLines:** Sale ile aynı yapı.
+## Satış ve teklif (Sprint 3)
+
+Tutarlar KDV dahil; KDV satır tutarının içinden ayrılır. Hesap: `Domain/Sales/SaleCalculator.cs` (frontend `src/lib/sales.ts` aynı algoritma ve test vektörleri).
+
+- **Sales:** Year, Seq, No (SAT-2026-000001), ContactId (opsiyonel), Date (UTC), SubTotal (brüt), LineDiscountTotal, DiscountTotal, VatTotal, Total, Status (Completed/Cancelled), CancelledAt, CancelledBy, CancelReason, QuoteId, Note. StaffMemberId ve AppointmentId Sprint 5/7'de.
+- **SaleLines / QuoteLines** (ortak taban `DocumentLine`): ProductId (opsiyonel; serbest kalem), Description (ad kopyası), Unit, Quantity, UnitPrice (KDV dahil), LineDiscount, AllocatedDiscount (toplam indirimden pay), VatRate, VatAmount, LineTotal, SortOrder.
+- **SalePayments:** SaleId, Method (Cash/Card/Transfer/Credit), Amount, CashAccountId, CashTransactionId, LedgerEntryId. Bölünmüş ödemede birden fazla; toplam = satış tutarı.
+- **Quotes:** Year, Seq, No (TKL-2026-0001), ContactId, Date, ValidUntil (varsayılan +15 gün), Status (Draft/Sent/Accepted/Rejected/Converted), TokenHash + ProtectedToken (tahsilat linkiyle aynı), SentAt, LastViewedAt, RespondedAt, ResponseNote, RespondedVia (Link/Panel), toplamlar, Notes, SaleId.
+- Mevcut tablolara: **CashTransactions.SaleId** ve türler `SaleIncome`/`SaleRefund`; **LedgerEntries.RefType** `Sale`/`SaleCancel`; **ImportJobs.Kind** (Contacts/Products).
 
 ## Finans
 

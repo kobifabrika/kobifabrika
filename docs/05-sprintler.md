@@ -2,7 +2,7 @@
 
 Tahmini, yarı zamanlı. Toplam yaklaşık 15-18 hafta. Her sprint sonunda: build ve testler geçer, ekranlar 375px'te kontrol edilir, bu dosyada maddeler işaretlenir, `docs/karar-gunlugu.md` güncellenir, commit atılır.
 
-**Durum:** Sprint 2 tamamlandı (2026-10-11). Sıradaki: Sprint 3 (Ürün, satış, teklif). Hangfire Sprint 5'ten öne çekildi (Sprint 2).
+**Durum:** Sprint 3 tamamlandı (2026-10-11); ilk test edilebilir sürüm hazır. Sıradaki: Sprint 4 (Finans ve dashboard). Hangfire Sprint 5'ten öne çekildi (Sprint 2).
 
 ---
 
@@ -41,10 +41,10 @@ Tahmini, yarı zamanlı. Toplam yaklaşık 15-18 hafta. Her sprint sonunda: buil
 
 ## Sprint 3 — Ürün, satış, teklif (2 hafta)
 
-- [ ] Ürün/hizmet kataloğu, kategoriler, KDV oranları
-- [ ] Stok hareketleri, kritik stok uyarısı
-- [ ] Hızlı satış ekranı (mobil öncelikli), ödeme tipleri, veresiye → cari
-- [ ] Teklif: PDF, paylaşım linki, müşteri onayı, satışa dönüştürme
+- [x] Ürün/hizmet kataloğu, kategoriler, KDV oranları (Excel'den ürün içe aktarma dahil)
+- [x] Stok hareketleri, kritik stok uyarısı
+- [x] Hızlı satış ekranı (mobil öncelikli, barkod okuyucu), ödeme tipleri, bölünmüş ödeme, veresiye → cari, 80 mm fiş
+- [x] Teklif: PDF, paylaşım linki, müşteri onayı, satışa dönüştürme
 - **İlk test edilebilir sürüm (yaklaşık 7. hafta)**
 
 ## Sprint 4 — Finans ve dashboard (1-2 hafta)
