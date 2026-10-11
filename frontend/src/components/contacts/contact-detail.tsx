@@ -63,6 +63,8 @@ export function ContactDetail({ id, basePath }: { id: string; basePath: string }
         Yükleniyor…
       </p>
     );
+  // Tedarikçi listesi ayrı sayfa değil, Cari ve Kasa'nın sekmesi.
+  const listHref = basePath.includes("tedarikciler") ? "/panel/cari-kasa?sekme=tedarikciler" : basePath;
   if (contact.isError) {
     return (
       <div className="flex flex-col gap-3">
@@ -71,7 +73,7 @@ export function ContactDetail({ id, basePath }: { id: string; basePath: string }
         ) : (
           <QueryError error={contact.error} onRetry={contact.refetch} />
         )}
-        <Link href={basePath} className="text-sm font-semibold text-black underline">
+        <Link href={listHref} className="text-sm font-semibold text-black underline">
           Listeye dön
         </Link>
       </div>
@@ -90,7 +92,6 @@ export function ContactDetail({ id, basePath }: { id: string; basePath: string }
   ];
   const requested = params.get("sekme") as TabKey | null;
   const active: TabKey = tabs.some((t) => t.key === requested) ? requested! : "ozet";
-  const listHref = basePath.includes("tedarikciler") ? "/panel/cari-kasa?sekme=tedarikciler" : basePath;
 
   return (
     <div className="mx-auto flex max-w-5xl flex-col gap-5">
