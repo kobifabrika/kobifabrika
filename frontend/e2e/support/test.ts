@@ -150,7 +150,12 @@ export const test = base.extend<Fixtures & Options>({
           );
       }
 
-      const axe = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"]).analyze();
+      const axe = await new AxeBuilder({ page })
+        .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"])
+        // Bildirim (toast) yığını: arkadaki toast'lar ve giriş/çıkış animasyonu bilerek yarı saydam; kalıcı halde
+        // siyah yazı beyaz zemin (components/ui/sonner.tsx).
+        .exclude("[data-sonner-toaster]")
+        .analyze();
       for (const v of axe.violations.filter((v) => v.impact === "serious" || v.impact === "critical")) {
         const nodes = v.nodes
           .slice(0, 3)
