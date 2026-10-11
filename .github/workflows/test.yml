@@ -1,0 +1,150 @@
+# test.ps1 ile aynı testler, Ubuntu'da: backend (xUnit + Testcontainers), frontend lint/birim/build, E2E (Playwright).
+# Dakika tasarrufu: aynı dalda yeni push gelince eski çalışma iptal; sadece dokümanı değişen commit'te çalışmaz; NuGet, npm ve
+# Playwright tarayıcıları cache'lenir.
+name: Testler
+
+on:
+  push:
+    branches: [main]
+    paths-ignore: ["docs/**", "**/*.md"]
+  pull_request:
+    branches: [main]
+    paths-ignore: ["docs/**", "**/*.md"]
+  workflow_dispatch:
+
+concurrency:
+  group: test-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  DOTNET_NOLOGO: "1"
+  DOTNET_CLI_TELEMETRY_OPTOUT: "1"
+  NEXT_TELEMETRY_DISABLED: "1"
+  # Sadece bu iş süresince yaşayan, dışarıya kapalı CI konteynerinin şifresi (gizli bilgi değil).
+  E2E_CONNECTION_STRING: Server=localhost,1433;Database=KobiFabrika_E2E;User Id=sa;Password=Ci_Gecici_Sifre_2026!;TrustServerCertificate=True
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    services:
+      sqlserver:
+        image: mcr.microsoft.com/mssql/server:2025-latest
+        env:
+          ACCEPT_EULA: "Y"
+          MSSQL_PID: Developer
+          MSSQL_SA_PASSWORD: Ci_Gecici_Sifre_2026!
+          TZ: UTC
+        ports: ["1433:1433"]
+        options: >-
+          --health-cmd "/opt/mssql-tools18/bin/sqlcmd -C -S localhost -U sa -P 'Ci_Gecici_Sifre_2026!' -Q 'SELECT 1' -b -o /dev/null"
+          --health-interval 10s --health-timeout 5s --health-retries 20 --health-start-period 30s
+      mailpit:
+        image: axllent/mailpit:v1.31
+        ports: ["1025:1025", "8025:8025"]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+
+      - name: NuGet cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: nuget-${{ runner.os }}-${{ hashFiles('backend/**/*.csproj', 'backend/Directory.Packages.props', 'global.json') }}
+          restore-keys: nuget-${{ runner.os }}-
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: dotnet-ef
+        run: dotnet tool install --global dotnet-ef --version "10.*"
+
+      - name: npm ci
+        working-directory: frontend
+        run: npm ci
+
+      - name: Playwright sürümü
+        id: pw
+        working-directory: frontend
+        run: echo "version=$(node -p "require('@playwright/test/package.json').version")" >> "$GITHUB_OUTPUT"
+
+      - name: Playwright tarayıcı cache
+        id: pw-cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ steps.pw.outputs.version }}
+
+      - name: Playwright tarayıcıları
+        working-directory: frontend
+        run: |
+          if [ "${{ steps.pw-cache.outputs.cache-hit }}" = "true" ]; then
+            npx playwright install-deps chromium webkit
+          else
+            npx playwright install --with-deps chromium webkit
+          fi
+
+      # Bir bölüm kalsa da sonrakiler çalışır (test.ps1 gibi); iş sonunda kırmızı olur.
+      - name: Backend testleri
+        id: backend
+        run: dotnet test backend -c Release --results-directory TestResults/ci --report-xunit-ctrf --report-xunit-ctrf-filename backend.json
+
+      - name: Frontend lint
+        if: success() || failure()
+        working-directory: frontend
+        run: npm run lint
+
+      - name: Frontend birim testleri
+        if: success() || failure()
+        working-directory: frontend
+        run: npm run test
+
+      - name: Frontend build (E2E için)
+        id: build
+        if: success() || failure()
+        working-directory: frontend
+        env:
+          NEXT_DIST_DIR: .next-e2e
+          NEXT_PUBLIC_API_URL: http://localhost:5180
+        run: npx next build
+
+      - name: E2E (Playwright)
+        if: (success() || failure()) && steps.build.outcome == 'success'
+        working-directory: frontend
+        env:
+          E2E_SKIP_WEB_BUILD: "1"
+          E2E_SKIP_API_BUILD: ${{ steps.backend.outcome == 'success' && '1' || '0' }}
+        run: npx playwright test
+
+      - name: Özet
+        if: always()
+        working-directory: frontend
+        run: |
+          {
+            echo "| Bölüm | Geçen | Kalan |"
+            echo "|---|---:|---:|"
+            for pair in "Backend testleri:ctrf:../TestResults/ci/backend.json" "E2E (Playwright):playwright:test-results/results.json"; do
+              IFS=: read -r name kind file <<< "$pair"
+              if [ -f "$file" ]; then
+                node e2e/scripts/ozet.mjs "$kind" "$file" | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{const r=JSON.parse(s);console.log(`| '"$name"' | ${r.passed} | ${r.failed} |`);for(const f of r.failures)console.log(`| ↳ ${f.name} | | ${f.reason.replace(/\|/g,"/")} |`)})'
+              fi
+            done
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Playwright raporu
+        if: always() && steps.build.outcome == 'success'
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-raporu
+          path: frontend/playwright-report
+          retention-days: 14

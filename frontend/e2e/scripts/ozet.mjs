@@ -6,7 +6,7 @@ import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
 
 const [kind, file] = process.argv.slice(2);
-const plain = (text = "") => text.replace(/\x1b\[[0-9;]*m/g, ""); // eslint-disable-line no-control-regex
+const plain = (text = "") => text.replace(/\x1b\[[0-9;]*m/g, "");
 
 /** Hata metninin kısa nedeni: ilk anlamlı satır (otomatik kontrollerde ilk sorun). */
 function reason(text) {
