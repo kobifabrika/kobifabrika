@@ -45,7 +45,7 @@ export function useCashAccounts(enabled = true) {
   return useQuery({ queryKey: cashAccountsKey, queryFn: () => unwrap(api.GET("/api/cash-accounts")), enabled });
 }
 
-function DialogShell({
+export function DialogShell({
   open,
   onOpenChange,
   title,
@@ -282,7 +282,7 @@ export function CollectionDialog({
   );
 }
 
-function CopyButton({ text, label = "Kopyala" }: { text: string; label?: string }) {
+export function CopyButton({ text, label = "Kopyala" }: { text: string; label?: string }) {
   const [copied, setCopied] = useState(false);
   return (
     <Button
@@ -301,7 +301,7 @@ function CopyButton({ text, label = "Kopyala" }: { text: string; label?: string 
 }
 
 /** Paylaşım linki hazır olunca: WhatsApp, kopyala, e-posta, SMS (Yakında). */
-function ShareButtons({
+export function ShareButtons({
   url,
   whatsappUrl,
   onEmail,

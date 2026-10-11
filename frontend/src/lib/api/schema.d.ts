@@ -6260,6 +6260,10 @@ export interface components {
             modules: components["schemas"]["ModulesDto"];
             logoUrl: null | string;
             setupCompleted: boolean;
+            phone: null | string;
+            address: null | string;
+            city: null | string;
+            district: null | string;
         };
         MemberResponse: {
             /** Format: uuid */

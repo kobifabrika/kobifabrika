@@ -11,6 +11,7 @@ public sealed record MeResponse(MeUser User, MeBusiness? Business, BusinessRole?
 
 public sealed record MeUser(Guid Id, string FullName, string Email, bool EmailConfirmed, string? Phone);
 
+/// <summary>Phone (E.164), Address, City, District: fiş ve belgelerin başlığı için (her rol görür).</summary>
 public sealed record MeBusiness(
     Guid Id,
     string Name,
@@ -19,7 +20,11 @@ public sealed record MeBusiness(
     BusinessTemplate Template,
     ModulesDto Modules,
     string? LogoUrl,
-    bool SetupCompleted);
+    bool SetupCompleted,
+    string? Phone,
+    string? Address,
+    string? City,
+    string? District);
 
 public sealed record ModulesDto(bool Appointments, bool Stock)
 {
@@ -90,7 +95,8 @@ public sealed class SessionService(
             business = await db.Businesses
                 .Where(b => b.Id == current.BusinessId)
                 .Select(b => new MeBusiness(
-                    b.Id, b.Name, b.Slug, b.Sector, b.Template, ModulesDto.From(b.Modules), b.LogoUrl, b.SetupCompletedAt != null))
+                    b.Id, b.Name, b.Slug, b.Sector, b.Template, ModulesDto.From(b.Modules), b.LogoUrl, b.SetupCompletedAt != null,
+                    b.Phone, b.Address, b.City, b.District))
                 .FirstAsync(ct);
         }
 
