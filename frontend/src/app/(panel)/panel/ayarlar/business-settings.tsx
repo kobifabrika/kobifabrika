@@ -10,6 +10,7 @@ import { z } from "zod";
 import { businessBasicsSchema, BusinessFields } from "@/components/business/business-fields";
 import { LogoUpload } from "@/components/business/logo-upload";
 import { templateNames } from "@/components/business/sectors";
+import { ChoiceGroup } from "@/components/catalog/catalog-bits";
 import { QueryError } from "@/components/feedback/query-error";
 import { Field, FormMessage } from "@/components/forms/field";
 import { meQueryKey, useSession } from "@/components/providers/session-provider";
@@ -51,6 +52,7 @@ export function BusinessSettings() {
       <SlugCard business={business.data} readOnly={readOnly} />
       <PaymentInfoCard business={business.data} readOnly={readOnly} />
       <ModulesCard business={business.data} readOnly={readOnly} />
+      <ReceiptCard business={business.data} readOnly={readOnly} />
       <SettingsCard title="Logo" description="Tekliflerde ve randevu sayfanda görünür.">
         <LogoSection business={business.data} readOnly={readOnly} />
       </SettingsCard>
@@ -324,6 +326,41 @@ function ModulesCard({ business, readOnly }: { business: Business; readOnly: boo
           </li>
         ))}
       </ul>
+    </SettingsCard>
+  );
+}
+
+const receiptWidths = [
+  { value: "80", label: "80 mm" },
+  { value: "58", label: "58 mm" },
+] as const;
+
+function ReceiptCard({ business, readOnly }: { business: Business; readOnly: boolean }) {
+  const refresh = useRefreshBusiness();
+  const save = useMutation({
+    mutationFn: (width: number) => unwrap(api.PUT("/api/business/receipt", { body: { width } })),
+    onSuccess: async (next) => {
+      await refresh(next);
+      toast.success(`Fiş genişliği ${next.receiptWidth} mm.`);
+    },
+    onError: (e) => toast.error(errorMessage(e)),
+  });
+
+  return (
+    <SettingsCard
+      title="Fiş yazıcısı"
+      description="Fiş kağıdının genişliği. Çoğu yazıcı 80 mm; küçük taşınabilir yazıcılar 58 mm."
+    >
+      {readOnly ? (
+        <p className="text-sm text-black">{business.receiptWidth} mm</p>
+      ) : (
+        <ChoiceGroup
+          label="Fiş genişliği"
+          value={String(business.receiptWidth) as "58" | "80"}
+          onChange={(v) => v !== String(business.receiptWidth) && !save.isPending && save.mutate(Number(v))}
+          options={[...receiptWidths]}
+        />
+      )}
     </SettingsCard>
   );
 }

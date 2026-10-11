@@ -14,6 +14,7 @@ export const auditActionLabels: Record<AuditAction, string> = {
   LogoChanged: "Logoyu değiştirdi",
   ModulesChanged: "Modülleri değiştirdi",
   PaymentInfoChanged: "Ödeme bilgilerini (IBAN) değiştirdi",
+  ReceiptSettingsChanged: "Fiş genişliğini değiştirdi",
   ContactCreated: "Müşteri ekledi",
   ContactUpdated: "Müşteri kartını güncelledi",
   ContactArchived: "Müşteriyi arşivledi",
@@ -118,7 +119,9 @@ export function auditDetail(item: Pick<AuditLogItem, "action" | "changes">): str
     case "ProductDeleted":
       return text(c.name) + (c.deactivated ? " · pasife alındı" : "");
     case "ProductUpdated":
-      return typeof c.isActive === "boolean" ? `${text(c.name)} · ${c.isActive ? "satışa açıldı" : "pasife alındı"}` : "";
+      return typeof c.isActive === "boolean"
+        ? `${text(c.name)} · ${c.isActive ? "satışa açıldı" : "pasife alındı"}`
+        : "";
     case "ProductsImported":
       return `${text(c.file)} · ${c.added ?? 0} eklendi, ${c.duplicates ?? 0} tekrar, ${c.errors ?? 0} hatalı`;
     case "ProductsExported":
@@ -155,6 +158,8 @@ export function auditDetail(item: Pick<AuditLogItem, "action" | "changes">): str
       return `${text(c.from)} → ${text(c.to)}`;
     case "LogoChanged":
       return c.removed ? "Logo kaldırıldı" : "";
+    case "ReceiptSettingsChanged":
+      return `${c.from ?? ""} mm → ${c.to ?? ""} mm`;
     case "ModulesChanged": {
       const to = (c.to ?? {}) as { appointments?: boolean; stock?: boolean };
       return `Randevular ${to.appointments ? "açık" : "kapalı"}, Stok ${to.stock ? "açık" : "kapalı"}`;

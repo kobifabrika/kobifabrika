@@ -19,7 +19,14 @@ import { salesKey } from "@/components/sales/quick-sale";
 import { LineList } from "@/components/sales/sale-detail";
 import { TotalsSummary } from "@/components/sales/totals";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -52,7 +59,11 @@ function StatusLine({ status }: { status: QuoteStatus }) {
           <li
             key={s.status}
             aria-current={i === current ? "step" : undefined}
-            className={i <= current ? "flex-1 border-t-2 border-brand pt-2 text-black" : "flex-1 border-t-2 border-neutral-200 pt-2 text-neutral-600"}
+            className={
+              i <= current
+                ? "flex-1 border-t-2 border-brand pt-2 text-black"
+                : "flex-1 border-t-2 border-neutral-200 pt-2 text-neutral-600"
+            }
           >
             {label}
           </li>
@@ -163,13 +174,15 @@ export function QuoteDetail({ id }: { id: string }) {
       <StatusLine status={q.status} />
 
       {q.isExpired && (
-        <Notice>Geçerlilik tarihi geçti; müşteriye gönderilen link açılmaz. &quot;Paylaş&quot; ile geçerliliği uzatıp yeni link oluşturabilirsiniz.</Notice>
+        <Notice>
+          Geçerlilik tarihi geçti; müşteriye gönderilen link açılmaz. &quot;Paylaş&quot; ile geçerliliği uzatıp yeni
+          link oluşturabilirsiniz.
+        </Notice>
       )}
       {q.respondedAt && (q.status === "Accepted" || q.status === "Rejected" || q.status === "Converted") && (
         <Notice>
           {formatDateTime(q.respondedAt)} · {q.respondedVia === "Link" ? "Müşteri linkten" : "Panelden"}{" "}
-          {q.status === "Rejected" ? "reddetti" : "onayladı"}.
-          {q.responseNote && ` Not: "${q.responseNote}"`}
+          {q.status === "Rejected" ? "reddetti" : "onayladı"}.{q.responseNote && ` Not: "${q.responseNote}"`}
         </Notice>
       )}
       {q.status === "Converted" && q.saleId && (
@@ -212,7 +225,9 @@ export function QuoteDetail({ id }: { id: string }) {
         <LineList lines={q.lines} />
         <TotalsSummary totals={q} className="sm:ml-auto sm:w-80" />
         {q.notes && <p className="text-sm whitespace-pre-line text-neutral-700">{q.notes}</p>}
-        {q.lastViewedAt && <p className="text-xs text-neutral-600">Müşteri en son {formatDateTime(q.lastViewedAt)} tarihinde açtı.</p>}
+        {q.lastViewedAt && (
+          <p className="text-xs text-neutral-600">Müşteri en son {formatDateTime(q.lastViewedAt)} tarihinde açtı.</p>
+        )}
       </section>
 
       {shareOpen && <ShareQuoteDialog quote={q} onClose={() => setShareOpen(false)} />}
@@ -246,7 +261,9 @@ type ShareAction = { action: "share" | "renew"; sendEmail: boolean; extend?: boo
  */
 function ShareQuoteDialog({ quote, onClose }: { quote: Quote; onClose: () => void }) {
   const refresh = useQuotesRefresh();
-  const [link, setLink] = useState<{ url: string; whatsappUrl: string; isNewLink: boolean; validUntil: string } | null>(null);
+  const [link, setLink] = useState<{ url: string; whatsappUrl: string; isNewLink: boolean; validUntil: string } | null>(
+    null,
+  );
   const [confirmRenew, setConfirmRenew] = useState(false);
   const [askExtend, setAskExtend] = useState<"share" | "renew" | null>(quote.isExpired ? "share" : null);
   const share = useMutation({
@@ -260,9 +277,11 @@ function ShareQuoteDialog({ quote, onClose }: { quote: Quote; onClose: () => voi
       setLink({ url: r.url, whatsappUrl: r.whatsappUrl, isNewLink: r.isNewLink, validUntil: r.quote.validUntil });
       setConfirmRenew(false);
       setAskExtend(null);
-      if (extend) toast.success(`Geçerlilik ${formatDay(r.quote.validUntil)} tarihine uzatıldı; yeni link oluşturuldu.`);
+      if (extend)
+        toast.success(`Geçerlilik ${formatDay(r.quote.validUntil)} tarihine uzatıldı; yeni link oluşturuldu.`);
       else if (action === "renew") toast.success("Link yenilendi; eski link artık çalışmıyor.");
-      if (sendEmail) toast[r.emailSent ? "success" : "error"](r.emailSent ? "E-posta gönderildi." : "E-posta gönderilemedi.");
+      if (sendEmail)
+        toast[r.emailSent ? "success" : "error"](r.emailSent ? "E-posta gönderildi." : "E-posta gönderilemedi.");
       await refresh();
     },
     onError: (e, { action }) => {
@@ -286,7 +305,12 @@ function ShareQuoteDialog({ quote, onClose }: { quote: Quote; onClose: () => voi
 
   if (askExtend) {
     return (
-      <DialogShell open onOpenChange={(v) => !v && onClose()} title="Teklifi paylaş" description={`${quote.contactName} · ${formatMoney(quote.total)}`}>
+      <DialogShell
+        open
+        onOpenChange={(v) => !v && onClose()}
+        title="Teklifi paylaş"
+        description={`${quote.contactName} · ${formatMoney(quote.total)}`}
+      >
         <div className="flex flex-col gap-4">
           <Notice>Teklifin süresi doldu. Geçerliliği 15 gün uzatıp yeni link oluşturulsun mu?</Notice>
           <p className="text-sm text-neutral-600">Fiyatlar aynı kalır. Müşteriye daha önce gönderilen link çalışmaz.</p>
@@ -294,7 +318,10 @@ function ShareQuoteDialog({ quote, onClose }: { quote: Quote; onClose: () => voi
             <Button variant="outline" onClick={onClose} disabled={share.isPending}>
               Vazgeç
             </Button>
-            <Button onClick={() => share.mutate({ action: askExtend, sendEmail: false, extend: true })} disabled={share.isPending}>
+            <Button
+              onClick={() => share.mutate({ action: askExtend, sendEmail: false, extend: true })}
+              disabled={share.isPending}
+            >
               {share.isPending ? "Uzatılıyor…" : "Evet, uzat"}
             </Button>
           </div>
@@ -304,7 +331,12 @@ function ShareQuoteDialog({ quote, onClose }: { quote: Quote; onClose: () => voi
   }
 
   return (
-    <DialogShell open onOpenChange={(v) => !v && onClose()} title="Teklifi paylaş" description={`${quote.contactName} · ${formatMoney(quote.total)}`}>
+    <DialogShell
+      open
+      onOpenChange={(v) => !v && onClose()}
+      title="Teklifi paylaş"
+      description={`${quote.contactName} · ${formatMoney(quote.total)}`}
+    >
       {link ? (
         <div className="flex flex-col gap-4">
           <ShareButtons
@@ -321,12 +353,18 @@ function ShareQuoteDialog({ quote, onClose }: { quote: Quote; onClose: () => voi
           {quote.status === "Draft" || quote.status === "Sent" ? (
             confirmRenew ? (
               <div className="flex flex-col gap-3 border-t border-border pt-4">
-                <Notice>Yeni bir link oluşturulur, geçerlilik bugünden 15 gün olur. Müşteriye daha önce gönderdiğiniz link çalışmaz.</Notice>
+                <Notice>
+                  Yeni bir link oluşturulur, geçerlilik bugünden 15 gün olur. Müşteriye daha önce gönderdiğiniz link
+                  çalışmaz.
+                </Notice>
                 <div className="grid grid-cols-2 gap-2">
                   <Button variant="outline" onClick={() => setConfirmRenew(false)} disabled={share.isPending}>
                     Vazgeç
                   </Button>
-                  <Button onClick={() => share.mutate({ action: "renew", sendEmail: false })} disabled={share.isPending}>
+                  <Button
+                    onClick={() => share.mutate({ action: "renew", sendEmail: false })}
+                    disabled={share.isPending}
+                  >
                     Evet, yenile
                   </Button>
                 </div>
@@ -352,19 +390,35 @@ function ShareQuoteDialog({ quote, onClose }: { quote: Quote; onClose: () => voi
   );
 }
 
-function RespondDialog({ quote, status, onClose }: { quote: Quote; status: "Accepted" | "Rejected"; onClose: () => void }) {
+function RespondDialog({
+  quote,
+  status,
+  onClose,
+}: {
+  quote: Quote;
+  status: "Accepted" | "Rejected";
+  onClose: () => void;
+}) {
   const refresh = useQuotesRefresh();
   const [note, setNote] = useState("");
   const mark = useMutation({
     mutationFn: () =>
       unwrap(
         status === "Accepted"
-          ? api.POST("/api/quotes/{id}/mark-accepted", { params: { path: { id: quote.id } }, body: { note: note.trim() || null } })
-          : api.POST("/api/quotes/{id}/mark-rejected", { params: { path: { id: quote.id } }, body: { note: note.trim() || null } }),
+          ? api.POST("/api/quotes/{id}/mark-accepted", {
+              params: { path: { id: quote.id } },
+              body: { note: note.trim() || null },
+            })
+          : api.POST("/api/quotes/{id}/mark-rejected", {
+              params: { path: { id: quote.id } },
+              body: { note: note.trim() || null },
+            }),
       ),
     onSuccess: async () => {
       await refresh();
-      toast.success(status === "Accepted" ? "Teklif onaylandı olarak işaretlendi." : "Teklif reddedildi olarak işaretlendi.");
+      toast.success(
+        status === "Accepted" ? "Teklif onaylandı olarak işaretlendi." : "Teklif reddedildi olarak işaretlendi.",
+      );
       onClose();
     },
     onError: (e) => toast.error(errorMessage(e)),
@@ -405,13 +459,16 @@ function ConvertDialog({ quote, onClose }: { quote: Quote; onClose: () => void }
       unwrap(
         api.POST("/api/quotes/{id}/convert", {
           params: { path: { id: quote.id } },
-          body: { payments: drafts.map((p) => ({ method: p.method, amount: p.amount, cashAccountId: null })), note: null },
+          body: {
+            payments: drafts.map((p) => ({ method: p.method, amount: p.amount, cashAccountId: null })),
+            note: null,
+          },
         }),
       ),
     onSuccess: async (r) => {
       await Promise.all(
-        [quotesKey, salesKey, productsKey, stockKey, ["contacts"], ["cash-accounts"], ["ledger"], ["timeline"]].map((queryKey) =>
-          queryClient.invalidateQueries({ queryKey }),
+        [quotesKey, salesKey, productsKey, stockKey, ["contacts"], ["cash-accounts"], ["ledger"], ["timeline"]].map(
+          (queryKey) => queryClient.invalidateQueries({ queryKey }),
         ),
       );
       for (const w of r.warnings) toast.warning(w);
@@ -422,7 +479,12 @@ function ConvertDialog({ quote, onClose }: { quote: Quote; onClose: () => void }
   });
 
   return (
-    <DialogShell open onOpenChange={(v) => !v && onClose()} title="Satışa dönüştür" description={`${quote.no} · ${quote.contactName}`}>
+    <DialogShell
+      open
+      onOpenChange={(v) => !v && onClose()}
+      title="Satışa dönüştür"
+      description={`${quote.no} · ${quote.contactName}`}
+    >
       <div className="flex flex-col gap-4">
         <TotalsSummary totals={quote} />
         <PaymentForm total={quote.total} value={payment} onChange={setPayment} />

@@ -1468,6 +1468,55 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/business/receipt": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Fiş genişliği (58 / 80 mm) */
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["ReceiptSettingsRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["BusinessResponse"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/business/logo": {
         parameters: {
             query?: never;
@@ -5259,7 +5308,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** 80 mm fiş (PDF) */
+        /** Fiş (PDF; işletmenin fiş genişliğinde, 58 veya 80 mm) */
         get: {
             parameters: {
                 query?: never;
@@ -5820,7 +5869,7 @@ export interface components {
             fullName: string;
         };
         /** @enum {unknown} */
-        AuditAction: "Login" | "InvitationSent" | "InvitationResent" | "InvitationRevoked" | "InvitationAccepted" | "RoleChanged" | "MemberRemoved" | "BusinessUpdated" | "SlugChanged" | "WorkingHoursUpdated" | "LogoChanged" | "ModulesChanged" | "PaymentInfoChanged" | "ContactCreated" | "ContactUpdated" | "ContactArchived" | "ContactRestored" | "ContactDeleted" | "ContactsImported" | "ContactsExported" | "LedgerEntryCreated" | "LedgerEntryDeleted" | "OpeningBalanceSet" | "CollectionRecorded" | "CollectionReverted" | "PaymentRequestCreated" | "PaymentRequestConfirmed" | "PaymentRequestRejected" | "PaymentRequestCancelled" | "PaymentRequestRenewed" | "StatementShared" | "ProductCreated" | "ProductUpdated" | "ProductDeleted" | "ProductsImported" | "ProductsExported" | "StockMovementAdded" | "SaleDiscounted" | "SaleCancelled" | "SalesExported" | "QuoteCreated" | "QuoteUpdated" | "QuoteShared" | "QuoteRenewed" | "QuoteExtended" | "QuoteAccepted" | "QuoteRejected" | "QuoteConverted" | "QuoteDeleted";
+        AuditAction: "Login" | "InvitationSent" | "InvitationResent" | "InvitationRevoked" | "InvitationAccepted" | "RoleChanged" | "MemberRemoved" | "BusinessUpdated" | "SlugChanged" | "WorkingHoursUpdated" | "LogoChanged" | "ModulesChanged" | "PaymentInfoChanged" | "ReceiptSettingsChanged" | "ContactCreated" | "ContactUpdated" | "ContactArchived" | "ContactRestored" | "ContactDeleted" | "ContactsImported" | "ContactsExported" | "LedgerEntryCreated" | "LedgerEntryDeleted" | "OpeningBalanceSet" | "CollectionRecorded" | "CollectionReverted" | "PaymentRequestCreated" | "PaymentRequestConfirmed" | "PaymentRequestRejected" | "PaymentRequestCancelled" | "PaymentRequestRenewed" | "StatementShared" | "ProductCreated" | "ProductUpdated" | "ProductDeleted" | "ProductsImported" | "ProductsExported" | "StockMovementAdded" | "SaleDiscounted" | "SaleCancelled" | "SalesExported" | "QuoteCreated" | "QuoteUpdated" | "QuoteShared" | "QuoteRenewed" | "QuoteExtended" | "QuoteAccepted" | "QuoteRejected" | "QuoteConverted" | "QuoteDeleted";
         AuditLogListResponse: {
             items: components["schemas"]["AuditLogResponse"][];
             /** Format: int32 */
@@ -5858,6 +5907,8 @@ export interface components {
             logoUrl: null | string;
             iban: null | string;
             ibanHolderName: null | string;
+            /** Format: int32 */
+            receiptWidth: number;
         };
         /** @enum {unknown} */
         BusinessRole: "Owner" | "Manager" | "Staff" | "Accountant" | null;
@@ -6265,6 +6316,8 @@ export interface components {
             address: null | string;
             city: null | string;
             district: null | string;
+            /** Format: int32 */
+            receiptWidth: number;
         };
         MemberResponse: {
             /** Format: uuid */
@@ -6634,6 +6687,10 @@ export interface components {
         QuoteResponseChannel: "Link" | "Panel" | null;
         /** @enum {unknown} */
         QuoteStatus: "Draft" | "Sent" | "Accepted" | "Rejected" | "Converted";
+        ReceiptSettingsRequest: {
+            /** Format: int32 */
+            width: number;
+        };
         RegisterRequest: {
             fullName: string;
             email: string;

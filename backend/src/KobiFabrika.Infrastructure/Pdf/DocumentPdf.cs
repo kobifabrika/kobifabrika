@@ -16,15 +16,19 @@ public sealed record PdfTotals(decimal SubTotal, decimal Discount, decimal VatTo
 
 public sealed record PdfPayment(string Label, decimal Amount);
 
+/// <summary>WidthMm: kağıt genişliği (58 veya 80).</summary>
 public sealed record ReceiptData(
     PdfBusiness Business, string No, DateTime DateLocal, string? Cashier, string? Customer, IReadOnlyList<PdfLine> Lines, PdfTotals Totals,
-    IReadOnlyList<PdfPayment> Payments, bool Cancelled, string? Note);
+    IReadOnlyList<PdfPayment> Payments, bool Cancelled, string? Note, int WidthMm = 80);
 
 public sealed record QuoteDocumentData(
     PdfBusiness Business, string No, DateOnly Date, DateOnly ValidUntil, StatementParty Customer, IReadOnlyList<PdfLine> Lines, PdfTotals Totals,
     string? Notes, DateTime GeneratedAtLocal);
 
-/// <summary>Satış fişi (80 mm rulo) ve teklif (A4). Siyah-beyaz; fişte mali değer olmadığı açıkça yazar.</summary>
+/// <summary>
+/// Satış fişi (58 veya 80 mm rulo) ve teklif (A4). Siyah-beyaz; fişte mali değer olmadığı açıkça yazar. Dar fişte uzun ürün adı
+/// ve tutar satırları alt satıra kayar (kesilmez).
+/// </summary>
 internal sealed partial class QuestPdfRenderer
 {
     /// <summary>Fişin alt yazısı (frontend fiş sayfası da aynı metni kullanır).</summary>
@@ -34,9 +38,10 @@ internal sealed partial class QuestPdfRenderer
 
     public byte[] Receipt(ReceiptData d) => Document.Create(container => container.Page(page =>
     {
-        page.ContinuousSize(80, Unit.Millimetre);
-        page.Margin(4, Unit.Millimetre);
-        page.DefaultTextStyle(t => t.FontSize(8).FontColor(Colors.Black));
+        var narrow = d.WidthMm < 80;
+        page.ContinuousSize(d.WidthMm, Unit.Millimetre);
+        page.Margin(narrow ? 3 : 4, Unit.Millimetre);
+        page.DefaultTextStyle(t => t.FontSize(narrow ? 7 : 8).FontColor(Colors.Black));
 
         page.Content().Column(col =>
         {
@@ -48,10 +53,10 @@ internal sealed partial class QuestPdfRenderer
 
             if (d.Business.Logo is { Length: > 0 } logo)
             {
-                col.Item().AlignCenter().Height(36).Image(logo).FitArea();
+                col.Item().AlignCenter().Height(narrow ? 28 : 36).Image(logo).FitArea();
             }
 
-            col.Item().AlignCenter().Text(d.Business.Name).FontSize(11).Bold();
+            col.Item().AlignCenter().Text(d.Business.Name).FontSize(narrow ? 9 : 11).Bold();
             if (!string.IsNullOrWhiteSpace(d.Business.Address))
             {
                 col.Item().AlignCenter().Text(d.Business.Address).FontColor(Gray);
@@ -82,11 +87,21 @@ internal sealed partial class QuestPdfRenderer
             foreach (var line in d.Lines)
             {
                 col.Item().Text(line.Description).Bold();
-                col.Item().Row(r =>
+                if (narrow)
                 {
-                    r.RelativeItem().Text($"{line.Quantity} × {Money(line.UnitPrice)}  KDV {Percent(line.VatRate)}").FontColor(Gray);
-                    r.AutoItem().Text(Money(line.LineTotal));
-                });
+                    // 58 mm'de miktar × fiyat ve tutar yan yana sığmayabilir: tutar kendi satırında, sağa yaslı.
+                    col.Item().Text($"{line.Quantity} × {Money(line.UnitPrice)}  KDV {Percent(line.VatRate)}").FontColor(Gray);
+                    col.Item().AlignRight().Text(Money(line.LineTotal));
+                }
+                else
+                {
+                    col.Item().Row(r =>
+                    {
+                        r.RelativeItem().Text($"{line.Quantity} × {Money(line.UnitPrice)}  KDV {Percent(line.VatRate)}").FontColor(Gray);
+                        r.AutoItem().Text(Money(line.LineTotal));
+                    });
+                }
+
                 if (line.Discount > 0)
                 {
                     col.Item().Text($"İndirim −{Money(line.Discount)}").FontColor(Gray);
@@ -107,8 +122,8 @@ internal sealed partial class QuestPdfRenderer
 
             col.Item().Row(r =>
             {
-                r.RelativeItem().Text("TOPLAM").FontSize(11).Bold();
-                r.AutoItem().Text(Money(d.Totals.Total)).FontSize(11).Bold();
+                r.RelativeItem().Text("TOPLAM").FontSize(narrow ? 9 : 11).Bold();
+                r.AutoItem().Text(Money(d.Totals.Total)).FontSize(narrow ? 9 : 11).Bold();
             });
 
             col.Item().PaddingVertical(3).LineHorizontal(0.5f).LineColor(Line);

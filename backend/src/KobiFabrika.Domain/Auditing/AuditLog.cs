@@ -18,6 +18,7 @@ public enum AuditAction
     LogoChanged,
     ModulesChanged,
     PaymentInfoChanged,
+    ReceiptSettingsChanged,
     ContactCreated,
     ContactUpdated,
     ContactArchived,

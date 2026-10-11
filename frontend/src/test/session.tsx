@@ -11,6 +11,7 @@ type Options = {
   emailConfirmed?: boolean;
   businessName?: string;
   logoUrl?: string | null;
+  receiptWidth?: 58 | 80;
   /** Ek üyelikler (aktif işletme her zaman ilk sıradadır). */
   otherMemberships?: Me["memberships"];
 };
@@ -21,6 +22,7 @@ export function testMe({
   emailConfirmed = true,
   businessName = "Şık Kuaför",
   logoUrl = null,
+  receiptWidth = 80,
   otherMemberships = [],
 }: Options = {}): Me {
   return {
@@ -38,6 +40,7 @@ export function testMe({
       address: "Moda Cad. No: 5",
       city: "İstanbul",
       district: "Kadıköy",
+      receiptWidth,
     },
     role,
     memberships: [{ businessId: "b1", businessName, role }, ...otherMemberships],

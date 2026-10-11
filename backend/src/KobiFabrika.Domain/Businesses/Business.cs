@@ -40,6 +40,13 @@ public class Business : Entity, ISoftDeletable, IAuditable
 
     public int SmsBalance { get; set; }
 
+    /// <summary>Fiş yazıcısının kağıt genişliği (mm): 58 veya 80. Fiş sayfası ve fiş PDF'i bu genişlikte.</summary>
+    public int ReceiptWidth { get; set; } = DefaultReceiptWidth;
+
+    public const int DefaultReceiptWidth = 80;
+
+    public static readonly int[] ReceiptWidths = [58, 80];
+
     /// <summary>Sektörü ve ona bağlı şablonu ayarlar. Kurulumda modüller de şablonun varsayılanına döner.</summary>
     public void SetSector(BusinessSector sector, bool resetModules)
     {

@@ -33,7 +33,7 @@ public static class SaleEndpoints
             .WithSummary("Satış yap: stok düşer, veresiye cariye, nakit kasaya, kart/havale bankaya");
         group.MapPost("/{id:guid}/cancel", Cancel).RequireAuthorization(Policies.ManageFinance).Validate<CancelSaleRequest>()
             .WithSummary("Satışı iptal et: stok, kasa ve cari ters kayıtla geri alınır; kayıt silinmez");
-        group.MapGet("/{id:guid}/receipt.pdf", Receipt).WithSummary("80 mm fiş (PDF)");
+        group.MapGet("/{id:guid}/receipt.pdf", Receipt).WithSummary("Fiş (PDF; işletmenin fiş genişliğinde, 58 veya 80 mm)");
         group.MapGet("/export.xlsx", Export).RequireAuthorization(Policies.Export).WithSummary("Satışlar Excel");
 
         return app;
@@ -223,7 +223,7 @@ public static class SaleEndpoints
             sale.Lines.Select(l => new PdfLine(l.Description, CatalogLabels.Quantity(l.Quantity, l.Unit), l.UnitPrice, l.LineDiscount, l.VatRate, l.LineTotal + l.AllocatedDiscount + l.LineDiscount)).ToList(),
             Totals(sale.SubTotal, sale.LineDiscountTotal + sale.DiscountTotal, sale.VatTotal, sale.Total, sale.Vat),
             sale.Payments.Select(p => new PdfPayment(SaleLabels.Methods[p.Method], p.Amount)).ToList(),
-            sale.Status == SaleStatus.Cancelled, sale.Note);
+            sale.Status == SaleStatus.Cancelled, sale.Note, business.ReceiptWidth);
         return TypedResults.File(pdf.Receipt(data), "application/pdf", $"fis-{sale.No}.pdf");
     }
 

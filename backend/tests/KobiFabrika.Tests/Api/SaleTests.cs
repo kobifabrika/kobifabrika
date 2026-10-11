@@ -296,6 +296,47 @@ public sealed partial class SaleTests(SqlServerFixture db) : ApiTestBase(db)
         past.GetProperty("sale").GetProperty("date").GetDateTime().ShouldBeLessThan(DateTime.UtcNow.AddDays(-2));
     }
 
+    /// <summary>PDF sayfa genişliği (mm), MediaBox'tan.</summary>
+    private static double PageWidthMm(byte[] pdf)
+    {
+        var match = Regex.Match(System.Text.Encoding.Latin1.GetString(pdf), @"/MediaBox\s*\[\s*0\s+0\s+([\d.]+)");
+        match.Success.ShouldBeTrue("PDF'te MediaBox yok");
+        return double.Parse(match.Groups[1].Value, System.Globalization.CultureInfo.InvariantCulture) / 72 * 25.4;
+    }
+
+    [Fact]
+    public async Task Receipt_width_is_a_business_setting_and_58mm_wraps_long_names()
+    {
+        var (owner, _) = await ShopAsync();
+        var (manager, _) = await AddMemberAsync(owner, "Manager");
+        var (staff, _) = await AddMemberAsync(owner, "Staff");
+        var longName = "Organik soğuk sıkım natürel sızma zeytinyağı teneke kutu 5 litre ekstra uzun ürün adı " + new string('X', 60);
+        var sale = (await CreateSaleAsync(staff.Client, Sale([Line(null, 3, 1234.56m, description: longName)], [Pay("Cash", 3703.68m)]), Ct))
+            .GetProperty("sale");
+        var receiptUrl = $"/api/sales/{sale.GetProperty("id").GetGuid()}/receipt.pdf";
+
+        (await GetJsonAsync(owner.Client, "/api/business")).GetProperty("receiptWidth").GetInt32().ShouldBe(80);
+        (await GetJsonAsync(staff.Client, "/api/auth/me")).GetProperty("business").GetProperty("receiptWidth").GetInt32().ShouldBe(80);
+        PageWidthMm(await (await staff.Client.GetAsync(receiptUrl, Ct)).Content.ReadAsByteArrayAsync(Ct)).ShouldBe(80, 0.5);
+
+        (await staff.Client.PutAsJsonAsync("/api/business/receipt", new { width = 58 }, Json, Ct)).StatusCode.ShouldBe(HttpStatusCode.Forbidden);
+        var invalid = await ProblemAsync(await manager.Client.PutAsJsonAsync("/api/business/receipt", new { width = 72 }, Json, Ct),
+            HttpStatusCode.BadRequest);
+        invalid.GetProperty("errors").GetProperty("width")[0].GetString().ShouldBe("Fiş genişliği 58 mm veya 80 mm olmalı.");
+
+        var saved = await manager.Client.PutAsJsonAsync("/api/business/receipt", new { width = 58 }, Json, Ct);
+        await EnsureSuccessAsync(saved);
+        (await saved.Content.ReadFromJsonAsync<JsonElement>(Json, Ct)).GetProperty("receiptWidth").GetInt32().ShouldBe(58);
+        (await GetJsonAsync(staff.Client, "/api/auth/me")).GetProperty("business").GetProperty("receiptWidth").GetInt32().ShouldBe(58);
+
+        var narrow = await staff.Client.GetAsync(receiptUrl, Ct);
+        narrow.StatusCode.ShouldBe(HttpStatusCode.OK);
+        PageWidthMm(await narrow.Content.ReadAsByteArrayAsync(Ct)).ShouldBe(58, 0.5);
+
+        var logs = await GetJsonAsync(owner.Client, "/api/audit-logs?action=ReceiptSettingsChanged");
+        logs.GetProperty("items")[0].GetProperty("changes").GetProperty("to").GetInt32().ShouldBe(58);
+    }
+
     [Fact]
     public async Task Receipt_pdf_and_excel_export()
     {

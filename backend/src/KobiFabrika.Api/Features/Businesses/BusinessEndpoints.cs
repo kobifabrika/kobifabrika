@@ -28,10 +28,14 @@ public sealed record BusinessResponse(
     string? District,
     string? LogoUrl,
     string? Iban,
-    string? IbanHolderName);
+    string? IbanHolderName,
+    int ReceiptWidth);
 
 /// <summary>Tahsilat linkinde gösterilen banka bilgisi. IBAN boş gönderilirse kaldırılır.</summary>
 public sealed record PaymentInfoRequest(string? Iban, string? IbanHolderName);
+
+/// <summary>Fiş yazıcısı: Width 58 veya 80 (mm).</summary>
+public sealed record ReceiptSettingsRequest(int Width);
 
 public sealed record UpdateBusinessRequest(
     string Name, BusinessSector Sector, string Phone, string? Email, string? Address, string City, string District);
@@ -60,6 +64,8 @@ public static class BusinessEndpoints
             .Validate<WorkingHoursRequest>().WithSummary("Çalışma saatlerini güncelle");
         group.MapPut("/payment-info", UpdatePaymentInfo).RequireAuthorization(Policies.ManageBusiness).Validate<PaymentInfoRequest>()
             .WithSummary("Ödeme bilgileri (IBAN, hesap sahibi) — tahsilat linki için gerekli");
+        group.MapPut("/receipt", UpdateReceipt).RequireAuthorization(Policies.ManageBusiness).Validate<ReceiptSettingsRequest>()
+            .WithSummary("Fiş genişliği (58 / 80 mm)");
         group.MapPost("/logo", UploadLogo).RequireAuthorization(Policies.ManageBusiness).DisableAntiforgery()
             .WithSummary("Logo yükle (PNG/JPG/WebP, en fazla 2 MB)");
         group.MapDelete("/logo", DeleteLogo).RequireAuthorization(Policies.ManageBusiness).WithSummary("Logoyu kaldır");
@@ -72,7 +78,7 @@ public static class BusinessEndpoints
 
     private static BusinessResponse ToResponse(Business b) => new(
         b.Id, b.Name, b.Slug, b.Sector, b.Template, ModulesDto.From(b.Modules), b.Phone, b.Email, b.Address, b.City, b.District, b.LogoUrl,
-        b.Iban, b.IbanHolderName);
+        b.Iban, b.IbanHolderName, b.ReceiptWidth);
 
     private static async Task<Ok<BusinessResponse>> Get(CurrentMember member, AppDbContext db, CancellationToken ct) =>
         TypedResults.Ok(ToResponse(await CurrentAsync(db, member, ct)));
@@ -139,6 +145,20 @@ public static class BusinessEndpoints
             });
             business.Iban = iban;
             business.IbanHolderName = holder;
+            await db.SaveChangesAsync(ct);
+        }
+
+        return TypedResults.Ok(ToResponse(business));
+    }
+
+    private static async Task<Ok<BusinessResponse>> UpdateReceipt(
+        ReceiptSettingsRequest request, CurrentMember member, AppDbContext db, IAuditLogger audit, CancellationToken ct)
+    {
+        var business = await CurrentAsync(db, member, ct);
+        if (business.ReceiptWidth != request.Width)
+        {
+            audit.Log(AuditAction.ReceiptSettingsChanged, nameof(Business), business.Id, new { from = business.ReceiptWidth, to = request.Width });
+            business.ReceiptWidth = request.Width;
             await db.SaveChangesAsync(ct);
         }
 
@@ -224,6 +244,12 @@ public sealed class PaymentInfoRequestValidator : AbstractValidator<PaymentInfoR
         RuleFor(x => x.Iban).ValidIban().When(x => !string.IsNullOrWhiteSpace(x.Iban));
         RuleFor(x => x.IbanHolderName).MaximumLength(200).WithMessage("Hesap sahibi en fazla 200 karakter olabilir.");
     }
+}
+
+public sealed class ReceiptSettingsRequestValidator : AbstractValidator<ReceiptSettingsRequest>
+{
+    public ReceiptSettingsRequestValidator() =>
+        RuleFor(x => x.Width).Must(w => Business.ReceiptWidths.Contains(w)).WithMessage("Fiş genişliği 58 mm veya 80 mm olmalı.");
 }
 
 public sealed class UpdateBusinessRequestValidator : AbstractValidator<UpdateBusinessRequest>

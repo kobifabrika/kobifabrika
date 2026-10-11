@@ -8,7 +8,7 @@ internal sealed class BusinessConfiguration : IEntityTypeConfiguration<Business>
 {
     public void Configure(EntityTypeBuilder<Business> b)
     {
-        b.ToTable("Businesses");
+        b.ToTable("Businesses", t => t.HasCheckConstraint("CK_Businesses_ReceiptWidth", "[ReceiptWidth] IN (58, 80)"));
         b.Property(x => x.Name).HasMaxLength(200);
         b.Property(x => x.Slug).HasMaxLength(100);
         b.HasIndex(x => x.Slug).IsUnique();
@@ -26,6 +26,7 @@ internal sealed class BusinessConfiguration : IEntityTypeConfiguration<Business>
         b.Property(x => x.TimeZone).HasMaxLength(64);
         b.Property(x => x.Iban).HasMaxLength(34).IsUnicode(false);
         b.Property(x => x.IbanHolderName).HasMaxLength(200);
+        b.Property(x => x.ReceiptWidth).HasDefaultValue(Business.DefaultReceiptWidth);
         b.Property(x => x.Settings).HasColumnType("json").Metadata.SetMaxLength(null);
     }
 }

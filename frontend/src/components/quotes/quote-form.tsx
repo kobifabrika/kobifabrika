@@ -64,7 +64,9 @@ export function QuoteForm({ quote }: { quote?: Quote }) {
   const [notes, setNotes] = useState(quote?.notes ?? "");
   const initialDiscount = quote ? storedDiscount(quote.discount, quote.discountTotal) : null;
   const [discountType, setDiscountType] = useState<DiscountType>(initialDiscount?.type ?? "Percent");
-  const [discountText, setDiscountText] = useState(initialDiscount ? String(initialDiscount.value).replace(".", ",") : "");
+  const [discountText, setDiscountText] = useState(
+    initialDiscount ? String(initialDiscount.value).replace(".", ",") : "",
+  );
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   // Müşteri kartından "Teklif hazırla": ?musteri={id}
@@ -76,7 +78,10 @@ export function QuoteForm({ quote }: { quote?: Quote }) {
   });
   useEffect(() => {
     if (presetContact.data)
-      dispatch({ type: "contact", contact: { id: presetContact.data.id, name: presetContact.data.displayName, phone: presetContact.data.phone } });
+      dispatch({
+        type: "contact",
+        contact: { id: presetContact.data.id, name: presetContact.data.displayName, phone: presetContact.data.phone },
+      });
   }, [presetContact.data]);
 
   const discount = parseDiscount(discountType, discountText);
@@ -93,7 +98,9 @@ export function QuoteForm({ quote }: { quote?: Quote }) {
         notes: notes.trim() || null,
       };
       return unwrap(
-        quote ? api.PUT("/api/quotes/{id}", { params: { path: { id: quote.id } }, body }) : api.POST("/api/quotes", { body }),
+        quote
+          ? api.PUT("/api/quotes/{id}", { params: { path: { id: quote.id } }, body })
+          : api.POST("/api/quotes", { body }),
       );
     },
     onSuccess: async (saved) => {
@@ -129,8 +136,13 @@ export function QuoteForm({ quote }: { quote?: Quote }) {
         />
         <div className="flex flex-col gap-2">
           <span className="text-sm font-semibold text-black">Kalemler</span>
-          <ProductSearch onPick={(p) => dispatch({ type: "add", product: p })} placeholder="Ürün/hizmet ekle: ad veya barkod" />
-          {cart.lines.length > 0 && <CartEditor lines={cart.lines} calc={totals.lines} dispatch={dispatch} showStock={false} />}
+          <ProductSearch
+            onPick={(p) => dispatch({ type: "add", product: p })}
+            placeholder="Ürün/hizmet ekle: ad veya barkod"
+          />
+          {cart.lines.length > 0 && (
+            <CartEditor lines={cart.lines} calc={totals.lines} dispatch={dispatch} showStock={false} />
+          )}
           {errors.lines && (
             <p role="alert" className="text-sm text-danger-600">
               {errors.lines}
@@ -138,7 +150,13 @@ export function QuoteForm({ quote }: { quote?: Quote }) {
           )}
         </div>
         <Field label="Not (teklifte görünür)" error={errors.notes}>
-          <Textarea value={notes} onChange={(e) => setNotes(e.target.value)} maxLength={2000} rows={3} placeholder="ör. Montaj ve nakliye dahildir." />
+          <Textarea
+            value={notes}
+            onChange={(e) => setNotes(e.target.value)}
+            maxLength={2000}
+            rows={3}
+            placeholder="ör. Montaj ve nakliye dahildir."
+          />
         </Field>
       </div>
 
@@ -184,6 +202,10 @@ export function EditQuote({ id }: { id: string }) {
     );
   if (quote.isError) return <QueryError error={quote.error} onRetry={quote.refetch} />;
   if (quote.data.status !== "Draft" && quote.data.status !== "Sent")
-    return <p className="text-sm text-neutral-700">Müşteri bu teklife cevap verdi; değiştirilemez. Gerekirse yeni teklif hazırlayın.</p>;
+    return (
+      <p className="text-sm text-neutral-700">
+        Müşteri bu teklife cevap verdi; değiştirilemez. Gerekirse yeni teklif hazırlayın.
+      </p>
+    );
   return <QuoteForm quote={quote.data} />;
 }

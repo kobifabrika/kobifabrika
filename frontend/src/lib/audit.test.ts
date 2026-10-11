@@ -24,7 +24,10 @@ describe("aktivite günlüğü metinleri", () => {
       "Randevular açık, Stok kapalı",
     );
     expect(
-      auditDetail({ action: "QuoteExtended", changes: { no: "TKL-2026-0001", from: "2026-10-01", validUntil: "2026-10-26" } }),
+      auditDetail({
+        action: "QuoteExtended",
+        changes: { no: "TKL-2026-0001", from: "2026-10-01", validUntil: "2026-10-26" },
+      }),
     ).toBe("TKL-2026-0001 · 01.10.2026 → 26.10.2026");
     expect(auditDetail({ action: "Login", changes: null })).toBe("");
   });

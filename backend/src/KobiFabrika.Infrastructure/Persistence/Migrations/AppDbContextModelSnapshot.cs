@@ -127,6 +127,11 @@ namespace KobiFabrika.Infrastructure.Persistence.Migrations
                         .HasMaxLength(20)
                         .HasColumnType("nvarchar(20)");
 
+                    b.Property<int>("ReceiptWidth")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(80);
+
                     b.Property<string>("Sector")
                         .IsRequired()
                         .HasMaxLength(20)
@@ -168,7 +173,10 @@ namespace KobiFabrika.Infrastructure.Persistence.Migrations
                     b.HasIndex("Slug")
                         .IsUnique();
 
-                    b.ToTable("Businesses", (string)null);
+                    b.ToTable("Businesses", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_Businesses_ReceiptWidth", "[ReceiptWidth] IN (58, 80)");
+                        });
                 });
 
             modelBuilder.Entity("KobiFabrika.Domain.Businesses.BusinessMembership", b =>
