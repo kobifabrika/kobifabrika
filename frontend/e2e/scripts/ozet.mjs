@@ -1,6 +1,6 @@
 // Test sonuç dosyalarını tek biçimde özetler (test.ps1 ve CI için):
 //   node ozet.mjs <ctrf|vitest|eslint|playwright> <dosya>
-// Çıktı (JSON): { passed, failed, failures: [{ name, reason, screenshot }] }
+// Çıktı (JSON): { passed, failed, failures: [{ name, reason, screenshot }], warnings: [metin] }
 // PowerShell 5.1'in ConvertFrom-Json'u büyük dosyalarda zorlandığı için ayrıştırma burada yapılır.
 import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
@@ -52,11 +52,13 @@ function eslint(json) {
 function playwright(json) {
   let passed = 0;
   const failures = [];
+  const warnings = new Set();
   const walk = (suite, titles) => {
     for (const child of suite.suites ?? []) walk(child, [...titles, child.title]);
     for (const spec of suite.specs ?? [])
       for (const t of spec.tests ?? []) {
         if (t.status === "expected" || t.status === "flaky") passed += 1;
+        for (const a of t.annotations ?? []) if (a.type === "uyarı") warnings.add(`[${t.projectName}] ${a.description}`);
         if (t.status !== "unexpected") continue;
         const last = t.results.at(-1) ?? {};
         const shot = (last.attachments ?? []).find((a) => a.name === "screenshot" && a.path);
@@ -68,7 +70,7 @@ function playwright(json) {
       }
   };
   for (const s of json.suites ?? []) walk(s, [s.title]);
-  return { passed, failed: failures.length, failures };
+  return { passed, failed: failures.length, failures, warnings: [...warnings] };
 }
 
 if (!file || !existsSync(file)) {

@@ -70,6 +70,7 @@ function Add-Result([string]$name, $summary, [TimeSpan]$duration) {
             Kalan    = [int]$summary.failed
             Sure     = $duration
             Failures = @($summary.failures)
+            Warnings = @($summary.warnings | Where-Object { $_ })
         })
 }
 
@@ -259,6 +260,12 @@ foreach ($r in $results) {
 $passed = ($results | Measure-Object -Property Gecen -Sum).Sum
 $failed = ($results | Measure-Object -Property Kalan -Sum).Sum
 '{0,-26} {1,6} {2,6}  {3}' -f 'TOPLAM', $passed, $failed, (Format-Duration $total) | Write-Host
+
+$warnings = @($results | ForEach-Object { $_.Warnings })
+if ($warnings.Count -gt 0) {
+    Write-Host "`nUYARILAR (3 saniyeden yavaş açılan sayfalar)" -ForegroundColor Yellow
+    foreach ($w in $warnings) { Write-Host "- $w" -ForegroundColor Yellow }
+}
 
 $failures = @($results | Where-Object { $_.Kalan -gt 0 })
 if ($failures.Count -gt 0) {
