@@ -2,6 +2,12 @@ using KobiFabrika.Domain.Common;
 
 namespace KobiFabrika.Domain.Imports;
 
+public enum ImportKind
+{
+    Contacts,
+    Products,
+}
+
 public enum ImportJobStatus
 {
     Uploaded,
@@ -17,6 +23,7 @@ public class ImportJob : TenantEntity
     public const int MaxRows = 5000;
     public static readonly TimeSpan Lifetime = TimeSpan.FromHours(24);
 
+    public ImportKind Kind { get; set; }
     public required string FileName { get; set; }
     public ImportJobStatus Status { get; set; }
 

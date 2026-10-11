@@ -2,11 +2,13 @@ using System.Linq.Expressions;
 using System.Reflection;
 using KobiFabrika.Domain.Auditing;
 using KobiFabrika.Domain.Businesses;
+using KobiFabrika.Domain.Catalog;
 using KobiFabrika.Domain.Common;
 using KobiFabrika.Domain.Contacts;
 using KobiFabrika.Domain.Finance;
 using KobiFabrika.Domain.Imports;
 using KobiFabrika.Domain.Notifications;
+using KobiFabrika.Domain.Sales;
 using KobiFabrika.Domain.Users;
 using KobiFabrika.Infrastructure.Identity;
 using KobiFabrika.Infrastructure.Persistence.Conventions;
@@ -14,6 +16,7 @@ using KobiFabrika.Infrastructure.Tenancy;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 
 namespace KobiFabrika.Infrastructure.Persistence;
 
@@ -55,12 +58,26 @@ public class AppDbContext : IdentityDbContext<AppUser, AppRole, Guid>
     public DbSet<PaymentRequest> PaymentRequests => Set<PaymentRequest>();
     public DbSet<StatementShare> StatementShares => Set<StatementShare>();
     public DbSet<ImportJob> ImportJobs => Set<ImportJob>();
+    public DbSet<VatRate> VatRates => Set<VatRate>();
+    public DbSet<ProductCategory> ProductCategories => Set<ProductCategory>();
+    public DbSet<Product> Products => Set<Product>();
+    public DbSet<StockMovement> StockMovements => Set<StockMovement>();
+    public DbSet<DocumentSequence> DocumentSequences => Set<DocumentSequence>();
+    public DbSet<Sale> Sales => Set<Sale>();
+    public DbSet<SaleLine> SaleLines => Set<SaleLine>();
+    public DbSet<SalePayment> SalePayments => Set<SalePayment>();
+    public DbSet<Quote> Quotes => Set<Quote>();
+    public DbSet<QuoteLine> QuoteLines => Set<QuoteLine>();
 
     /// <summary>
     /// Query filter'lar bu özelliğe başvurur; EF her sorguda bu context örneğinin
     /// değerini parametre olarak kullanır. Null ise filtre hiçbir satır döndürmez.
     /// </summary>
     internal Guid? CurrentBusinessId => _tenant.BusinessId;
+
+    /// <summary>VatRates'in anahtarı decimal(5,2) oran; sütun tipi modelle aynı olduğu için kesilme uyarısı gereksiz.</summary>
+    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder) =>
+        optionsBuilder.ConfigureWarnings(w => w.Ignore(SqlServerEventId.DecimalTypeKeyWarning));
 
     protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder)
     {

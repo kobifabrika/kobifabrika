@@ -2,6 +2,7 @@ using KobiFabrika.Domain.Businesses;
 using KobiFabrika.Domain.Contacts;
 using KobiFabrika.Domain.Finance;
 using KobiFabrika.Domain.Imports;
+using KobiFabrika.Domain.Sales;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
@@ -46,6 +47,8 @@ internal sealed class CashTransactionConfiguration : IEntityTypeConfiguration<Ca
         b.Property(x => x.Description).HasMaxLength(500);
         b.HasIndex(x => new { x.BusinessId, x.CashAccountId, x.Date });
         b.HasIndex(x => new { x.BusinessId, x.ContactId });
+        b.HasIndex(x => new { x.BusinessId, x.SaleId });
+        b.HasOne<Sale>().WithMany().HasForeignKey(x => x.SaleId).OnDelete(DeleteBehavior.Restrict);
         b.HasOne<CashAccount>().WithMany().HasForeignKey(x => x.CashAccountId).OnDelete(DeleteBehavior.Restrict);
         b.HasOne<Contact>().WithMany().HasForeignKey(x => x.ContactId).OnDelete(DeleteBehavior.Restrict);
     }
@@ -86,6 +89,7 @@ internal sealed class ImportJobConfiguration : IEntityTypeConfiguration<ImportJo
     public void Configure(EntityTypeBuilder<ImportJob> b)
     {
         b.ToTable("ImportJobs");
+        b.Property(x => x.Kind).HasConversion<string>().HasMaxLength(10).HasDefaultValue(ImportKind.Contacts).HasSentinel((ImportKind)(-1));
         b.Property(x => x.FileName).HasMaxLength(200);
         b.Property(x => x.Status).HasConversion<string>().HasMaxLength(20);
         b.Property(x => x.Headers).HasColumnType("json").Metadata.SetMaxLength(null);

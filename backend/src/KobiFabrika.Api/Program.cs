@@ -77,6 +77,7 @@ builder.Services.AddScoped<InvitationMailer>();
 builder.Services.AddScoped<InvitationAcceptor>();
 builder.Services.AddScoped<LedgerService>();
 builder.Services.AddScoped<CollectionService>();
+builder.Services.AddScoped<DocumentNumbers>();
 builder.Services.AddScoped<ISearchProvider, ContactSearchProvider>();
 builder.Services.AddValidatorsFromAssemblyContaining<Program>(includeInternalTypes: true);
 Validation.ConfigureDefaults();

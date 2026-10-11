@@ -35,9 +35,15 @@ public enum CashTransactionType
     TransferOut,
     Expense,
     Income,
+
+    /// <summary>Satıştan gelen nakit/kart/havale.</summary>
+    SaleIncome,
+
+    /// <summary>Satış iptalinde paranın geri çıkışı (ters kayıt).</summary>
+    SaleRefund,
 }
 
-/// <summary>Kasa/banka hareketi. Bu sprintte sadece tahsilat (Collection) üretilir.</summary>
+/// <summary>Kasa/banka hareketi: tahsilat (Sprint 2), satış ödemesi ve satış iptali (Sprint 3).</summary>
 public class CashTransaction : TenantEntity
 {
     public Guid CashAccountId { get; set; }
@@ -50,8 +56,10 @@ public class CashTransaction : TenantEntity
     public Guid? ContactId { get; set; }
     public required string Description { get; set; }
     public Guid? PaymentRequestId { get; set; }
+    public Guid? SaleId { get; set; }
 
     public decimal BalanceDelta => Type is CashTransactionType.Collection or CashTransactionType.TransferIn or CashTransactionType.Income
+        or CashTransactionType.SaleIncome
         ? Amount
         : -Amount;
 }

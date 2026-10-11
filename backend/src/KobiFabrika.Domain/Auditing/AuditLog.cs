@@ -36,6 +36,23 @@ public enum AuditAction
     PaymentRequestCancelled,
     PaymentRequestRenewed,
     StatementShared,
+    ProductCreated,
+    ProductUpdated,
+    ProductDeleted,
+    ProductsImported,
+    ProductsExported,
+    StockMovementAdded,
+    SaleDiscounted,
+    SaleCancelled,
+    SalesExported,
+    QuoteCreated,
+    QuoteUpdated,
+    QuoteShared,
+    QuoteRenewed,
+    QuoteAccepted,
+    QuoteRejected,
+    QuoteConverted,
+    QuoteDeleted,
 }
 
 /// <summary>

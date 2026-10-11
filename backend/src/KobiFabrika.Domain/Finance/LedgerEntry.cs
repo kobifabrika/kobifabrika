@@ -14,8 +14,11 @@ public enum LedgerRefType
     /// <summary>Tahsilat (kasa hareketiyle birlikte).</summary>
     Collection,
 
-    /// <summary>Veresiye satış (Sprint 3).</summary>
+    /// <summary>Veresiye satış.</summary>
     Sale,
+
+    /// <summary>Veresiye satışın iptali (ters kayıt, alacak).</summary>
+    SaleCancel,
 }
 
 /// <summary>
