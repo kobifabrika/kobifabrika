@@ -25,7 +25,7 @@ Ayrıntılar: `docs/00-urun-ozeti.md`, `docs/01-faz1-kapsam.md`.
 | PDF | QuestPDF |
 | Frontend | Next.js (App Router) · TypeScript · Tailwind CSS · shadcn/ui |
 | API sözleşmesi | OpenAPI (Microsoft.AspNetCore.OpenApi) → `openapi-typescript` ile frontend tipleri |
-| Test | xUnit v3 + Testcontainers + Shouldly (backend), Vitest + Testing Library (frontend), Playwright (uçtan uca, sonra) |
+| Test | xUnit v3 + Testcontainers + Shouldly (backend), Vitest + Testing Library (frontend), Playwright + axe-core (uçtan uca, `frontend/e2e`), GitHub Actions |
 
 Mimari ayrıntılar: `docs/02-mimari.md`. Veri modeli: `docs/03-veri-modeli.md`.
 
@@ -46,7 +46,9 @@ kobifabrika/
 │  ├─ src/KobiFabrika.Domain/         # entity'ler, enum'lar, domain kuralları (Common/: TenantEntity, arayüzler)
 │  ├─ src/KobiFabrika.Infrastructure/ # AppDbContext, Persistence/Migrations, Tenancy/, Identity/; ileride SMS, e-posta, Hangfire, PDF
 │  └─ tests/KobiFabrika.Tests/        # xUnit v3, Testcontainers ile gerçek SQL Server
+├─ test.ps1                  # tek komutla bütün testler
 └─ frontend/                 # Next.js uygulaması
+   ├─ e2e/                   # Playwright uçtan uca testleri (support/: fixture'lar, scripts/: E2E sunucuları)
    └─ src/app/
       ├─ (site)/             # tanıtım sitesi: kobifabrika.com
       ├─ (auth)/             # giriş, kayıt, şifre sıfırlama
@@ -61,6 +63,7 @@ kobifabrika/
 .\durdur.ps1                                          # API, frontend ve konteynerleri durdurur (-DockerKalsin: konteynerler açık kalır)
 docker compose up -d                                  # SQL Server + Mailpit (önce .env.example → .env)
 dotnet run --project backend/src/KobiFabrika.Api      # API: http://localhost:5080 (/scalar, /health)
+.\test.ps1                                            # BÜTÜN testler + Türkçe özet (-Hizli, -E2E, -Gorunur, -Rapor); README → Testler
 dotnet test backend                                   # Docker açık olmalı (Testcontainers)
 dotnet ef migrations add <Ad> -p backend/src/KobiFabrika.Infrastructure -s backend/src/KobiFabrika.Api -o Persistence/Migrations
 dotnet ef database update -p backend/src/KobiFabrika.Infrastructure -s backend/src/KobiFabrika.Api
@@ -89,7 +92,9 @@ kopar, sahipsiz Next dev sunucusu `write EPIPE` ile bozulur (sayfalar dakikalarc
 - **URL'ler:** Frontend yolları Türkçe (`/panel/musteriler`, `/giris`), API yolları İngilizce (`/api/customers`).
 - **Mobil:** En küçük yazı 12px, input yazısı 16px, dokunma alanı en az 44px. Her ekranı 375px genişlikte kontrol et.
 - Küçük, okunur commit'ler; mesajlar Türkçe ve emir kipinde ("Müşteri listesini ekle").
-- Bir özelliği bitirmeden önce: build geçer, testler geçer, lint temiz.
+- **Bitti tanımı:** Bir özellik ya da sprint ancak `.\test.ps1` tamamen yeşilse (backend, frontend lint/birim/build, E2E) ve
+  yeni her ekranın E2E senaryosu varsa (`frontend/e2e/`, masaüstü + 375 px) bitmiş sayılır. E2E gerçek bir hata bulursa
+  test gevşetilmez, uygulama düzeltilir.
 
 ## Çalışma şekli
 
@@ -102,6 +107,6 @@ kopar, sahipsiz Next dev sunucusu `write EPIPE` ile bozulur (sayfalar dakikalarc
 
 ## Güncel durum
 
-- Sprint: **3 (Ürün, satış, teklif)** tamamlandı (2026-10-11): katalog, KDV, Excel'den ürün aktarma, stok hareketleri ve kritik stok, hızlı satış (barkod, bölünmüş ödeme, veresiye → cari), 80 mm fiş, iptal (ters kayıt), teklif linki ve satışa dönüştürme. Sıradaki: **Sprint 4 (Finans ve dashboard)**.
+- Sprint: **3 (Ürün, satış, teklif)** tamamlandı (2026-10-11): katalog, KDV, Excel'den ürün aktarma, stok hareketleri ve kritik stok, hızlı satış (barkod, bölünmüş ödeme, veresiye → cari), 80 mm fiş, iptal (ters kayıt), teklif linki ve satışa dönüştürme. Ardından (2026-10-11) otomatik test altyapısı: `test.ps1`, Playwright E2E (69 senaryo-proje), GitHub Actions; teklif indirim türü, süresi dolmuş teklif onayı, 58/80 mm fiş. Sıradaki: **Sprint 4 (Finans ve dashboard)**.
 - Bakiyeler (`Contact.Balance`, `CashAccount.Balance`) sadece `LedgerService` ile, stok (`Product.StockQuantity`) sadece `StockService` ile, SQL'de atomik güncellenir; entity üzerinden yazılmaz. Satış sadece `SaleService` ile yazılır (numara, cari, kasa, stok aynı transaction'da).
 - GitHub: github.com/kobifabrika/kobifabrika (private)

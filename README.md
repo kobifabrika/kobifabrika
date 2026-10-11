@@ -144,7 +144,45 @@ Repo kök klasöründe PowerShell'de:
 
 Telefon görünümü: tarayıcıda F12 → cihaz simgesi → iPhone SE (375px).
 
-## Test, lint, tip üretimi
+## Testler: tek komut `test.ps1`
+
+Bütün testler tek komutla, elle tıklamadan çalışır. Docker açık olmalı (kapalıysa Windows'ta Docker Desktop'ı kendisi açar).
+
+```powershell
+.\test.ps1              # Hepsi: Docker kontrolü → backend → frontend lint, birim, build → uçtan uca (E2E). ~5 dk
+.\test.ps1 -Hizli       # Sadece birim testleri (backend + frontend). ~2 dk
+.\test.ps1 -E2E         # Sadece uçtan uca testler
+.\test.ps1 -E2E -Gorunur   # Tarayıcı görünür ve yavaş; testleri izlemek için
+.\test.ps1 -Rapor       # Bitince Playwright HTML raporunu açar (her ekranın masaüstü ve 375 px görüntüsü)
+```
+
+Mac'te: `pwsh ./test.ps1` (PowerShell: `brew install powershell`).
+
+Sonunda Türkçe bir tablo çıkar: bölüm, geçen, kalan, süre. Kalan test varsa adı, kısa nedeni ve ekran görüntüsünün yolu
+yazılır; çıkış kodu 1 olur. Hata olan testin trace'i ve videosu `frontend/playwright-report`'ta (`-Rapor` ile açılır).
+
+**Uçtan uca (E2E) testler** `frontend/e2e/` altında (Playwright). Geliştirme ortamından tamamen ayrıdır, `baslat.ps1` açıkken
+de çalışır:
+
+| | Geliştirme | E2E |
+|---|---|---|
+| API | http://localhost:5080 | http://localhost:5180 (Release, ortam `E2E`) |
+| Frontend | http://localhost:3000 (`.next`) | http://localhost:3100 (production build, `.next-e2e`) |
+| Veritabanı | `KobiFabrika` | `KobiFabrika_E2E` (her çalıştırmada silinip migration'larla kurulur) |
+| E-posta | Mailpit | Aynı Mailpit; her test kendi `e2e+…@example.test` adresini kullanır |
+
+- Projeler: masaüstü Chromium (1280 px), telefon 375 px (Chromium ve WebKit).
+- Her ekranda kendiliğinden: konsol hatası, beklenmeyen 4xx/5xx, 375 px'te yatay taşma ve axe-core ciddi/kritik
+  erişilebilirlik hatası (renk kontrastı dahil) testi düşürür; 3 saniyeden geç açılan sayfa uyarı verir.
+- Test verisi API üzerinden hazırlanır (`e2e/support/api.ts`); sadece test için açılmış bir uç yoktur.
+- Elle çalıştırma (frontend klasöründe): `npx playwright test`, tek dosya: `npx playwright test e2e/sprint3-satis.spec.ts`,
+  tek proje: `--project=masaustu`. Test yazarken sunucular açık kalsın diye: `node e2e/scripts/start-api.mjs` ve
+  `node e2e/scripts/start-web.mjs` ayrı pencerelerde, sonra `$env:E2E_REUSE=1; npx playwright test`.
+- GitHub'da her push ve PR'da aynı testler çalışır (`.github/workflows/test.yml`); rapor "Artifacts" altında.
+
+Yeni bir ekran eklendiğinde E2E senaryosu da eklenir (CLAUDE.md → Bitti tanımı).
+
+## Lint, tip üretimi (tek tek)
 
 ```bash
 dotnet test backend              # Docker açık olmalı: Testcontainers kendi SQL Server konteynerini açar
