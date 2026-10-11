@@ -1,8 +1,7 @@
-using System.Text.Json;
-using ClosedXML.Excel;
 using KobiFabrika.Api.Common;
 using KobiFabrika.Api.Common.Authorization;
 using KobiFabrika.Api.Features.Finance;
+using KobiFabrika.Api.Features.Imports;
 using KobiFabrika.Domain.Auditing;
 using KobiFabrika.Domain.Common;
 using KobiFabrika.Domain.Contacts;
@@ -17,28 +16,12 @@ using Microsoft.EntityFrameworkCore;
 
 namespace KobiFabrika.Api.Features.Customers;
 
-public sealed record ImportUploadResponse(
-    Guid JobId, string FileName, IReadOnlyList<string> Headers, int RowCount,
-    IReadOnlyDictionary<string, int> Mapping, IReadOnlyList<ImportFieldInfo> Fields);
-
-/// <summary>Alan anahtarı → sütun sırası (0'dan başlar). Eşlenmeyen alan yazılmaz.</summary>
-public sealed record ImportMappingRequest(Dictionary<string, int> Mapping);
-
-public sealed record ImportPreviewResponse(int Total, int Ok, int Errors, int Duplicates, IReadOnlyList<ImportRowResult> Rows);
-
-public sealed record ImportCommitResponse(int Added, int Duplicates, int Errors, IReadOnlyList<ImportRowResult> NotImported, int Warnings);
-
 /// <summary>
 /// Excel'den müşteri içe aktarma (/panel/musteriler/ice-aktar): şablon → yükle → sütun eşle → önizle → kaydet.
 /// Yüklenen satırlar ImportJob'da 24 saat tutulur. En fazla 5000 satır; aynı telefon atlanır ve raporlanır.
 /// </summary>
 public static class ImportEndpoints
 {
-    private static readonly JsonSerializerOptions Json = new(JsonSerializerDefaults.Web)
-    {
-        Converters = { new System.Text.Json.Serialization.JsonStringEnumConverter() },
-    };
-
     public static IEndpointRouteBuilder MapImportEndpoints(this IEndpointRouteBuilder app)
     {
         var group = app.MapGroup("/api/contacts/import").WithTags("Import").RequireAuthorization(Policies.CanWrite);
@@ -58,101 +41,35 @@ public static class ImportEndpoints
     private static async Task<Results<Ok<ImportUploadResponse>, ProblemHttpResult>> Upload(
         IFormFile? file, AppDbContext db, TimeProvider clock, CancellationToken ct)
     {
-        if (file is null || file.Length == 0)
+        var (job, headers, problem) = await ImportJobs.UploadAsync(file, ImportKind.Contacts, "musteriler.xlsx", db, clock, ct);
+        if (problem is not null)
         {
-            return Problems.BadRequest("file_required", "Bir Excel dosyası (.xlsx) seçin.");
+            return problem;
         }
 
-        if (file.Length > ContactImport.MaxFileBytes)
-        {
-            return Problems.BadRequest("file_too_large", "Dosya en fazla 5 MB olabilir.");
-        }
-
-        await using var stream = new MemoryStream();
-        await file.CopyToAsync(stream, ct);
-        stream.Position = 0;
-
-        // .xlsx bir ZIP'tir: "PK\x03\x04" ile başlar.
-        var head = new byte[4];
-        if (await stream.ReadAsync(head, ct) < 4 || head[0] != 'P' || head[1] != 'K' || head[2] != 3 || head[3] != 4)
-        {
-            return Problems.BadRequest("invalid_file", "Dosya Excel (.xlsx) biçiminde değil. Şablonu indirip onunla deneyin.");
-        }
-
-        stream.Position = 0;
-        List<string> headers;
-        List<(int RowNumber, string?[] Cells)> rows;
-        try
-        {
-            (headers, rows) = ContactImport.Read(stream);
-        }
-        catch (Exception ex) when (ex is not OperationCanceledException)
-        {
-            return Problems.BadRequest("invalid_file", "Dosya okunamadı. Şablonu indirip onunla deneyin.");
-        }
-
-        if (headers.Count == 0 || rows.Count == 0)
-        {
-            return Problems.BadRequest("empty_file", "Dosyada başlık satırının altında veri yok.");
-        }
-
-        if (rows.Count > ImportJob.MaxRows)
-        {
-            return Problems.BadRequest("too_many_rows", $"En fazla {ImportJob.MaxRows} satır aktarılabilir; dosyada {rows.Count} satır var.");
-        }
-
-        var job = new ImportJob
-        {
-            FileName = Path.GetFileName(file.FileName) is { Length: > 0 and <= 200 } name ? name : "musteriler.xlsx",
-            Status = ImportJobStatus.Uploaded,
-            Headers = JsonSerializer.Serialize(headers, Json),
-            Rows = JsonSerializer.Serialize(rows.Select(r => new StoredRow(r.RowNumber, r.Cells)), Json),
-            ExpiresAt = clock.GetUtcNow().UtcDateTime + ImportJob.Lifetime,
-        };
-        db.ImportJobs.Add(job);
-        await db.SaveChangesAsync(ct);
-
-        return TypedResults.Ok(new ImportUploadResponse(job.Id, job.FileName, headers, rows.Count, ContactImport.SuggestMapping(headers), ContactImport.Fields));
+        return TypedResults.Ok(new ImportUploadResponse(
+            job!.Id, job.FileName, headers!, ImportJobs.Rows(job).Count, ContactImport.SuggestMapping(headers!), ContactImport.Fields));
     }
-
-    private sealed record StoredRow(int RowNumber, string?[] Cells);
 
     private sealed record Evaluated(StoredRow Row, ImportCandidate? Candidate, ImportRowResult Result);
 
-    private static async Task<(ImportJob? Job, ProblemHttpResult? Problem)> LoadJobAsync(AppDbContext db, Guid jobId, TimeProvider clock, CancellationToken ct)
+    private static ProblemHttpResult? ValidateMapping(ImportMappingRequest request, ImportJob job)
     {
-        var job = await db.ImportJobs.FirstOrDefaultAsync(j => j.Id == jobId, ct);
-        if (job is null || job.ExpiresAt <= clock.GetUtcNow().UtcDateTime)
+        if (ImportJobs.ValidateMapping(request, ContactImport.Fields, ImportJobs.ColumnCount(job)) is { } invalid)
         {
-            return (null, Problems.NotFound("İçe aktarma bulunamadı veya süresi doldu. Dosyayı tekrar yükleyin."));
+            return invalid;
         }
 
-        return (job, null);
-    }
-
-    private static ProblemHttpResult? ValidateMapping(ImportMappingRequest request, int columnCount)
-    {
-        var keys = ContactImport.Fields.Select(f => f.Key).ToHashSet();
-        var mapping = request.Mapping ?? [];
-        if (mapping.Keys.Any(k => !keys.Contains(k)) || mapping.Values.Any(v => v < 0 || v >= columnCount)
-            || mapping.Values.Distinct().Count() != mapping.Count)
-        {
-            return Problems.BadRequest("invalid_mapping", "Sütun eşlemesi geçersiz. Her sütunu en fazla bir alana eşleyin.");
-        }
-
-        if (!mapping.ContainsKey("firstName") && !mapping.ContainsKey("companyName"))
-        {
-            return Problems.BadRequest("name_not_mapped", "Ad veya Firma alanını bir sütunla eşleyin.");
-        }
-
-        return null;
+        return request.Mapping.ContainsKey("firstName") || request.Mapping.ContainsKey("companyName")
+            ? null
+            : Problems.BadRequest("name_not_mapped", "Ad veya Firma alanını bir sütunla eşleyin.");
     }
 
     /// <summary>Tüm satırları doğrular; telefon tekrarını veritabanına ve dosyadaki önceki satırlara göre işaretler.</summary>
     private static async Task<List<Evaluated>> EvaluateAsync(
         AppDbContext db, ImportJob job, Dictionary<string, int> mapping, LocationCatalog locations, bool canSetOpening, CancellationToken ct)
     {
-        var rows = JsonSerializer.Deserialize<List<StoredRow>>(job.Rows, Json)!;
+        var rows = ImportJobs.Rows(job);
         var parsed = rows.Select(r => (Row: r, Parse: ContactImport.Parse(r.RowNumber, r.Cells, mapping, locations, canSetOpening))).ToList();
 
         var phones = parsed.Select(p => p.Parse.Candidate?.Phone).OfType<string>().Distinct().ToList();
@@ -204,37 +121,26 @@ public static class ImportEndpoints
         Guid jobId, ImportMappingRequest request, CurrentMember member, AppDbContext db, LocationCatalog locations, TimeProvider clock,
         CancellationToken ct, ImportRowStatus? status = null, int page = 1, int pageSize = 50)
     {
-        var (job, problem) = await LoadJobAsync(db, jobId, clock, ct);
+        var (job, problem) = await ImportJobs.LoadAsync(db, jobId, ImportKind.Contacts, clock, ct);
         if (problem is not null)
         {
             return problem;
         }
 
-        if (ValidateMapping(request, JsonSerializer.Deserialize<List<string>>(job!.Headers, Json)!.Count) is { } invalid)
+        if (ValidateMapping(request, job!) is { } invalid)
         {
             return invalid;
         }
 
-        var rows = await EvaluateAsync(db, job, request.Mapping, locations, member.CanManageFinance, ct);
-        page = Math.Max(page, 1);
-        pageSize = Math.Clamp(pageSize, 1, 200);
-        var filtered = rows.Select(r => r.Result).Where(r => status is null || r.Status == status)
-            .OrderBy(r => r.Status == ImportRowStatus.Ok).ThenBy(r => r.RowNumber)
-            .Skip((page - 1) * pageSize).Take(pageSize).ToList();
-
-        return TypedResults.Ok(new ImportPreviewResponse(
-            rows.Count,
-            rows.Count(r => r.Result.Status == ImportRowStatus.Ok),
-            rows.Count(r => r.Result.Status == ImportRowStatus.Error),
-            rows.Count(r => r.Result.Status == ImportRowStatus.Duplicate),
-            filtered));
+        var rows = await EvaluateAsync(db, job!, request.Mapping, locations, member.CanManageFinance, ct);
+        return TypedResults.Ok(ImportJobs.Preview(rows.Select(r => r.Result).ToList(), status, page, pageSize));
     }
 
     private static async Task<Results<Ok<ImportCommitResponse>, ProblemHttpResult>> Commit(
         Guid jobId, ImportMappingRequest request, CurrentMember member, AppDbContext db, LedgerService ledger, LocationCatalog locations,
         IAuditLogger audit, IPlanLimits limits, TimeProvider clock, CancellationToken ct)
     {
-        var (job, problem) = await LoadJobAsync(db, jobId, clock, ct);
+        var (job, problem) = await ImportJobs.LoadAsync(db, jobId, ImportKind.Contacts, clock, ct);
         if (problem is not null)
         {
             return problem;
@@ -245,7 +151,7 @@ public static class ImportEndpoints
             return Problems.Conflict("import_completed", "Bu dosya zaten içe aktarıldı.");
         }
 
-        if (ValidateMapping(request, JsonSerializer.Deserialize<List<string>>(job.Headers, Json)!.Count) is { } invalid)
+        if (ValidateMapping(request, job) is { } invalid)
         {
             return invalid;
         }
@@ -257,12 +163,8 @@ public static class ImportEndpoints
             return Problems.Forbidden("plan_limit", "Paketinizin müşteri sınırı bu kadar kaydı almıyor.");
         }
 
-        var report = new ImportCommitResponse(
-            toAdd.Count,
-            rows.Count(r => r.Result.Status == ImportRowStatus.Duplicate),
-            rows.Count(r => r.Result.Status == ImportRowStatus.Error),
-            rows.Where(r => r.Result.Status != ImportRowStatus.Ok).Select(r => r.Result).ToList(),
-            rows.Count(r => r.Result.Status == ImportRowStatus.Ok && r.Result.Messages.Count > 0));
+        var results = rows.Select(r => r.Result).ToList();
+        var report = ImportJobs.CommitReport(results);
         var now = clock.GetUtcNow().UtcDateTime;
         var today = BusinessTime.Today(clock);
         await ledger.InTransactionAsync(async () =>
@@ -325,9 +227,7 @@ public static class ImportEndpoints
                 }
             }
 
-            var tracked = await db.ImportJobs.FirstAsync(j => j.Id == jobId, ct);
-            tracked.Status = ImportJobStatus.Completed;
-            tracked.Result = JsonSerializer.Serialize(rows.Select(r => r.Result), Json);
+            await ImportJobs.CompleteAsync(db, jobId, results, ct);
             audit.Log(AuditAction.ContactsImported, nameof(ImportJob), jobId,
                 new { file = job.FileName, added = report.Added, duplicates = report.Duplicates, errors = report.Errors });
             await db.SaveChangesAsync(ct);
@@ -337,35 +237,6 @@ public static class ImportEndpoints
         return TypedResults.Ok(report);
     }
 
-    private static async Task<Results<FileContentHttpResult, ProblemHttpResult>> Report(Guid jobId, AppDbContext db, CancellationToken ct)
-    {
-        var job = await db.ImportJobs.AsNoTracking().FirstOrDefaultAsync(j => j.Id == jobId, ct);
-        if (job?.Result is null)
-        {
-            return Problems.NotFound("Rapor bulunamadı.");
-        }
-
-        var rows = JsonSerializer.Deserialize<List<ImportRowResult>>(job.Result, Json)!;
-        using var book = new XLWorkbook();
-        var sheet = book.AddWorksheet("Rapor");
-        LedgerEndpoints.Header(sheet, 1, "Satır", "Ad", "Telefon", "Durum", "Açıklama");
-        var r = 2;
-        foreach (var row in rows)
-        {
-            sheet.Cell(r, 1).Value = row.RowNumber;
-            sheet.Cell(r, 2).Value = row.Name;
-            sheet.Cell(r, 3).Value = row.Phone;
-            sheet.Cell(r, 4).Value = row.Status switch
-            {
-                ImportRowStatus.Ok => "Eklendi",
-                ImportRowStatus.Duplicate => "Atlandı (tekrar)",
-                _ => "Hatalı",
-            };
-            sheet.Cell(r, 5).Value = string.Join(" ", row.Messages);
-            r++;
-        }
-
-        sheet.Columns().AdjustToContents();
-        return TypedResults.File(LedgerEndpoints.Save(book), LedgerEndpoints.XlsxContentType, "ice-aktarma-raporu.xlsx");
-    }
+    private static Task<Results<FileContentHttpResult, ProblemHttpResult>> Report(Guid jobId, AppDbContext db, CancellationToken ct) =>
+        ImportJobs.ReportAsync(db, jobId, ImportKind.Contacts, "Telefon", ct);
 }

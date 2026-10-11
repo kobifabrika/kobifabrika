@@ -4,6 +4,7 @@ using System.Net.Http.Json;
 using System.Text.Json;
 using ClosedXML.Excel;
 using KobiFabrika.Api.Features.Customers;
+using KobiFabrika.Api.Features.Imports;
 using KobiFabrika.Tests.Infrastructure;
 
 namespace KobiFabrika.Tests.Api;
@@ -214,7 +215,7 @@ public sealed class ContactImportTests(SqlServerFixture db) : ApiTestBase(db)
     [InlineData("1.250,50 TL", "1250.50")]
     [InlineData("12.345.678,9", "12345678.9")]
     public void Money_cells_are_parsed(string text, string expected) =>
-        ContactImport.ParseMoney(text).ShouldBe(decimal.Parse(expected, System.Globalization.CultureInfo.InvariantCulture));
+        ImportJobs.ParseMoney(text).ShouldBe(decimal.Parse(expected, System.Globalization.CultureInfo.InvariantCulture));
 
     [Fact]
     public void Headers_are_matched_by_label_and_alias()

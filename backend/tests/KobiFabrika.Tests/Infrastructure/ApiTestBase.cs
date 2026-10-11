@@ -85,6 +85,9 @@ public abstract class ApiTestBase(SqlServerFixture db) : IAsyncLifetime
         return owner;
     }
 
+    /// <summary>Perakende işletmenin sahibi (Stok modülü açık).</summary>
+    protected Task<TestUser> CreateRetailOwnerAsync(string businessName = "Moda Butik") => CreateOwnerAsync(businessName, sector: "RetailStore");
+
     protected string InvitationTokenFor(string email) => Factory.Emails.LinkTo(email, "/davet/").Split('/').Last();
 
     /// <summary>Owner davet eder, davetli linkten kayıt olur. Davetlinin aktif işletmesi Owner'ınki olur.</summary>

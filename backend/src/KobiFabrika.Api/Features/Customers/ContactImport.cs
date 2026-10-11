@@ -1,24 +1,10 @@
-using System.Globalization;
-using System.Text;
-using ClosedXML.Excel;
 using FluentValidation;
+using KobiFabrika.Api.Features.Imports;
 using KobiFabrika.Domain.Common;
 using KobiFabrika.Domain.Contacts;
 using KobiFabrika.Infrastructure.Locations;
 
 namespace KobiFabrika.Api.Features.Customers;
-
-public enum ImportRowStatus
-{
-    Ok,
-    Error,
-    Duplicate,
-}
-
-public sealed record ImportFieldInfo(string Key, string Label);
-
-/// <summary>Satır sonucu. Messages: hata veya atlanma nedeni, ya da (Ok için) uyarı.</summary>
-public sealed record ImportRowResult(int RowNumber, string? Name, string? Phone, ImportRowStatus Status, IReadOnlyList<string> Messages);
 
 /// <summary>Bir satırın içe aktarmaya hazır, doğrulanmış hali.</summary>
 public sealed record ImportCandidate(
@@ -46,8 +32,6 @@ public sealed record ImportCandidate(
 /// </summary>
 public static class ContactImport
 {
-    public const long MaxFileBytes = 5 * 1024 * 1024;
-
     public static readonly IReadOnlyList<ImportFieldInfo> Fields =
     [
         new("firstName", "Ad"),
@@ -69,7 +53,7 @@ public static class ContactImport
     ];
 
     /// <summary>Başlık eş anlamlıları (küçük harf, Türkçe karaktersiz).</summary>
-    private static readonly Dictionary<string, string[]> Aliases = new()
+    public static readonly IReadOnlyDictionary<string, string[]> Aliases = new Dictionary<string, string[]>
     {
         ["firstName"] = ["ad", "adi", "isim", "musteri adi", "ad soyad", "adi soyadi"],
         ["lastName"] = ["soyad", "soyadi"],
@@ -89,129 +73,26 @@ public static class ContactImport
         ["openingBalance"] = ["acilis bakiyesi", "bakiye", "borc", "alacak"],
     };
 
-    private static readonly CultureInfo Tr = CultureInfo.GetCultureInfo("tr-TR");
-
-    public static string Simplify(string text)
-    {
-        var lower = text.Trim().ToLower(Tr)
-            .Replace('ı', 'i').Replace('ğ', 'g').Replace('ü', 'u').Replace('ş', 's').Replace('ö', 'o').Replace('ç', 'c');
-        var sb = new StringBuilder();
-        foreach (var ch in lower.Normalize(NormalizationForm.FormD))
-        {
-            if (CharUnicodeInfo.GetUnicodeCategory(ch) != UnicodeCategory.NonSpacingMark)
-            {
-                sb.Append(ch);
-            }
-        }
-
-        return string.Join(' ', sb.ToString().Replace('_', ' ').Split(' ', StringSplitOptions.RemoveEmptyEntries));
-    }
+    private static string Simplify(string text) => ImportJobs.Simplify(text);
 
     /// <summary>Başlıklara göre alan → sütun önerisi (bulunamayan alan eşlenmez).</summary>
-    public static Dictionary<string, int> SuggestMapping(IReadOnlyList<string> headers)
-    {
-        var mapping = new Dictionary<string, int>();
-        var simplified = headers.Select(Simplify).ToList();
-        foreach (var field in Fields)
-        {
-            var label = Simplify(field.Label);
-            var index = simplified.FindIndex(h => h == label || Aliases[field.Key].Contains(h));
-            if (index >= 0 && !mapping.ContainsValue(index))
-            {
-                mapping[field.Key] = index;
-            }
-        }
+    public static Dictionary<string, int> SuggestMapping(IReadOnlyList<string> headers) => ImportJobs.SuggestMapping(headers, Fields, Aliases);
 
-        return mapping;
-    }
-
-    public static byte[] Template()
-    {
-        using var book = new XLWorkbook();
-        var sheet = book.AddWorksheet("Müşteriler");
-        for (var i = 0; i < Fields.Count; i++)
-        {
-            var cell = sheet.Cell(1, i + 1);
-            cell.Value = Fields[i].Label;
-            cell.Style.Font.Bold = true;
-        }
-
-        sheet.Column(4).Style.NumberFormat.Format = "@";
-        sheet.Columns().AdjustToContents();
-        sheet.SheetView.FreezeRows(1);
-
-        var help = book.AddWorksheet("Açıklama");
-        string[][] lines =
-        [
-            ["Alan", "Nasıl doldurulur", "Örnek"],
-            ["Ad / Soyad / Firma", "Ad veya firma adından en az biri zorunlu.", "Ayşe / Yılmaz"],
-            ["Telefon", "İsteğe bağlı. Aynı numara zaten kayıtlıysa satır atlanır.", "0532 123 45 67"],
-            ["E-posta", "İsteğe bağlı.", "ayse@ornek.com"],
-            ["Doğum tarihi", "GG.AA.YYYY", "14.05.1990"],
-            ["İl / İlçe", "Türkiye il ve ilçe adları.", "İstanbul / Kadıköy"],
-            ["Kaynak", string.Join(", ", ContactLabels.Sources.Values), "Instagram"],
-            ["Etiketler", "Virgülle ayırın; olmayan etiket oluşturulur.", "VIP, Düzenli"],
-            ["SMS / E-posta / Arama izni", "Evet veya Hayır. Boş = Hayır. Sadece müşteriden izin aldıysanız Evet yazın.", "Evet"],
-            ["Açılış bakiyesi", "Müşteri size borçluysa artı, siz borçluysanız eksi tutar. Sadece Sahip ve Yönetici aktarabilir.", "1.250,50"],
-            ["", "En fazla 5000 satır. Bu sayfa içe aktarılmaz.", ""],
-        ];
-        for (var r = 0; r < lines.Length; r++)
-        {
-            for (var c = 0; c < lines[r].Length; c++)
-            {
-                help.Cell(r + 1, c + 1).Value = lines[r][c];
-            }
-        }
-
-        help.Row(1).Style.Font.Bold = true;
-        help.Columns().AdjustToContents();
-        return Finance.LedgerEndpoints.Save(book);
-    }
-
-    /// <summary>İlk sayfanın ilk satırı başlık; sonraki boş olmayan satırlar veri. Hücreler metne çevrilir (tarih → yyyy-MM-dd).</summary>
-    public static (List<string> Headers, List<(int RowNumber, string?[] Cells)> Rows) Read(Stream stream)
-    {
-        using var book = new XLWorkbook(stream);
-        var sheet = book.Worksheets.First();
-        var range = sheet.RangeUsed();
-        if (range is null)
-        {
-            return ([], []);
-        }
-
-        var lastColumn = range.LastColumn().ColumnNumber();
-        var headerRow = range.FirstRow().RowNumber();
-        var headers = Enumerable.Range(1, lastColumn).Select(c => sheet.Cell(headerRow, c).GetFormattedString().Trim()).ToList();
-
-        var rows = new List<(int, string?[])>();
-        for (var r = headerRow + 1; r <= range.LastRow().RowNumber(); r++)
-        {
-            var cells = Enumerable.Range(1, lastColumn).Select(c => CellText(sheet.Cell(r, c))).ToArray();
-            if (cells.Any(v => !string.IsNullOrWhiteSpace(v)))
-            {
-                rows.Add((r, cells));
-            }
-        }
-
-        return (headers, rows);
-    }
-
-    private static string? CellText(IXLCell cell)
-    {
-        if (cell.IsEmpty())
-        {
-            return null;
-        }
-
-        var value = cell.Value;
-        return value.Type switch
-        {
-            XLDataType.DateTime => value.GetDateTime().ToString("yyyy-MM-dd", CultureInfo.InvariantCulture),
-            XLDataType.Number => value.GetNumber().ToString(CultureInfo.InvariantCulture),
-            XLDataType.Boolean => value.GetBoolean() ? "Evet" : "Hayır",
-            _ => cell.GetFormattedString().Trim(),
-        };
-    }
+    public static byte[] Template() => ImportJobs.Template("Müşteriler", Fields, [4],
+    [
+        ["Alan", "Nasıl doldurulur", "Örnek"],
+        ["Ad / Soyad / Firma", "Ad veya firma adından en az biri zorunlu.", "Ayşe / Yılmaz"],
+        ["Telefon", "İsteğe bağlı. Aynı numara zaten kayıtlıysa satır atlanır.", "0532 123 45 67"],
+        ["E-posta", "İsteğe bağlı.", "ayse@ornek.com"],
+        ["Doğum tarihi", "GG.AA.YYYY", "14.05.1990"],
+        ["İl / İlçe", "Türkiye il ve ilçe adları.", "İstanbul / Kadıköy"],
+        ["Kaynak", string.Join(", ", ContactLabels.Sources.Values), "Instagram"],
+        ["Etiketler", "Virgülle ayırın; olmayan etiket oluşturulur.", "VIP, Düzenli"],
+        ["SMS / E-posta / Arama izni", "Evet veya Hayır. Boş = Hayır. Sadece müşteriden izin aldıysanız Evet yazın.", "Evet"],
+        ["Açılış bakiyesi", "Müşteri size borçluysa artı, siz borçluysanız eksi tutar. Sadece Sahip ve Yönetici aktarabilir.", "1.250,50"],
+        ["", "En fazla 5000 satır. Bu sayfa içe aktarılmaz.", ""],
+        
+    ]);
 
     /// <summary>Satırı doğrular. Hata varsa <c>Candidate</c> null.</summary>
     public static (ImportCandidate? Candidate, List<string> Errors, List<string> Warnings) Parse(
@@ -327,16 +208,13 @@ public static class ContactImport
                 return false;
             }
 
-            switch (Simplify(raw))
+            if (ImportJobs.ParseYesNo(raw) is { } value)
             {
-                case "evet" or "e" or "var" or "1" or "x" or "true" or "izinli" or "onay":
-                    return true;
-                case "hayir" or "h" or "yok" or "0" or "false" or "izinsiz":
-                    return false;
-                default:
-                    errors.Add($"{label} için Evet veya Hayır yazın: {raw}");
-                    return false;
+                return value;
             }
+
+            errors.Add($"{label} için Evet veya Hayır yazın: {raw}");
+            return false;
         }
 
         var sms = Consent("smsConsent", "SMS izni");
@@ -352,7 +230,7 @@ public static class ContactImport
         decimal? opening = null;
         if (Get("openingBalance") is { } rawBalance)
         {
-            if (ParseMoney(rawBalance) is not { } amount)
+            if (ImportJobs.ParseMoney(rawBalance) is not { } amount)
             {
                 errors.Add($"Açılış bakiyesi anlaşılamadı: {rawBalance}");
             }
@@ -394,36 +272,7 @@ public static class ContactImport
         return contact.DisplayName.Length > 0 ? contact.DisplayName : null;
     }
 
-    private static readonly string[] DateFormats = ["dd.MM.yyyy", "d.M.yyyy", "dd/MM/yyyy", "d/M/yyyy", "yyyy-MM-dd", "dd-MM-yyyy", "d.M.yy", "dd.MM.yy"];
-
-    public static DateOnly? ParseDate(string text) =>
-        DateOnly.TryParseExact(text.Trim(), DateFormats, CultureInfo.InvariantCulture, DateTimeStyles.None, out var d) ? d : null;
-
-    /// <summary>"1.250,50", "1250,5", "1250.50", "-300", "1.250,50 TL" (Excel sayısı InvariantCulture metin olarak gelir).</summary>
-    public static decimal? ParseMoney(string text)
-    {
-        var t = text.Replace("TL", "", StringComparison.OrdinalIgnoreCase).Replace("₺", "").Replace(" ", "").Trim();
-        if (t.Length == 0)
-        {
-            return null;
-        }
-
-        if (t.Contains(','))
-        {
-            // Türkçe biçim: nokta binlik, virgül ondalık.
-            return decimal.TryParse(t.Replace(".", "").Replace(',', '.'), NumberStyles.AllowLeadingSign | NumberStyles.AllowDecimalPoint,
-                CultureInfo.InvariantCulture, out var tr) ? tr : null;
-        }
-
-        // Tek nokta ve ardından 3 hane binlik ayırıcı sayılır ("1.250"); diğer durumda ondalık.
-        var parts = t.Split('.');
-        if (parts.Length > 2 || (parts.Length == 2 && parts[1].Length == 3 && t.TrimStart('-').Length > 4))
-        {
-            t = t.Replace(".", "");
-        }
-
-        return decimal.TryParse(t, NumberStyles.AllowLeadingSign | NumberStyles.AllowDecimalPoint, CultureInfo.InvariantCulture, out var v) ? v : null;
-    }
+    public static DateOnly? ParseDate(string text) => ImportJobs.ParseDate(text);
 
     private static class EmailValidator
     {

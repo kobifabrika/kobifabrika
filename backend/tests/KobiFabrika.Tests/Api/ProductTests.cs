@@ -9,9 +9,6 @@ namespace KobiFabrika.Tests.Api;
 /// <summary>Ürün/hizmet kataloğu: KDV, fiyat, barkod, kategori, yetki (alış fiyatı), silme ve Excel.</summary>
 public sealed class ProductTests(SqlServerFixture db) : ApiTestBase(db)
 {
-    /// <summary>Perakende işletme (Stok modülü açık).</summary>
-    internal Task<TestUser> CreateRetailOwnerAsync(string name = "Moda Butik") => CreateOwnerAsync(name, sector: "RetailStore");
-
     internal static object Item(
         string name, decimal salePrice, decimal vatRate = 20, string type = "Product", string unit = "Piece", bool pricesIncludeVat = true,
         decimal? purchasePrice = null, string? barcode = null, bool trackStock = true, decimal? criticalStockLevel = null,

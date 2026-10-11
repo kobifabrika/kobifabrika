@@ -184,6 +184,8 @@ app.MapPaymentRequestEndpoints();
 app.MapPublicLinkEndpoints();
 app.MapProductEndpoints();
 app.MapCategoryEndpoints();
+app.MapProductImportEndpoints();
+app.MapStockEndpoints();
 
 if (BackgroundJobs.IsEnabled(app.Configuration))
 {
