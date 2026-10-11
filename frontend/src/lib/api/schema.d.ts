@@ -5522,7 +5522,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Paylaş: geçerli link aynen döner; süresi dolmuşsa yeni link, geçerlilik 15 gün uzar */
+        /** Paylaş: geçerli link aynen döner; süresi dolmuşsa extend=true ile geçerlilik 15 gün uzar, yeni link (yoksa 409 quote_expired) */
         post: {
             parameters: {
                 query?: never;
@@ -5564,7 +5564,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Linki yenile: eski link geçersiz olur, geçerlilik bugünden 15 gün */
+        /** Linki yenile: eski link geçersiz olur, geçerlilik bugünden 15 gün (süresi dolmuşsa extend=true gerekir) */
         post: {
             parameters: {
                 query?: never;
@@ -5820,7 +5820,7 @@ export interface components {
             fullName: string;
         };
         /** @enum {unknown} */
-        AuditAction: "Login" | "InvitationSent" | "InvitationResent" | "InvitationRevoked" | "InvitationAccepted" | "RoleChanged" | "MemberRemoved" | "BusinessUpdated" | "SlugChanged" | "WorkingHoursUpdated" | "LogoChanged" | "ModulesChanged" | "PaymentInfoChanged" | "ContactCreated" | "ContactUpdated" | "ContactArchived" | "ContactRestored" | "ContactDeleted" | "ContactsImported" | "ContactsExported" | "LedgerEntryCreated" | "LedgerEntryDeleted" | "OpeningBalanceSet" | "CollectionRecorded" | "CollectionReverted" | "PaymentRequestCreated" | "PaymentRequestConfirmed" | "PaymentRequestRejected" | "PaymentRequestCancelled" | "PaymentRequestRenewed" | "StatementShared" | "ProductCreated" | "ProductUpdated" | "ProductDeleted" | "ProductsImported" | "ProductsExported" | "StockMovementAdded" | "SaleDiscounted" | "SaleCancelled" | "SalesExported" | "QuoteCreated" | "QuoteUpdated" | "QuoteShared" | "QuoteRenewed" | "QuoteAccepted" | "QuoteRejected" | "QuoteConverted" | "QuoteDeleted";
+        AuditAction: "Login" | "InvitationSent" | "InvitationResent" | "InvitationRevoked" | "InvitationAccepted" | "RoleChanged" | "MemberRemoved" | "BusinessUpdated" | "SlugChanged" | "WorkingHoursUpdated" | "LogoChanged" | "ModulesChanged" | "PaymentInfoChanged" | "ContactCreated" | "ContactUpdated" | "ContactArchived" | "ContactRestored" | "ContactDeleted" | "ContactsImported" | "ContactsExported" | "LedgerEntryCreated" | "LedgerEntryDeleted" | "OpeningBalanceSet" | "CollectionRecorded" | "CollectionReverted" | "PaymentRequestCreated" | "PaymentRequestConfirmed" | "PaymentRequestRejected" | "PaymentRequestCancelled" | "PaymentRequestRenewed" | "StatementShared" | "ProductCreated" | "ProductUpdated" | "ProductDeleted" | "ProductsImported" | "ProductsExported" | "StockMovementAdded" | "SaleDiscounted" | "SaleCancelled" | "SalesExported" | "QuoteCreated" | "QuoteUpdated" | "QuoteShared" | "QuoteRenewed" | "QuoteExtended" | "QuoteAccepted" | "QuoteRejected" | "QuoteConverted" | "QuoteDeleted";
         AuditLogListResponse: {
             items: components["schemas"]["AuditLogResponse"][];
             /** Format: int32 */
@@ -6833,6 +6833,8 @@ export interface components {
         };
         ShareQuoteRequest: {
             sendEmail: boolean;
+            /** @default false */
+            extend: boolean;
         };
         SlugAvailabilityResponse: {
             slug: string;

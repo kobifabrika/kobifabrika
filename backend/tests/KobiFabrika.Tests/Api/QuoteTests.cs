@@ -2,6 +2,7 @@ using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
 using System.Text.RegularExpressions;
+using KobiFabrika.Domain.Common;
 using KobiFabrika.Tests.Infrastructure;
 
 namespace KobiFabrika.Tests.Api;
@@ -232,7 +233,7 @@ public sealed partial class QuoteTests(SqlServerFixture db) : ApiTestBase(db)
     }
 
     [Fact]
-    public async Task Expired_link_is_gone_and_share_issues_new_link_with_extended_validity()
+    public async Task Expired_link_is_gone_and_share_asks_before_extending_validity()
     {
         var (owner, contactId, productId) = await ShopAsync();
         var id = (await CreateQuoteAsync(owner.Client, Body(contactId, [SaleTests.Line(productId)]))).GetProperty("id").GetGuid();
@@ -241,11 +242,30 @@ public sealed partial class QuoteTests(SqlServerFixture db) : ApiTestBase(db)
         Factory.Clock.Advance(TimeSpan.FromDays(17));
         (await NewClient().GetAsync($"/api/public/quotes/{oldToken}", Ct)).StatusCode.ShouldBe(HttpStatusCode.Gone);
         (await NewClient().PostAsJsonAsync($"/api/public/quotes/{oldToken}/accept", new { }, Ct)).StatusCode.ShouldBe(HttpStatusCode.Gone);
-        (await GetJsonAsync(owner.Client, $"/api/quotes/{id}")).GetProperty("isExpired").GetBoolean().ShouldBeTrue();
+        var expired = await GetJsonAsync(owner.Client, $"/api/quotes/{id}");
+        expired.GetProperty("isExpired").GetBoolean().ShouldBeTrue();
 
-        var shared = await PostAsync(owner.Client, $"/api/quotes/{id}/share", new { sendEmail = false });
+        // Kendiliğinden uzatmaz: önce onay ister (Paylaş ve Linki yenile).
+        foreach (var action in new[] { "share", "renew" })
+        {
+            var problem = await ProblemAsync(
+                await owner.Client.PostAsJsonAsync($"/api/quotes/{id}/{action}", new { sendEmail = false }, Json, Ct), HttpStatusCode.Conflict);
+            problem.GetProperty("code").GetString().ShouldBe("quote_expired");
+            problem.GetProperty("detail").GetString().ShouldBe("Teklifin süresi doldu. Geçerliliği 15 gün uzatıp yeni link oluşturulsun mu?");
+        }
+
+        var unchanged = await GetJsonAsync(owner.Client, $"/api/quotes/{id}");
+        unchanged.GetProperty("validUntil").GetString().ShouldBe(expired.GetProperty("validUntil").GetString());
+        (await GetJsonAsync(owner.Client, "/api/audit-logs?action=QuoteExtended")).GetProperty("items").GetArrayLength().ShouldBe(0);
+
+        var shared = await PostAsync(owner.Client, $"/api/quotes/{id}/share", new { sendEmail = false, extend = true });
         shared.GetProperty("isNewLink").GetBoolean().ShouldBeTrue();
         shared.GetProperty("quote").GetProperty("isExpired").GetBoolean().ShouldBeFalse();
+        DateOnly.Parse(shared.GetProperty("quote").GetProperty("validUntil").GetString()!).ShouldBe(BusinessTime.Today(Factory.Clock).AddDays(15));
+        shared.GetProperty("quote").GetProperty("total").GetDecimal().ShouldBe(5000m);
+        var extended = (await GetJsonAsync(owner.Client, "/api/audit-logs?action=QuoteExtended")).GetProperty("items");
+        extended.GetArrayLength().ShouldBe(1);
+        extended[0].GetProperty("changes").GetProperty("from").GetString().ShouldBe(expired.GetProperty("validUntil").GetString());
         (await NewClient().GetAsync($"/api/public/quotes/{TokenOf(shared)}", Ct)).StatusCode.ShouldBe(HttpStatusCode.OK);
         (await NewClient().GetAsync($"/api/public/quotes/{oldToken}", Ct)).StatusCode.ShouldBe(HttpStatusCode.NotFound);
     }

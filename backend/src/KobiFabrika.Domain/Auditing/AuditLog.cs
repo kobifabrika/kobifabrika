@@ -49,6 +49,9 @@ public enum AuditAction
     QuoteUpdated,
     QuoteShared,
     QuoteRenewed,
+
+    /// <summary>Süresi dolmuş teklifin geçerliliği kullanıcı onayıyla uzatıldı.</summary>
+    QuoteExtended,
     QuoteAccepted,
     QuoteRejected,
     QuoteConverted,

@@ -23,8 +23,8 @@ namespace KobiFabrika.Api.Features.Quotes;
 /// <summary>
 /// Teklifler (TKL-2026-0001). Hazırlama, paylaşma ve satışa dönüştürme Sahip, Yönetici, Personel (Personel sadece kendi
 /// tekliflerini görür); Mali Müşavir salt okunur. Herkese açık link (/teklif/[token]) tahsilat linkiyle aynı yapıda:
-/// "Paylaş" geçerli linki aynen gösterir, süresi dolmuşsa yeni link üretip geçerliliği 15 gün uzatır; "Yenile" eski linki
-/// bilerek geçersiz kılar. Müşteri onaylar/reddeder; onaylanan teklif tek adımda (ödeme seçilerek) satışa döner.
+/// "Paylaş" geçerli linki aynen gösterir; "Yenile" eski linki bilerek geçersiz kılar. Süresi dolmuş teklifte ikisi de kendiliğinden
+/// uzatmaz: kullanıcı onaylarsa (Extend) geçerlilik bugünden 15 gün uzar ve yeni link oluşur (fiyatlar aynı kalır). Müşteri onaylar/reddeder; onaylanan teklif tek adımda (ödeme seçilerek) satışa döner.
 /// </summary>
 public static class QuoteEndpoints
 {
@@ -42,12 +42,14 @@ public static class QuoteEndpoints
         group.MapDelete("/{id:guid}", Delete).RequireAuthorization(Policies.CanWrite).WithSummary("Teklifi sil (satışa dönüşmemişse; link kapanır)");
         group.MapPost("/{id:guid}/share", (Guid id, ShareQuoteRequest request, CurrentMember member, AppDbContext db, IAuditLogger audit,
                 EmailDispatch email, LinkTokenProtector protector, IOptions<AppOptions> options, TimeProvider clock, CancellationToken ct) =>
-                ShareOrRenewAsync(id, request.SendEmail, false, member, db, audit, email, protector, options, clock, ct))
-            .RequireAuthorization(Policies.CanWrite).WithSummary("Paylaş: geçerli link aynen döner; süresi dolmuşsa yeni link, geçerlilik 15 gün uzar");
+                ShareOrRenewAsync(id, request, false, member, db, audit, email, protector, options, clock, ct))
+            .RequireAuthorization(Policies.CanWrite)
+            .WithSummary("Paylaş: geçerli link aynen döner; süresi dolmuşsa extend=true ile geçerlilik 15 gün uzar, yeni link (yoksa 409 quote_expired)");
         group.MapPost("/{id:guid}/renew", (Guid id, ShareQuoteRequest request, CurrentMember member, AppDbContext db, IAuditLogger audit,
                 EmailDispatch email, LinkTokenProtector protector, IOptions<AppOptions> options, TimeProvider clock, CancellationToken ct) =>
-                ShareOrRenewAsync(id, request.SendEmail, true, member, db, audit, email, protector, options, clock, ct))
-            .RequireAuthorization(Policies.CanWrite).WithSummary("Linki yenile: eski link geçersiz olur, geçerlilik bugünden 15 gün");
+                ShareOrRenewAsync(id, request, true, member, db, audit, email, protector, options, clock, ct))
+            .RequireAuthorization(Policies.CanWrite)
+            .WithSummary("Linki yenile: eski link geçersiz olur, geçerlilik bugünden 15 gün (süresi dolmuşsa extend=true gerekir)");
         group.MapPost("/{id:guid}/mark-accepted", (Guid id, RespondQuoteRequest request, CurrentMember member, AppDbContext db, IAuditLogger audit,
                 TimeProvider clock, CancellationToken ct) => MarkAsync(id, QuoteStatus.Accepted, request, member, db, audit, clock, ct))
             .RequireAuthorization(Policies.CanWrite).Validate<RespondQuoteRequest>().WithSummary("Müşteri onayladı (ör. telefonla)");
@@ -264,7 +266,7 @@ public static class QuoteEndpoints
     }
 
     private static async Task<Results<Ok<QuoteLinkResponse>, ProblemHttpResult>> ShareOrRenewAsync(
-        Guid id, bool sendEmail, bool renew, CurrentMember member, AppDbContext db, IAuditLogger audit, EmailDispatch email,
+        Guid id, ShareQuoteRequest request, bool renew, CurrentMember member, AppDbContext db, IAuditLogger audit, EmailDispatch email,
         LinkTokenProtector protector, IOptions<AppOptions> options, TimeProvider clock, CancellationToken ct)
     {
         var quote = await db.Quotes.VisibleTo(member).FirstOrDefaultAsync(q => q.Id == id, ct);
@@ -285,6 +287,13 @@ public static class QuoteEndpoints
             return Problems.Conflict("quote_answered", "Müşteri bu teklife cevap verdi; linki yenilenemez. Gerekirse yeni teklif hazırlayın.");
         }
 
+        if (expired && !request.Extend)
+        {
+            return Problems.Conflict("quote_expired", "Teklifin süresi doldu. Geçerliliği 15 gün uzatıp yeni link oluşturulsun mu?");
+        }
+
+        var sendEmail = request.SendEmail;
+
         var contact = await db.Contacts.AsNoTracking().FirstAsync(c => c.Id == quote.ContactId, ct);
         if (sendEmail && string.IsNullOrEmpty(contact.Email))
         {
@@ -298,9 +307,15 @@ public static class QuoteEndpoints
             (token, var hash) = SecureTokens.Create();
             quote.TokenHash = hash;
             quote.ProtectedToken = protector.Protect(token);
+            var previousValidUntil = quote.ValidUntil;
             if (renew || expired)
             {
                 quote.ValidUntil = today.AddDays(Quote.ValidityDays) is var extended && extended > quote.ValidUntil ? extended : quote.ValidUntil;
+            }
+
+            if (expired)
+            {
+                audit.Log(AuditAction.QuoteExtended, nameof(Quote), id, new { quote.No, from = previousValidUntil, validUntil = quote.ValidUntil });
             }
 
             audit.Log(renew ? AuditAction.QuoteRenewed : AuditAction.QuoteShared, nameof(Quote), id, new { quote.No, validUntil = quote.ValidUntil });

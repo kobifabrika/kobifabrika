@@ -45,6 +45,7 @@ export const auditActionLabels: Record<AuditAction, string> = {
   QuoteUpdated: "Teklifi düzenledi",
   QuoteShared: "Teklif linki paylaştı",
   QuoteRenewed: "Teklif linkini yeniledi",
+  QuoteExtended: "Teklifin geçerliliğini uzattı",
   QuoteAccepted: "Teklif onaylandı",
   QuoteRejected: "Teklif reddedildi",
   QuoteConverted: "Teklifi satışa dönüştürdü",
@@ -78,6 +79,8 @@ const money = (value: unknown) =>
 type Changes = Record<string, unknown>;
 const role = (value: unknown) => roleNames[value as Role] ?? String(value ?? "");
 const text = (value: unknown) => (typeof value === "string" ? value : "");
+/** "2026-10-26" → "26.10.2026" */
+const day = (value: unknown) => (typeof value === "string" ? value.split("-").reverse().join(".") : "");
 
 /** Günlük satırının kısa Türkçe ayrıntısı (changes JSON'undan). */
 export function auditDetail(item: Pick<AuditLogItem, "action" | "changes">): string {
@@ -130,6 +133,8 @@ export function auditDetail(item: Pick<AuditLogItem, "action" | "changes">): str
     case "QuoteCreated":
     case "QuoteUpdated":
       return `${text(c.no)} · ${money(c.total)}`;
+    case "QuoteExtended":
+      return `${text(c.no)} · ${day(c.from)} → ${day(c.validUntil)}`;
     case "QuoteShared":
     case "QuoteRenewed":
     case "QuoteDeleted":

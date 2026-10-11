@@ -8,7 +8,8 @@ namespace KobiFabrika.Api.Features.Quotes;
 public sealed record QuoteRequest(
     Guid ContactId, DateOnly? Date, DateOnly? ValidUntil, List<DocumentLineRequest>? Lines, DiscountSpec? Discount, string? Notes);
 
-public sealed record ShareQuoteRequest(bool SendEmail);
+/// <summary>Extend: süresi dolmuş teklifin geçerliliğini 15 gün uzatıp yeni link oluşturmayı onaylar; yoksa 409 quote_expired.</summary>
+public sealed record ShareQuoteRequest(bool SendEmail, bool Extend = false);
 
 public sealed record RespondQuoteRequest(string? Note);
 

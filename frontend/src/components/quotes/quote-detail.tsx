@@ -27,7 +27,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Textarea } from "@/components/ui/textarea";
-import { API_URL, ApiError, api, errorMessage, unwrap } from "@/lib/api/client";
+import { API_URL, ApiError, api, errorMessage, problemCode, unwrap } from "@/lib/api/client";
 import type { Quote, QuoteStatus } from "@/lib/api/types";
 import { paymentError } from "@/lib/cart";
 import { formatDateTime, formatDay, formatMoney } from "@/lib/format";
@@ -163,7 +163,7 @@ export function QuoteDetail({ id }: { id: string }) {
       <StatusLine status={q.status} />
 
       {q.isExpired && (
-        <Notice>Geçerlilik tarihi geçti. &quot;Paylaş&quot; yeni bir link oluşturur ve geçerliliği 15 gün uzatır.</Notice>
+        <Notice>Geçerlilik tarihi geçti; müşteriye gönderilen link açılmaz. &quot;Paylaş&quot; ile geçerliliği uzatıp yeni link oluşturabilirsiniz.</Notice>
       )}
       {q.respondedAt && (q.status === "Accepted" || q.status === "Rejected" || q.status === "Converted") && (
         <Notice>
@@ -238,35 +238,70 @@ export function QuoteDetail({ id }: { id: string }) {
   );
 }
 
-/** Paylaş: geçerli link aynen gösterilir (müşteriye daha önce gönderilen çalışmaya devam eder); "Linki yenile" eskisini kapatır. */
+type ShareAction = { action: "share" | "renew"; sendEmail: boolean; extend?: boolean };
+
+/**
+ * Paylaş: geçerli link aynen gösterilir (müşteriye daha önce gönderilen çalışmaya devam eder); "Linki yenile" eskisini kapatır.
+ * Süresi dolmuş teklifte ikisi de önce "15 gün uzatılsın mı?" diye sorar; fiyatlar aynı kalır.
+ */
 function ShareQuoteDialog({ quote, onClose }: { quote: Quote; onClose: () => void }) {
   const refresh = useQuotesRefresh();
   const [link, setLink] = useState<{ url: string; whatsappUrl: string; isNewLink: boolean; validUntil: string } | null>(null);
   const [confirmRenew, setConfirmRenew] = useState(false);
+  const [askExtend, setAskExtend] = useState<"share" | "renew" | null>(quote.isExpired ? "share" : null);
   const share = useMutation({
-    mutationFn: ({ action, sendEmail }: { action: "share" | "renew"; sendEmail: boolean }) =>
+    mutationFn: ({ action, sendEmail, extend = false }: ShareAction) =>
       unwrap(
         action === "share"
-          ? api.POST("/api/quotes/{id}/share", { params: { path: { id: quote.id } }, body: { sendEmail } })
-          : api.POST("/api/quotes/{id}/renew", { params: { path: { id: quote.id } }, body: { sendEmail } }),
+          ? api.POST("/api/quotes/{id}/share", { params: { path: { id: quote.id } }, body: { sendEmail, extend } })
+          : api.POST("/api/quotes/{id}/renew", { params: { path: { id: quote.id } }, body: { sendEmail, extend } }),
       ),
-    onSuccess: async (r, { action, sendEmail }) => {
+    onSuccess: async (r, { action, sendEmail, extend }) => {
       setLink({ url: r.url, whatsappUrl: r.whatsappUrl, isNewLink: r.isNewLink, validUntil: r.quote.validUntil });
       setConfirmRenew(false);
-      if (action === "renew") toast.success("Link yenilendi; eski link artık çalışmıyor.");
+      setAskExtend(null);
+      if (extend) toast.success(`Geçerlilik ${formatDay(r.quote.validUntil)} tarihine uzatıldı; yeni link oluşturuldu.`);
+      else if (action === "renew") toast.success("Link yenilendi; eski link artık çalışmıyor.");
       if (sendEmail) toast[r.emailSent ? "success" : "error"](r.emailSent ? "E-posta gönderildi." : "E-posta gönderilemedi.");
       await refresh();
     },
-    onError: (e) => toast.error(errorMessage(e)),
+    onError: (e, { action }) => {
+      if (problemCode(e) === "quote_expired") {
+        setLink(null);
+        setConfirmRenew(false);
+        setAskExtend(action);
+        return;
+      }
+      toast.error(errorMessage(e));
+    },
   });
   const requested = useRef(false);
   const { mutate } = share;
   useEffect(() => {
-    if (!requested.current) {
+    if (!requested.current && !quote.isExpired) {
       requested.current = true;
       mutate({ action: "share", sendEmail: false });
     }
-  }, [mutate]);
+  }, [mutate, quote.isExpired]);
+
+  if (askExtend) {
+    return (
+      <DialogShell open onOpenChange={(v) => !v && onClose()} title="Teklifi paylaş" description={`${quote.contactName} · ${formatMoney(quote.total)}`}>
+        <div className="flex flex-col gap-4">
+          <Notice>Teklifin süresi doldu. Geçerliliği 15 gün uzatıp yeni link oluşturulsun mu?</Notice>
+          <p className="text-sm text-neutral-600">Fiyatlar aynı kalır. Müşteriye daha önce gönderilen link çalışmaz.</p>
+          <div className="grid grid-cols-2 gap-2">
+            <Button variant="outline" onClick={onClose} disabled={share.isPending}>
+              Vazgeç
+            </Button>
+            <Button onClick={() => share.mutate({ action: askExtend, sendEmail: false, extend: true })} disabled={share.isPending}>
+              {share.isPending ? "Uzatılıyor…" : "Evet, uzat"}
+            </Button>
+          </div>
+        </div>
+      </DialogShell>
+    );
+  }
 
   return (
     <DialogShell open onOpenChange={(v) => !v && onClose()} title="Teklifi paylaş" description={`${quote.contactName} · ${formatMoney(quote.total)}`}>
