@@ -61,12 +61,16 @@ export class ApiUser {
   }
 
   /** E-posta doğrulama linkini Mailpit'ten okuyup API'ye doğrulatır (davet göndermek için gerekir). */
+  emailConfirmed = false;
+
   async confirmEmail() {
+    if (this.emailConfirmed) return;
     const link = new URL(await linkFromEmail(this.email, /E-posta adresini doğrula/, "/e-posta-dogrula"));
     await this.post("/api/auth/confirm-email", {
       userId: link.searchParams.get("u"),
       token: link.searchParams.get("t"),
     });
+    this.emailConfirmed = true;
   }
 
   async dispose() {
@@ -122,6 +126,7 @@ export async function ownerWithBusiness(
 /** Sahibin ekibine yeni bir üye: davet (e-posta Mailpit'ten) → davet linkinden kayıt. */
 export async function addMember(owner: ApiUser, role: Exclude<Role, "Owner">, fullName?: string): Promise<ApiUser> {
   const email = uniqueEmail(role.toLowerCase());
+  await owner.confirmEmail(); // davet göndermek için gerekir
   await owner.post("/api/team/invitations", { email, role });
   const token = (await linkFromEmail(email, /davet etti/, "/davet/")).split("/davet/")[1];
   const ctx = await newApiContext();
