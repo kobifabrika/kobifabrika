@@ -2,7 +2,7 @@
 
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { Search, UserPlus, X } from "lucide-react";
-import { useState } from "react";
+import { useId, useState } from "react";
 
 import { useDebounced } from "@/components/catalog/product-list";
 import { Field } from "@/components/forms/field";
@@ -33,6 +33,7 @@ export function ContactPicker({
   const { role } = useSession();
   const [text, setText] = useState("");
   const [creating, setCreating] = useState(false);
+  const inputId = useId();
   const debounced = useDebounced(text.trim(), 250);
   const results = useQuery({
     queryKey: ["contacts", "picker", debounced],
@@ -61,13 +62,13 @@ export function ContactPicker({
   const items = debounced.length >= 2 ? (results.data?.items ?? []) : [];
   return (
     <div className="flex flex-col gap-2">
-      <label htmlFor="contact-picker" className="text-sm font-semibold text-black">
+      <label htmlFor={inputId} className="text-sm font-semibold text-black">
         Müşteri {!required && <span className="font-normal text-neutral-600">(isteğe bağlı)</span>}
       </label>
       <div className="relative">
         <Search aria-hidden className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-neutral-600" />
         <Input
-          id="contact-picker"
+          id={inputId}
           type="search"
           value={text}
           onChange={(e) => setText(e.target.value)}
