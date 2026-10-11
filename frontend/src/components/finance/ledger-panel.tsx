@@ -28,6 +28,7 @@ const refLabels: Record<LedgerItem["refType"], string> = {
   Manual: "",
   Collection: "Tahsilat",
   Sale: "Satış",
+  SaleCancel: "Satış iptali",
 };
 
 /** Kartın Cari sekmesi: bakiye, işlemler, hareketler (yürüyen bakiye), tahsilat linkleri. */

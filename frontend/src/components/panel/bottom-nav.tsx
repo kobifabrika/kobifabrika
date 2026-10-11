@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
-import { Banknote, CalendarPlus, Menu, Package, Plus, ReceiptText, UserPlus } from "lucide-react";
+import { Menu, Package, Plus } from "lucide-react";
 import { cn } from "cn";
 
 import { Wordmark } from "@/components/brand/wordmark";
@@ -11,15 +11,7 @@ import { ApiStatus } from "@/components/panel/api-status";
 import { NavList } from "@/components/panel/sidebar";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { useSession } from "@/components/providers/session-provider";
-import { bottomTabs, isActive, panelHref } from "@/lib/navigation";
-import { can } from "@/lib/permissions";
-
-const quickActions = [
-  { label: "Yeni satış", href: "/panel/satislar", icon: ReceiptText },
-  { label: "Yeni randevu", href: "/panel/randevular", icon: CalendarPlus, module: "appointments" as const },
-  { label: "Yeni müşteri", href: "/panel/musteriler/yeni", icon: UserPlus, permission: "writeContacts" as const },
-  { label: "Tahsilat", href: "/panel/cari-kasa?sekme=bakiyeler", icon: Banknote, permission: "manageFinance" as const },
-];
+import { bottomTabs, isActive, panelHref, visibleQuickActions } from "@/lib/navigation";
 
 const tabClass =
   "flex min-h-14 flex-1 flex-col items-center justify-center gap-0.5 text-xs font-medium transition-colors";
@@ -35,10 +27,7 @@ export function BottomNav() {
   const tabs = bottomTabs.map((t) =>
     t.module && !business.modules[t.module] ? { slug: "urunler", label: "Ürün", icon: Package } : t,
   );
-  const actions = quickActions.filter(
-    (a) =>
-      (!a.module || business.modules[a.module]) && (!("permission" in a) || !a.permission || can(role, a.permission)),
-  );
+  const actions = visibleQuickActions(role, business.modules);
 
   const tab = (item: (typeof tabs)[number]) => {
     const active = isActive(pathname, item.slug);

@@ -9,8 +9,8 @@ export const instant = false;
 
 /** Menüdeki her ekran için geçici iskelet; ekranlar ilgili sprintlerde gerçek sayfalarla değişir. */
 export function generateStaticParams() {
-  // Sprint 1-2 ekranları (Ayarlar, Müşteriler, Cari ve Kasa) kendi klasöründe; burada sadece henüz gelmemiş ekranlar.
-  return allNavItems.filter((item) => item.slug && (item.sprint ?? 0) > 2).map((item) => ({ section: item.slug }));
+  // Sprint 1-3 ekranları (Ayarlar, Müşteriler, Cari ve Kasa, Satışlar, Ürünler, Stok) kendi klasöründe; burada sadece henüz gelmemiş ekranlar.
+  return allNavItems.filter((item) => item.slug && (item.sprint ?? 0) > 3).map((item) => ({ section: item.slug }));
 }
 
 export async function generateMetadata({ params }: PageProps<"/panel/[section]">): Promise<Metadata> {

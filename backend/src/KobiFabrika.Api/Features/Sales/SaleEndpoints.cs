@@ -29,6 +29,7 @@ public static class SaleEndpoints
         group.MapGet("/", List).WithSummary("Satışlar (from/to yerel gün, q: no veya müşteri, status, contactId, method; sayfalı + dönem toplamı)");
         group.MapGet("/{id:guid}", Get).WithSummary("Satış detayı");
         group.MapPost("/", Create).RequireAuthorization(Policies.CanWrite).Validate<SaleRequest>()
+            .Produces<SaleCreatedResponse>(StatusCodes.Status201Created)
             .WithSummary("Satış yap: stok düşer, veresiye cariye, nakit kasaya, kart/havale bankaya");
         group.MapPost("/{id:guid}/cancel", Cancel).RequireAuthorization(Policies.ManageFinance).Validate<CancelSaleRequest>()
             .WithSummary("Satışı iptal et: stok, kasa ve cari ters kayıtla geri alınır; kayıt silinmez");

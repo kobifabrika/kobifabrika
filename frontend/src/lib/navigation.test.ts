@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { allNavItems, isActive, navGroups, panelHref, visibleNavGroups } from "./navigation";
+import { allNavItems, isActive, navGroups, panelHref, visibleNavGroups, visibleQuickActions } from "./navigation";
 
 describe("panel menüsü", () => {
   it("Faz 1 menüsündeki 12 ekranı iki grupta içerir", () => {
@@ -57,5 +57,21 @@ describe("şablona ve role göre menü", () => {
     expect(labels(visibleNavGroups("Staff", all))).not.toContain("Cari ve Kasa");
     expect(labels(visibleNavGroups("Staff", all))).toContain("Müşteriler");
     expect(labels(visibleNavGroups("Accountant", all))).toContain("Cari ve Kasa");
+  });
+});
+
+describe("hızlı işlemler", () => {
+  const labels = (role: Parameters<typeof visibleQuickActions>[0], modules = { appointments: true, stock: true }) =>
+    visibleQuickActions(role, modules).map((a) => a.label);
+
+  it("Satış ve teklif herkese (Mali Müşavir hariç) görünür", () => {
+    expect(labels("Owner")).toEqual(["Yeni satış", "Yeni teklif", "Yeni randevu", "Yeni müşteri", "Tahsilat"]);
+    expect(labels("Staff")).toEqual(["Yeni satış", "Yeni teklif", "Yeni randevu", "Yeni müşteri"]);
+    expect(labels("Accountant")).toEqual(["Yeni randevu"]);
+  });
+
+  it("Randevular modülü kapalıysa randevu gizlenir; satış adresi hızlı satış ekranıdır", () => {
+    expect(labels("Owner", { appointments: false, stock: true })).not.toContain("Yeni randevu");
+    expect(visibleQuickActions("Owner", null).find((a) => a.label === "Yeni satış")?.href).toBe("/panel/satislar/yeni");
   });
 });

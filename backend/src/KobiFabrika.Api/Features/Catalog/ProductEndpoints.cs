@@ -26,8 +26,11 @@ public static class ProductEndpoints
         group.MapGet("/by-barcode/{code}", ByBarcode).WithSummary("Barkodla tam eşleşme (hızlı satış, barkod okuyucu)");
         group.MapGet("/top-selling", TopSelling).WithSummary("Son 30 günde en çok satılanlar (hızlı satışta kısayol)");
         group.MapGet("/{id:guid}", Get).WithSummary("Ürün/hizmet kartı");
-        group.MapPost("/", Create).RequireAuthorization(Policies.ManageCatalog).Validate<ProductRequest>().WithSummary("Yeni ürün/hizmet");
-        group.MapPut("/{id:guid}", Update).RequireAuthorization(Policies.ManageCatalog).Validate<ProductRequest>().WithSummary("Ürünü güncelle");
+        group.MapPost("/", Create).RequireAuthorization(Policies.ManageCatalog).Validate<ProductRequest>()
+            .Produces<ProductResponse>(StatusCodes.Status201Created).ProducesProblem(StatusCodes.Status409Conflict).WithSummary("Yeni ürün/hizmet");
+        group.MapPut("/{id:guid}", Update).RequireAuthorization(Policies.ManageCatalog).Validate<ProductRequest>()
+            .Produces<ProductResponse>().ProducesProblem(StatusCodes.Status404NotFound).ProducesProblem(StatusCodes.Status409Conflict)
+            .WithSummary("Ürünü güncelle");
         group.MapDelete("/{id:guid}", Delete).RequireAuthorization(Policies.ManageCatalog)
             .WithSummary("Sil; satış/teklif/stok geçmişi varsa pasife alır");
         group.MapPost("/{id:guid}/activate", (Guid id, AppDbContext db, CurrentMember member, IAuditLogger audit, CancellationToken ct) =>

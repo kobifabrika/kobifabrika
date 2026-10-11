@@ -7,6 +7,7 @@ import {
   BellRing,
   Clock,
   FileSpreadsheet,
+  PackagePlus,
   Search,
   UserPlus,
   UserRound,
@@ -20,7 +21,7 @@ import { useSession } from "@/components/providers/session-provider";
 import { CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import { api, unwrap } from "@/lib/api/client";
-import { panelHref, visibleNavGroups } from "@/lib/navigation";
+import { panelHref, visibleNavGroups, visibleQuickActions } from "@/lib/navigation";
 import { can } from "@/lib/permissions";
 
 type PageLink = { label: string; href: string; icon: LucideIcon; keywords?: string };
@@ -46,8 +47,8 @@ function useDebounced<T>(value: T, ms: number) {
 }
 
 /**
- * Ctrl+K / ⌘K genel arama: sayfalar istemcide eşleşir; müşteriler (ad, telefon, e-posta) API'den gelir
- * (GET /api/search); ürün ve satış Sprint 3'te eklenir.
+ * Ctrl+K / ⌘K genel arama: sayfalar ve hızlı işlemler istemcide eşleşir; müşteriler (ad, telefon, e-posta),
+ * ürünler (ad, barkod) ve satışlar (SAT numarası, müşteri) API'den gelir (GET /api/search).
  */
 export function CommandMenu() {
   const router = useRouter();
@@ -71,6 +72,11 @@ export function CommandMenu() {
     const links: PageLink[] = visibleNavGroups(role, business.modules)
       .flatMap((g) => g.items)
       .map((item) => ({ label: item.label, href: panelHref(item.slug), icon: item.icon }));
+    for (const action of visibleQuickActions(role, business.modules)) {
+      links.push({ label: action.label, href: action.href, icon: action.icon, keywords: action.keywords });
+    }
+    if (can(role, "manageCatalog"))
+      links.push({ label: "Yeni ürün/hizmet", href: "/panel/urunler/yeni", icon: PackagePlus, keywords: "ürün hizmet ekle katalog" });
     if (can(role, "writeContacts")) {
       links.push({
         label: "Yeni müşteri",
@@ -187,8 +193,8 @@ export function CommandMenu() {
               )}
             </CommandList>
             <p className="flex items-center gap-1 border-t border-border px-3 py-2 text-xs text-neutral-600">
-              <Search aria-hidden className="size-3.5" /> Müşteriyi ad, telefon veya e-postayla bulun. Ürün ve satış
-              araması yakında.
+              <Search aria-hidden className="size-3.5" /> Müşteri (ad, telefon), ürün (ad, barkod) veya satış numarasıyla
+              arayın.
             </p>
           </CommandPrimitive>
         </DialogContent>

@@ -32,6 +32,23 @@ export const auditActionLabels: Record<AuditAction, string> = {
   PaymentRequestCancelled: "Tahsilat linkini iptal etti",
   PaymentRequestRenewed: "Tahsilat linkini yeniledi",
   StatementShared: "Ekstre paylaştı",
+  ProductCreated: "Ürün/hizmet ekledi",
+  ProductUpdated: "Ürünü güncelledi",
+  ProductDeleted: "Ürünü sildi",
+  ProductsImported: "Excel'den ürün aktardı",
+  ProductsExported: "Ürün listesini Excel'e aktardı",
+  StockMovementAdded: "Stok hareketi girdi",
+  SaleDiscounted: "İndirimli satış yaptı",
+  SaleCancelled: "Satışı iptal etti",
+  SalesExported: "Satışları Excel'e aktardı",
+  QuoteCreated: "Teklif hazırladı",
+  QuoteUpdated: "Teklifi düzenledi",
+  QuoteShared: "Teklif linki paylaştı",
+  QuoteRenewed: "Teklif linkini yeniledi",
+  QuoteAccepted: "Teklif onaylandı",
+  QuoteRejected: "Teklif reddedildi",
+  QuoteConverted: "Teklifi satışa dönüştürdü",
+  QuoteDeleted: "Teklifi sildi",
 };
 
 const fieldLabels: Record<string, string> = {
@@ -94,6 +111,34 @@ export function auditDetail(item: Pick<AuditLogItem, "action" | "changes">): str
     case "PaymentRequestConfirmed":
     case "PaymentRequestRenewed":
       return money(c.amount);
+    case "ProductCreated":
+    case "ProductDeleted":
+      return text(c.name) + (c.deactivated ? " · pasife alındı" : "");
+    case "ProductUpdated":
+      return typeof c.isActive === "boolean" ? `${text(c.name)} · ${c.isActive ? "satışa açıldı" : "pasife alındı"}` : "";
+    case "ProductsImported":
+      return `${text(c.file)} · ${c.added ?? 0} eklendi, ${c.duplicates ?? 0} tekrar, ${c.errors ?? 0} hatalı`;
+    case "ProductsExported":
+    case "SalesExported":
+      return `${c.count ?? 0} kayıt`;
+    case "StockMovementAdded":
+      return `${text(c.name)} · ${c.quantity ?? ""}`;
+    case "SaleDiscounted":
+      return `${text(c.no)} · indirim ${money(c.discount)}`;
+    case "SaleCancelled":
+      return `${text(c.no)} · ${money(c.total)}${c.reason ? ` · ${text(c.reason)}` : ""}`;
+    case "QuoteCreated":
+    case "QuoteUpdated":
+      return `${text(c.no)} · ${money(c.total)}`;
+    case "QuoteShared":
+    case "QuoteRenewed":
+    case "QuoteDeleted":
+      return text(c.no);
+    case "QuoteAccepted":
+    case "QuoteRejected":
+      return `${text(c.no)} · ${c.via === "Link" ? "müşteri linkten" : "panelden"}${c.note ? ` · ${text(c.note)}` : ""}`;
+    case "QuoteConverted":
+      return `${text(c.no)} → ${text(c.sale)}`;
     case "StatementShared":
       return c.channel === "Email" ? "E-posta" : c.channel === "WhatsApp" ? "WhatsApp" : "Link";
     case "ContactUpdated":

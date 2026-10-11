@@ -26,8 +26,38 @@ type Result = { added: number; duplicates: number; errors: number; warnings: num
 
 const steps = ["Dosya", "Sütunlar", "Önizleme", "Sonuç"] as const;
 
-/** Excel'den müşteri aktarma: şablon → yükle → sütun eşle → önizle (hatalı satırlar nedeniyle) → kaydet → rapor. */
-export function ImportWizard() {
+export type ImportKind = "contacts" | "products";
+
+/** Müşteri ve ürün içe aktarmasının farkları (uçlar, zorunlu alanlar, metinler). */
+const kinds = {
+  contacts: {
+    base: "/api/contacts/import",
+    intro: "Kendi listeniz de olur; bir sonraki adımda sütunları eşlersiniz. En fazla 5000 satır. Aynı telefon zaten kayıtlıysa o satır atlanır.",
+    required: (m: Record<string, number>) => m.firstName !== undefined || m.companyName !== undefined,
+    requiredMessage: "Ad veya Firma alanını bir sütunla eşleyin.",
+    duplicateReason: "aynı telefon",
+    warningExample: "ör. açılış bakiyesi aktarılmadı",
+    doneHref: "/panel/musteriler",
+    doneLabel: "Müşterilere git",
+    invalidate: [contactsKey, ["tags"]],
+  },
+  products: {
+    base: "/api/products/import",
+    intro:
+      "Kendi listeniz de olur; bir sonraki adımda sütunları eşlersiniz. En fazla 5000 satır. Aynı barkod (barkod yoksa aynı ad) zaten kayıtlıysa o satır atlanır.",
+    required: (m: Record<string, number>) => m.name !== undefined && m.salePrice !== undefined,
+    requiredMessage: "Ad ve Satış fiyatı alanlarını birer sütunla eşleyin.",
+    duplicateReason: "aynı barkod veya ad",
+    warningExample: "ör. KDV boştu, %20 alındı",
+    doneHref: "/panel/urunler",
+    doneLabel: "Ürünlere git",
+    invalidate: [["products"], ["product-categories"], ["stock"]],
+  },
+} as const;
+
+/** Excel'den müşteri veya ürün aktarma: şablon → yükle → sütun eşle → önizle (hatalı satırlar nedeniyle) → kaydet → rapor. */
+export function ImportWizard({ kind = "contacts" }: { kind?: ImportKind }) {
+  const config = kinds[kind];
   const queryClient = useQueryClient();
   const [step, setStep] = useState(0);
   const [upload, setUpload] = useState<Upload | null>(null);
@@ -46,7 +76,7 @@ export function ImportWizard() {
     try {
       const body = new FormData();
       body.append("file", file);
-      const response = await fetch(`${API_URL}/api/contacts/import`, { method: "POST", body, credentials: "include" });
+      const response = await fetch(`${API_URL}${config.base}`, { method: "POST", body, credentials: "include" });
       const data = await response.json().catch(() => ({}));
       if (!response.ok) throw new Error((data as ProblemDetails).detail ?? "Dosya yüklenemedi.");
       setUpload(data as Upload);
@@ -63,10 +93,15 @@ export function ImportWizard() {
   const runPreview = useMutation({
     mutationFn: () =>
       unwrap(
-        api.POST("/api/contacts/import/{jobId}/preview", {
-          params: { path: { jobId: upload!.jobId }, query: { pageSize: 200 } },
-          body: { mapping },
-        }),
+        kind === "products"
+          ? api.POST("/api/products/import/{jobId}/preview", {
+              params: { path: { jobId: upload!.jobId }, query: { pageSize: 200 } },
+              body: { mapping },
+            })
+          : api.POST("/api/contacts/import/{jobId}/preview", {
+              params: { path: { jobId: upload!.jobId }, query: { pageSize: 200 } },
+              body: { mapping },
+            }),
       ),
     onSuccess: (p) => {
       setPreview(p);
@@ -80,22 +115,20 @@ export function ImportWizard() {
   const commit = useMutation({
     mutationFn: () =>
       unwrap(
-        api.POST("/api/contacts/import/{jobId}/commit", {
-          params: { path: { jobId: upload!.jobId } },
-          body: { mapping },
-        }),
+        kind === "products"
+          ? api.POST("/api/products/import/{jobId}/commit", { params: { path: { jobId: upload!.jobId } }, body: { mapping } })
+          : api.POST("/api/contacts/import/{jobId}/commit", { params: { path: { jobId: upload!.jobId } }, body: { mapping } }),
       ),
     onSuccess: async (r) => {
       setResult(r);
       setStep(3);
       setError(null);
-      await queryClient.invalidateQueries({ queryKey: contactsKey });
-      await queryClient.invalidateQueries({ queryKey: ["tags"] });
+      for (const queryKey of config.invalidate) await queryClient.invalidateQueries({ queryKey });
     },
     onError: (e) => setError(errorMessage(e)),
   });
 
-  const nameMapped = mapping.firstName !== undefined || mapping.companyName !== undefined;
+  const nameMapped = config.required(mapping);
   const usedColumns = new Set(Object.values(mapping));
 
   return (
@@ -121,12 +154,9 @@ export function ImportWizard() {
         <section className="flex flex-col gap-5">
           <div className="flex flex-col gap-2">
             <h2 className="text-lg font-semibold text-black">1. Şablonu indirin ve doldurun</h2>
-            <p className="text-sm text-neutral-700">
-              Kendi listeniz de olur; bir sonraki adımda sütunları eşlersiniz. En fazla 5000 satır. Aynı telefon zaten
-              kayıtlıysa o satır atlanır.
-            </p>
+            <p className="text-sm text-neutral-700">{config.intro}</p>
             <Button asChild variant="outline" className="self-start">
-              <a href={`${API_URL}/api/contacts/import/template.xlsx`} download>
+              <a href={`${API_URL}${config.base}/template.xlsx`} download>
                 <Download aria-hidden />
                 Şablonu indir (.xlsx)
               </a>
@@ -192,7 +222,7 @@ export function ImportWizard() {
               </li>
             ))}
           </ul>
-          {!nameMapped && <Notice>Ad veya Firma alanını bir sütunla eşleyin.</Notice>}
+          {!nameMapped && <Notice>{config.requiredMessage}</Notice>}
           <div className="flex gap-2">
             <Button variant="ghost" onClick={() => setStep(0)}>
               Geri
@@ -297,16 +327,24 @@ export function ImportWizard() {
             {result.added} kayıt eklendi.
           </p>
           <ul className="text-sm text-neutral-700">
-            {result.duplicates > 0 && <li>{result.duplicates} satır aynı telefon nedeniyle atlandı.</li>}
+            {result.duplicates > 0 && (
+              <li>
+                {result.duplicates} satır {config.duplicateReason} nedeniyle atlandı.
+              </li>
+            )}
             {result.errors > 0 && <li>{result.errors} satır hatalı olduğu için aktarılmadı.</li>}
-            {result.warnings > 0 && <li>{result.warnings} satırda uyarı var (ör. açılış bakiyesi aktarılmadı).</li>}
+            {result.warnings > 0 && (
+              <li>
+                {result.warnings} satırda uyarı var ({config.warningExample}).
+              </li>
+            )}
           </ul>
           <div className="flex flex-wrap gap-2">
             <Button asChild>
-              <Link href="/panel/musteriler">Müşterilere git</Link>
+              <Link href={config.doneHref}>{config.doneLabel}</Link>
             </Button>
             <Button asChild variant="outline">
-              <a href={`${API_URL}/api/contacts/import/${upload.jobId}/report.xlsx`} download>
+              <a href={`${API_URL}${config.base}/${upload.jobId}/report.xlsx`} download>
                 <Download aria-hidden />
                 Raporu indir
               </a>

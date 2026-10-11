@@ -34,8 +34,10 @@ public static class QuoteEndpoints
 
         group.MapGet("/", List).WithSummary("Teklifler (status, contactId, q: no veya müşteri; sayfalı)");
         group.MapGet("/{id:guid}", Get).WithSummary("Teklif");
-        group.MapPost("/", Create).RequireAuthorization(Policies.CanWrite).Validate<QuoteRequest>().WithSummary("Yeni teklif (taslak)");
+        group.MapPost("/", Create).RequireAuthorization(Policies.CanWrite).Validate<QuoteRequest>()
+            .Produces<QuoteResponse>(StatusCodes.Status201Created).WithSummary("Yeni teklif (taslak)");
         group.MapPut("/{id:guid}", Update).RequireAuthorization(Policies.CanWrite).Validate<QuoteRequest>()
+            .Produces<QuoteResponse>().ProducesProblem(StatusCodes.Status404NotFound).ProducesProblem(StatusCodes.Status409Conflict)
             .WithSummary("Teklifi düzenle (müşteri cevap vermeden önce)");
         group.MapDelete("/{id:guid}", Delete).RequireAuthorization(Policies.CanWrite).WithSummary("Teklifi sil (satışa dönüşmemişse; link kapanır)");
         group.MapPost("/{id:guid}/share", (Guid id, ShareQuoteRequest request, CurrentMember member, AppDbContext db, IAuditLogger audit,
@@ -53,6 +55,8 @@ public static class QuoteEndpoints
                 TimeProvider clock, CancellationToken ct) => MarkAsync(id, QuoteStatus.Rejected, request, member, db, audit, clock, ct))
             .RequireAuthorization(Policies.CanWrite).Validate<RespondQuoteRequest>().WithSummary("Müşteri reddetti");
         group.MapPost("/{id:guid}/convert", Convert).RequireAuthorization(Policies.CanWrite).Validate<ConvertQuoteRequest>()
+            .Produces<SaleCreatedResponse>(StatusCodes.Status201Created).ProducesProblem(StatusCodes.Status404NotFound)
+            .ProducesProblem(StatusCodes.Status409Conflict)
             .WithSummary("Onaylanan teklifi satışa dönüştür (ödeme boşsa tamamı veresiye)");
         group.MapGet("/{id:guid}/pdf", Pdf).WithSummary("Logolu teklif PDF'i");
 

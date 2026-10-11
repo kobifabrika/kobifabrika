@@ -39,6 +39,26 @@ export type ImportRow = Schemas["ImportRowResult"];
 export type PublicStatement = Schemas["PublicStatementResponse"];
 export type PublicPayment = Schemas["PublicPaymentResponse"];
 
+// Ürün, stok, satış ve teklif (Sprint 3)
+export type Product = Schemas["ProductResponse"];
+export type ProductRequest = Schemas["ProductRequest"];
+export type ProductType = Schemas["ProductType"];
+export type ProductUnit = Schemas["ProductUnit"];
+export type Category = Schemas["CategoryResponse"];
+export type VatRate = Schemas["VatRateResponse"];
+export type StockMovement = Schemas["StockMovementResponse"];
+export type StockMovementType = Schemas["StockMovementType"];
+export type Sale = Schemas["SaleResponse"];
+export type SaleListItem = Schemas["SaleListItem"];
+export type SaleStatus = Schemas["SaleStatus"];
+export type PaymentMethod = Schemas["PaymentMethod"];
+export type DocumentLine = Schemas["DocumentLineResponse"];
+export type DocumentLineRequest = Schemas["DocumentLineRequest"];
+export type Quote = Schemas["QuoteResponse"];
+export type QuoteListItem = Schemas["QuoteListItem"];
+export type QuoteStatus = Schemas["QuoteStatus"];
+export type PublicQuote = Schemas["PublicQuoteResponse"];
+
 /** Kaynak listesi sabit; sıra arayüzdeki sıradır. */
 export const sourceNames: Record<ContactSource, string> = {
   Instagram: "Instagram",
@@ -70,6 +90,31 @@ export const paymentStatusNames: Record<PaymentRequestStatus, string> = {
   ClaimedPaid: '"Ödedim" dedi',
   Confirmed: "Onaylandı",
   Cancelled: "İptal",
+};
+
+export const productTypeNames: Record<ProductType, string> = { Product: "Ürün", Service: "Hizmet" };
+
+export const paymentMethodNames: Record<PaymentMethod, string> = {
+  Cash: "Nakit",
+  Card: "Kart",
+  Transfer: "Havale/EFT",
+  Credit: "Veresiye",
+};
+
+export const stockMovementTypeNames: Record<StockMovementType, string> = {
+  In: "Giriş",
+  Out: "Çıkış",
+  Adjustment: "Sayım",
+  Sale: "Satış",
+  SaleCancel: "Satış iptali",
+};
+
+export const quoteStatusNames: Record<QuoteStatus, string> = {
+  Draft: "Taslak",
+  Sent: "Gönderildi",
+  Accepted: "Onaylandı",
+  Rejected: "Reddedildi",
+  Converted: "Satışa dönüştü",
 };
 
 export const roleNames: Record<Role, string> = {

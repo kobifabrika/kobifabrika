@@ -22,13 +22,20 @@ export default function PanelLayout({ children }: LayoutProps<"/panel">) {
     <Suspense>
       <PanelGate>
         <div className="min-h-screen bg-background">
-          <Sidebar />
-          <div className="flex min-h-screen flex-col lg:pl-64">
-            <Topbar />
-            <EmailBanner />
-            <main className="flex-1 px-4 pt-5 pb-28 lg:px-8 lg:pt-8 lg:pb-10">{children}</main>
+          {/* Yazdırırken (fiş) sadece sayfa içeriği basılır; menüler gizlenir. */}
+          <div className="print:hidden">
+            <Sidebar />
           </div>
-          <BottomNav />
+          <div className="flex min-h-screen flex-col lg:pl-64 print:min-h-0 print:pl-0">
+            <Topbar />
+            <div className="print:hidden">
+              <EmailBanner />
+            </div>
+            <main className="flex-1 px-4 pt-5 pb-28 lg:px-8 lg:pt-8 lg:pb-10 print:p-0">{children}</main>
+          </div>
+          <div className="print:hidden">
+            <BottomNav />
+          </div>
         </div>
       </PanelGate>
     </Suspense>

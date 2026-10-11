@@ -20,6 +20,16 @@ const matrix = {
   viewFinance: ["Owner", "Manager", "Accountant"],
   /** Borç/alacak, tahsilat, tahsilat linki, ekstre paylaşımı. */
   manageFinance: ["Owner", "Manager"],
+  /** Ürün/hizmet, kategori, Excel'den ürün aktarma ve stok hareketi. */
+  manageCatalog: ["Owner", "Manager"],
+  /** Alış fiyatı ve birim maliyet (Personel göremez; API null döner). */
+  viewPurchasePrice: ["Owner", "Manager", "Accountant"],
+  /** Satış yapma ve teklif hazırlama (indirim dahil). */
+  createSales: ["Owner", "Manager", "Staff"],
+  /** İşletmenin tüm satış ve teklifleri; Personel sadece kendi girdiklerini görür. */
+  viewAllSales: ["Owner", "Manager", "Accountant"],
+  /** Satış iptali (stok, kasa ve cari ters kayıtla geri alınır). */
+  cancelSales: ["Owner", "Manager"],
   /** Excel'e aktarma. */
   exportData: ["Owner", "Manager", "Accountant"],
 } as const satisfies Record<string, readonly Role[]>;

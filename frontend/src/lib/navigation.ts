@@ -1,5 +1,10 @@
 import {
+  Banknote,
   CalendarDays,
+  CalendarPlus,
+  FileText,
+  ReceiptText,
+  UserPlus,
   ChartColumn,
   Clock,
   House,
@@ -88,6 +93,31 @@ export const bottomTabs: readonly { slug: string; label: string; icon: LucideIco
   { slug: "satislar", label: "Satış", icon: Receipt },
   { slug: "musteriler", label: "Müşteri", icon: Users },
 ];
+
+export type QuickAction = {
+  label: string;
+  href: string;
+  icon: LucideIcon;
+  module?: NavItem["module"];
+  permission?: Permission;
+  /** Ctrl+K eşleşmesi için ek kelimeler. */
+  keywords?: string;
+};
+
+/** Hızlı işlemler: telefonda (+) menüsü, masaüstünde üst çubuktaki (+) ve Ctrl+K aynı listeyi kullanır. */
+export const quickActions: readonly QuickAction[] = [
+  { label: "Yeni satış", href: "/panel/satislar/yeni", icon: ReceiptText, permission: "createSales", keywords: "satış sepet barkod fiş kasa" },
+  { label: "Yeni teklif", href: "/panel/teklifler/yeni", icon: FileText, permission: "createSales", keywords: "teklif fiyat" },
+  { label: "Yeni randevu", href: "/panel/randevular", icon: CalendarPlus, module: "appointments", keywords: "randevu" },
+  { label: "Yeni müşteri", href: "/panel/musteriler/yeni", icon: UserPlus, permission: "writeContacts", keywords: "müşteri ekle" },
+  { label: "Tahsilat", href: "/panel/cari-kasa?sekme=bakiyeler", icon: Banknote, permission: "manageFinance", keywords: "tahsilat ödeme" },
+];
+
+export function visibleQuickActions(role: Role | null | undefined, modules: Modules | null | undefined): QuickAction[] {
+  return quickActions.filter(
+    (a) => (!a.module || (modules?.[a.module] ?? true)) && (!a.permission || can(role, a.permission)),
+  );
+}
 
 export function isActive(pathname: string, slug: string) {
   const href = panelHref(slug);
