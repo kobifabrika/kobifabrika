@@ -45,7 +45,12 @@ export class Guard {
         return;
       this.issues.push(`[${label}] Konsolda hata: ${text}\n    ${page.url()}`);
     });
-    page.on("pageerror", (error) => this.issues.push(`[${label}] JS hatası: ${error.message}\n    ${page.url()}`));
+    page.on("pageerror", (error) => {
+      // WebKit, sayfadan ayrılırken iptal edilen Next.js önyükleme (?_rsc=) isteğini "access control checks" hatası
+      // olarak bildirir; kullanıcıya etkisi yoktur.
+      if (/_rsc=.*due to access control checks/.test(error.message)) return;
+      this.issues.push(`[${label}] JS hatası: ${error.message}\n    ${page.url()}`);
+    });
     page.on("response", (response) => {
       const url = response.url();
       if (!url.startsWith(apiUrl) && !url.startsWith(webUrl)) return;

@@ -11,6 +11,8 @@ import { apiUrl, webUrl } from "./e2e/scripts/env.mjs";
  */
 const headed = process.env.E2E_HEADED === "1";
 const ci = !!process.env.CI;
+/** E2E_REUSE=1: açık E2E sunucularını kullan (test yazarken hızlı tekrar; veritabanı sıfırlanmaz). */
+const reuse = process.env.E2E_REUSE === "1";
 
 /** Telefon: 375 px genişlik, dokunmatik. 2x piksel (3x'te uzun sayfaların tam ekran görüntüsü WebKit sınırını aşıyor). */
 const phone = {
@@ -57,7 +59,7 @@ export default defineConfig({
       command: "node e2e/scripts/start-api.mjs",
       url: `${apiUrl}/health`,
       timeout: 300_000,
-      reuseExistingServer: false,
+      reuseExistingServer: reuse,
       stdout: "pipe",
       stderr: "pipe",
     },
@@ -66,7 +68,7 @@ export default defineConfig({
       command: "node e2e/scripts/start-web.mjs",
       url: webUrl,
       timeout: 300_000,
-      reuseExistingServer: false,
+      reuseExistingServer: reuse,
       stdout: "pipe",
       stderr: "pipe",
     },
