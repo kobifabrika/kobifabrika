@@ -36,6 +36,9 @@ public static class Policies
     /// <summary>Cari/kasa kaydı, tahsilat, tahsilat linki, ekstre paylaşımı: Owner, Manager.</summary>
     public const string ManageFinance = nameof(ManageFinance);
 
+    /// <summary>Ürün/hizmet, kategori, Excel'den ürün içe aktarma ve stok hareketi: Owner, Manager.</summary>
+    public const string ManageCatalog = nameof(ManageCatalog);
+
     /// <summary>Excel'e aktarma: Owner, Manager, Accountant.</summary>
     public const string Export = nameof(Export);
 
@@ -58,6 +61,7 @@ public static class Policies
         .AddPolicy(ManageContacts, p => p.AddRequirements(new MemberRequirement(RoleSets.Managers)))
         .AddPolicy(ViewFinance, p => p.AddRequirements(new MemberRequirement(RoleSets.FinanceViewers)))
         .AddPolicy(ManageFinance, p => p.AddRequirements(new MemberRequirement(RoleSets.Managers)))
+        .AddPolicy(ManageCatalog, p => p.AddRequirements(new MemberRequirement(RoleSets.Managers)))
         .AddPolicy(Export, p => p.AddRequirements(new MemberRequirement(RoleSets.FinanceViewers)))
         .AddPolicy(OwnerOnly, p => p.AddRequirements(new MemberRequirement(BusinessRole.Owner)))
         .AddPolicy(Setup, p => p.AddRequirements(new SetupRequirement()))

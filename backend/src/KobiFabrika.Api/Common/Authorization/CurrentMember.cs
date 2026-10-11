@@ -25,6 +25,15 @@ public sealed class CurrentMember
     /// <summary>Cari/kasa kaydı girebilir mi (Owner, Manager).</summary>
     public bool CanManageFinance => Role is { } r && RoleSets.Managers.Contains(r);
 
+    /// <summary>Alış fiyatı ve birim maliyeti görebilir mi (Staff göremez; API null döner).</summary>
+    public bool CanViewPurchasePrice => CanViewFinance;
+
+    /// <summary>İşletmenin tüm satış ve tekliflerini görebilir mi; Staff sadece kendi girdiklerini görür.</summary>
+    public bool CanViewAllSales => CanViewFinance;
+
+    /// <summary>Ürün, kategori ve stok yazabilir mi (Owner, Manager).</summary>
+    public bool CanManageCatalog => IsManager;
+
     internal void SetUser(Guid userId, bool emailConfirmed)
     {
         UserId = userId;

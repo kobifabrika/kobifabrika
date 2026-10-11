@@ -7,6 +7,7 @@ using KobiFabrika.Api.Common.Authorization;
 using KobiFabrika.Api.Features.AuditLogs;
 using KobiFabrika.Api.Features.Auth;
 using KobiFabrika.Api.Features.Businesses;
+using KobiFabrika.Api.Features.Catalog;
 using KobiFabrika.Api.Features.Customers;
 using KobiFabrika.Api.Features.Finance;
 using KobiFabrika.Api.Features.Invitations;
@@ -78,7 +79,9 @@ builder.Services.AddScoped<InvitationAcceptor>();
 builder.Services.AddScoped<LedgerService>();
 builder.Services.AddScoped<CollectionService>();
 builder.Services.AddScoped<DocumentNumbers>();
+builder.Services.AddScoped<StockService>();
 builder.Services.AddScoped<ISearchProvider, ContactSearchProvider>();
+builder.Services.AddScoped<ISearchProvider, ProductSearchProvider>();
 builder.Services.AddValidatorsFromAssemblyContaining<Program>(includeInternalTypes: true);
 Validation.ConfigureDefaults();
 
@@ -179,6 +182,8 @@ app.MapReminderEndpoints();
 app.MapStatementShareEndpoints();
 app.MapPaymentRequestEndpoints();
 app.MapPublicLinkEndpoints();
+app.MapProductEndpoints();
+app.MapCategoryEndpoints();
 
 if (BackgroundJobs.IsEnabled(app.Configuration))
 {

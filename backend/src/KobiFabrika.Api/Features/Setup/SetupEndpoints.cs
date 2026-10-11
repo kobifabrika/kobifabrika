@@ -4,6 +4,7 @@ using KobiFabrika.Api.Common.Authorization;
 using KobiFabrika.Api.Features.Auth;
 using KobiFabrika.Api.Features.Businesses;
 using KobiFabrika.Domain.Businesses;
+using KobiFabrika.Domain.Catalog;
 using KobiFabrika.Domain.Finance;
 using KobiFabrika.Infrastructure.Businesses;
 using KobiFabrika.Infrastructure.Identity;
@@ -92,6 +93,7 @@ public static class SetupEndpoints
             tenant.Set(business.Id, user.Id);
             db.WorkingHours.AddRange(WorkingHour.DefaultWeek());
             db.CashAccounts.AddRange(CashAccount.DefaultAccounts());
+            db.ProductCategories.AddRange(SectorCatalog.SampleCategories(request.Sector).Select(n => new ProductCategory { Name = n }));
         }
 
         business.Name = name;

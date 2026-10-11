@@ -22,4 +22,7 @@ public static class NotificationTypes
     public const string RoleChanged = "team.role_changed";
     public const string JoinedTeam = "team.joined";
     public const string PaymentClaimed = "payment.claimed";
+    public const string StockLow = "stock.low";
+    public const string QuoteAccepted = "quote.accepted";
+    public const string QuoteRejected = "quote.rejected";
 }
