@@ -124,6 +124,7 @@ export const test = base.extend<Fixtures & Options>({
   },
 
   check: async ({ guard }, use, info) => {
+    let shots = 0;
     await use(async (page, name) => {
       await waitReady(page);
       const project = info.project.name;
@@ -167,10 +168,11 @@ export const test = base.extend<Fixtures & Options>({
         guard.issues.push(`[${name}] Erişilebilirlik (${v.impact}) ${v.id}: ${v.help} — ${nodes}`);
       }
 
-      await info.attach(`${name} (${project})`, {
-        body: await page.screenshot({ fullPage: true }),
-        contentType: "image/png",
-      });
+      // Dosyaya yazılıp yolu eklenir (JSON rapor şişmesin); HTML rapor dosyayı kendi klasörüne kopyalar.
+      shots += 1;
+      const file = info.outputPath(`ekran-${String(shots).padStart(2, "0")}.png`);
+      await page.screenshot({ fullPage: true, path: file });
+      await info.attach(`${name} (${project})`, { path: file, contentType: "image/png" });
     });
   },
 
