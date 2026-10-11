@@ -50,6 +50,7 @@ public static class SaleEndpoints
         var sale = await db.Sales.AsNoTracking().VisibleTo(member)
             .Include(s => s.Lines.OrderBy(l => l.SortOrder))
             .Include(s => s.Payments)
+            .AsSplitQuery()
             .FirstOrDefaultAsync(s => s.Id == id, ct);
         if (sale is null)
         {

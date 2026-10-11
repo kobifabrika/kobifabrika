@@ -17,7 +17,7 @@ En yeni en üstte. Notion'daki "Proje Planı ve Kararlar" sayfasıyla aynı kara
   - Hızlı satış sepeti bu tarayıcıda taslak olarak tutulur (localStorage; erişilemezse taslaksız çalışır).
 - **2026-10-11 (Sprint 3, teknik):**
   - Kilit sırası her yerde: belge numarası → satış/teklif → cari → kasa → ürün stoğu (ürünler Id sırasıyla). Stok `StockService` ile `UPDATE … OUTPUT` (atomik); miktar parametresi açıkça `decimal(18,3)` gönderilir (EF'in varsayılan parametresi 2 ondalığa yuvarlıyordu). Testler: 20 paralel satışta numara tekrarı yok ve stok = Σ hareket; paralel iptal ve paralel dönüştürme tek sefer.
-  - Belge numarası `DocumentSequences` + `MERGE WITH (HOLDLOCK) … OUTPUT`, belgeyle aynı transaction'da (geri alınan satış numarayı da geri alır, boşluk olmaz).
+  - Belge numarası `DocumentSequences`, belgeyle aynı transaction'da (geri alınan satış numarayı da geri alır, boşluk olmaz): önce `UPDATE … WITH (UPDLOCK, SERIALIZABLE)`, satır yoksa `INSERT`. İlk sürümdeki `MERGE … HOLDLOCK`, yılın ilk numarasında (satır yokken) paralel satışlarda ara sıra deadlock (1205) veriyordu; test 6 denemenin 1'inde düşüyordu, düzeltmeden sonra 10 turda 0. Stok güncellemesi doğrudan ADO ile okunur (EF ondalık sonuç uyarısı yok), satış detayı split query.
   - KDV oranları global tablo (`VatRates`); EF'in ondalık anahtar uyarısı (`DecimalTypeKeyWarning`) sütun tipi modelle aynı olduğu için kapatıldı.
   - Excel içe aktarma ortak altyapısı `Features/Imports/ImportJobs.cs` (müşteri ve ürün); oturum türüne bağlı (`ImportJobs.Kind`). Satır sonucundaki `phone` alanı `detail` oldu (müşteride telefon, üründe barkod).
   - Oturum bilgisine (`/api/auth/me` → business) telefon ve adres eklendi; fiş başlığı için (Personel `/api/business`'ı göremez).

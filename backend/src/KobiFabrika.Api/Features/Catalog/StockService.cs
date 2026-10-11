@@ -7,6 +7,7 @@ using KobiFabrika.Infrastructure.Persistence;
 using KobiFabrika.Infrastructure.Tenancy;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
 
 namespace KobiFabrika.Api.Features.Catalog;
 
@@ -21,15 +22,7 @@ public sealed record StockChange(StockMovement Movement, decimal Before, decimal
 /// </summary>
 public sealed class StockService(AppDbContext db, ITenantContext tenant, INotificationService notifications, TimeProvider clock)
 {
-    private sealed class StockRow
-    {
-        public decimal Before { get; init; }
-        public decimal After { get; init; }
-        public decimal? Critical { get; init; }
-        public DateTime? NotifiedAt { get; init; }
-        public required string Name { get; init; }
-        public required string Unit { get; init; }
-    }
+    private sealed record StockRow(decimal Before, decimal After, decimal? Critical, DateTime? NotifiedAt, string Name, string Unit);
 
     /// <summary>
     /// Stok hareketi ekler. <paramref name="delta"/> işaretli değişim; sayımda <paramref name="counted"/> verilir ve fark hesaplanır.
@@ -40,24 +33,8 @@ public sealed class StockService(AppDbContext db, ITenantContext tenant, INotifi
         CancellationToken ct)
     {
         var businessId = tenant.BusinessId ?? throw new TenantViolationException("Kiracı bağlamı olmadan stok yazılamaz.");
-        var rows = counted is { } target
-            ? await db.Database.SqlQuery<StockRow>($"""
-                UPDATE [Products] SET [StockQuantity] = {QuantityParameter(target)}
-                OUTPUT deleted.[StockQuantity] AS [Before], inserted.[StockQuantity] AS [After], inserted.[CriticalStockLevel] AS [Critical],
-                       inserted.[LowStockNotifiedAt] AS [NotifiedAt], inserted.[Name] AS [Name], inserted.[Unit] AS [Unit]
-                WHERE [Id] = {productId} AND [BusinessId] = {businessId} AND [TrackStock] = 1
-                """).ToListAsync(ct)
-            : await db.Database.SqlQuery<StockRow>($"""
-                UPDATE [Products] SET [StockQuantity] = [StockQuantity] + {QuantityParameter(delta!.Value)}
-                OUTPUT deleted.[StockQuantity] AS [Before], inserted.[StockQuantity] AS [After], inserted.[CriticalStockLevel] AS [Critical],
-                       inserted.[LowStockNotifiedAt] AS [NotifiedAt], inserted.[Name] AS [Name], inserted.[Unit] AS [Unit]
-                WHERE [Id] = {productId} AND [BusinessId] = {businessId} AND [TrackStock] = 1
-                """).ToListAsync(ct);
-
-        if (rows is not [var row])
-        {
-            throw new InvalidOperationException("Stoğu izlenen ürün bulunamadı.");
-        }
+        var row = await UpdateAsync(productId, businessId, counted is null ? delta!.Value : counted.Value, counted is not null, ct)
+            ?? throw new InvalidOperationException("Stoğu izlenen ürün bulunamadı.");
 
         var change = row.After - row.Before;
         if (change == 0)
@@ -82,9 +59,36 @@ public sealed class StockService(AppDbContext db, ITenantContext tenant, INotifi
         return new StockChange(movement, row.Before, row.After);
     }
 
-    /// <summary>Miktar parametresi decimal(18,3); EF'in varsayılan decimal(18,2) parametresi 2,375'i 2,38'e yuvarlar.</summary>
-    private static SqlParameter QuantityParameter(decimal value) =>
-        new() { SqlDbType = SqlDbType.Decimal, Precision = 18, Scale = 3, Value = value };
+    /// <summary>
+    /// Atomik stok güncellemesi (<c>UPDATE … OUTPUT</c>), açık transaction'ın bağlantısında. Doğrudan ADO ile okunur: miktarlar
+    /// decimal(18,3) gider ve gelir (EF'in varsayılan decimal(18,2) parametresi 2,375'i 2,38'e yuvarlıyordu).
+    /// </summary>
+    private async Task<StockRow?> UpdateAsync(Guid productId, Guid businessId, decimal quantity, bool absolute, CancellationToken ct)
+    {
+        var connection = db.Database.GetDbConnection();
+        await using var command = connection.CreateCommand();
+        command.Transaction = db.Database.CurrentTransaction?.GetDbTransaction()
+            ?? throw new InvalidOperationException("Stok hareketi transaction içinde yazılmalı.");
+        command.CommandText = $"""
+            UPDATE [Products] SET [StockQuantity] = {(absolute ? "@quantity" : "[StockQuantity] + @quantity")}
+            OUTPUT deleted.[StockQuantity], inserted.[StockQuantity], inserted.[CriticalStockLevel], inserted.[LowStockNotifiedAt],
+                   inserted.[Name], inserted.[Unit]
+            WHERE [Id] = @id AND [BusinessId] = @businessId AND [TrackStock] = 1
+            """;
+        command.Parameters.Add(new SqlParameter("@quantity", SqlDbType.Decimal) { Precision = 18, Scale = 3, Value = quantity });
+        command.Parameters.Add(new SqlParameter("@id", productId));
+        command.Parameters.Add(new SqlParameter("@businessId", businessId));
+
+        await using var reader = await command.ExecuteReaderAsync(ct);
+        if (!await reader.ReadAsync(ct))
+        {
+            return null;
+        }
+
+        return new StockRow(
+            reader.GetDecimal(0), reader.GetDecimal(1), reader.IsDBNull(2) ? null : reader.GetDecimal(2),
+            reader.IsDBNull(3) ? null : reader.GetDateTime(3), reader.GetString(4), reader.GetString(5));
+    }
 
     private async Task NotifyLowStockAsync(Guid productId, Guid businessId, StockRow row, CancellationToken ct)
     {

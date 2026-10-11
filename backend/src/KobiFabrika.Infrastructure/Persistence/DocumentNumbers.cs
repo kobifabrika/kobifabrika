@@ -5,9 +5,11 @@ using Microsoft.EntityFrameworkCore;
 namespace KobiFabrika.Infrastructure.Persistence;
 
 /// <summary>
-/// İşletme ve yıl bazında sıradaki belge numarası (SAT-2026-000001, TKL-2026-0001). Sayaç satırı tek bir
-/// <c>MERGE … WITH (HOLDLOCK) … OUTPUT</c> ile artırılır veya açılır; belgeyle aynı transaction'da çağrılmalı:
+/// İşletme ve yıl bazında sıradaki belge numarası (SAT-2026-000001, TKL-2026-0001). Belgeyle aynı transaction'da çağrılmalı:
 /// belge kaydedilemezse numara da geri alınır, eşzamanlı iki satış aynı numarayı alamaz.
+/// Sayaç önce <c>UPDATE … WITH (UPDLOCK, SERIALIZABLE)</c> ile artırılır, satır yoksa eklenir. UPDLOCK'lu aralık kilidi
+/// eşzamanlı isteklerin birbirini beklemesini sağlar; yılın ilk numarasında satır henüz yokken <c>MERGE … HOLDLOCK</c>
+/// paralel isteklerde kilitlenmeye (deadlock 1205) yol açıyordu.
 /// </summary>
 public sealed class DocumentNumbers(AppDbContext db, ITenantContext tenant)
 {
@@ -24,12 +26,16 @@ public sealed class DocumentNumbers(AppDbContext db, ITenantContext tenant)
         var id = Guid.CreateVersion7();
 
         var values = await db.Database.SqlQuery<int>($"""
-            MERGE [DocumentSequences] WITH (HOLDLOCK) AS t
-            USING (SELECT {businessId} AS BusinessId, {kindName} AS Kind, {year} AS [Year]) AS s
-            ON t.BusinessId = s.BusinessId AND t.Kind = s.Kind AND t.[Year] = s.[Year]
-            WHEN MATCHED THEN UPDATE SET LastValue = t.LastValue + 1
-            WHEN NOT MATCHED THEN INSERT (Id, BusinessId, Kind, [Year], LastValue) VALUES ({id}, s.BusinessId, s.Kind, s.[Year], 1)
-            OUTPUT inserted.LastValue AS [Value];
+            DECLARE @next int;
+            UPDATE [DocumentSequences] WITH (UPDLOCK, SERIALIZABLE)
+            SET @next = LastValue = LastValue + 1
+            WHERE BusinessId = {businessId} AND Kind = {kindName} AND [Year] = {year};
+            IF @@ROWCOUNT = 0
+            BEGIN
+                INSERT INTO [DocumentSequences] (Id, BusinessId, Kind, [Year], LastValue) VALUES ({id}, {businessId}, {kindName}, {year}, 1);
+                SET @next = 1;
+            END
+            SELECT @next AS [Value];
             """).ToListAsync(ct);
 
         var seq = values.Single();
