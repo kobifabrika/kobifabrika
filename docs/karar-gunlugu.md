@@ -2,6 +2,8 @@
 
 En yeni en üstte. Notion'daki "Proje Planı ve Kararlar" sayfasıyla aynı kararlar; teknik kararlar burada daha ayrıntılı.
 
+- **2026-10-11 (geliştirme veritabanı temizliği):** Yerel `KobiFabrika` veritabanında `@test.com` uzantılı 9 test hesabı ve sadece bu hesaplara ait 6 işletme (3× "Şık Kuaför…", 3× "Moda Butik") tüm verileriyle tek transaction'da silindi (kasa hesapları, çalışma saatleri, davetler, bildirimler, aktivite günlüğü, üyelikler, kullanıcı onayları). emirkayaco@gmail.com ve "Kaya Restaurant" korundu; transaction korunan kayıtları kontrol edip etkilenirse geri alacak şekilde yazıldı. Aktivite günlüğü uygulamada silinemez; geliştirme verisi olduğu için SQL ile silindi. Not: sqlcmd'de `SET QUOTED_IDENTIFIER ON` gerekir (filtreli index'ler).
+
 - **2026-10-11 (tahsilat linki paylaşımı, Data Protection):**
   - "Paylaş" geçerli (açık veya "Ödedim" bekleyen, süresi dolmamış) tahsilat linkini aynen tekrar gösterir; yeni token üretmez, süre uzamaz. Müşteriye önceden gönderilen link çalışmaya devam eder.
   - Süresi dolmuşsa "Paylaş" yeni link üretir ve süre 30 gün baştan başlar. Onaylanmış veya iptal edilmiş link paylaşılamaz/yenilenemez (409); onun yerine müşteriye yeni tahsilat linki oluşturulur (yeni kayıt). Onaylanmış bir ödemeyi aynı kayıtla yeniden istemek mükerrer tahsilata yol açacağı için kayıt yeniden açılmaz.
