@@ -115,7 +115,8 @@ public sealed class CustomerIsolationApiTests(SqlServerFixture db) : ApiTestBase
         (await c.PutAsJsonAsync($"/api/contacts/{b.ContactId}/opening-balance", new { amount = 1m, direction = "Payable" }, Ct))
             .StatusCode.ShouldBe(HttpStatusCode.NotFound);
         (await c.DeleteAsync($"/api/ledger-entries/{bEntryId}", Ct)).StatusCode.ShouldBe(HttpStatusCode.NotFound);
-        (await c.DeleteAsync($"/api/collections/{bCollection.GetProperty("cashTransactionId").GetGuid()}", Ct)).StatusCode.ShouldBe(HttpStatusCode.NotFound);
+        (await c.PostAsJsonAsync($"/api/cash-transactions/{bCollection.GetProperty("cashTransactionId").GetGuid()}/reverse", new { }, Ct))
+            .StatusCode.ShouldBe(HttpStatusCode.NotFound);
         (await c.PostAsJsonAsync($"/api/contacts/{b.ContactId}/collections", new { amount = 1m, cashAccountId = bAccounts["Cash"] }, Ct))
             .StatusCode.ShouldBe(HttpStatusCode.NotFound);
         // A'nın müşterisine B'nin kasasıyla tahsilat yazılamaz.

@@ -141,7 +141,7 @@ public sealed class PaymentRequestTests(SqlServerFixture db) : ApiTestBase(db)
 
         // Tahsilat geri alınırsa link yeniden onay bekler.
         var cashId = confirmed.GetProperty("cashTransactionId").GetGuid();
-        (await owner.Client.DeleteAsync($"/api/collections/{cashId}", Ct)).StatusCode.ShouldBe(HttpStatusCode.NoContent);
+        await EnsureSuccessAsync(await owner.Client.PostAsJsonAsync($"/api/cash-transactions/{cashId}/reverse", new { }, Ct));
         (await GetJsonAsync(owner.Client, "/api/payment-requests"))[0].GetProperty("status").GetString().ShouldBe("Open");
         (await BalanceAsync(owner.Client, contactId)).ShouldBe(1250m);
 

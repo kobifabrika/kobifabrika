@@ -47,6 +47,18 @@ public class Business : Entity, ISoftDeletable, IAuditable
 
     public static readonly int[] ReceiptWidths = [58, 80];
 
+    /// <summary>Veresiye satışta varsayılan vade (gün); satış ekranında değiştirilebilir.</summary>
+    public int DefaultDueDays { get; set; } = DefaultDueDaysValue;
+
+    public const int DefaultDueDaysValue = 30;
+    public const int MaxDueDays = 365;
+
+    /// <summary>Her sabah 09:00'da vadesi gelen alacaklar için uygulama içi bildirim.</summary>
+    public bool DueDigestEnabled { get; set; } = true;
+
+    /// <summary>Vade bildiriminin son üretildiği yerel gün (aynı gün ikinci bildirim olmaz).</summary>
+    public DateOnly? LastDueDigestOn { get; set; }
+
     /// <summary>Sektörü ve ona bağlı şablonu ayarlar. Kurulumda modüller de şablonun varsayılanına döner.</summary>
     public void SetSector(BusinessSector sector, bool resetModules)
     {

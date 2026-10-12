@@ -9,6 +9,17 @@ internal sealed class ApiExceptionHandler(IProblemDetailsService problemDetails,
 {
     public async ValueTask<bool> TryHandleAsync(HttpContext context, Exception exception, CancellationToken cancellationToken)
     {
+        // İş kuralı çakışması (ör. işlem sırasında hesap pasife alındı): 409 + code, frontend'e Türkçe mesaj.
+        if (exception is ConflictException conflict)
+        {
+            context.Response.StatusCode = StatusCodes.Status409Conflict;
+            return await problemDetails.TryWriteAsync(new ProblemDetailsContext
+            {
+                HttpContext = context,
+                ProblemDetails = { Status = StatusCodes.Status409Conflict, Detail = conflict.Message, Extensions = { ["code"] = conflict.Code } },
+            });
+        }
+
         var (status, detail) = exception switch
         {
             TenantViolationException => (StatusCodes.Status403Forbidden, "Bu kayda erişim yetkiniz yok."),
@@ -38,4 +49,10 @@ internal sealed class ApiExceptionHandler(IProblemDetailsService problemDetails,
             ProblemDetails = { Status = status, Detail = detail },
         });
     }
+}
+
+/// <summary>Transaction içinde fark edilen iş kuralı çakışması; işlem geri alınır, yanıt 409 + <see cref="Code"/>.</summary>
+public sealed class ConflictException(string code, string message) : Exception(message)
+{
+    public string Code { get; } = code;
 }

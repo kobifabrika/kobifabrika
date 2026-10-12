@@ -87,9 +87,15 @@ namespace KobiFabrika.Infrastructure.Persistence.Migrations
                     b.Property<Guid?>("CreatedBy")
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<int>("DefaultDueDays")
+                        .HasColumnType("int");
+
                     b.Property<string>("District")
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
+
+                    b.Property<bool>("DueDigestEnabled")
+                        .HasColumnType("bit");
 
                     b.Property<string>("Email")
                         .HasMaxLength(256)
@@ -110,6 +116,9 @@ namespace KobiFabrika.Infrastructure.Persistence.Migrations
 
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("bit");
+
+                    b.Property<DateOnly?>("LastDueDigestOn")
+                        .HasColumnType("date");
 
                     b.Property<string>("LogoUrl")
                         .HasMaxLength(500)
@@ -175,6 +184,8 @@ namespace KobiFabrika.Infrastructure.Persistence.Migrations
 
                     b.ToTable("Businesses", null, t =>
                         {
+                            t.HasCheckConstraint("CK_Businesses_DefaultDueDays", "[DefaultDueDays] BETWEEN 0 AND 365");
+
                             t.HasCheckConstraint("CK_Businesses_ReceiptWidth", "[ReceiptWidth] IN (58, 80)");
                         });
                 });
@@ -1034,6 +1045,13 @@ namespace KobiFabrika.Infrastructure.Persistence.Migrations
                         .IsUnicode(false)
                         .HasColumnType("varchar(34)");
 
+                    b.Property<string>("IbanHolderName")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
                     b.Property<bool>("IsDefault")
                         .HasColumnType("bit");
 
@@ -1056,6 +1074,15 @@ namespace KobiFabrika.Infrastructure.Persistence.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("BusinessId");
+
+                    b.HasIndex("BusinessId", "Name")
+                        .IsUnique()
+                        .HasFilter("[IsDeleted] = 0");
+
+                    b.HasIndex("BusinessId", "Type")
+                        .IsUnique()
+                        .HasDatabaseName("IX_CashAccounts_BusinessId_Type_Default")
+                        .HasFilter("[IsDefault] = 1 AND [IsDeleted] = 0");
 
                     b.ToTable("CashAccounts", (string)null);
                 });
@@ -1093,13 +1120,35 @@ namespace KobiFabrika.Infrastructure.Persistence.Migrations
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
 
+                    b.Property<string>("DocumentNo")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<Guid?>("ExpenseCategoryId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsReversal")
                         .HasColumnType("bit");
 
                     b.Property<Guid?>("PaymentRequestId")
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<Guid?>("ReversalOfId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("ReversedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("ReversedBy")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<Guid?>("SaleId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid?>("TransferId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("Type")
@@ -1118,18 +1167,140 @@ namespace KobiFabrika.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("ContactId");
 
+                    b.HasIndex("ExpenseCategoryId");
+
+                    b.HasIndex("ReversalOfId");
+
                     b.HasIndex("SaleId");
 
                     b.HasIndex("BusinessId", "ContactId");
 
+                    b.HasIndex("BusinessId", "ReversalOfId")
+                        .IsUnique()
+                        .HasFilter("[ReversalOfId] IS NOT NULL");
+
                     b.HasIndex("BusinessId", "SaleId");
 
+                    b.HasIndex("BusinessId", "TransferId")
+                        .HasFilter("[TransferId] IS NOT NULL");
+
                     b.HasIndex("BusinessId", "CashAccountId", "Date");
+
+                    b.HasIndex("BusinessId", "Date", "Type");
+
+                    SqlServerIndexBuilderExtensions.IncludeProperties(b.HasIndex("BusinessId", "Date", "Type"), new[] { "Amount", "IsReversal", "ExpenseCategoryId", "CashAccountId" });
 
                     b.ToTable("CashTransactions", null, t =>
                         {
                             t.HasCheckConstraint("CK_CashTransactions_Amount", "[Amount] > 0");
+
+                            t.HasCheckConstraint("CK_CashTransactions_Category", "[Type] NOT IN ('Expense', 'Income') OR [ExpenseCategoryId] IS NOT NULL");
+
+                            t.HasCheckConstraint("CK_CashTransactions_Reversal", "[IsReversal] = 0 OR [ReversalOfId] IS NOT NULL");
                         });
+                });
+
+            modelBuilder.Entity("KobiFabrika.Domain.Finance.DueReminderLog", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<decimal>("Amount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<Guid>("BusinessId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Channel")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)");
+
+                    b.Property<Guid>("ContactId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("CreatedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<DateOnly?>("OldestDueDate")
+                        .HasColumnType("date");
+
+                    b.Property<DateTime>("SentAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BusinessId");
+
+                    b.HasIndex("ContactId");
+
+                    b.HasIndex("BusinessId", "ContactId", "SentAt");
+
+                    b.ToTable("DueReminderLogs", (string)null);
+                });
+
+            modelBuilder.Entity("KobiFabrika.Domain.Finance.ExpenseCategory", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("BusinessId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("CreatedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Kind")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<int>("SortOrder")
+                        .HasColumnType("int");
+
+                    b.Property<string>("SystemKey")
+                        .HasMaxLength(30)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(30)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BusinessId");
+
+                    b.HasIndex("BusinessId", "Kind", "Name")
+                        .IsUnique()
+                        .HasFilter("[IsDeleted] = 0");
+
+                    b.ToTable("ExpenseCategories", (string)null);
                 });
 
             modelBuilder.Entity("KobiFabrika.Domain.Finance.LedgerEntry", b =>
@@ -2381,10 +2552,29 @@ namespace KobiFabrika.Infrastructure.Persistence.Migrations
                         .HasForeignKey("ContactId")
                         .OnDelete(DeleteBehavior.Restrict);
 
+                    b.HasOne("KobiFabrika.Domain.Finance.ExpenseCategory", null)
+                        .WithMany()
+                        .HasForeignKey("ExpenseCategoryId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("KobiFabrika.Domain.Finance.CashTransaction", null)
+                        .WithMany()
+                        .HasForeignKey("ReversalOfId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("KobiFabrika.Domain.Sales.Sale", null)
                         .WithMany()
                         .HasForeignKey("SaleId")
                         .OnDelete(DeleteBehavior.Restrict);
+                });
+
+            modelBuilder.Entity("KobiFabrika.Domain.Finance.DueReminderLog", b =>
+                {
+                    b.HasOne("KobiFabrika.Domain.Contacts.Contact", null)
+                        .WithMany()
+                        .HasForeignKey("ContactId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("KobiFabrika.Domain.Finance.LedgerEntry", b =>

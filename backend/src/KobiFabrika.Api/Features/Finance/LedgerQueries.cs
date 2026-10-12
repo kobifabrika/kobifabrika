@@ -65,7 +65,7 @@ public static class LedgerQueries
 /// Tahsilat: kasaya/bankaya giriş + cariye alacak, aynı transaction'da. Elle "Tahsilat al" ve tahsilat linki onayı
 /// aynı yolu kullanır. Kilit sırası: cari → kasa (bkz. <see cref="LedgerService"/>).
 /// </summary>
-public sealed class CollectionService(AppDbContext db, LedgerService ledger)
+public sealed class CollectionService(LedgerService ledger)
 {
     public async Task<(CashTransaction Cash, LedgerEntry Entry)> RecordAsync(
         Contact contact, CashAccount account, decimal amount, DateOnly date, string description, Guid? paymentRequestId, CancellationToken ct)
@@ -93,18 +93,6 @@ public sealed class CollectionService(AppDbContext db, LedgerService ledger)
         await ledger.AddEntryAsync(entry, ct);
         await ledger.AddCashAsync(cash, ct);
         return (cash, entry);
-    }
-
-    /// <summary>Tahsilatı geri alır: cari alacak ve kasa girişi birlikte silinir.</summary>
-    public async Task RevertAsync(CashTransaction cash, CancellationToken ct)
-    {
-        var entry = await db.LedgerEntries.FirstOrDefaultAsync(e => e.RefType == LedgerRefType.Collection && e.RefId == cash.Id, ct);
-        if (entry is not null)
-        {
-            await ledger.RemoveEntryAsync(entry, ct);
-        }
-
-        await ledger.RemoveCashAsync(cash, ct);
     }
 
     public static string DefaultDescription(CashAccount account) =>

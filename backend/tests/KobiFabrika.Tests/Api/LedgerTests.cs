@@ -28,6 +28,7 @@ public sealed class LedgerTests(SqlServerFixture db) : ApiTestBase(db)
         var accounts = await GetJsonAsync(owner.Client, "/api/cash-accounts");
         accounts.EnumerateArray().Select(a => (a.GetProperty("name").GetString(), a.GetProperty("type").GetString(), a.GetProperty("balance").GetDecimal()))
             .ShouldBe([("Nakit Kasa", "Cash", 0m), ("Banka", "Bank", 0m)]);
+        accounts.EnumerateArray().ShouldAllBe(a => a.GetProperty("isDefault").GetBoolean() && a.GetProperty("isActive").GetBoolean());
     }
 
     [Fact]
@@ -105,10 +106,13 @@ public sealed class LedgerTests(SqlServerFixture db) : ApiTestBase(db)
         (await ProblemAsync(await owner.Client.DeleteAsync($"/api/ledger-entries/{entryId}", Ct), HttpStatusCode.Conflict))
             .GetProperty("code").GetString().ShouldBe("not_manual_entry");
 
-        (await owner.Client.DeleteAsync($"/api/collections/{collection.GetProperty("cashTransactionId").GetGuid()}", Ct))
-            .StatusCode.ShouldBe(HttpStatusCode.NoContent);
+        // Geri alma ters kayıtla: tahsilat silinmez, cariye borç ve kasaya çıkış karşı kaydı yazılır.
+        await EnsureSuccessAsync(await owner.Client.PostAsJsonAsync(
+            $"/api/cash-transactions/{collection.GetProperty("cashTransactionId").GetGuid()}/reverse", new { }, Ct));
         (await BalanceAsync(owner.Client, id)).ShouldBe(1250m);
         (await GetJsonAsync(owner.Client, "/api/cash-accounts")).EnumerateArray().ShouldAllBe(a => a.GetProperty("balance").GetDecimal() == 0m);
+        var items = (await GetJsonAsync(owner.Client, $"/api/contacts/{id}/ledger")).GetProperty("items").EnumerateArray().ToList();
+        items.Select(i => i.GetProperty("refType").GetString()).ShouldBe(["Opening", "Collection", "CollectionReversal"]);
     }
 
     [Fact]

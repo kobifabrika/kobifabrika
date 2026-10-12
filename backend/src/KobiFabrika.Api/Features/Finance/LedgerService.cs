@@ -1,3 +1,4 @@
+using KobiFabrika.Api.Common;
 using KobiFabrika.Domain.Finance;
 using KobiFabrika.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
@@ -8,7 +9,8 @@ namespace KobiFabrika.Api.Features.Finance;
 /// Cari ve kasa bakiyelerinin tek yazıldığı yer. Hareket satırı ile bakiye önbelleği aynı transaction'da yazılır;
 /// bakiye SQL tarafında atomik <c>UPDATE … SET Balance = Balance + @delta</c> ile değişir (entity üzerinden yazılmaz,
 /// bkz. Contact/CashAccount konfigürasyonu). Böylece aynı cariye eşzamanlı iki işlem girilse de
-/// Balance = Σ(hareketler) kalır. Kilit sırası her yerde aynı: tahsilat linki → cari → kasa (kilitlenme olmaz).
+/// Balance = Σ(hareketler) kalır. Kilit sırası her yerde aynı: ters kaydı yapılan hareket / tahsilat linki → cari → kasa
+/// (birden çok kasa hesabı Id sırasıyla); kilitlenme olmaz.
 /// </summary>
 public sealed class LedgerService(AppDbContext db)
 {
@@ -42,20 +44,26 @@ public sealed class LedgerService(AppDbContext db)
         await AdjustContactAsync(entry.ContactId, -entry.Delta, ct);
     }
 
-    /// <summary>Kasa hareketini ekler ve kasa bakiyesini atomik günceller. Transaction içinde çağrılmalı.</summary>
-    public async Task AddCashAsync(CashTransaction transaction, CancellationToken ct)
+    /// <summary>
+    /// Kasa hareketlerini ekler ve bakiyeleri atomik günceller (birden çok hesap Id sırasıyla). Transaction içinde çağrılmalı.
+    /// <paramref name="requireActive"/>: pasif hesaba hareket yazılmaz (409 <c>account_inactive</c>); satış iptalinin
+    /// zorunlu iadesi gibi sistem kayıtları false verir.
+    /// </summary>
+    public async Task AddCashAsync(IReadOnlyList<CashTransaction> transactions, CancellationToken ct, bool requireActive = true)
     {
-        db.CashTransactions.Add(transaction);
+        db.CashTransactions.AddRange(transactions);
         await db.SaveChangesAsync(ct);
-        await AdjustCashAsync(transaction.CashAccountId, transaction.BalanceDelta, ct);
+        foreach (var group in transactions.GroupBy(t => t.CashAccountId).OrderBy(g => g.Key))
+        {
+            await AdjustCashAsync(group.Key, group.Sum(t => t.BalanceDelta), requireActive, ct);
+        }
     }
 
-    public async Task RemoveCashAsync(CashTransaction transaction, CancellationToken ct)
-    {
-        db.CashTransactions.Remove(transaction);
-        await db.SaveChangesAsync(ct);
-        await AdjustCashAsync(transaction.CashAccountId, -transaction.BalanceDelta, ct);
-    }
+    public Task AddCashAsync(CashTransaction transaction, CancellationToken ct, bool requireActive = true) =>
+        AddCashAsync([transaction], ct, requireActive);
+
+    public async Task<decimal> CashBalanceAsync(Guid cashAccountId, CancellationToken ct) =>
+        await db.CashAccounts.IgnoreQueryFilters([QueryFilters.SoftDelete]).Where(a => a.Id == cashAccountId).Select(a => a.Balance).FirstAsync(ct);
 
     private async Task AdjustContactAsync(Guid contactId, decimal delta, CancellationToken ct)
     {
@@ -73,14 +81,22 @@ public sealed class LedgerService(AppDbContext db)
         }
     }
 
-    private async Task AdjustCashAsync(Guid cashAccountId, decimal delta, CancellationToken ct)
+    private async Task AdjustCashAsync(Guid cashAccountId, decimal delta, bool requireActive, CancellationToken ct)
     {
+        // Pasife alma da bu satırı koşullu UPDATE ile kilitler: biri önce biter, diğeri güncel durumu görür.
         var rows = await db.CashAccounts.IgnoreQueryFilters([QueryFilters.SoftDelete])
-            .Where(a => a.Id == cashAccountId)
+            .Where(a => a.Id == cashAccountId && (!requireActive || a.IsActive))
             .ExecuteUpdateAsync(s => s.SetProperty(a => a.Balance, a => a.Balance + delta), ct);
-        if (rows != 1)
+        if (rows == 1)
         {
-            throw new InvalidOperationException("Kasa bakiyesi güncellenemedi.");
+            return;
         }
+
+        if (requireActive && await db.CashAccounts.AnyAsync(a => a.Id == cashAccountId, ct))
+        {
+            throw new ConflictException("account_inactive", "Bu hesap pasif; hareket girilemez.");
+        }
+
+        throw new InvalidOperationException("Kasa bakiyesi güncellenemedi.");
     }
 }

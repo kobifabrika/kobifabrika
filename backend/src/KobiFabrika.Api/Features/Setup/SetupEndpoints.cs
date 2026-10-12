@@ -93,6 +93,7 @@ public static class SetupEndpoints
             tenant.Set(business.Id, user.Id);
             db.WorkingHours.AddRange(WorkingHour.DefaultWeek());
             db.CashAccounts.AddRange(CashAccount.DefaultAccounts());
+            db.ExpenseCategories.AddRange(ExpenseCategory.Defaults());
             db.ProductCategories.AddRange(SectorCatalog.SampleCategories(request.Sector).Select(n => new ProductCategory { Name = n }));
         }
 

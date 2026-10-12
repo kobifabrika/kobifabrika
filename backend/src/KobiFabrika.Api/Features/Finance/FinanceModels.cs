@@ -28,9 +28,8 @@ public sealed record LedgerResponse(
     Guid ContactId, DateOnly? From, DateOnly To, decimal CarriedBalance, IReadOnlyList<LedgerItem> Items,
     decimal TotalDebit, decimal TotalCredit, decimal ClosingBalance, decimal CurrentBalance);
 
-public sealed record CashAccountResponse(Guid Id, string Name, CashAccountType Type, decimal Balance, bool IsDefault);
 
-public sealed record CollectionResponse(Guid CashTransactionId, Guid LedgerEntryId, decimal ContactBalance);
+public sealed record CollectionResponse(Guid CashTransactionId, Guid LedgerEntryId, decimal ContactBalance, decimal AccountBalance);
 
 public sealed class LedgerEntryRequestValidator : AbstractValidator<LedgerEntryRequest>
 {

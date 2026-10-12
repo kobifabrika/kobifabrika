@@ -38,4 +38,29 @@ public sealed class MigrationDataTests(SqlServerFixture db)
         ]);
         accounts.ShouldAllBe(a => a.Balance == 0);
     }
+
+    [Fact]
+    public async Task Sprint4_backfill_adds_default_expense_categories_and_default_bank_once()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        await using var ctx = Context();
+        var business = new Business { Name = "Eski İşletme 4", Slug = "eski4-" + Guid.NewGuid().ToString("N")[..8] };
+        ctx.Businesses.Add(business);
+        await ctx.SaveChangesAsync(ct);
+        await ctx.Database.ExecuteSqlRawAsync(Sprint2Contacts.BackfillCashAccountsSql, ct);
+
+        for (var i = 0; i < 2; i++)
+        {
+            await ctx.Database.ExecuteSqlRawAsync(Sprint4Finance.BackfillExpenseCategoriesSql, ct);
+            await ctx.Database.ExecuteSqlRawAsync(Sprint4Finance.BackfillDefaultBankSql, ct);
+        }
+
+        var categories = await ctx.ExpenseCategories.IgnoreQueryFilters().Where(c => c.BusinessId == business.Id).ToListAsync(ct);
+        categories.Select(c => (c.Name, c.Kind, c.SystemKey, c.SortOrder)).OrderBy(c => c.Name)
+            .ShouldBe(ExpenseCategory.DefaultList.OrderBy(c => c.Name));
+        categories.ShouldAllBe(c => c.IsActive);
+
+        var accounts = await ctx.CashAccounts.IgnoreQueryFilters().Where(a => a.BusinessId == business.Id).ToListAsync(ct);
+        accounts.ShouldAllBe(a => a.IsDefault);
+    }
 }

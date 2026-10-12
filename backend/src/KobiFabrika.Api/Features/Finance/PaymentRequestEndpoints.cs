@@ -217,7 +217,7 @@ public static class PaymentRequestEndpoints
             return NotFound();
         }
 
-        var account = await db.CashAccounts.AsNoTracking().FirstOrDefaultAsync(a => a.Id == request.CashAccountId, ct);
+        var account = await db.CashAccounts.AsNoTracking().FirstOrDefaultAsync(a => a.Id == request.CashAccountId && a.IsActive, ct);
         if (account is null)
         {
             return (ValidationProblem)Validation.FieldProblem("cashAccountId", "Kasa veya banka hesabı bulunamadı.");

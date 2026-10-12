@@ -19,6 +19,15 @@ public enum LedgerRefType
 
     /// <summary>Veresiye satışın iptali (ters kayıt, alacak).</summary>
     SaleCancel,
+
+    /// <summary>Cariye ödeme (tedarikçiye ödeme, borç). RefId: kasa hareketi.</summary>
+    Payment,
+
+    /// <summary>Ödemenin ters kaydı (alacak). RefId: geri alınan ödemenin kasa hareketi.</summary>
+    PaymentReversal,
+
+    /// <summary>Tahsilatın ters kaydı (borç). RefId: geri alınan tahsilatın kasa hareketi; vade hesabında o tahsilatı nötrler.</summary>
+    CollectionReversal,
 }
 
 /// <summary>

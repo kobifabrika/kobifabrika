@@ -8,7 +8,11 @@ internal sealed class BusinessConfiguration : IEntityTypeConfiguration<Business>
 {
     public void Configure(EntityTypeBuilder<Business> b)
     {
-        b.ToTable("Businesses", t => t.HasCheckConstraint("CK_Businesses_ReceiptWidth", "[ReceiptWidth] IN (58, 80)"));
+        b.ToTable("Businesses", t =>
+        {
+            t.HasCheckConstraint("CK_Businesses_ReceiptWidth", "[ReceiptWidth] IN (58, 80)");
+            t.HasCheckConstraint("CK_Businesses_DefaultDueDays", "[DefaultDueDays] BETWEEN 0 AND 365");
+        });
         b.Property(x => x.Name).HasMaxLength(200);
         b.Property(x => x.Slug).HasMaxLength(100);
         b.HasIndex(x => x.Slug).IsUnique();

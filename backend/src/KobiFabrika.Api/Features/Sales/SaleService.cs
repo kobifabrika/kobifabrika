@@ -57,7 +57,7 @@ public sealed class SaleService(
             return (null, "contactId", "Veresiye için müşteri seçin.");
         }
 
-        var accounts = await db.CashAccounts.AsNoTracking().OrderByDescending(a => a.IsDefault).ThenBy(a => a.CreatedAt).ToListAsync(ct);
+        var accounts = await db.CashAccounts.AsNoTracking().Where(a => a.IsActive).OrderByDescending(a => a.IsDefault).ThenBy(a => a.CreatedAt).ToListAsync(ct);
         var result = new List<ResolvedPayment>();
         for (var i = 0; i < requests.Count; i++)
         {
@@ -208,7 +208,7 @@ public sealed class SaleService(
                 {
                     CashAccountId = payment.CashAccountId!.Value, Type = CashTransactionType.SaleRefund, Amount = payment.Amount, Date = day,
                     ContactId = sale.ContactId, Description = $"{description} ({SaleLabels.Methods[payment.Method]})", SaleId = sale.Id,
-                }, ct);
+                }, ct, requireActive: false);
             }
 
             // Satışta düşen stok geri girer (stok takibi sonradan kapatılmış ürünler hariç).

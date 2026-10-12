@@ -33,7 +33,11 @@ internal sealed class CashAccountConfiguration : IEntityTypeConfiguration<CashAc
         b.Property(x => x.Name).HasMaxLength(100);
         b.Property(x => x.Type).HasConversion<string>().HasMaxLength(10);
         b.Property(x => x.Iban).HasMaxLength(34).IsUnicode(false);
+        b.Property(x => x.IbanHolderName).HasMaxLength(100);
         b.Property(x => x.Balance).Metadata.SetAfterSaveBehavior(PropertySaveBehavior.Ignore);
+        b.HasIndex(x => new { x.BusinessId, x.Name }).IsUnique().HasFilter("[IsDeleted] = 0");
+        b.HasIndex(x => new { x.BusinessId, x.Type }).IsUnique().HasFilter("[IsDefault] = 1 AND [IsDeleted] = 0")
+            .HasDatabaseName("IX_CashAccounts_BusinessId_Type_Default");
         b.HasOne<Business>().WithMany().HasForeignKey(x => x.BusinessId).OnDelete(DeleteBehavior.Restrict);
     }
 }
@@ -42,14 +46,51 @@ internal sealed class CashTransactionConfiguration : IEntityTypeConfiguration<Ca
 {
     public void Configure(EntityTypeBuilder<CashTransaction> b)
     {
-        b.ToTable("CashTransactions", t => t.HasCheckConstraint("CK_CashTransactions_Amount", "[Amount] > 0"));
+        b.ToTable("CashTransactions", t =>
+        {
+            t.HasCheckConstraint("CK_CashTransactions_Amount", "[Amount] > 0");
+            t.HasCheckConstraint("CK_CashTransactions_Reversal", "[IsReversal] = 0 OR [ReversalOfId] IS NOT NULL");
+            t.HasCheckConstraint("CK_CashTransactions_Category",
+                "[Type] NOT IN ('Expense', 'Income') OR [ExpenseCategoryId] IS NOT NULL");
+        });
         b.Property(x => x.Type).HasConversion<string>().HasMaxLength(20);
         b.Property(x => x.Description).HasMaxLength(500);
+        b.Property(x => x.DocumentNo).HasMaxLength(50);
         b.HasIndex(x => new { x.BusinessId, x.CashAccountId, x.Date });
         b.HasIndex(x => new { x.BusinessId, x.ContactId });
         b.HasIndex(x => new { x.BusinessId, x.SaleId });
+        b.HasIndex(x => new { x.BusinessId, x.Date, x.Type })
+            .IncludeProperties(x => new { x.Amount, x.IsReversal, x.ExpenseCategoryId, x.CashAccountId });
+        b.HasIndex(x => new { x.BusinessId, x.TransferId }).HasFilter("[TransferId] IS NOT NULL");
+        // Bir hareketin en fazla bir ters kaydı olur (eşzamanlı ikinci ters kayıt da reddedilir).
+        b.HasIndex(x => new { x.BusinessId, x.ReversalOfId }).IsUnique().HasFilter("[ReversalOfId] IS NOT NULL");
+        b.HasOne<ExpenseCategory>().WithMany().HasForeignKey(x => x.ExpenseCategoryId).OnDelete(DeleteBehavior.Restrict);
+        b.HasOne<CashTransaction>().WithMany().HasForeignKey(x => x.ReversalOfId).OnDelete(DeleteBehavior.Restrict);
         b.HasOne<Sale>().WithMany().HasForeignKey(x => x.SaleId).OnDelete(DeleteBehavior.Restrict);
         b.HasOne<CashAccount>().WithMany().HasForeignKey(x => x.CashAccountId).OnDelete(DeleteBehavior.Restrict);
+        b.HasOne<Contact>().WithMany().HasForeignKey(x => x.ContactId).OnDelete(DeleteBehavior.Restrict);
+    }
+}
+
+internal sealed class ExpenseCategoryConfiguration : IEntityTypeConfiguration<ExpenseCategory>
+{
+    public void Configure(EntityTypeBuilder<ExpenseCategory> b)
+    {
+        b.ToTable("ExpenseCategories");
+        b.Property(x => x.Name).HasMaxLength(ExpenseCategory.MaxNameLength);
+        b.Property(x => x.Kind).HasConversion<string>().HasMaxLength(10);
+        b.Property(x => x.SystemKey).HasMaxLength(30).IsUnicode(false);
+        b.HasIndex(x => new { x.BusinessId, x.Kind, x.Name }).IsUnique().HasFilter("[IsDeleted] = 0");
+    }
+}
+
+internal sealed class DueReminderLogConfiguration : IEntityTypeConfiguration<DueReminderLog>
+{
+    public void Configure(EntityTypeBuilder<DueReminderLog> b)
+    {
+        b.ToTable("DueReminderLogs");
+        b.Property(x => x.Channel).HasConversion<string>().HasMaxLength(10);
+        b.HasIndex(x => new { x.BusinessId, x.ContactId, x.SentAt });
         b.HasOne<Contact>().WithMany().HasForeignKey(x => x.ContactId).OnDelete(DeleteBehavior.Restrict);
     }
 }

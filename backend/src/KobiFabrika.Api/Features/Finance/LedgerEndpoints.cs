@@ -21,7 +21,7 @@ namespace KobiFabrika.Api.Features.Finance;
 /// </summary>
 public static class LedgerEndpoints
 {
-    public const string XlsxContentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+    public const string XlsxContentType = Xlsx.ContentType;
 
     public static IEndpointRouteBuilder MapLedgerEndpoints(this IEndpointRouteBuilder app)
     {
@@ -39,10 +39,6 @@ public static class LedgerEndpoints
 
         app.MapDelete("/api/ledger-entries/{entryId:guid}", DeleteEntry).WithTags("Ledger").RequireAuthorization(Policies.ManageFinance)
             .WithSummary("Elle girilen hareketi sil (tahsilat kaydı 'Tahsilatı geri al' ile)");
-        app.MapDelete("/api/collections/{cashTransactionId:guid}", RevertCollection).WithTags("Ledger").RequireAuthorization(Policies.ManageFinance)
-            .WithSummary("Tahsilatı geri al (kasa ve cari birlikte)");
-        app.MapGet("/api/cash-accounts", CashAccounts).WithTags("Ledger").RequireAuthorization(Policies.ViewFinance)
-            .WithSummary("Kasa ve banka hesapları (bakiyeyle)");
         app.MapGet("/api/contacts/export.xlsx", ExportContacts).WithTags("Contacts").RequireAuthorization(Policies.Export)
             .WithSummary("Müşteri/tedarikçi listesini Excel'e aktar (liste filtreleriyle)");
 
@@ -149,7 +145,7 @@ public static class LedgerEndpoints
 
         if (entry.RefType is not (LedgerRefType.Manual or LedgerRefType.Opening))
         {
-            return Problems.Conflict("not_manual_entry", "Bu hareket tahsilattan geliyor; silmek için 'Tahsilatı geri al'ı kullanın.");
+            return Problems.Conflict("not_manual_entry", "Bu hareket tahsilat, ödeme veya satıştan geliyor; kasa hareketinden ters kayıtla geri alın.");
         }
 
         await ledger.InTransactionAsync(async () =>
@@ -171,7 +167,7 @@ public static class LedgerEndpoints
             return ContactEndpoints.ContactNotFound();
         }
 
-        if (await db.CashAccounts.AsNoTracking().FirstOrDefaultAsync(a => a.Id == request.CashAccountId, ct) is not { } account)
+        if (await db.CashAccounts.AsNoTracking().FirstOrDefaultAsync(a => a.Id == request.CashAccountId && a.IsActive, ct) is not { } account)
         {
             return (ValidationProblem)Validation.FieldProblem("cashAccountId", "Kasa veya banka hesabı bulunamadı.");
         }
@@ -188,44 +184,8 @@ public static class LedgerEndpoints
         }, ct);
 
         var balance = await db.Contacts.Where(c => c.Id == id).Select(c => c.Balance).FirstAsync(ct);
-        return TypedResults.Created($"/api/collections/{cash.Id}", new CollectionResponse(cash.Id, entry.Id, balance));
-    }
-
-    private static async Task<Results<NoContent, ProblemHttpResult>> RevertCollection(
-        Guid cashTransactionId, AppDbContext db, LedgerService ledger, CollectionService collections, IAuditLogger audit, CancellationToken ct)
-    {
-        var cash = await db.CashTransactions.FirstOrDefaultAsync(t => t.Id == cashTransactionId && t.Type == CashTransactionType.Collection, ct);
-        if (cash is null)
-        {
-            return Problems.NotFound("Tahsilat bulunamadı.");
-        }
-
-        await ledger.InTransactionAsync(async () =>
-        {
-            // Tahsilat linkinden geldiyse link tekrar onay bekler hale döner.
-            if (cash.PaymentRequestId is { } requestId
-                && await db.PaymentRequests.FirstOrDefaultAsync(p => p.Id == requestId, ct) is { } request)
-            {
-                request.Status = request.ClaimedAt is null ? PaymentRequestStatus.Open : PaymentRequestStatus.ClaimedPaid;
-                request.ConfirmedAt = null;
-                request.ConfirmedBy = null;
-                request.CashTransactionId = null;
-            }
-
-            audit.Log(AuditAction.CollectionReverted, nameof(CashTransaction), cash.Id, new { cash.ContactId, cash.Amount });
-            await collections.RevertAsync(cash, ct);
-            return true;
-        }, ct);
-        return TypedResults.NoContent();
-    }
-
-    private static async Task<Ok<IReadOnlyList<CashAccountResponse>>> CashAccounts(AppDbContext db, CancellationToken ct)
-    {
-        var accounts = await db.CashAccounts.AsNoTracking()
-            .OrderByDescending(a => a.IsDefault).ThenBy(a => a.Type).ThenBy(a => a.Name)
-            .Select(a => new CashAccountResponse(a.Id, a.Name, a.Type, a.Balance, a.IsDefault))
-            .ToListAsync(ct);
-        return TypedResults.Ok<IReadOnlyList<CashAccountResponse>>(accounts);
+        return TypedResults.Created($"/api/cash-transactions/{cash.Id}",
+            new CollectionResponse(cash.Id, entry.Id, balance, await ledger.CashBalanceAsync(account.Id, ct)));
     }
 
     private static async Task<Results<FileContentHttpResult, ProblemHttpResult>> StatementPdf(
@@ -335,21 +295,7 @@ public static class LedgerEndpoints
         return TypedResults.File(Save(book), XlsxContentType, $"musteriler-{today:yyyy-MM-dd}.xlsx");
     }
 
-    internal static void Header(IXLWorksheet sheet, int row, params string[] titles)
-    {
-        for (var i = 0; i < titles.Length; i++)
-        {
-            var cell = sheet.Cell(row, i + 1);
-            cell.Value = titles[i];
-            cell.Style.Font.Bold = true;
-            cell.Style.Border.BottomBorder = XLBorderStyleValues.Thin;
-        }
-    }
+    internal static void Header(IXLWorksheet sheet, int row, params string[] titles) => Xlsx.Header(sheet, row, titles);
 
-    internal static byte[] Save(XLWorkbook book)
-    {
-        using var stream = new MemoryStream();
-        book.SaveAs(stream);
-        return stream.ToArray();
-    }
+    internal static byte[] Save(XLWorkbook book) => Xlsx.Save(book);
 }
