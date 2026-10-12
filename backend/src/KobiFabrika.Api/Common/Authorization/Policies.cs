@@ -43,6 +43,9 @@ public static class Policies
     public const string Export = nameof(Export);
 
     /// <summary>Sadece Owner (ileride maaş, abonelik).</summary>
+    /// <summary>Raporlar: Sahip, Yönetici, Mali Müşavir (Personel göremez).</summary>
+    public const string ViewReports = nameof(ViewReports);
+
     public const string OwnerOnly = nameof(OwnerOnly);
 
     /// <summary>Kurulum sihirbazı: işletmesi olmayan kullanıcı veya kurulumu bitmemiş işletmenin Owner'ı.</summary>
@@ -63,6 +66,7 @@ public static class Policies
         .AddPolicy(ManageFinance, p => p.AddRequirements(new MemberRequirement(RoleSets.Managers)))
         .AddPolicy(ManageCatalog, p => p.AddRequirements(new MemberRequirement(RoleSets.Managers)))
         .AddPolicy(Export, p => p.AddRequirements(new MemberRequirement(RoleSets.FinanceViewers)))
+        .AddPolicy(ViewReports, p => p.AddRequirements(new MemberRequirement(RoleSets.FinanceViewers)))
         .AddPolicy(OwnerOnly, p => p.AddRequirements(new MemberRequirement(BusinessRole.Owner)))
         .AddPolicy(Setup, p => p.AddRequirements(new SetupRequirement()))
         .AddPolicy(VerifiedEmail, p => p.AddRequirements(new VerifiedEmailRequirement()));
