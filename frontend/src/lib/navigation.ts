@@ -57,7 +57,7 @@ export const navGroups: NavGroup[] = [
     items: [
       { slug: "personel", label: "Personel", icon: IdCard, sprint: 7 },
       { slug: "mesai-izin", label: "Mesai ve İzin", icon: Clock, sprint: 7 },
-      { slug: "raporlar", label: "Raporlar", icon: ChartColumn, sprint: 7, permission: "viewReports" },
+      { slug: "raporlar", label: "Raporlar", icon: ChartColumn, sprint: 4, permission: "viewReports" },
       { slug: "ayarlar", label: "Ayarlar", icon: Settings, sprint: 1, permission: "viewSettings" },
     ],
   },
@@ -111,6 +111,7 @@ export const quickActions: readonly QuickAction[] = [
   { label: "Yeni randevu", href: "/panel/randevular", icon: CalendarPlus, module: "appointments", keywords: "randevu" },
   { label: "Yeni müşteri", href: "/panel/musteriler/yeni", icon: UserPlus, permission: "writeContacts", keywords: "müşteri ekle" },
   { label: "Tahsilat", href: "/panel/cari-kasa?sekme=bakiyeler", icon: Banknote, permission: "manageFinance", keywords: "tahsilat ödeme" },
+  { label: "Gider ekle", href: "/panel/cari-kasa/gelir-gider/yeni?tur=gider", icon: ReceiptText, permission: "manageFinance", keywords: "gider masraf fatura kira" },
 ];
 
 export function visibleQuickActions(role: Role | null | undefined, modules: Modules | null | undefined): QuickAction[] {

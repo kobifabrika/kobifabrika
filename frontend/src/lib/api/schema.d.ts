@@ -118,78 +118,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/collections/{cashTransactionId}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post?: never;
-        /** Tahsilatı geri al (kasa ve cari birlikte) */
-        delete: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path: {
-                    cashTransactionId: string;
-                };
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                /** @description No Content */
-                204: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content?: never;
-                };
-            };
-        };
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/cash-accounts": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Kasa ve banka hesapları (bakiyeyle) */
-        get: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path?: never;
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                /** @description OK */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["CashAccountResponse"][];
-                    };
-                };
-            };
-        };
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/api/contacts/export.xlsx": {
         parameters: {
             query?: never;
@@ -217,6 +145,193 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content?: never;
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/cash-transfers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Hesaplar arası transfer (iki kayıt, tek işlem) */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["TransferRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["TransferResponse"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/cash-transactions/{id}/reverse": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Ters kayıt (bugünün tarihiyle; transfer çiftiyle, tahsilat/ödeme cari kaydıyla) */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["ReverseRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ReverseResponse"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/contacts/{id}/payments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Cariye ödeme (tedarikçiye): kasadan çıkış + cariye borç */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["ContactPaymentRequest"];
+                };
+            };
+            responses: {
+                /** @description Created */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ContactPaymentResponse"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/dashboard/today": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Bugün ekranı: satış, tahsilat, bakiyeler, alacaklar, kritik stok, son satışlar, son 30 gün (rol bazlı) */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["DashboardResponse"];
+                    };
                 };
             };
         };
@@ -1487,6 +1602,55 @@ export interface paths {
             requestBody: {
                 content: {
                     "application/json": components["schemas"]["ReceiptSettingsRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["BusinessResponse"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/business/finance": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Finans ayarları: veresiye varsayılan vadesi, otomatik vade bildirimi */
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["FinanceSettingsRequest"];
                 };
             };
             responses: {
@@ -3161,6 +3325,1127 @@ export interface paths {
                 path: {
                     id: string;
                 };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/cash-accounts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Kasa ve banka hesapları (bakiyeyle; includeInactive) */
+        get: {
+            parameters: {
+                query?: {
+                    includeInactive?: boolean;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["CashAccountResponse"][];
+                    };
+                };
+            };
+        };
+        put?: never;
+        /** Hesap ekle (açılış bakiyesiyle) */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["CashAccountCreateRequest"];
+                };
+            };
+            responses: {
+                /** @description Created */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["CashAccountResponse"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/cash-accounts/options": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Aktif hesaplar (bakiyesiz; satış ekranı için) */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["CashAccountOption"][];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/cash-accounts/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Hesap kartı */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["CashAccountResponse"];
+                    };
+                };
+            };
+        };
+        /** Hesap adı, IBAN, hesap sahibi */
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["CashAccountUpdateRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["CashAccountResponse"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/cash-accounts/{id}/deactivate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Pasife al (bakiye sıfır olmalı, varsayılan hesap olmamalı) */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["CashAccountResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/cash-accounts/{id}/activate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Tekrar aktif et */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["CashAccountResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/cash-accounts/{id}/default": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Kendi türünün varsayılan hesabı yap (nakit satış / kart-havale satışı buraya) */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["CashAccountResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/cash-accounts/{id}/transactions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Hesap hareketleri (from/to yerel gün, type; devreden, giriş/çıkış, yürüyen bakiye) */
+        get: {
+            parameters: {
+                query?: {
+                    from?: string;
+                    to?: string;
+                    type?: components["schemas"]["CashTransactionType"];
+                };
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["CashTransactionsResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/cash-accounts/{id}/transactions.xlsx": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Hesap hareketleri Excel */
+        get: {
+            parameters: {
+                query?: {
+                    from?: string;
+                    to?: string;
+                };
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/expense-categories": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Gelir-gider kategorileri (kind, includeInactive) */
+        get: {
+            parameters: {
+                query?: {
+                    kind?: components["schemas"]["ExpenseCategoryKind"];
+                    includeInactive?: boolean;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ExpenseCategoryResponse"][];
+                    };
+                };
+            };
+        };
+        put?: never;
+        /** Kategori ekle */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["ExpenseCategoryRequest"];
+                };
+            };
+            responses: {
+                /** @description Created */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ExpenseCategoryResponse"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/expense-categories/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Kategori adını değiştir */
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["ExpenseCategoryRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ExpenseCategoryResponse"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/expense-categories/{id}/deactivate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Kategoriyi pasife al (eski kayıtlar korunur) */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ExpenseCategoryResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/expense-categories/{id}/activate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Kategoriyi tekrar aktif et */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ExpenseCategoryResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/expenses": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Gelir ve giderler (kind, from/to, categoryId, cashAccountId, contactId; sayfalı + net toplam) */
+        get: {
+            parameters: {
+                query?: {
+                    kind?: components["schemas"]["ExpenseCategoryKind"];
+                    from?: string;
+                    to?: string;
+                    categoryId?: string;
+                    cashAccountId?: string;
+                    contactId?: string;
+                    page?: number;
+                    pageSize?: number;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ExpenseListResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        /** Gider veya gelir kaydı (kasadan çıkış/giriş) */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["ExpenseRequest"];
+                };
+            };
+            responses: {
+                /** @description Created */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ExpenseCreatedResponse"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/receivables": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Vade listesi (tab: Overdue/Today/Week/Later, search); müşteri bazında, sekme sayıları ve toplamları */
+        get: {
+            parameters: {
+                query?: {
+                    tab?: components["schemas"]["ReceivableTab"];
+                    search?: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ReceivableListResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/receivables/{contactId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Müşterinin açık borç kalemleri */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    contactId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ContactReceivableResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/receivables/{contactId}/reminder-message": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Hatırlatma metni ve hazır WhatsApp/SMS linkleri (gerekirse tahsilat linkini bir kez oluşturur) */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    contactId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ReminderMessageResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/receivables/{contactId}/reminders": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Hatırlatma gönderildi kaydı (WhatsApp/SMS linkine tıklanınca) */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    contactId: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["ReminderLogRequest"];
+                };
+            };
+            responses: {
+                /** @description No Content */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/reports/sales": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Satışlar (groupBy: Day/Week/Month; ödeme tipi kırılımı) */
+        get: {
+            parameters: {
+                query?: {
+                    from?: string;
+                    to?: string;
+                    groupBy?: components["schemas"]["ReportGroupBy"];
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["SalesReportResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/reports/sales.xlsx": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Satış raporu Excel */
+        get: {
+            parameters: {
+                query?: {
+                    from?: string;
+                    to?: string;
+                    groupBy?: components["schemas"]["ReportGroupBy"];
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/reports/top-products": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** En çok satan ürün/hizmet (sort: Quantity/Amount) */
+        get: {
+            parameters: {
+                query?: {
+                    from?: string;
+                    to?: string;
+                    sort?: components["schemas"]["TopProductSort"];
+                    type?: string;
+                    take?: number;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["TopProductsResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/reports/top-products.xlsx": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** En çok satan Excel */
+        get: {
+            parameters: {
+                query?: {
+                    from?: string;
+                    to?: string;
+                    sort?: components["schemas"]["TopProductSort"];
+                    type?: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/reports/receivables": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Alacaklar: müşteri bazında yaşlandırma (bugün itibarıyla) */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ReceivablesReportResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/reports/receivables.xlsx": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Alacak raporu Excel */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/reports/income-expense": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Gelir-gider: aylık, kategori bazında */
+        get: {
+            parameters: {
+                query?: {
+                    from?: string;
+                    to?: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["IncomeExpenseResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/reports/income-expense.xlsx": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Gelir-gider Excel (satışlarda KDV kırılımı) */
+        get: {
+            parameters: {
+                query?: {
+                    from?: string;
+                    to?: string;
+                };
+                header?: never;
+                path?: never;
                 cookie?: never;
             };
             requestBody?: never;
@@ -5863,13 +7148,19 @@ export interface components {
             password: string;
             kvkkAccepted: boolean;
         };
+        AccountBalance: {
+            /** Format: uuid */
+            accountId: string;
+            /** Format: double */
+            balance: number;
+        };
         AssigneeResponse: {
             /** Format: uuid */
             userId: string;
             fullName: string;
         };
         /** @enum {unknown} */
-        AuditAction: "Login" | "InvitationSent" | "InvitationResent" | "InvitationRevoked" | "InvitationAccepted" | "RoleChanged" | "MemberRemoved" | "BusinessUpdated" | "SlugChanged" | "WorkingHoursUpdated" | "LogoChanged" | "ModulesChanged" | "PaymentInfoChanged" | "ReceiptSettingsChanged" | "ContactCreated" | "ContactUpdated" | "ContactArchived" | "ContactRestored" | "ContactDeleted" | "ContactsImported" | "ContactsExported" | "LedgerEntryCreated" | "LedgerEntryDeleted" | "OpeningBalanceSet" | "CollectionRecorded" | "CollectionReverted" | "PaymentRequestCreated" | "PaymentRequestConfirmed" | "PaymentRequestRejected" | "PaymentRequestCancelled" | "PaymentRequestRenewed" | "StatementShared" | "ProductCreated" | "ProductUpdated" | "ProductDeleted" | "ProductsImported" | "ProductsExported" | "StockMovementAdded" | "SaleDiscounted" | "SaleCancelled" | "SalesExported" | "QuoteCreated" | "QuoteUpdated" | "QuoteShared" | "QuoteRenewed" | "QuoteExtended" | "QuoteAccepted" | "QuoteRejected" | "QuoteConverted" | "QuoteDeleted";
+        AuditAction: "Login" | "InvitationSent" | "InvitationResent" | "InvitationRevoked" | "InvitationAccepted" | "RoleChanged" | "MemberRemoved" | "BusinessUpdated" | "SlugChanged" | "WorkingHoursUpdated" | "LogoChanged" | "ModulesChanged" | "PaymentInfoChanged" | "ReceiptSettingsChanged" | "ContactCreated" | "ContactUpdated" | "ContactArchived" | "ContactRestored" | "ContactDeleted" | "ContactsImported" | "ContactsExported" | "LedgerEntryCreated" | "LedgerEntryDeleted" | "OpeningBalanceSet" | "CollectionRecorded" | "CollectionReverted" | "PaymentRequestCreated" | "PaymentRequestConfirmed" | "PaymentRequestRejected" | "PaymentRequestCancelled" | "PaymentRequestRenewed" | "StatementShared" | "ProductCreated" | "ProductUpdated" | "ProductDeleted" | "ProductsImported" | "ProductsExported" | "StockMovementAdded" | "SaleDiscounted" | "SaleCancelled" | "SalesExported" | "QuoteCreated" | "QuoteUpdated" | "QuoteShared" | "QuoteRenewed" | "QuoteExtended" | "QuoteAccepted" | "QuoteRejected" | "QuoteConverted" | "QuoteDeleted" | "CashAccountCreated" | "CashAccountUpdated" | "CashAccountDeactivated" | "CashAccountActivated" | "DefaultCashAccountChanged" | "CashTransferRecorded" | "CashTransactionReversed" | "SupplierPaymentRecorded" | "ExpenseRecorded" | "IncomeRecorded" | "ExpenseCategoryCreated" | "ExpenseCategoryUpdated" | "ExpenseCategoryDeactivated" | "ExpenseCategoryActivated" | "DueReminderSent" | "FinanceSettingsChanged" | "ReportExported" | "CashTransactionsExported";
         AuditLogListResponse: {
             items: components["schemas"]["AuditLogResponse"][];
             /** Format: int32 */
@@ -5909,6 +7200,9 @@ export interface components {
             ibanHolderName: null | string;
             /** Format: int32 */
             receiptWidth: number;
+            /** Format: int32 */
+            defaultDueDays: number;
+            dueDigestEnabled: boolean;
         };
         /** @enum {unknown} */
         BusinessRole: "Owner" | "Manager" | "Staff" | "Accountant" | null;
@@ -5919,6 +7213,23 @@ export interface components {
         CancelSaleRequest: {
             reason: null | string;
         };
+        CashAccountCreateRequest: {
+            name: null | string;
+            type: null | components["schemas"]["CashAccountType"];
+            iban: null | string;
+            ibanHolderName: null | string;
+            /** Format: double */
+            openingBalance: null | number;
+            /** Format: date */
+            openingDate: null | string;
+        };
+        CashAccountOption: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+            type: components["schemas"]["CashAccountType"];
+            isDefault: boolean;
+        };
         CashAccountResponse: {
             /** Format: uuid */
             id: string;
@@ -5927,9 +7238,68 @@ export interface components {
             /** Format: double */
             balance: number;
             isDefault: boolean;
+            iban: null | string;
+            ibanHolderName: null | string;
+            isActive: boolean;
         };
         /** @enum {unknown} */
         CashAccountType: "Cash" | "Bank";
+        CashAccountUpdateRequest: {
+            name: null | string;
+            iban: null | string;
+            ibanHolderName: null | string;
+        };
+        CashTransactionItem: {
+            /** Format: uuid */
+            id: string;
+            /** Format: date */
+            date: string;
+            type: components["schemas"]["CashTransactionType"];
+            typeLabel: string;
+            /** Format: double */
+            amount: number;
+            /** Format: double */
+            netAmount: number;
+            /** Format: double */
+            balance: number;
+            description: string;
+            /** Format: uuid */
+            contactId: null | string;
+            contactName: null | string;
+            /** Format: uuid */
+            categoryId: null | string;
+            categoryName: null | string;
+            documentNo: null | string;
+            counterAccountName: null | string;
+            isReversal: boolean;
+            reversalOf: null | components["schemas"]["ReversalLink"];
+            reversedBy: null | components["schemas"]["ReversalLink"];
+            /** Format: uuid */
+            saleId: null | string;
+            canReverse: boolean;
+            /** Format: date-time */
+            createdAt: string;
+        };
+        CashTransactionsResponse: {
+            account: components["schemas"]["CashAccountResponse"];
+            /** Format: date */
+            from: string;
+            /** Format: date */
+            to: string;
+            /** Format: double */
+            openingBalance: number;
+            /** Format: double */
+            inTotal: number;
+            /** Format: double */
+            outTotal: number;
+            /** Format: double */
+            closingBalance: number;
+            items: components["schemas"]["CashTransactionItem"][];
+            /** Format: int32 */
+            total: number;
+        };
+        /** @enum {unknown} */
+        CashTransactionType: "Collection" | "Payment" | "TransferIn" | "TransferOut" | "Expense" | "Income" | "SaleIncome" | "SaleRefund" | "OpeningIn" | "OpeningOut";
         CategoryRequest: {
             name: null | string;
         };
@@ -5971,6 +7341,8 @@ export interface components {
             ledgerEntryId: string;
             /** Format: double */
             contactBalance: number;
+            /** Format: double */
+            accountBalance: number;
         };
         ConfirmEmailRequest: {
             /** Format: uuid */
@@ -6034,6 +7406,38 @@ export interface components {
             /** Format: int32 */
             total: number;
         };
+        ContactPaymentRequest: {
+            /** Format: uuid */
+            cashAccountId: string;
+            /** Format: double */
+            amount: null | number;
+            /** Format: date */
+            date: null | string;
+            description: null | string;
+        };
+        ContactPaymentResponse: {
+            /** Format: uuid */
+            cashTransactionId: string;
+            /** Format: double */
+            contactBalance: number;
+            /** Format: double */
+            accountBalance: number;
+        };
+        ContactReceivableResponse: {
+            /** Format: uuid */
+            contactId: string;
+            /** Format: double */
+            balance: number;
+            /** Format: double */
+            overdue: number;
+            /** Format: double */
+            dueToday: number;
+            /** Format: double */
+            notDue: number;
+            items: components["schemas"]["OpenDebtItem"][];
+            /** Format: date-time */
+            lastReminderAt: null | string;
+        };
         ContactRequest: {
             firstName: null | string;
             lastName: null | string;
@@ -6093,6 +7497,8 @@ export interface components {
         ConvertQuoteRequest: {
             payments: null | components["schemas"]["SalePaymentRequest"][];
             note: null | string;
+            /** Format: date */
+            dueDate?: null | string;
         };
         CreatePaymentRequest: {
             /** Format: uuid */
@@ -6101,6 +7507,71 @@ export interface components {
             amount: null | number;
             note: null | string;
             sendEmail: boolean;
+        };
+        DailyTotal: {
+            /** Format: date */
+            date: string;
+            /** Format: double */
+            total: number;
+            /** Format: int32 */
+            count: number;
+        };
+        DashboardAccount: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+            type: components["schemas"]["CashAccountType"];
+            /** Format: double */
+            balance: number;
+        };
+        DashboardReceivables: {
+            /** Format: double */
+            overdue: number;
+            /** Format: int32 */
+            overdueContacts: number;
+            /** Format: double */
+            dueToday: number;
+            /** Format: int32 */
+            dueTodayContacts: number;
+        };
+        DashboardResponse: {
+            /** Format: date */
+            today: string;
+            sales: components["schemas"]["DashboardSales"];
+            /** Format: double */
+            collections: null | number;
+            accounts: null | components["schemas"]["DashboardAccount"][];
+            receivables: null | components["schemas"]["DashboardReceivables"];
+            stock: components["schemas"]["DashboardStock"];
+            recentSales: components["schemas"]["DashboardSale"][];
+            last30Days: components["schemas"]["DailyTotal"][];
+        };
+        DashboardSale: {
+            /** Format: uuid */
+            id: string;
+            no: string;
+            /** Format: date-time */
+            date: string;
+            contactName: null | string;
+            /** Format: double */
+            total: number;
+            status: components["schemas"]["SaleStatus"];
+        };
+        DashboardSales: {
+            /** Format: double */
+            total: number;
+            /** Format: int32 */
+            count: number;
+            byMethod: components["schemas"]["MethodTotal"][];
+            onlyOwn: boolean;
+        };
+        DashboardStock: {
+            enabled: boolean;
+            /** Format: int32 */
+            low: number;
+            /** Format: int32 */
+            negative: number;
+            items: components["schemas"]["LowStockItem"][];
         };
         /** @enum {unknown} */
         DayOfWeek: "Sunday" | "Monday" | "Tuesday" | "Wednesday" | "Thursday" | "Friday" | "Saturday";
@@ -6145,6 +7616,82 @@ export interface components {
             vatAmount: number;
             /** Format: double */
             lineTotal: number;
+        };
+        /** @enum {unknown} */
+        ExpenseCategoryKind: "Expense" | "Income";
+        ExpenseCategoryRequest: {
+            name: null | string;
+            kind: null | components["schemas"]["ExpenseCategoryKind"];
+        };
+        ExpenseCategoryResponse: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+            kind: components["schemas"]["ExpenseCategoryKind"];
+            isActive: boolean;
+            isSalary: boolean;
+            /** Format: int32 */
+            sortOrder: number;
+        };
+        ExpenseCreatedResponse: {
+            /** Format: uuid */
+            id: string;
+            /** Format: double */
+            accountBalance: number;
+        };
+        ExpenseItem: {
+            /** Format: uuid */
+            id: string;
+            /** Format: date */
+            date: string;
+            kind: components["schemas"]["ExpenseCategoryKind"];
+            /** Format: uuid */
+            categoryId: null | string;
+            categoryName: string;
+            /** Format: double */
+            amount: number;
+            /** Format: double */
+            netAmount: number;
+            description: string;
+            documentNo: null | string;
+            /** Format: uuid */
+            cashAccountId: string;
+            cashAccountName: string;
+            /** Format: uuid */
+            contactId: null | string;
+            contactName: null | string;
+            isReversal: boolean;
+            isReversed: boolean;
+            canReverse: boolean;
+            /** Format: date-time */
+            createdAt: string;
+        };
+        ExpenseListResponse: {
+            items: components["schemas"]["ExpenseItem"][];
+            /** Format: int32 */
+            total: number;
+            /** Format: double */
+            sum: number;
+        };
+        ExpenseRequest: {
+            kind: null | components["schemas"]["ExpenseCategoryKind"];
+            /** Format: date */
+            date: null | string;
+            /** Format: uuid */
+            categoryId: string;
+            /** Format: double */
+            amount: null | number;
+            /** Format: uuid */
+            cashAccountId: string;
+            description: null | string;
+            documentNo: null | string;
+            /** Format: uuid */
+            contactId: null | string;
+        };
+        FinanceSettingsRequest: {
+            /** Format: int32 */
+            defaultDueDays: number;
+            dueDigestEnabled: boolean;
         };
         ForgotPasswordRequest: {
             email: string;
@@ -6215,6 +7762,26 @@ export interface components {
             };
             fields: components["schemas"]["ImportFieldInfo"][];
         };
+        IncomeExpenseLine: {
+            name: string;
+            isSales: boolean;
+            values: number[];
+            /** Format: double */
+            total: number;
+        };
+        IncomeExpenseResponse: {
+            /** Format: date */
+            from: string;
+            /** Format: date */
+            to: string;
+            months: string[];
+            income: components["schemas"]["IncomeExpenseLine"][];
+            expense: components["schemas"]["IncomeExpenseLine"][];
+            incomeTotals: number[];
+            expenseTotals: number[];
+            net: number[];
+            salesVat: components["schemas"]["SalesVatMonth"][];
+        };
         InvitationPreviewResponse: {
             businessName: string;
             role: components["schemas"]["BusinessRole"];
@@ -6274,7 +7841,7 @@ export interface components {
         /** @enum {unknown} */
         LedgerKind: "Debit" | "Credit";
         /** @enum {unknown} */
-        LedgerRefType: "Opening" | "Manual" | "Collection" | "Sale" | "SaleCancel";
+        LedgerRefType: "Opening" | "Manual" | "Collection" | "Sale" | "SaleCancel" | "Payment" | "PaymentReversal" | "CollectionReversal";
         LedgerResponse: {
             /** Format: uuid */
             contactId: string;
@@ -6302,6 +7869,16 @@ export interface components {
         LogoResponse: {
             logoUrl: null | string;
         };
+        LowStockItem: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+            /** Format: double */
+            quantity: number;
+            unit: components["schemas"]["ProductUnit"];
+            /** Format: double */
+            criticalLevel: null | number;
+        };
         MeBusiness: {
             /** Format: uuid */
             id: string;
@@ -6318,6 +7895,8 @@ export interface components {
             district: null | string;
             /** Format: int32 */
             receiptWidth: number;
+            /** Format: int32 */
+            defaultDueDays: number;
         };
         MemberResponse: {
             /** Format: uuid */
@@ -6342,6 +7921,11 @@ export interface components {
             business: null | components["schemas"]["MeBusiness"];
             role: null | components["schemas"]["BusinessRole"];
             memberships: components["schemas"]["MeMembership"][];
+        };
+        MethodTotal: {
+            method: components["schemas"]["PaymentMethod"];
+            /** Format: double */
+            amount: number;
         };
         MeUser: {
             /** Format: uuid */
@@ -6386,6 +7970,21 @@ export interface components {
             createdAt: string;
             /** Format: date-time */
             readAt: null | string;
+        };
+        OpenDebtItem: {
+            /** Format: uuid */
+            entryId: string;
+            /** Format: date */
+            date: string;
+            /** Format: date */
+            dueDate: string;
+            /** Format: double */
+            amount: number;
+            /** Format: double */
+            remaining: number;
+            description: string;
+            /** Format: int32 */
+            daysOverdue: number;
         };
         OpeningBalanceRequest: {
             /** Format: double */
@@ -6691,12 +8290,105 @@ export interface components {
             /** Format: int32 */
             width: number;
         };
+        ReceivableAgingRow: {
+            /** Format: uuid */
+            contactId: string;
+            name: string;
+            phone: null | string;
+            /** Format: double */
+            balance: number;
+            /** Format: double */
+            notDue: number;
+            /** Format: double */
+            days0To30: number;
+            /** Format: double */
+            days31To60: number;
+            /** Format: double */
+            days61To90: number;
+            /** Format: double */
+            days90Plus: number;
+            /** Format: date */
+            oldestDueDate: null | string;
+        };
+        ReceivableListResponse: {
+            tab: components["schemas"]["ReceivableTab"];
+            items: components["schemas"]["ReceivableRow"][];
+            counts: components["schemas"]["ReceivableTabCounts"];
+            sums: components["schemas"]["ReceivableTabSums"];
+        };
+        ReceivableRow: {
+            /** Format: uuid */
+            contactId: string;
+            name: string;
+            phone: null | string;
+            /** Format: double */
+            dueAmount: number;
+            /** Format: date */
+            oldestDueDate: string;
+            /** Format: int32 */
+            daysOverdue: number;
+            /** Format: int32 */
+            itemCount: number;
+            /** Format: double */
+            balance: number;
+            /** Format: date-time */
+            lastReminderAt: null | string;
+            lastReminderChannel: null | string;
+        };
+        ReceivablesReportResponse: {
+            /** Format: date */
+            asOf: string;
+            rows: components["schemas"]["ReceivableAgingRow"][];
+            totals: components["schemas"]["ReceivableAgingRow"];
+        };
+        /** @enum {unknown} */
+        ReceivableTab: "Overdue" | "Today" | "Week" | "Later";
+        ReceivableTabCounts: {
+            /** Format: int32 */
+            overdue: number;
+            /** Format: int32 */
+            today: number;
+            /** Format: int32 */
+            week: number;
+            /** Format: int32 */
+            later: number;
+        };
+        ReceivableTabSums: {
+            /** Format: double */
+            overdue: number;
+            /** Format: double */
+            today: number;
+            /** Format: double */
+            week: number;
+            /** Format: double */
+            later: number;
+        };
         RegisterRequest: {
             fullName: string;
             email: string;
             phone: string;
             password: string;
             kvkkAccepted: boolean;
+        };
+        /** @enum {unknown} */
+        ReminderChannel: "WhatsApp" | "Sms";
+        ReminderLogRequest: {
+            channel: components["schemas"]["ReminderChannel"];
+        };
+        ReminderMessageResponse: {
+            /** Format: uuid */
+            contactId: string;
+            contactName: string;
+            phone: null | string;
+            /** Format: double */
+            amount: number;
+            /** Format: date */
+            dueDate: null | string;
+            text: string;
+            whatsappUrl: string;
+            smsUrl: string;
+            paymentLinkUrl: null | string;
+            paymentLinkCreated: boolean;
         };
         ReminderRequest: {
             title: string;
@@ -6723,6 +8415,8 @@ export interface components {
             assignedUserName: null | string;
             isOverdue: boolean;
         };
+        /** @enum {unknown} */
+        ReportGroupBy: "Day" | "Week" | "Month";
         ResetPasswordRequest: {
             email: string;
             token: string;
@@ -6730,6 +8424,19 @@ export interface components {
         };
         RespondQuoteRequest: {
             note: null | string;
+        };
+        ReversalLink: {
+            /** Format: uuid */
+            id: string;
+            /** Format: date */
+            date: string;
+        };
+        ReverseRequest: {
+            reason: null | string;
+        };
+        ReverseResponse: {
+            reversalIds: string[];
+            balances: components["schemas"]["AccountBalance"][];
         };
         SaleCreatedResponse: {
             sale: components["schemas"]["SaleResponse"];
@@ -6787,6 +8494,8 @@ export interface components {
             discount: null | components["schemas"]["DiscountSpec"];
             payments: null | components["schemas"]["SalePaymentRequest"][];
             note: null | string;
+            /** Format: date */
+            dueDate?: null | string;
         };
         SaleResponse: {
             /** Format: uuid */
@@ -6824,9 +8533,52 @@ export interface components {
             /** Format: uuid */
             quoteId: null | string;
             quoteNo: null | string;
+            /** Format: date */
+            dueDate: null | string;
+        };
+        SalesReportResponse: {
+            /** Format: date */
+            from: string;
+            /** Format: date */
+            to: string;
+            groupBy: components["schemas"]["ReportGroupBy"];
+            rows: components["schemas"]["SalesReportRow"][];
+            totals: components["schemas"]["SalesReportRow"];
+        };
+        SalesReportRow: {
+            /** Format: date */
+            periodStart: string;
+            label: string;
+            /** Format: int32 */
+            count: number;
+            /** Format: double */
+            total: number;
+            /** Format: double */
+            vat: number;
+            /** Format: double */
+            cash: number;
+            /** Format: double */
+            card: number;
+            /** Format: double */
+            transfer: number;
+            /** Format: double */
+            credit: number;
+            /** Format: int32 */
+            cancelledCount: number;
+            /** Format: double */
+            cancelledTotal: number;
         };
         /** @enum {unknown} */
         SaleStatus: "Completed" | "Cancelled";
+        SalesVatMonth: {
+            month: string;
+            /** Format: double */
+            net: number;
+            /** Format: double */
+            vat: number;
+            /** Format: double */
+            gross: number;
+        };
         SearchGroup: {
             type: string;
             items: components["schemas"]["SearchItem"][];
@@ -7020,6 +8772,50 @@ export interface components {
             items: components["schemas"]["TimelineItem"][];
             /** Format: date-time */
             nextBefore: null | string;
+        };
+        /** @enum {unknown} */
+        TopProductKind: "Product" | "Service" | "Free";
+        TopProductRow: {
+            /** Format: uuid */
+            productId: null | string;
+            name: string;
+            kind: components["schemas"]["TopProductKind"];
+            unit: components["schemas"]["ProductUnit"];
+            /** Format: double */
+            quantity: number;
+            /** Format: double */
+            amount: number;
+            /** Format: int32 */
+            saleCount: number;
+        };
+        /** @enum {unknown} */
+        TopProductSort: "Quantity" | "Amount";
+        TopProductsResponse: {
+            /** Format: date */
+            from: string;
+            /** Format: date */
+            to: string;
+            sort: components["schemas"]["TopProductSort"];
+            rows: components["schemas"]["TopProductRow"][];
+        };
+        TransferRequest: {
+            /** Format: uuid */
+            fromAccountId: string;
+            /** Format: uuid */
+            toAccountId: string;
+            /** Format: double */
+            amount: null | number;
+            /** Format: date */
+            date: null | string;
+            description: null | string;
+        };
+        TransferResponse: {
+            /** Format: uuid */
+            transferId: string;
+            /** Format: double */
+            fromBalance: number;
+            /** Format: double */
+            toBalance: number;
         };
         UnreadCountResponse: {
             /** Format: int32 */

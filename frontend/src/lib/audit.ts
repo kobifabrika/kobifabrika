@@ -51,6 +51,24 @@ export const auditActionLabels: Record<AuditAction, string> = {
   QuoteRejected: "Teklif reddedildi",
   QuoteConverted: "Teklifi satışa dönüştürdü",
   QuoteDeleted: "Teklifi sildi",
+  CashAccountCreated: "Kasa/banka hesabı ekledi",
+  CashAccountUpdated: "Hesap bilgilerini değiştirdi",
+  CashAccountDeactivated: "Hesabı pasife aldı",
+  CashAccountActivated: "Hesabı tekrar açtı",
+  DefaultCashAccountChanged: "Varsayılan hesabı değiştirdi",
+  CashTransferRecorded: "Hesaplar arası transfer yaptı",
+  CashTransactionReversed: "Ters kayıt yaptı",
+  SupplierPaymentRecorded: "Ödeme yaptı",
+  ExpenseRecorded: "Gider girdi",
+  IncomeRecorded: "Gelir girdi",
+  ExpenseCategoryCreated: "Gelir-gider kategorisi ekledi",
+  ExpenseCategoryUpdated: "Kategori adını değiştirdi",
+  ExpenseCategoryDeactivated: "Kategoriyi pasife aldı",
+  ExpenseCategoryActivated: "Kategoriyi tekrar açtı",
+  DueReminderSent: "Vade hatırlatması gönderdi",
+  FinanceSettingsChanged: "Finans ayarlarını değiştirdi",
+  ReportExported: "Raporu Excel'e aktardı",
+  CashTransactionsExported: "Hesap hareketlerini Excel'e aktardı",
 };
 
 const fieldLabels: Record<string, string> = {
@@ -78,6 +96,24 @@ const money = (value: unknown) =>
     : "";
 
 type Changes = Record<string, unknown>;
+
+const transactionTypes: Record<string, string> = {
+  Collection: "Tahsilat",
+  Payment: "Ödeme",
+  TransferIn: "Transfer",
+  TransferOut: "Transfer",
+  Expense: "Gider",
+  Income: "Gelir",
+  OpeningIn: "Açılış bakiyesi",
+  OpeningOut: "Açılış bakiyesi",
+};
+
+const reportNames: Record<string, string> = {
+  satislar: "Satışlar",
+  "en-cok-satan": "En çok satan",
+  alacaklar: "Alacaklar",
+  "gelir-gider": "Gelir-gider",
+};
 const role = (value: unknown) => roleNames[value as Role] ?? String(value ?? "");
 const text = (value: unknown) => (typeof value === "string" ? value : "");
 /** "2026-10-26" → "26.10.2026" */
@@ -110,7 +146,36 @@ export function auditDetail(item: Pick<AuditLogItem, "action" | "changes">): str
     case "LedgerEntryCreated":
       return `${c.kind === "Debit" ? "Borç" : "Alacak"} ${money(c.amount)} · ${text(c.description)}`;
     case "CollectionRecorded":
+    case "SupplierPaymentRecorded":
       return `${money(c.amount)} · ${text(c.cashAccount)}`;
+    case "CashAccountCreated":
+    case "CashAccountDeactivated":
+    case "CashAccountActivated":
+    case "DefaultCashAccountChanged":
+      return text(c.name);
+    case "CashTransferRecorded":
+      return `${text(c.from)} → ${text(c.to)} · ${money(c.amount)}`;
+    case "CashTransactionReversed":
+      return `${transactionTypes[text(c.type)] ?? ""} ${money(c.amount)} · ${day(c.date)}${c.reason ? ` · ${text(c.reason)}` : ""}`;
+    case "ExpenseRecorded":
+    case "IncomeRecorded":
+      return `${text(c.category)} · ${money(c.amount)} · ${text(c.account)}`;
+    case "ExpenseCategoryCreated":
+    case "ExpenseCategoryDeactivated":
+    case "ExpenseCategoryActivated":
+      return text(c.name);
+    case "ExpenseCategoryUpdated":
+      return `${text(c.before)} → ${text(c.after)}`;
+    case "DueReminderSent":
+      return `${c.channel === "Sms" ? "SMS" : "WhatsApp"} · ${money(c.amount)}`;
+    case "FinanceSettingsChanged": {
+      const after = (c.after ?? {}) as { defaultDueDays?: number; dueDigestEnabled?: boolean };
+      return `Vade ${after.defaultDueDays ?? ""} gün · otomatik bildirim ${after.dueDigestEnabled ? "açık" : "kapalı"}`;
+    }
+    case "ReportExported":
+      return reportNames[text(c.report)] ?? text(c.report);
+    case "CashTransactionsExported":
+      return `${c.count ?? 0} kayıt`;
     case "PaymentRequestCreated":
     case "PaymentRequestConfirmed":
     case "PaymentRequestRenewed":

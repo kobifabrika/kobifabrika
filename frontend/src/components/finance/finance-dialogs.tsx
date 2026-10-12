@@ -7,7 +7,8 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
 import { toast } from "sonner";
 
 import { contactsKey } from "@/components/contacts/contact-list";
-import { Notice, selectClass } from "@/components/contacts/contact-bits";
+import { Balance, Notice, selectClass } from "@/components/contacts/contact-bits";
+import { ContactPicker } from "@/components/sales/contact-picker";
 import { Field, FormMessage } from "@/components/forms/field";
 import { Button } from "@/components/ui/button";
 import {
@@ -22,6 +23,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { API_URL, ApiError, api, errorMessage, fieldErrors, unwrap } from "@/lib/api/client";
 import type { Contact, PaymentRequest } from "@/lib/api/types";
+import type { CartContact } from "@/lib/cart";
 import { formatDate, formatMoney, todayIstanbul } from "@/lib/format";
 import { moneyToInput, parseMoneyInput, validateMoney } from "@/lib/validation/rules";
 
@@ -38,6 +40,11 @@ export function useFinanceRefresh() {
       queryClient.invalidateQueries({ queryKey: paymentRequestsKey }),
       queryClient.invalidateQueries({ queryKey: ["ledger"] }),
       queryClient.invalidateQueries({ queryKey: ["timeline"] }),
+      queryClient.invalidateQueries({ queryKey: ["cash-transactions"] }),
+      queryClient.invalidateQueries({ queryKey: ["expenses"] }),
+      queryClient.invalidateQueries({ queryKey: ["receivables"] }),
+      queryClient.invalidateQueries({ queryKey: ["dashboard"] }),
+      queryClient.invalidateQueries({ queryKey: ["reports"] }),
     ]);
 }
 
@@ -72,25 +79,27 @@ export function DialogShell({
 }
 
 /** Para alanı: Türkçe biçimde yazılır ("1.250,50"); hata mesajları backend'le aynı. */
-function MoneyField({
+export function MoneyField({
   label,
   value,
   onChange,
   error,
+  autoFocus,
 }: {
   label: string;
   value: string;
   onChange: (v: string) => void;
   error?: string | null;
+  autoFocus?: boolean;
 }) {
   return (
     <Field label={label} error={error ?? undefined}>
-      <Input inputMode="decimal" placeholder="0,00" value={value} onChange={(e) => onChange(e.target.value)} />
+      <Input inputMode="decimal" placeholder="0,00" value={value} autoFocus={autoFocus} onChange={(e) => onChange(e.target.value)} />
     </Field>
   );
 }
 
-function amountOf(text: string) {
+export function amountOf(text: string) {
   return parseMoneyInput(text)!.value;
 }
 
@@ -203,19 +212,33 @@ export function LedgerEntryDialog({
   );
 }
 
-/** Elden/havaleyle gelen tahsilat: seçilen kasaya giriş + cariye alacak. */
+/**
+ * Elden/havaleyle gelen tahsilat: seçilen kasaya giriş + cariye alacak. Müşteri verilmezse (Bugün ekranı, kasa ekranı)
+ * pencerede müşteri seçilir; tutar müşterinin alacak bakiyesiyle dolar.
+ */
 export function CollectionDialog({
-  contact,
+  contact: given,
   open,
   onOpenChange,
 }: {
-  contact: Pick<Contact, "id" | "displayName" | "balance">;
+  contact?: Pick<Contact, "id" | "displayName" | "balance">;
   open: boolean;
   onOpenChange: (v: boolean) => void;
 }) {
   const refresh = useFinanceRefresh();
   const accounts = useCashAccounts(open);
-  const [amount, setAmount] = useState(contact.balance && contact.balance > 0 ? moneyToInput(contact.balance) : "");
+  const [picked, setPicked] = useState<CartContact | null>(null);
+  const pickedContact = useQuery({
+    queryKey: [...contactsKey, picked?.id],
+    queryFn: () => unwrap(api.GET("/api/contacts/{id}", { params: { path: { id: picked!.id } } })),
+    enabled: !given && !!picked,
+  });
+  const contact = given ?? (picked && pickedContact.data ? pickedContact.data : null);
+  // Elle yazılmadıysa (null) tutar müşterinin alacak bakiyesidir; müşteri değişince sıfırlanır.
+  const [typed, setTyped] = useState<string | null>(null);
+  const balance = contact?.balance ?? 0;
+  const amount = typed ?? (balance > 0 ? moneyToInput(balance) : "");
+  const setAmount = setTyped;
   const [date, setDate] = useState(todayIstanbul());
   const [accountId, setAccountId] = useState("");
   const [description, setDescription] = useState("");
@@ -228,7 +251,7 @@ export function CollectionDialog({
     mutationFn: () =>
       unwrap(
         api.POST("/api/contacts/{id}/collections", {
-          params: { path: { id: contact.id } },
+          params: { path: { id: contact!.id } },
           body: { amount: amountOf(amount), date, cashAccountId: selected, description: description.trim() || null },
         }),
       ),
@@ -237,13 +260,30 @@ export function CollectionDialog({
       await refresh();
       onOpenChange(false);
       setSubmitted(false);
+      setPicked(null);
     },
     onError: (e) => setError(errorMessage(e)),
   });
 
   return (
-    <DialogShell open={open} onOpenChange={onOpenChange} title="Tahsilat al" description={contact.displayName}>
+    <DialogShell open={open} onOpenChange={onOpenChange} title="Tahsilat al" description={given?.displayName}>
       <div className="flex flex-col gap-4">
+        {!given && (
+          <ContactPicker
+            value={picked}
+            onChange={(c) => {
+              setPicked(c);
+              setTyped(null);
+            }}
+            required
+            error={submitted && !picked ? "Müşteri seçin." : null}
+          />
+        )}
+        {!given && contact && (
+          <p className="text-sm text-neutral-700">
+            Güncel bakiye: <Balance value={contact.balance ?? 0} className="text-sm" />
+          </p>
+        )}
         <MoneyField label="Alınan tutar (TL)" value={amount} onChange={setAmount} error={amountError} />
         <div className="grid grid-cols-2 gap-3">
           <Field label="Nereye girdi?">
@@ -271,7 +311,7 @@ export function CollectionDialog({
         <Button
           onClick={() => {
             setSubmitted(true);
-            if (!validateMoney(amount) && selected) save.mutate();
+            if (!validateMoney(amount) && selected && contact) save.mutate();
           }}
           disabled={save.isPending || !selected}
         >

@@ -59,6 +59,29 @@ export type QuoteListItem = Schemas["QuoteListItem"];
 export type QuoteStatus = Schemas["QuoteStatus"];
 export type PublicQuote = Schemas["PublicQuoteResponse"];
 
+// Finans, Bugün ve raporlar (Sprint 4)
+export type CashAccountOption = Schemas["CashAccountOption"];
+export type CashAccountType = Schemas["CashAccountType"];
+export type CashTransactionItem = Schemas["CashTransactionItem"];
+export type CashTransactions = Schemas["CashTransactionsResponse"];
+export type CashTransactionType = Schemas["CashTransactionType"];
+export type ExpenseCategory = Schemas["ExpenseCategoryResponse"];
+export type ExpenseCategoryKind = Schemas["ExpenseCategoryKind"];
+export type ExpenseItem = Schemas["ExpenseItem"];
+export type ReceivableTab = Schemas["ReceivableTab"];
+export type ReceivableRow = Schemas["ReceivableRow"];
+export type ReceivableList = Schemas["ReceivableListResponse"];
+export type ContactReceivable = Schemas["ContactReceivableResponse"];
+export type ReminderMessage = Schemas["ReminderMessageResponse"];
+export type Dashboard = Schemas["DashboardResponse"];
+export type SalesReport = Schemas["SalesReportResponse"];
+export type TopProductsReport = Schemas["TopProductsResponse"];
+export type ReceivablesReport = Schemas["ReceivablesReportResponse"];
+export type IncomeExpenseReport = Schemas["IncomeExpenseResponse"];
+export type ReportGroupBy = Schemas["ReportGroupBy"];
+
+export const cashAccountTypeNames: Record<CashAccountType, string> = { Cash: "Nakit", Bank: "Banka" };
+
 /** Kaynak listesi sabit; sıra arayüzdeki sıradır. */
 export const sourceNames: Record<ContactSource, string> = {
   Instagram: "Instagram",

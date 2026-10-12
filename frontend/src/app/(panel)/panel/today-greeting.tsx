@@ -16,7 +16,7 @@ export function TodayGreeting() {
       <p className="mt-1 truncate text-base font-semibold text-black" title={business.name}>
         {business.name}
       </p>
-      <p className="mt-1 text-sm text-neutral-600">İşletmenizde bugün olanlar burada görünecek.</p>
+      <p className="mt-1 text-sm text-neutral-600">İşletmenizde bugün olanlar.</p>
     </div>
   );
 }

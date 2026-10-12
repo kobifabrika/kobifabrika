@@ -36,7 +36,15 @@ public sealed record SalesReportRow(
 
 public sealed record SalesReportResponse(DateOnly From, DateOnly To, ReportGroupBy GroupBy, IReadOnlyList<SalesReportRow> Rows, SalesReportRow Totals);
 
-public sealed record TopProductRow(Guid? ProductId, string Name, ProductType? Type, ProductUnit Unit, decimal Quantity, decimal Amount, int SaleCount);
+/// <summary>Satır türü: katalogdaki ürün, hizmet veya katalogda olmayan serbest kalem.</summary>
+public enum TopProductKind
+{
+    Product,
+    Service,
+    Free,
+}
+
+public sealed record TopProductRow(Guid? ProductId, string Name, TopProductKind Kind, ProductUnit Unit, decimal Quantity, decimal Amount, int SaleCount);
 
 public sealed record TopProductsResponse(DateOnly From, DateOnly To, TopProductSort Sort, IReadOnlyList<TopProductRow> Rows);
 
@@ -191,10 +199,11 @@ public static class ReportEndpoints
             {
                 var first = g.First();
                 var product = first.ProductId is { } id ? products.GetValueOrDefault(id) : null;
-                return new TopProductRow(first.ProductId, product?.Name ?? first.Description, product?.Type, first.Unit,
+                var kind = product?.Type switch { ProductType.Product => TopProductKind.Product, ProductType.Service => TopProductKind.Service, _ => TopProductKind.Free };
+                return new TopProductRow(first.ProductId, product?.Name ?? first.Description, kind, first.Unit,
                     g.Sum(l => l.Quantity), g.Sum(l => l.LineTotal), g.Select(l => l.SaleId).Distinct().Count());
             })
-            .Where(r => type is null || r.Type == type)
+            .Where(r => type is null || (type == ProductType.Service ? r.Kind == TopProductKind.Service : r.Kind == TopProductKind.Product))
             .OrderByDescending(r => sort == TopProductSort.Amount ? r.Amount : r.Quantity)
             .ThenByDescending(r => sort == TopProductSort.Amount ? r.Quantity : r.Amount)
             .ThenBy(r => r.Name)
@@ -205,18 +214,18 @@ public static class ReportEndpoints
 
     private static async Task<Ok<TopProductsResponse>> TopProducts(
         AppDbContext db, TimeProvider clock, CancellationToken ct, DateOnly? from = null, DateOnly? to = null,
-        TopProductSort sort = TopProductSort.Quantity, ProductType? type = null, int take = 50)
+        TopProductSort sort = TopProductSort.Quantity, string? type = null, int take = 50)
     {
         var (f, t) = Range(clock, from, to);
-        return TypedResults.Ok(await BuildTopProductsAsync(db, f, t, sort, type, take, ct));
+        return TypedResults.Ok(await BuildTopProductsAsync(db, f, t, sort, ParseType(type), take, ct));
     }
 
     private static async Task<FileContentHttpResult> TopProductsXlsx(
         AppDbContext db, IAuditLogger audit, TimeProvider clock, CancellationToken ct, DateOnly? from = null, DateOnly? to = null,
-        TopProductSort sort = TopProductSort.Quantity, ProductType? type = null)
+        TopProductSort sort = TopProductSort.Quantity, string? type = null)
     {
         var (f, t) = Range(clock, from, to);
-        var report = await BuildTopProductsAsync(db, f, t, sort, type, 500, ct);
+        var report = await BuildTopProductsAsync(db, f, t, sort, ParseType(type), 500, ct);
         using var book = new XLWorkbook();
         var sheet = Sheet(book, "En çok satan", sort == TopProductSort.Amount ? "En çok satan (tutara göre)" : "En çok satan (adede göre)", f, t, clock);
         Xlsx.Header(sheet, 4, "Sıra", "Ürün/hizmet", "Tür", "Miktar", "Birim", "Tutar (KDV dahil)", "Satış adedi");
@@ -224,13 +233,16 @@ public static class ReportEndpoints
         var rank = 1;
         foreach (var r in report.Rows)
         {
-            Xlsx.Row(sheet, row++, rank++, r.Name, r.Type switch { ProductType.Product => "Ürün", ProductType.Service => "Hizmet", _ => "Serbest kalem" },
+            Xlsx.Row(sheet, row++, rank++, r.Name, r.Kind switch { TopProductKind.Product => "Ürün", TopProductKind.Service => "Hizmet", _ => "Serbest kalem" },
                 r.Quantity, CatalogUnitLabel(r.Unit), r.Amount, r.SaleCount);
         }
 
         Xlsx.Format(sheet, 5, row - 1, money: [6], quantities: [4]);
         return await FileAsync(db, audit, book, "en-cok-satan", f, t, ct);
     }
+
+    /// <summary>type: "Product" veya "Service" (sorgu parametresi metin: OpenAPI'de ortak ProductType şeması null'lanmasın).</summary>
+    private static ProductType? ParseType(string? type) => Enum.TryParse<ProductType>(type, ignoreCase: true, out var t) ? t : null;
 
     private static string CatalogUnitLabel(ProductUnit unit) => unit switch
     {

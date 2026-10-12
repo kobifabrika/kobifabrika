@@ -1,15 +1,17 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { Landmark, Wallet } from "lucide-react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useState } from "react";
 
-import { Balance, EmptyState, TabNav } from "@/components/contacts/contact-bits";
+import { Balance, TabNav } from "@/components/contacts/contact-bits";
 import { contactHref, ContactList, contactsKey } from "@/components/contacts/contact-list";
 import { QueryError } from "@/components/feedback/query-error";
-import { CollectionDialog, useCashAccounts } from "@/components/finance/finance-dialogs";
+import { CashAccountsTab } from "@/components/finance/cash-accounts";
+import { ExpenseList } from "@/components/finance/expenses";
+import { CollectionDialog } from "@/components/finance/finance-dialogs";
+import { ReceivablesTab } from "@/components/finance/receivables";
 import { PaymentRequestList } from "@/components/finance/payment-request-list";
 import { RequirePermission } from "@/components/panel/settings-nav";
 import { useSession } from "@/components/providers/session-provider";
@@ -22,14 +24,16 @@ import { can } from "@/lib/permissions";
 
 const tabs = [
   { key: "bakiyeler", label: "Bakiyeler" },
+  { key: "vadeler", label: "Vadeler" },
+  { key: "kasa", label: "Kasa ve banka" },
+  { key: "gelir-gider", label: "Gelir-gider" },
   { key: "tahsilat-linkleri", label: "Tahsilat linkleri" },
   { key: "tedarikciler", label: "Tedarikçiler" },
-  { key: "kasa", label: "Kasa ve banka" },
 ] as const;
 
 type TabKey = (typeof tabs)[number]["key"];
 
-/** Cari ve Kasa: alacak/borç listeleri, tahsilat linkleri ("Ödedim" bekleyenler), tedarikçiler, kasa bakiyeleri. */
+/** Cari ve Kasa: alacak/borç listeleri, vade listesi, kasa ve banka hesapları, gelir-gider, tahsilat linkleri, tedarikçiler. */
 export function FinanceHome() {
   const requested = useSearchParams().get("sekme");
   const active: TabKey = tabs.some((t) => t.key === requested) ? (requested as TabKey) : "bakiyeler";
@@ -40,9 +44,11 @@ export function FinanceHome() {
       <RequirePermission permission="viewFinance">
         <TabNav label="Cari ve Kasa" active={active} tabs={tabs.map((t) => ({ ...t, href: `?sekme=${t.key}` }))} />
         {active === "bakiyeler" && <Balances />}
+        {active === "vadeler" && <ReceivablesTab />}
+        {active === "kasa" && <CashAccountsTab />}
+        {active === "gelir-gider" && <ExpenseList />}
         {active === "tahsilat-linkleri" && <PaymentRequestList />}
         {active === "tedarikciler" && <ContactList mode="supplier" />}
-        {active === "kasa" && <CashAccounts />}
       </RequirePermission>
     </div>
   );
@@ -109,44 +115,6 @@ function Balances() {
     <div className="grid gap-8 lg:grid-cols-2">
       <BalanceGroup title="Alacaklarımız" balance="debtors" empty="Size borcu olan müşteri yok." />
       <BalanceGroup title="Borçlarımız" balance="creditors" empty="Kimseye borcunuz görünmüyor." />
-    </div>
-  );
-}
-
-function CashAccounts() {
-  const accounts = useCashAccounts();
-  if (accounts.isPending)
-    return (
-      <p role="status" className="text-sm text-neutral-600">
-        Yükleniyor…
-      </p>
-    );
-  if (accounts.isError)
-    return (
-      <QueryError error={accounts.error} onRetry={accounts.refetch} />
-    );
-  if (accounts.data.length === 0) return <EmptyState icon={<Wallet className="size-10" />} title="Kasa hesabı yok" />;
-  return (
-    <div className="flex flex-col gap-3">
-      <ul className="grid gap-3 sm:grid-cols-2">
-        {accounts.data.map((a) => (
-          <li key={a.id} className="flex items-center gap-3 border border-border px-4 py-4">
-            {a.type === "Cash" ? (
-              <Wallet aria-hidden className="size-6 text-black" />
-            ) : (
-              <Landmark aria-hidden className="size-6 text-black" />
-            )}
-            <div className="flex flex-1 flex-col">
-              <span className="text-sm font-semibold text-black">{a.name}</span>
-              <span className="text-xs text-neutral-600">{a.type === "Cash" ? "Nakit" : "Banka"}</span>
-            </div>
-            <span className="text-lg font-bold text-black tabular-nums">{formatMoney(a.balance)}</span>
-          </li>
-        ))}
-      </ul>
-      <p className="text-xs text-neutral-600">
-        Şimdilik kasaya tahsilatlar girer. Ödeme, gider ve hesaplar arası transfer yakında.
-      </p>
     </div>
   );
 }

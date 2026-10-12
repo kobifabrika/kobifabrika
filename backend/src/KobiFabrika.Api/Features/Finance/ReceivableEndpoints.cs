@@ -27,11 +27,11 @@ public enum ReceivableTab
 
 /// <summary>
 /// Vade listesi satırı (müşteri bazında). DueAmount ve OldestDueDate seçili sekmedeki kalemlerden; DaysOverdue gecikmiş sekmede
-/// en eski vadeden bugüne gün sayısı.
+/// en eski vadeden bugüne gün sayısı. LastReminderChannel: "WhatsApp" veya "Sms".
 /// </summary>
 public sealed record ReceivableRow(
     Guid ContactId, string Name, string? Phone, decimal DueAmount, DateOnly OldestDueDate, int DaysOverdue, int ItemCount, decimal Balance,
-    DateTime? LastReminderAt, ReminderChannel? LastReminderChannel);
+    DateTime? LastReminderAt, string? LastReminderChannel);
 
 public sealed record ReceivableTabCounts(int Overdue, int Today, int Week, int Later);
 
@@ -70,9 +70,9 @@ public static class ReceivableEndpoints
             .WithSummary("Vade listesi (tab: Overdue/Today/Week/Later, search); müşteri bazında, sekme sayıları ve toplamları");
         group.MapGet("/{contactId:guid}", ForContact).RequireAuthorization(Policies.ViewFinance).WithSummary("Müşterinin açık borç kalemleri");
         group.MapPost("/{contactId:guid}/reminder-message", PrepareMessage).RequireAuthorization(Policies.ManageFinance)
-            .WithSummary("Hatırlatma metni ve hazır WhatsApp/SMS linkleri (gerekirse tahsilat linkini bir kez oluşturur)");
+            .Produces<ReminderMessageResponse>().WithSummary("Hatırlatma metni ve hazır WhatsApp/SMS linkleri (gerekirse tahsilat linkini bir kez oluşturur)");
         group.MapPost("/{contactId:guid}/reminders", LogReminder).RequireAuthorization(Policies.ManageFinance).Validate<ReminderLogRequest>()
-            .WithSummary("Hatırlatma gönderildi kaydı (WhatsApp/SMS linkine tıklanınca)");
+            .Produces(StatusCodes.Status204NoContent).WithSummary("Hatırlatma gönderildi kaydı (WhatsApp/SMS linkine tıklanınca)");
         return app;
     }
 
@@ -117,7 +117,7 @@ public static class ReceivableEndpoints
             var oldest = items.Min(i => i.DueDate);
             var last = reminders.TryGetValue(r.ContactId, out var l) ? l : ((DateTime At, ReminderChannel Channel)?)null;
             return new ReceivableRow(r.ContactId, r.Name, r.Phone, items.Sum(i => i.Remaining), oldest,
-                Math.Max(0, today.DayNumber - oldest.DayNumber), items.Count, r.Balance, last?.At, last?.Channel);
+                Math.Max(0, today.DayNumber - oldest.DayNumber), items.Count, r.Balance, last?.At, last?.Channel.ToString());
         });
         var ordered = tab == ReceivableTab.Overdue
             ? rows.OrderByDescending(r => r.DaysOverdue).ThenByDescending(r => r.DueAmount)

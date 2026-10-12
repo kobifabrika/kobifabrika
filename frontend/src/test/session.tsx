@@ -38,6 +38,7 @@ export function testMe({
       setupCompleted: true,
       phone: "+902125554433",
       address: "Moda Cad. No: 5",
+      defaultDueDays: 30,
       city: "İstanbul",
       district: "Kadıköy",
       receiptWidth,

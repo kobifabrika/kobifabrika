@@ -41,9 +41,10 @@ public static class ExpenseEndpoints
     {
         var categories = app.MapGroup("/api/expense-categories").WithTags("Expenses");
         categories.MapGet("/", Categories).RequireAuthorization(Policies.ViewFinance).WithSummary("Gelir-gider kategorileri (kind, includeInactive)");
-        categories.MapPost("/", CreateCategory).RequireAuthorization(Policies.ManageFinance).Validate<ExpenseCategoryRequest>().WithSummary("Kategori ekle");
+        categories.MapPost("/", CreateCategory).RequireAuthorization(Policies.ManageFinance).Validate<ExpenseCategoryRequest>()
+            .Produces<ExpenseCategoryResponse>(StatusCodes.Status201Created).WithSummary("Kategori ekle");
         categories.MapPut("/{id:guid}", RenameCategory).RequireAuthorization(Policies.ManageFinance).Validate<ExpenseCategoryRequest>()
-            .WithSummary("Kategori adını değiştir");
+            .Produces<ExpenseCategoryResponse>().WithSummary("Kategori adını değiştir");
         categories.MapPost("/{id:guid}/deactivate", (Guid id, AppDbContext db, IAuditLogger audit, CancellationToken ct) => SetActive(id, false, db, audit, ct))
             .RequireAuthorization(Policies.ManageFinance).WithSummary("Kategoriyi pasife al (eski kayıtlar korunur)");
         categories.MapPost("/{id:guid}/activate", (Guid id, AppDbContext db, IAuditLogger audit, CancellationToken ct) => SetActive(id, true, db, audit, ct))

@@ -6,6 +6,8 @@ import {
   cartReducer,
   cartTotals,
   changeDue,
+  defaultDueDate,
+  dueDateError,
   emptyCart,
   loadDraft,
   paymentError,
@@ -93,6 +95,20 @@ describe("payments", () => {
     expect(paymentError(100, [{ method: "Credit", amount: 100 }], false)).toBe("Veresiye için müşteri seçin.");
     expect(paymentError(100, [{ method: "Credit", amount: 60 }, { method: "Card", amount: 40 }], true)).toBeNull();
     expect(paymentError(0, [], false)).toBeNull();
+  });
+});
+
+describe("veresiye vadesi", () => {
+  it("varsayılan vade bugün + ayardaki gün; ay ve yıl sınırını geçer", () => {
+    expect(defaultDueDate("2026-10-12", 30)).toBe("2026-11-11");
+    expect(defaultDueDate("2026-12-15", 30)).toBe("2027-01-14");
+    expect(defaultDueDate("2026-10-12", 0)).toBe("2026-10-12");
+  });
+
+  it("vade satış gününden önce olamaz (sunucuyla aynı mesaj)", () => {
+    expect(dueDateError("2026-10-11", "2026-10-12")).toBe("Vade tarihi satış tarihinden önce olamaz.");
+    expect(dueDateError("2026-10-12", "2026-10-12")).toBeNull();
+    expect(dueDateError("", "2026-10-12")).toBeNull();
   });
 });
 

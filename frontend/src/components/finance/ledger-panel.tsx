@@ -1,7 +1,7 @@
 "use client";
 
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { Download, FileText, HandCoins, Link2, Plus, Undo2, X } from "lucide-react";
+import { Banknote, BellRing, Download, FileText, HandCoins, Link2, Plus, Undo2, X } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
@@ -15,6 +15,8 @@ import {
 } from "@/components/finance/finance-dialogs";
 import { QueryError } from "@/components/feedback/query-error";
 import { PaymentRequestList } from "@/components/finance/payment-request-list";
+import { PaymentDialog } from "@/components/finance/cash-dialogs";
+import { ReminderSheet } from "@/components/finance/receivables";
 import { useSession } from "@/components/providers/session-provider";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -29,7 +31,13 @@ const refLabels: Record<LedgerItem["refType"], string> = {
   Collection: "Tahsilat",
   Sale: "Satış",
   SaleCancel: "Satış iptali",
+  Payment: "Ödeme",
+  PaymentReversal: "Ödeme geri alındı",
+  CollectionReversal: "Tahsilat geri alındı",
 };
+
+/** Kasa hareketinden gelen (ters kayıtla geri alınabilen) cari hareketler. */
+const reversible = (i: LedgerItem) => (i.refType === "Collection" || i.refType === "Payment") && !!i.refId;
 
 /** Kartın Cari sekmesi: bakiye, işlemler, hareketler (yürüyen bakiye), tahsilat linkleri. */
 export function LedgerPanel({ contact }: { contact: Contact }) {
@@ -37,7 +45,12 @@ export function LedgerPanel({ contact }: { contact: Contact }) {
   const manage = can(role, "manageFinance");
   const [from, setFrom] = useState("");
   const [to, setTo] = useState("");
-  const [dialog, setDialog] = useState<null | "entry" | "collect" | "statement" | "link">(null);
+  const [dialog, setDialog] = useState<null | "entry" | "collect" | "statement" | "link" | "pay" | "remind">(null);
+  const receivable = useQuery({
+    queryKey: ["receivables", "contact", contact.id],
+    queryFn: () => unwrap(api.GET("/api/receivables/{contactId}", { params: { path: { contactId: contact.id } } })),
+    enabled: (contact.balance ?? 0) > 0,
+  });
 
   const ledger = useQuery({
     queryKey: ["ledger", contact.id, from, to],
@@ -61,6 +74,14 @@ export function LedgerPanel({ contact }: { contact: Contact }) {
           <span className="text-xs text-neutral-600">
             Alacak: müşteri size borçlu · Borç: siz müşteriye borçlusunuz
           </span>
+          {receivable.data && balance > 0 && (
+            <p className="text-sm text-black tabular-nums">
+              {receivable.data.overdue > 0 && <>Gecikmiş {formatMoney(receivable.data.overdue)} · </>}
+              {receivable.data.dueToday > 0 && <>Bugün vadesi gelen {formatMoney(receivable.data.dueToday)} · </>}
+              Vadesi gelmemiş {formatMoney(receivable.data.notDue)}
+              {receivable.data.items[0] && ` · en eski vade ${formatDayShort(receivable.data.items[0].dueDate)}`}
+            </p>
+          )}
         </div>
         <div className="flex flex-wrap gap-2">
           {manage && (
@@ -77,6 +98,18 @@ export function LedgerPanel({ contact }: { contact: Contact }) {
                 <Link2 aria-hidden />
                 Tahsilat linki
               </Button>
+              {balance > 0 && (
+                <Button variant="outline" onClick={() => setDialog("remind")}>
+                  <BellRing aria-hidden />
+                  Hatırlat
+                </Button>
+              )}
+              {(contact.isSupplier || balance < 0) && (
+                <Button variant="outline" onClick={() => setDialog("pay")}>
+                  <Banknote aria-hidden />
+                  Ödeme yap
+                </Button>
+              )}
             </>
           )}
           <Button variant="outline" onClick={() => setDialog("statement")}>
@@ -156,6 +189,8 @@ export function LedgerPanel({ contact }: { contact: Contact }) {
         <StatementDialog contact={contact} open canShare={manage} onOpenChange={(v) => !v && setDialog(null)} />
       )}
       {dialog === "link" && <PaymentLinkDialog contact={contact} open onOpenChange={(v) => !v && setDialog(null)} />}
+      {dialog === "pay" && <PaymentDialog contact={contact} open onOpenChange={(v) => !v && setDialog(null)} />}
+      {dialog === "remind" && <ReminderSheet row={{ contactId: contact.id, name: contact.displayName }} onClose={() => setDialog(null)} />}
     </div>
   );
 }
@@ -163,27 +198,33 @@ export function LedgerPanel({ contact }: { contact: Contact }) {
 function LedgerRows({ items, carried, manage }: { items: LedgerItem[]; carried: number | null; manage: boolean }) {
   const refresh = useFinanceRefresh();
   const remove = useMutation({
-    mutationFn: (item: LedgerItem) =>
-      unwrap(
-        item.refType === "Collection"
-          ? api.DELETE("/api/collections/{cashTransactionId}", { params: { path: { cashTransactionId: item.refId! } } })
-          : api.DELETE("/api/ledger-entries/{entryId}", { params: { path: { entryId: item.id } } }),
-      ),
+    mutationFn: async (item: LedgerItem) => {
+      if (reversible(item)) {
+        await unwrap(api.POST("/api/cash-transactions/{id}/reverse", { params: { path: { id: item.refId! } }, body: { reason: null } }));
+      } else {
+        await unwrap(api.DELETE("/api/ledger-entries/{entryId}", { params: { path: { entryId: item.id } } }));
+      }
+    },
     onSuccess: async (_, item) => {
-      toast.success(item.refType === "Collection" ? "Tahsilat geri alındı." : "Hareket silindi.");
+      toast.success(reversible(item) ? "Ters kayıt yapıldı." : "Hareket silindi.");
       await refresh();
     },
     onError: (e) => toast.error(errorMessage(e)),
   });
 
   const confirmRemove = (item: LedgerItem) => {
-    const text =
-      item.refType === "Collection" ? "Bu tahsilat kasadan ve cariden geri alınsın mı?" : "Bu hareket silinsin mi?";
+    const text = reversible(item)
+      ? `Bu ${item.refType === "Collection" ? "tahsilat" : "ödeme"} ters kayıtla geri alınsın mı? Kasa ve cariye bugünün tarihiyle karşı kayıt yazılır.`
+      : "Bu hareket silinsin mi?";
     if (window.confirm(text)) remove.mutate(item);
   };
 
+  // Ters kaydı yapılmış hareketin karşı kaydı aynı RefId'yi taşır.
+  const reversed = new Set(
+    items.filter((i) => i.refType === "CollectionReversal" || i.refType === "PaymentReversal").map((i) => i.refId),
+  );
   const removable = (i: LedgerItem) =>
-    manage && (i.refType === "Manual" || i.refType === "Opening" || (i.refType === "Collection" && i.refId));
+    manage && (i.refType === "Manual" || i.refType === "Opening" || (reversible(i) && !reversed.has(i.refId)));
   const rows = [...items].reverse(); // en yeni üstte
 
   return (
@@ -208,12 +249,12 @@ function LedgerRows({ items, carried, manage }: { items: LedgerItem[]; carried: 
             <Button
               variant="ghost"
               size="icon"
-              aria-label={i.refType === "Collection" ? "Tahsilatı geri al" : "Hareketi sil"}
-              title={i.refType === "Collection" ? "Tahsilatı geri al" : "Sil"}
+              aria-label={reversible(i) ? "Ters kayıtla geri al" : "Hareketi sil"}
+              title={reversible(i) ? "Ters kayıtla geri al" : "Sil"}
               onClick={() => confirmRemove(i)}
               disabled={remove.isPending}
             >
-              {i.refType === "Collection" ? <Undo2 aria-hidden /> : <X aria-hidden />}
+              {reversible(i) ? <Undo2 aria-hidden /> : <X aria-hidden />}
             </Button>
           )}
         </li>

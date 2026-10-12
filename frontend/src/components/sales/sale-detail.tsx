@@ -18,7 +18,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Textarea } from "@/components/ui/textarea";
 import { API_URL, ApiError, api, errorMessage, unwrap } from "@/lib/api/client";
 import { paymentMethodNames, type DocumentLine } from "@/lib/api/types";
-import { formatDateTime, formatMoney } from "@/lib/format";
+import { formatDateTime, formatDayShort, formatMoney } from "@/lib/format";
 import { can } from "@/lib/permissions";
 import { formatQuantity } from "@/lib/sales";
 
@@ -145,7 +145,12 @@ export function SaleDetail({ id }: { id: string }) {
                 <span className="text-black">
                   {paymentMethodNames[p.method]}
                   {p.cashAccountName && <span className="text-neutral-600"> · {p.cashAccountName}</span>}
-                  {p.method === "Credit" && <span className="text-neutral-600"> · müşterinin carisine borç</span>}
+                  {p.method === "Credit" && (
+                    <span className="text-neutral-600">
+                      {" "}
+                      · müşterinin carisine borç{s.dueDate && ` · vade ${formatDayShort(s.dueDate)}`}
+                    </span>
+                  )}
                 </span>
                 <span className="font-semibold text-black tabular-nums">{formatMoney(p.amount)}</span>
               </li>

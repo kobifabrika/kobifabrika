@@ -65,9 +65,15 @@ describe("hızlı işlemler", () => {
     visibleQuickActions(role, modules).map((a) => a.label);
 
   it("Satış ve teklif herkese (Mali Müşavir hariç) görünür", () => {
-    expect(labels("Owner")).toEqual(["Yeni satış", "Yeni teklif", "Yeni randevu", "Yeni müşteri", "Tahsilat"]);
+    expect(labels("Owner")).toEqual(["Yeni satış", "Yeni teklif", "Yeni randevu", "Yeni müşteri", "Tahsilat", "Gider ekle"]);
     expect(labels("Staff")).toEqual(["Yeni satış", "Yeni teklif", "Yeni randevu", "Yeni müşteri"]);
     expect(labels("Accountant")).toEqual(["Yeni randevu"]);
+  });
+
+  it("Gider ekle telefonda tek dokunuşla gider formunu açar; Personel ve Mali Müşavir görmez", () => {
+    expect(visibleQuickActions("Manager", null).find((a) => a.label === "Gider ekle")?.href).toBe("/panel/cari-kasa/gelir-gider/yeni?tur=gider");
+    expect(labels("Staff")).not.toContain("Gider ekle");
+    expect(labels("Accountant")).not.toContain("Gider ekle");
   });
 
   it("Randevular modülü kapalıysa randevu gizlenir; satış adresi hızlı satış ekranıdır", () => {

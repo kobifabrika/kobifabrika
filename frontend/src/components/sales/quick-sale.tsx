@@ -4,7 +4,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Check, FileDown, Plus, Printer, ReceiptText, ShoppingCart } from "lucide-react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { useEffect, useReducer, useRef, useState } from "react";
+import { useEffect, useReducer, useRef, useState, type ReactNode } from "react";
 import { toast } from "sonner";
 
 import { productsKey, stockKey, useVatRates } from "@/components/catalog/catalog-bits";
@@ -15,6 +15,7 @@ import { useSession } from "@/components/providers/session-provider";
 import { CartEditor, DiscountInput, parseDiscount } from "@/components/sales/cart-editor";
 import { ContactPicker } from "@/components/sales/contact-picker";
 import { PaymentForm, initialPayment, paymentDrafts, type PaymentState } from "@/components/sales/payment-form";
+import { SaleExtras, initialSaleExtras, type SaleExtrasState } from "@/components/sales/sale-extras";
 import { TotalsSummary } from "@/components/sales/totals";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -23,8 +24,20 @@ import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "
 import { API_URL, api, errorMessage, unwrap } from "@/lib/api/client";
 import { paymentMethodNames, type Product, type Sale } from "@/lib/api/types";
 import { useBarcodeScanner } from "@/lib/barcode";
-import { cartReducer, cartTotals, emptyCart, loadDraft, paymentError, saveDraft, toLineRequests, type Cart } from "@/lib/cart";
-import { formatMoney } from "@/lib/format";
+import {
+  cartReducer,
+  cartTotals,
+  defaultDueDate,
+  dueDateError,
+  emptyCart,
+  loadDraft,
+  paymentError,
+  saveDraft,
+  toLineRequests,
+  type Cart,
+  type PaymentDraft,
+} from "@/lib/cart";
+import { formatMoney, todayIstanbul } from "@/lib/format";
 import type { DiscountType } from "@/lib/sales";
 import { parseMoneyInput } from "@/lib/validation/rules";
 
@@ -43,6 +56,7 @@ export function QuickSale() {
   const [initialDraft] = useState(() => loadDraft(draftKey));
   const [cart, dispatch] = useReducer(cartReducer, initialDraft ?? emptyCart);
   const [payment, setPayment] = useState<PaymentState>(initialPayment());
+  const [extras, setExtras] = useState<SaleExtrasState>(initialSaleExtras);
   const [discountType, setDiscountType] = useState<DiscountType>(initialDraft?.discount?.type ?? "Percent");
   const [discountText, setDiscountText] = useState(
     initialDraft?.discount ? String(initialDraft.discount.value).replace(".", ",") : "",
@@ -105,7 +119,14 @@ export function QuickSale() {
 
   const totals = cartTotals(cart);
   const drafts = paymentDrafts(payment, totals.total);
-  const problem = cart.lines.length === 0 ? "Sepet boş." : (discount.error ?? paymentError(totals.total, drafts, !!cart.contact));
+  const today = todayIstanbul();
+  const suggestedDue = defaultDueDate(today, business.defaultDueDays);
+  const hasCredit = drafts.some((p) => p.method === "Credit");
+  const dueError = hasCredit ? dueDateError(extras.dueDate, today) : null;
+  const problem =
+    cart.lines.length === 0 ? "Sepet boş." : (discount.error ?? paymentError(totals.total, drafts, !!cart.contact) ?? dueError);
+  const accountFor = (p: PaymentDraft) =>
+    p.method === "Cash" ? extras.cashAccountId || null : p.method === "Credit" ? null : extras.bankAccountId || null;
 
   const submit = useMutation({
     mutationFn: () =>
@@ -116,8 +137,9 @@ export function QuickSale() {
             date: null,
             lines: toLineRequests(cart.lines),
             discount: cart.discount,
-            payments: drafts.map((p) => ({ method: p.method, amount: p.amount, cashAccountId: null })),
+            payments: drafts.map((p) => ({ method: p.method, amount: p.amount, cashAccountId: accountFor(p) })),
             note: cart.note.trim() || null,
+            dueDate: hasCredit ? extras.dueDate || suggestedDue : null,
           },
         }),
       ),
@@ -126,6 +148,7 @@ export function QuickSale() {
       setCheckoutOpen(false);
       dispatch({ type: "clear" });
       setPayment(initialPayment());
+      setExtras((e) => ({ ...e, dueDate: "" }));
       setDiscountText("");
       setSubmitted(false);
       await Promise.all([
@@ -134,6 +157,8 @@ export function QuickSale() {
         queryClient.invalidateQueries({ queryKey: stockKey }),
         queryClient.invalidateQueries({ queryKey: ["contacts"] }),
         queryClient.invalidateQueries({ queryKey: ["cash-accounts"] }),
+        queryClient.invalidateQueries({ queryKey: ["dashboard"] }),
+        queryClient.invalidateQueries({ queryKey: ["receivables"] }),
       ]);
     },
     onError: (e) => toast.error(errorMessage(e)),
@@ -158,6 +183,16 @@ export function QuickSale() {
       totals={totals}
       payment={payment}
       onPayment={setPayment}
+      extras={
+        <SaleExtras
+          drafts={drafts}
+          value={extras}
+          onChange={setExtras}
+          defaultDueDate={suggestedDue}
+          today={today}
+          dueError={submitted ? dueError : null}
+        />
+      }
       problem={submitted ? problem : null}
       creditWithoutContact={drafts.some((p) => p.method === "Credit") && !cart.contact}
       pending={submit.isPending}
@@ -256,6 +291,7 @@ function Checkout({
   totals,
   payment,
   onPayment,
+  extras,
   problem,
   creditWithoutContact,
   pending,
@@ -271,6 +307,7 @@ function Checkout({
   totals: ReturnType<typeof cartTotals>;
   payment: PaymentState;
   onPayment: (p: PaymentState) => void;
+  extras: ReactNode;
   problem: string | null;
   creditWithoutContact: boolean;
   pending: boolean;
@@ -289,6 +326,7 @@ function Checkout({
       />
       <TotalsSummary totals={totals} large />
       <PaymentForm total={totals.total} value={payment} onChange={onPayment} />
+      {extras}
       {problem && (
         <p role="alert" className="text-sm text-danger-600">
           {problem}

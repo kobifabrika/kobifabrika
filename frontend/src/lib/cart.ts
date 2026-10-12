@@ -170,6 +170,18 @@ export function paymentError(total: number, payments: PaymentDraft[], hasContact
   return null;
 }
 
+/** Veresiye vadesi: bugün + işletmenin varsayılan vade günü (İstanbul günü, "YYYY-MM-DD"). */
+export function defaultDueDate(today: string, days: number): string {
+  const d = new Date(`${today}T00:00:00Z`);
+  d.setUTCDate(d.getUTCDate() + days);
+  return d.toISOString().slice(0, 10);
+}
+
+/** Vade satış gününden önce olamaz (sunucuyla aynı mesaj). */
+export function dueDateError(dueDate: string, today: string): string | null {
+  return dueDate && dueDate < today ? "Vade tarihi satış tarihinden önce olamaz." : null;
+}
+
 const tl = new Intl.NumberFormat("tr-TR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 const formatTl = (v: number) => `${tl.format(v)} TL`;
 

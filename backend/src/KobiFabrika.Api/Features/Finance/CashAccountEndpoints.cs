@@ -27,9 +27,9 @@ public static class CashAccountEndpoints
         group.MapGet("/options", Options).RequireAuthorization(Policies.Panel).WithSummary("Aktif hesaplar (bakiyesiz; satış ekranı için)");
         group.MapGet("/{id:guid}", Get).RequireAuthorization(Policies.ViewFinance).WithSummary("Hesap kartı");
         group.MapPost("/", Create).RequireAuthorization(Policies.ManageFinance).Validate<CashAccountCreateRequest>()
-            .WithSummary("Hesap ekle (açılış bakiyesiyle)");
+            .Produces<CashAccountResponse>(StatusCodes.Status201Created).WithSummary("Hesap ekle (açılış bakiyesiyle)");
         group.MapPut("/{id:guid}", Update).RequireAuthorization(Policies.ManageFinance).Validate<CashAccountUpdateRequest>()
-            .WithSummary("Hesap adı, IBAN, hesap sahibi");
+            .Produces<CashAccountResponse>().WithSummary("Hesap adı, IBAN, hesap sahibi");
         group.MapPost("/{id:guid}/deactivate", Deactivate).RequireAuthorization(Policies.ManageFinance)
             .WithSummary("Pasife al (bakiye sıfır olmalı, varsayılan hesap olmamalı)");
         group.MapPost("/{id:guid}/activate", Activate).RequireAuthorization(Policies.ManageFinance).WithSummary("Tekrar aktif et");
@@ -40,11 +40,11 @@ public static class CashAccountEndpoints
         group.MapGet("/{id:guid}/transactions.xlsx", TransactionsXlsx).RequireAuthorization(Policies.Export).WithSummary("Hesap hareketleri Excel");
 
         app.MapPost("/api/cash-transfers", Transfer).WithTags("Cash").RequireAuthorization(Policies.ManageFinance).Validate<TransferRequest>()
-            .WithSummary("Hesaplar arası transfer (iki kayıt, tek işlem)");
+            .Produces<TransferResponse>().WithSummary("Hesaplar arası transfer (iki kayıt, tek işlem)");
         app.MapPost("/api/cash-transactions/{id:guid}/reverse", Reverse).WithTags("Cash").RequireAuthorization(Policies.ManageFinance)
-            .Validate<ReverseRequest>().WithSummary("Ters kayıt (bugünün tarihiyle; transfer çiftiyle, tahsilat/ödeme cari kaydıyla)");
+            .Validate<ReverseRequest>().Produces<ReverseResponse>().WithSummary("Ters kayıt (bugünün tarihiyle; transfer çiftiyle, tahsilat/ödeme cari kaydıyla)");
         app.MapPost("/api/contacts/{id:guid}/payments", Pay).WithTags("Cash").RequireAuthorization(Policies.ManageFinance)
-            .Validate<ContactPaymentRequest>().WithSummary("Cariye ödeme (tedarikçiye): kasadan çıkış + cariye borç");
+            .Validate<ContactPaymentRequest>().Produces<ContactPaymentResponse>(StatusCodes.Status201Created).WithSummary("Cariye ödeme (tedarikçiye): kasadan çıkış + cariye borç");
 
         return app;
     }

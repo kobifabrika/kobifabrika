@@ -16,41 +16,44 @@ import { can } from "@/lib/permissions";
 import { normalizePhone, PHONE_MESSAGE } from "@/lib/validation/rules";
 
 /**
- * Müşteri seçimi (satış ve teklif): ad veya telefonla arama, seçili müşteri, sepetten çıkmadan hızlı yeni müşteri.
- * `required` değilse "Müşterisiz" de geçerli bir seçim.
+ * Müşteri seçimi (satış, teklif, tahsilat): ad veya telefonla arama, seçili müşteri, sepetten çıkmadan hızlı yeni müşteri.
+ * `required` değilse "Müşterisiz" de geçerli bir seçim. `kind="supplier"`: tedarikçi arar (ödeme, gider), hızlı ekleme yok.
  */
 export function ContactPicker({
   value,
   onChange,
   required = false,
   error,
+  kind = "customer",
 }: {
   value: CartContact | null;
   onChange: (contact: CartContact | null) => void;
   required?: boolean;
   error?: string | null;
+  kind?: "customer" | "supplier";
 }) {
+  const title = kind === "supplier" ? "Tedarikçi" : "Müşteri";
   const { role } = useSession();
   const [text, setText] = useState("");
   const [creating, setCreating] = useState(false);
   const inputId = useId();
   const debounced = useDebounced(text.trim(), 250);
   const results = useQuery({
-    queryKey: ["contacts", "picker", debounced],
-    queryFn: () => unwrap(api.GET("/api/contacts", { params: { query: { search: debounced, type: "customer", pageSize: 6 } } })),
+    queryKey: ["contacts", "picker", kind, debounced],
+    queryFn: () => unwrap(api.GET("/api/contacts", { params: { query: { search: debounced, type: kind, pageSize: 6 } } })),
     enabled: debounced.length >= 2 && !value,
   });
 
   if (value)
     return (
       <div className="flex flex-col gap-2">
-        <span className="text-sm font-semibold text-black">Müşteri</span>
+        <span className="text-sm font-semibold text-black">{title}</span>
         <div className="flex min-h-11 items-center justify-between gap-2 border border-black px-3 py-2">
           <span className="flex min-w-0 flex-col">
             <span className="truncate text-sm font-semibold text-black">{value.name}</span>
             {value.phone && <span className="text-xs text-neutral-700 tabular-nums">{displayPhone(value.phone)}</span>}
           </span>
-          <Button type="button" variant="ghost" size="icon" aria-label="Müşteriyi kaldır" onClick={() => onChange(null)}>
+          <Button type="button" variant="ghost" size="icon" aria-label={`${title} seçimini kaldır`} onClick={() => onChange(null)}>
             <X aria-hidden />
           </Button>
         </div>
@@ -63,7 +66,7 @@ export function ContactPicker({
   return (
     <div className="flex flex-col gap-2">
       <label htmlFor={inputId} className="text-sm font-semibold text-black">
-        Müşteri {!required && <span className="font-normal text-neutral-600">(isteğe bağlı)</span>}
+        {title} {!required && <span className="font-normal text-neutral-600">(isteğe bağlı)</span>}
       </label>
       <div className="relative">
         <Search aria-hidden className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-neutral-600" />
@@ -102,8 +105,10 @@ export function ContactPicker({
           ))}
         </ul>
       )}
-      {debounced.length >= 2 && results.isSuccess && items.length === 0 && <p className="text-sm text-neutral-600">Bu adla müşteri yok.</p>}
-      {can(role, "writeContacts") && (
+      {debounced.length >= 2 && results.isSuccess && items.length === 0 && (
+        <p className="text-sm text-neutral-600">Bu adla {title.toLocaleLowerCase("tr-TR")} yok.</p>
+      )}
+      {kind === "customer" && can(role, "writeContacts") && (
         <Button type="button" variant="ghost" className="self-start" onClick={() => setCreating(true)}>
           <UserPlus aria-hidden />
           Yeni müşteri

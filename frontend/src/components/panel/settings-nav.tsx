@@ -13,6 +13,7 @@ import { can, type Permission } from "@/lib/permissions";
 const tabs: { href: string; label: string; permission: Permission }[] = [
   { href: "/panel/ayarlar", label: "İşletme", permission: "viewSettings" },
   { href: "/panel/ayarlar/calisma-saatleri", label: "Çalışma saatleri", permission: "viewSettings" },
+  { href: "/panel/ayarlar/finans", label: "Finans", permission: "viewFinance" },
   { href: "/panel/ayarlar/ekip", label: "Ekip", permission: "manageTeam" },
   { href: "/panel/ayarlar/aktivite", label: "Aktivite günlüğü", permission: "viewAuditLog" },
 ];
