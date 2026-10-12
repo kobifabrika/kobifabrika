@@ -14,7 +14,7 @@ public sealed record ShareQuoteRequest(bool SendEmail, bool Extend = false);
 public sealed record RespondQuoteRequest(string? Note);
 
 /// <summary>Onaylanmış teklifi satışa çevirir: kalemler ve tutar tekliften; ödeme burada seçilir (varsayılan veresiye).</summary>
-public sealed record ConvertQuoteRequest(List<SalePaymentRequest>? Payments, string? Note);
+public sealed record ConvertQuoteRequest(List<SalePaymentRequest>? Payments, string? Note, DateOnly? DueDate = null);
 
 /// <summary>IsExpired: geçerlilik günü geçti ve müşteri cevap vermedi. HasLink: müşteriye link gönderildi.</summary>
 public sealed record QuoteResponse(

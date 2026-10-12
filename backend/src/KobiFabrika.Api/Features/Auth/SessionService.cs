@@ -11,7 +11,10 @@ public sealed record MeResponse(MeUser User, MeBusiness? Business, BusinessRole?
 
 public sealed record MeUser(Guid Id, string FullName, string Email, bool EmailConfirmed, string? Phone);
 
-/// <summary>Phone (E.164), Address, City, District: fiş ve belgelerin başlığı için; ReceiptWidth fiş genişliği (mm) (her rol görür).</summary>
+/// <summary>
+/// Phone (E.164), Address, City, District: fiş ve belgelerin başlığı için; ReceiptWidth fiş genişliği (mm);
+/// DefaultDueDays: veresiye satışta önerilen vade (her rol görür).
+/// </summary>
 public sealed record MeBusiness(
     Guid Id,
     string Name,
@@ -25,7 +28,8 @@ public sealed record MeBusiness(
     string? Address,
     string? City,
     string? District,
-    int ReceiptWidth);
+    int ReceiptWidth,
+    int DefaultDueDays);
 
 public sealed record ModulesDto(bool Appointments, bool Stock)
 {
@@ -97,7 +101,7 @@ public sealed class SessionService(
                 .Where(b => b.Id == current.BusinessId)
                 .Select(b => new MeBusiness(
                     b.Id, b.Name, b.Slug, b.Sector, b.Template, ModulesDto.From(b.Modules), b.LogoUrl, b.SetupCompletedAt != null,
-                    b.Phone, b.Address, b.City, b.District, b.ReceiptWidth))
+                    b.Phone, b.Address, b.City, b.District, b.ReceiptWidth, b.DefaultDueDays))
                 .FirstAsync(ct);
         }
 

@@ -15,9 +15,13 @@ public sealed record DocumentLineRequest(
 
 public sealed record SalePaymentRequest(PaymentMethod Method, decimal? Amount, Guid? CashAccountId);
 
-/// <summary>Date boşsa şimdi; geçmiş tarih sadece Sahip/Yönetici. Ödemeler toplamı satış tutarına eşit olmalı.</summary>
+/// <summary>
+/// Date boşsa şimdi; geçmiş tarih sadece Sahip/Yönetici. Ödemeler toplamı satış tutarına eşit olmalı.
+/// DueDate: veresiye kısmının vadesi; boşsa satış günü + işletmenin varsayılan vade günü.
+/// </summary>
 public sealed record SaleRequest(
-    Guid? ContactId, DateTime? Date, List<DocumentLineRequest>? Lines, DiscountSpec? Discount, List<SalePaymentRequest>? Payments, string? Note);
+    Guid? ContactId, DateTime? Date, List<DocumentLineRequest>? Lines, DiscountSpec? Discount, List<SalePaymentRequest>? Payments, string? Note,
+    DateOnly? DueDate = null);
 
 public sealed record CancelSaleRequest(string? Reason);
 
@@ -32,7 +36,7 @@ public sealed record SaleResponse(
     Guid Id, string No, DateTime Date, Guid? ContactId, string? ContactName, string? ContactPhone, SaleStatus Status,
     decimal SubTotal, decimal LineDiscountTotal, decimal DiscountTotal, DiscountSpec? Discount, decimal VatTotal, decimal Total,
     IReadOnlyList<VatBreakdown> Vat, IReadOnlyList<DocumentLineResponse> Lines, IReadOnlyList<SalePaymentResponse> Payments, string? Note, Guid? CreatedBy, string? CreatedByName,
-    DateTime? CancelledAt, string? CancelledByName, string? CancelReason, Guid? QuoteId, string? QuoteNo);
+    DateTime? CancelledAt, string? CancelledByName, string? CancelReason, Guid? QuoteId, string? QuoteNo, DateOnly? DueDate);
 
 public sealed record SaleListItem(
     Guid Id, string No, DateTime Date, Guid? ContactId, string? ContactName, SaleStatus Status, decimal Total,

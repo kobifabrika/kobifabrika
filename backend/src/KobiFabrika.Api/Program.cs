@@ -185,6 +185,7 @@ app.MapTagAndSegmentEndpoints();
 app.MapLedgerEndpoints();
 app.MapCashAccountEndpoints();
 app.MapExpenseEndpoints();
+app.MapReceivableEndpoints();
 app.MapImportEndpoints();
 app.MapReminderEndpoints();
 app.MapStatementShareEndpoints();

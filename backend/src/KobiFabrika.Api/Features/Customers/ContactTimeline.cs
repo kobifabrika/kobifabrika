@@ -7,7 +7,7 @@ namespace KobiFabrika.Api.Features.Customers;
 
 /// <summary>
 /// Zaman çizelgesi öğesi. Kind: created, note, reminder, consent, sale, sale_cancelled, quote, quote_accepted, quote_rejected, ledger, collection, payment_request,
-/// payment_claimed, payment_confirmed, statement_shared. Randevu ve mesajlar ilgili sprintlerde eklenir. RefId satış/teklifte belgenin Id'si.
+/// payment_claimed, payment_confirmed, statement_shared, due_reminder (vade hatırlatması). Randevu ve mesajlar ilgili sprintlerde eklenir. RefId satış/teklifte belgenin Id'si.
 /// </summary>
 public sealed record TimelineItem(string Kind, DateTime At, string Title, string? Detail, decimal? Amount, Guid? RefId);
 
@@ -114,6 +114,9 @@ public static class ContactTimeline
                         LedgerRefType.Opening => "Açılış bakiyesi",
                         LedgerRefType.Sale => "Veresiye satış",
                         LedgerRefType.SaleCancel => "Veresiye satış iptali",
+                        LedgerRefType.Payment => "Ödeme",
+                        LedgerRefType.PaymentReversal => "Ödeme geri alındı",
+                        LedgerRefType.CollectionReversal => "Tahsilat geri alındı",
                         _ => e.Debit > 0 ? "Borç kaydı" : "Alacak kaydı",
                     },
                     e.Description,
@@ -144,6 +147,14 @@ public static class ContactTimeline
                     .ToListAsync(ct))
                 .Select(s => new TimelineItem(
                     "statement_shared", s.CreatedAt, "Ekstre paylaşıldı", $"{s.From:dd.MM.yyyy} – {s.To:dd.MM.yyyy}", null, s.Id)));
+
+            items.AddRange((await db.DueReminderLogs.AsNoTracking()
+                    .Where(r => r.ContactId == contactId && r.SentAt < limit)
+                    .OrderByDescending(r => r.SentAt).Take(take)
+                    .ToListAsync(ct))
+                .Select(r => new TimelineItem(
+                    "due_reminder", r.SentAt, $"Hatırlatma gönderildi ({(r.Channel == ReminderChannel.WhatsApp ? "WhatsApp" : "SMS")})",
+                    r.OldestDueDate is { } due ? $"Vade {due:dd.MM.yyyy}" : null, r.Amount, r.Id)));
         }
 
         var page = items.OrderByDescending(i => i.At).Take(take).ToList();

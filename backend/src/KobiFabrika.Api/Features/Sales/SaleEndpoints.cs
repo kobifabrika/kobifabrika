@@ -68,6 +68,9 @@ public static class SaleEndpoints
             .ToDictionaryAsync(a => a.Id, a => a.Name, ct);
         var quoteNo = sale.QuoteId is { } quoteId ? await db.Quotes.IgnoreQueryFilters([QueryFilters.SoftDelete]).Where(q => q.Id == quoteId)
             .Select(q => q.No).FirstOrDefaultAsync(ct) : null;
+        var creditEntryIds = sale.Payments.Select(p => p.LedgerEntryId).OfType<Guid>().ToList();
+        var dueDate = creditEntryIds.Count == 0 ? null : await db.LedgerEntries.IgnoreQueryFilters([QueryFilters.SoftDelete])
+            .Where(e => creditEntryIds.Contains(e.Id)).Select(e => e.DueDate).FirstOrDefaultAsync(ct);
 
         return new SaleResponse(
             sale.Id, sale.No, sale.Date, sale.ContactId, contact?.DisplayName, contact?.Phone, sale.Status,
@@ -77,7 +80,7 @@ public static class SaleEndpoints
             sale.Payments.OrderBy(p => p.Method).Select(p => new SalePaymentResponse(
                 p.Id, p.Method, p.Amount, p.CashAccountId, p.CashAccountId is { } a ? accounts.GetValueOrDefault(a) : null)).ToList(),
             sale.Note, sale.CreatedBy, sale.CreatedBy is { } c ? users.GetValueOrDefault(c) : null,
-            sale.CancelledAt, sale.CancelledBy is { } cb ? users.GetValueOrDefault(cb) : null, sale.CancelReason, sale.QuoteId, quoteNo);
+            sale.CancelledAt, sale.CancelledBy is { } cb ? users.GetValueOrDefault(cb) : null, sale.CancelReason, sale.QuoteId, quoteNo, dueDate);
     }
 
     private static IQueryable<Sale> Filter(
@@ -189,7 +192,13 @@ public static class SaleEndpoints
         }
 
         var dateUtc = request.Date is { } d ? DateTime.SpecifyKind(d.ToUniversalTime(), DateTimeKind.Utc) : now;
-        var (sale, warnings) = await sales.CreateAsync(new SaleDraft(request.ContactId, dateUtc, document, payments, request.Note, null), ct);
+        if (SaleService.DueDateError(request.DueDate, BusinessTime.LocalDay(dateUtc)) is { } dueError)
+        {
+            return Validation.FieldProblem("dueDate", dueError);
+        }
+
+        var (sale, warnings) = await sales.CreateAsync(
+            new SaleDraft(request.ContactId, dateUtc, document, payments, request.Note, null, request.DueDate), ct);
         return TypedResults.Created($"/api/sales/{sale.Id}", new SaleCreatedResponse((await LoadAsync(db, member, sale.Id, ct))!, warnings));
     }
 

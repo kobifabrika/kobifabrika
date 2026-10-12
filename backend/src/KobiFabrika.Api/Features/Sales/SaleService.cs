@@ -14,8 +14,10 @@ namespace KobiFabrika.Api.Features.Sales;
 
 public sealed record ResolvedPayment(PaymentMethod Method, decimal Amount, CashAccount? Account);
 
+/// <summary>DueDate: veresiye kısmının vadesi; boşsa satış günü + işletmenin varsayılan vade günü.</summary>
 public sealed record SaleDraft(
-    Guid? ContactId, DateTime DateUtc, ResolvedDocument Document, IReadOnlyList<ResolvedPayment> Payments, string? Note, Guid? QuoteId);
+    Guid? ContactId, DateTime DateUtc, ResolvedDocument Document, IReadOnlyList<ResolvedPayment> Payments, string? Note, Guid? QuoteId,
+    DateOnly? DueDate = null);
 
 /// <summary>
 /// Satışın tek yazıldığı yer. Tek transaction'da: belge numarası → satış, kalemler, ödemeler → veresiye kısmı cariye borç
@@ -83,6 +85,15 @@ public sealed class SaleService(
         return (result, null, null);
     }
 
+    /// <summary>Vade satış gününden önce veya 2 yıldan ileri olamaz.</summary>
+    public static string? DueDateError(DateOnly? dueDate, DateOnly saleDay) => dueDate switch
+    {
+        null => null,
+        { } d when d < saleDay => "Vade tarihi satış tarihinden önce olamaz.",
+        { } d when d > saleDay.AddYears(2) => "Vade en fazla 2 yıl sonrası olabilir.",
+        _ => null,
+    };
+
     /// <summary>Satışı kaydeder (kendi transaction'ını açar veya açık olana katılır). Uyarılar: eksi stok.</summary>
     public Task<(Sale Sale, List<string> Warnings)> CreateAsync(SaleDraft draft, CancellationToken ct) =>
         ledger.InTransactionAsync(async () =>
@@ -115,11 +126,18 @@ public sealed class SaleService(
 
             var day = DateOnly.FromDateTime(BusinessTime.ToLocal(draft.DateUtc));
             var description = $"Satış {no}";
+            DateOnly? dueDate = null;
+            if (payments.Any(p => p.Method == PaymentMethod.Credit))
+            {
+                dueDate = draft.DueDate ?? day.AddDays(await db.Businesses.Where(b => b.Id == tenant.BusinessId)
+                    .Select(b => b.DefaultDueDays).FirstAsync(ct));
+            }
+
             foreach (var payment in payments.Where(p => p.Method == PaymentMethod.Credit))
             {
                 var entry = new LedgerEntry
                 {
-                    ContactId = draft.ContactId!.Value, Date = day, Debit = payment.Amount, Description = description,
+                    ContactId = draft.ContactId!.Value, Date = day, DueDate = dueDate, Debit = payment.Amount, Description = description,
                     RefType = LedgerRefType.Sale, RefId = sale.Id,
                 };
                 await ledger.AddEntryAsync(entry, ct);

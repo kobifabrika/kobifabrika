@@ -407,6 +407,11 @@ public static class QuoteEndpoints
             return Validation.FieldProblem(field!, error!);
         }
 
+        if (SaleService.DueDateError(request.DueDate, BusinessTime.Today(clock)) is { } dueError)
+        {
+            return Validation.FieldProblem("dueDate", dueError);
+        }
+
         var result = await transactions.InTransactionAsync<(Sale Sale, List<string> Warnings)?>(async () =>
         {
             // Koşullu güncelleme: aynı teklif iki kez satışa dönüşmez.
@@ -418,7 +423,7 @@ public static class QuoteEndpoints
             }
 
             var created = await sales.CreateAsync(new SaleDraft(
-                quote.ContactId, clock.GetUtcNow().UtcDateTime, document, payments, request.Note ?? $"Teklif {quote.No}", quote.Id), ct);
+                quote.ContactId, clock.GetUtcNow().UtcDateTime, document, payments, request.Note ?? $"Teklif {quote.No}", quote.Id, request.DueDate), ct);
             await db.Quotes.Where(q => q.Id == id).ExecuteUpdateAsync(s => s.SetProperty(q => q.SaleId, created.Sale.Id), ct);
             audit.Log(AuditAction.QuoteConverted, nameof(Quote), id, new { quote.No, sale = created.Sale.No, total = quote.Total });
             await db.SaveChangesAsync(ct);

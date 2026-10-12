@@ -29,13 +29,18 @@ public sealed record BusinessResponse(
     string? LogoUrl,
     string? Iban,
     string? IbanHolderName,
-    int ReceiptWidth);
+    int ReceiptWidth,
+    int DefaultDueDays,
+    bool DueDigestEnabled);
 
 /// <summary>Tahsilat linkinde gösterilen banka bilgisi. IBAN boş gönderilirse kaldırılır.</summary>
 public sealed record PaymentInfoRequest(string? Iban, string? IbanHolderName);
 
 /// <summary>Fiş yazıcısı: Width 58 veya 80 (mm).</summary>
 public sealed record ReceiptSettingsRequest(int Width);
+
+/// <summary>Veresiye varsayılan vadesi (gün) ve her sabah vade bildirimi.</summary>
+public sealed record FinanceSettingsRequest(int DefaultDueDays, bool DueDigestEnabled);
 
 public sealed record UpdateBusinessRequest(
     string Name, BusinessSector Sector, string Phone, string? Email, string? Address, string City, string District);
@@ -66,6 +71,8 @@ public static class BusinessEndpoints
             .WithSummary("Ödeme bilgileri (IBAN, hesap sahibi) — tahsilat linki için gerekli");
         group.MapPut("/receipt", UpdateReceipt).RequireAuthorization(Policies.ManageBusiness).Validate<ReceiptSettingsRequest>()
             .WithSummary("Fiş genişliği (58 / 80 mm)");
+        group.MapPut("/finance", UpdateFinance).RequireAuthorization(Policies.ManageBusiness).Validate<FinanceSettingsRequest>()
+            .WithSummary("Finans ayarları: veresiye varsayılan vadesi, otomatik vade bildirimi");
         group.MapPost("/logo", UploadLogo).RequireAuthorization(Policies.ManageBusiness).DisableAntiforgery()
             .WithSummary("Logo yükle (PNG/JPG/WebP, en fazla 2 MB)");
         group.MapDelete("/logo", DeleteLogo).RequireAuthorization(Policies.ManageBusiness).WithSummary("Logoyu kaldır");
@@ -78,7 +85,7 @@ public static class BusinessEndpoints
 
     private static BusinessResponse ToResponse(Business b) => new(
         b.Id, b.Name, b.Slug, b.Sector, b.Template, ModulesDto.From(b.Modules), b.Phone, b.Email, b.Address, b.City, b.District, b.LogoUrl,
-        b.Iban, b.IbanHolderName, b.ReceiptWidth);
+        b.Iban, b.IbanHolderName, b.ReceiptWidth, b.DefaultDueDays, b.DueDigestEnabled);
 
     private static async Task<Ok<BusinessResponse>> Get(CurrentMember member, AppDbContext db, CancellationToken ct) =>
         TypedResults.Ok(ToResponse(await CurrentAsync(db, member, ct)));
@@ -165,6 +172,25 @@ public static class BusinessEndpoints
         return TypedResults.Ok(ToResponse(business));
     }
 
+    private static async Task<Ok<BusinessResponse>> UpdateFinance(
+        FinanceSettingsRequest request, CurrentMember member, AppDbContext db, IAuditLogger audit, CancellationToken ct)
+    {
+        var business = await CurrentAsync(db, member, ct);
+        if (business.DefaultDueDays != request.DefaultDueDays || business.DueDigestEnabled != request.DueDigestEnabled)
+        {
+            audit.Log(AuditAction.FinanceSettingsChanged, nameof(Business), business.Id, new
+            {
+                before = new { business.DefaultDueDays, business.DueDigestEnabled },
+                after = new { request.DefaultDueDays, request.DueDigestEnabled },
+            });
+            business.DefaultDueDays = request.DefaultDueDays;
+            business.DueDigestEnabled = request.DueDigestEnabled;
+            await db.SaveChangesAsync(ct);
+        }
+
+        return TypedResults.Ok(ToResponse(business));
+    }
+
     /// <summary>Günlükte IBAN'ın sadece son 4 hanesi.</summary>
     private static string? Mask(string? iban) => iban is null ? null : $"TR•• •••• {iban[^4..]}";
 
@@ -244,6 +270,12 @@ public sealed class PaymentInfoRequestValidator : AbstractValidator<PaymentInfoR
         RuleFor(x => x.Iban).ValidIban().When(x => !string.IsNullOrWhiteSpace(x.Iban));
         RuleFor(x => x.IbanHolderName).MaximumLength(200).WithMessage("Hesap sahibi en fazla 200 karakter olabilir.");
     }
+}
+
+public sealed class FinanceSettingsRequestValidator : AbstractValidator<FinanceSettingsRequest>
+{
+    public FinanceSettingsRequestValidator() =>
+        RuleFor(x => x.DefaultDueDays).InclusiveBetween(0, Business.MaxDueDays).WithMessage("Vade 0 ile 365 gün arasında olmalı.");
 }
 
 public sealed class ReceiptSettingsRequestValidator : AbstractValidator<ReceiptSettingsRequest>
