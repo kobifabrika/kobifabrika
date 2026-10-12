@@ -143,7 +143,7 @@ function DueSettingsCard({ readOnly }: { readOnly: boolean }) {
           </Field>
           {!readOnly && (
             <Button variant="outline" onClick={submitDays} disabled={save.isPending || days === null}>
-              Kaydet
+              Vadeyi kaydet
             </Button>
           )}
         </div>
@@ -288,7 +288,7 @@ function CategoryEditor({ kind, category, onDone }: { kind: ExpenseCategoryKind;
       </Field>
       <div className="flex gap-2">
         <Button onClick={() => (name.trim() ? save.mutate() : setError("Kategori adı girin."))} disabled={save.isPending}>
-          Kaydet
+          Kategoriyi kaydet
         </Button>
         <Button variant="ghost" onClick={onDone}>
           Vazgeç

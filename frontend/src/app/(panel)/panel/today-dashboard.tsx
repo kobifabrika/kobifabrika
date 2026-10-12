@@ -147,7 +147,7 @@ function DashboardBody({ data }: { data: Dashboard }) {
             <CardTitle className="text-black">{sales.onlyOwn ? "Son 30 gün · satışlarım" : "Son 30 gün satış"}</CardTitle>
           </CardHeader>
           <CardContent>
-            <ChartContainer config={chartConfig} className="aspect-auto h-56 w-full" aria-label="Son 30 gün satış grafiği">
+            <ChartContainer config={chartConfig} className="aspect-auto h-56 w-full" role="img" aria-label="Son 30 gün satış grafiği">
               <BarChart data={data.last30Days} margin={{ left: 0, right: 0, top: 8 }}>
                 <CartesianGrid vertical={false} />
                 <XAxis dataKey="date" tickLine={false} axisLine={false} tickMargin={6} minTickGap={16} tickFormatter={shortDay} />

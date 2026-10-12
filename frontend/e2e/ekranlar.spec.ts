@@ -29,6 +29,7 @@ test("panel ekranları (Sahip, dolu veri)", async ({ owner, ownerPage: page, vis
   });
   const sale = await createSale(owner, [line(product.id, 2)], [{ method: "Credit", amount: 499.8 }], contact.id);
   const quote = await createQuote(owner, contact.id, [line(product.id, 1)]);
+  const accounts = await owner.get<{ id: string }[]>("/api/cash-accounts");
 
   const screens: [string, string][] = [
     ["/panel", "Bugün"],
@@ -58,6 +59,16 @@ test("panel ekranları (Sahip, dolu veri)", async ({ owner, ownerPage: page, vis
     [`/panel/teklifler/${quote.id}/duzenle`, "Teklif düzenle"],
     ["/panel/ayarlar", "Ayarlar"],
     ["/panel/ayarlar/calisma-saatleri", "Çalışma saatleri"],
+    ["/panel/ayarlar/finans", "Finans ayarları"],
+    ["/panel/cari-kasa?sekme=vadeler", "Vadeler"],
+    ["/panel/cari-kasa?sekme=kasa", "Kasa ve banka"],
+    [`/panel/cari-kasa/hesaplar/${accounts[0].id}`, "Hesap kartı"],
+    ["/panel/cari-kasa?sekme=gelir-gider", "Gelir-gider"],
+    ["/panel/cari-kasa/gelir-gider/yeni?tur=gider", "Gider ekle"],
+    ["/panel/raporlar", "Rapor · satışlar"],
+    ["/panel/raporlar?rapor=urunler", "Rapor · en çok satan"],
+    ["/panel/raporlar?rapor=alacaklar", "Rapor · alacaklar"],
+    ["/panel/raporlar?rapor=gelir-gider", "Rapor · gelir-gider"],
     ["/panel/ayarlar/ekip", "Ekip"],
     ["/panel/ayarlar/aktivite", "Aktivite günlüğü"],
     ["/panel/hesabim", "Hesabım"],

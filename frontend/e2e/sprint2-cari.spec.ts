@@ -53,11 +53,12 @@ test("cari hareketler, tahsilat, geri alma ve ekstre", async ({ ownerPage: page,
   await expect(await cashBalance(page, "Nakit Kasa")).toContainText("700,00 TL");
   await check(page, "Kasa ve banka");
 
-  // Tahsilatı geri al → 1.200; kasa 0
+  // Tahsilatı ters kayıtla geri al (Sprint 4) → 1.200; kasa 0
   await page.goto(`${cardUrl}?sekme=cari`);
   page.once("dialog", (d) => d.accept());
-  await page.getByRole("button", { name: "Tahsilatı geri al" }).click();
-  await expect(toast(page, "Tahsilat geri alındı.")).toBeVisible();
+  await page.getByRole("button", { name: "Ters kayıtla geri al" }).click();
+  await expect(toast(page, "Ters kayıt yapıldı.")).toBeVisible();
+  await expect(page.getByText("Tahsilat geri alındı").first()).toBeVisible();
   await expect(balance(page)).toContainText("Alacak 1.200,00 TL");
   await expect(await cashBalance(page, "Nakit Kasa")).toContainText("0,00 TL");
 
