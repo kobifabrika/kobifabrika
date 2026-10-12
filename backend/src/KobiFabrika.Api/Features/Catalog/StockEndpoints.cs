@@ -141,19 +141,23 @@ public static class StockEndpoints
         return TypedResults.Ok(new StockMovementResult(movement, (await ProductEndpoints.LoadAsync(db, member, product.Id, ct))!, warnings));
     }
 
-    private static async Task<Ok<StockSummaryResponse>> Summary(CurrentMember member, AppDbContext db, CancellationToken ct)
+    private static async Task<Ok<StockSummaryResponse>> Summary(CurrentMember member, AppDbContext db, CancellationToken ct) =>
+        TypedResults.Ok(await SummaryAsync(db, member.RequiredBusinessId, ct));
+
+    /// <summary>Stok özeti (Stok menüsü rozeti ve Bugün ekranı): takip edilen, kritik ve eksi stoklu ürün sayıları.</summary>
+    internal static async Task<StockSummaryResponse> SummaryAsync(AppDbContext db, Guid businessId, CancellationToken ct)
     {
-        if (!await StockService.ModuleEnabledAsync(db, member.RequiredBusinessId, ct))
+        if (!await StockService.ModuleEnabledAsync(db, businessId, ct))
         {
-            return TypedResults.Ok(new StockSummaryResponse(false, 0, 0, 0));
+            return new StockSummaryResponse(false, 0, 0, 0);
         }
 
         var tracked = db.Products.AsNoTracking().Where(p => p.IsActive && p.TrackStock);
-        return TypedResults.Ok(new StockSummaryResponse(
+        return new StockSummaryResponse(
             true,
             await tracked.CountAsync(ct),
             await tracked.CountAsync(p => p.CriticalStockLevel != null && p.StockQuantity <= p.CriticalStockLevel, ct),
-            await tracked.CountAsync(p => p.StockQuantity < 0, ct)));
+            await tracked.CountAsync(p => p.StockQuantity < 0, ct));
     }
 
     internal static ProblemHttpResult ModuleDisabled() =>
