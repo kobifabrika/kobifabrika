@@ -107,6 +107,8 @@ kopar, sahipsiz Next dev sunucusu `write EPIPE` ile bozulur (sayfalar dakikalarc
 
 ## Güncel durum
 
-- Sprint: **3 (Ürün, satış, teklif)** tamamlandı (2026-10-11): katalog, KDV, Excel'den ürün aktarma, stok hareketleri ve kritik stok, hızlı satış (barkod, bölünmüş ödeme, veresiye → cari), 80 mm fiş, iptal (ters kayıt), teklif linki ve satışa dönüştürme. Ardından (2026-10-11) otomatik test altyapısı: `test.ps1`, Playwright E2E (69 senaryo-proje), GitHub Actions; teklif indirim türü, süresi dolmuş teklif onayı, 58/80 mm fiş. Sıradaki: **Sprint 4 (Finans ve dashboard)**.
+- Sprint: **4 (Finans ve dashboard)** tamamlandı (2026-10-12): kasa/banka hesapları (transfer, tedarikçiye ödeme, ters kayıt, pasife alma), gelir-gider, veresiye vadesi ve FIFO vade listesi, WhatsApp/SMS hatırlatma + sabah vade bildirimi, Bugün ekranı, dört rapor + Excel. Sıradaki: **Sprint 5 (Randevu)**.
 - Bakiyeler (`Contact.Balance`, `CashAccount.Balance`) sadece `LedgerService` ile, stok (`Product.StockQuantity`) sadece `StockService` ile, SQL'de atomik güncellenir; entity üzerinden yazılmaz. Satış sadece `SaleService` ile yazılır (numara, cari, kasa, stok aynı transaction'da).
+- Kasa hareketi silinmez: düzeltme `POST /api/cash-transactions/{id}/reverse` (ters kayıt, bugünün tarihiyle; tahsilat ve ödemede cari karşı kaydıyla). Toplamlarda ters kayıtlar düşülür (`CashTransaction.NetAmount`). Vade hesabı `ReceivableAllocator` (FIFO); "bugün" `BusinessTime` ile İstanbul günü.
+- OpenAPI: yanıtta veya sorgu parametresinde nullable enum kullanma (ortak enum şemasını `| null` yapar, frontend tipleri bozulur); metin veya ayrı enum kullan.
 - GitHub: github.com/kobifabrika/kobifabrika (private)

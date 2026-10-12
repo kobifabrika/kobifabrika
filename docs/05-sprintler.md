@@ -2,7 +2,7 @@
 
 Tahmini, yarı zamanlı. Toplam yaklaşık 15-18 hafta. Her sprint sonunda: build ve testler geçer, ekranlar 375px'te kontrol edilir, bu dosyada maddeler işaretlenir, `docs/karar-gunlugu.md` güncellenir, commit atılır.
 
-**Durum:** Sprint 3 tamamlandı (2026-10-11); ilk test edilebilir sürüm hazır. Sıradaki: Sprint 4 (Finans ve dashboard). Hangfire Sprint 5'ten öne çekildi (Sprint 2).
+**Durum:** Sprint 4 tamamlandı (2026-10-12): kasa/banka, gelir-gider, vade listesi ve hatırlatma, Bugün ekranı ve ilk dört rapor. Sıradaki: Sprint 5 (Randevu). Hangfire Sprint 5'ten öne çekildi (Sprint 2); Raporlar'ın ilk dördü Sprint 7'den öne çekildi (Sprint 4).
 
 ---
 
@@ -49,10 +49,11 @@ Tahmini, yarı zamanlı. Toplam yaklaşık 15-18 hafta. Her sprint sonunda: buil
 
 ## Sprint 4 — Finans ve dashboard (1-2 hafta)
 
-- [ ] Kasa/banka hesapları, tahsilat, ödeme, transfer
-- [ ] Gelir-gider kategorileri
-- [ ] Veresiye ve vade listesi, vade hatırlatma (manuel + otomatik)
-- [ ] Bugün ekranı (dashboard)
+- [x] Kasa/banka hesapları (birden çok hesap, açılış bakiyesi, varsayılan hesap, pasife alma), tahsilat, tedarikçiye ödeme, transfer, ters kayıt
+- [x] Gelir-gider kategorileri ve gelir/gider kaydı (telefonda hızlı işlem "Gider ekle")
+- [x] Veresiye ve vade listesi (FIFO), vade hatırlatma (WhatsApp/SMS linki + sabah uygulama içi bildirimi; müşteriye otomatik SMS Sprint 6)
+- [x] Bugün ekranı (dashboard)
+- [x] Raporlar sayfası: satışlar, en çok satan, alacaklar (yaşlandırma), gelir-gider + Excel (Sprint 7'den öne çekildi)
 
 ## Sprint 5 — Randevu (2-3 hafta)
 
@@ -78,7 +79,8 @@ Tahmini, yarı zamanlı. Toplam yaklaşık 15-18 hafta. Her sprint sonunda: buil
 - [ ] Mesai giriş-çıkış, fazla mesai raporu
 - [ ] İzin türleri, talep/onay, bakiye, izin takvimi; izinli personel takvimde kapalı
 - [ ] Prim kuralları ve ay sonu prim raporu
-- [ ] Raporlar sayfası (satış, ürün, alacak, gelir-gider, kampanya, personel) + Excel dışa aktarma
+- [ ] Kampanya ve personel raporları + Excel dışa aktarma (satış, ürün, alacak, gelir-gider raporları Sprint 4'te geldi)
+- [ ] Bugün ekranına randevu (Sprint 5) ve aktif personel kartları
 
 ## Sprint 8 — Abonelik, destek ve pilot (1-2 hafta)
 
