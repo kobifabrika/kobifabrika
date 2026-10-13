@@ -3,14 +3,14 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Check, FileDown, Plus, Printer, ReceiptText, ShoppingCart } from "lucide-react";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useReducer, useRef, useState, type ReactNode } from "react";
 import { toast } from "sonner";
 
 import { productsKey, stockKey, useVatRates } from "@/components/catalog/catalog-bits";
 import { ProductSearch, findByBarcode } from "@/components/catalog/product-search";
 import { Notice } from "@/components/contacts/contact-bits";
-import { Field } from "@/components/forms/field";
+import { Field, FormMessage } from "@/components/forms/field";
 import { useSession } from "@/components/providers/session-provider";
 import { CartEditor, DiscountInput, parseDiscount } from "@/components/sales/cart-editor";
 import { ContactPicker } from "@/components/sales/contact-picker";
@@ -38,6 +38,7 @@ import {
   type PaymentDraft,
 } from "@/lib/cart";
 import { formatMoney, todayIstanbul } from "@/lib/format";
+import type { AppointmentSaleDraft } from "@/lib/api/types";
 import type { DiscountType } from "@/lib/sales";
 import { parseMoneyInput } from "@/lib/validation/rules";
 
@@ -70,7 +71,9 @@ export function QuickSale() {
   useEffect(() => saveDraft(draftKey, cart), [cart, draftKey]);
 
   // Müşteri kartından "Satış yap": ?musteri={id}
-  const preset = useSearchParams().get("musteri");
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const preset = searchParams.get("musteri");
   const presetContact = useQuery({
     queryKey: ["contacts", "detail", preset],
     queryFn: () => unwrap(api.GET("/api/contacts/{id}", { params: { path: { id: preset! } } })),
@@ -80,6 +83,33 @@ export function QuickSale() {
     if (presetContact.data)
       dispatch({ type: "contact", contact: { id: presetContact.data.id, name: presetContact.data.displayName, phone: presetContact.data.phone } });
   }, [presetContact.data]);
+
+  // Takvimden "Satışa çevir": ?randevu={id}. Sepet randevunun müşterisi ve hizmetiyle dolar; satış randevuya bağlanır.
+  const appointmentParam = searchParams.get("randevu");
+  const [appointment, setAppointment] = useState<AppointmentSaleDraft | null>(null);
+  const appliedAppointment = useRef<string | null>(null);
+  const saleDraft = useQuery({
+    queryKey: ["sale-draft", appointmentParam],
+    queryFn: () => unwrap(api.GET("/api/appointments/{id}/sale-draft", { params: { path: { id: appointmentParam! } } })),
+    enabled: !!appointmentParam,
+    retry: false,
+    staleTime: Infinity,
+    refetchOnWindowFocus: false,
+  });
+  const draftProduct = useQuery({
+    queryKey: [...productsKey, saleDraft.data?.productId],
+    queryFn: () => unwrap(api.GET("/api/products/{id}", { params: { path: { id: saleDraft.data!.productId } } })),
+    enabled: !!saleDraft.data,
+  });
+  useEffect(() => {
+    const d = saleDraft.data;
+    if (!d || !draftProduct.data || appliedAppointment.current === d.appointmentId) return;
+    appliedAppointment.current = d.appointmentId;
+    dispatch({ type: "clear" });
+    dispatch({ type: "contact", contact: { id: d.contactId, name: d.contactName } });
+    dispatch({ type: "add", product: draftProduct.data });
+    setAppointment(d);
+  }, [saleDraft.data, draftProduct.data]);
 
   // Masaüstünde arama kutusu hazır odakta (telefonda klavye kendiliğinden açılmasın).
   useEffect(() => {
@@ -140,10 +170,18 @@ export function QuickSale() {
             payments: drafts.map((p) => ({ method: p.method, amount: p.amount, cashAccountId: accountFor(p) })),
             note: cart.note.trim() || null,
             dueDate: hasCredit ? extras.dueDate || suggestedDue : null,
+            appointmentId: appointment?.appointmentId ?? null,
           },
         }),
       ),
     onSuccess: async (result) => {
+      if (appointment) {
+        // Satış randevuya bağlandı; adres temizlenir ki taslak tekrar istenmesin (randevu artık 409 döner).
+        setAppointment(null);
+        router.replace("/panel/satislar/yeni");
+        await queryClient.invalidateQueries({ queryKey: ["calendar"] });
+        await queryClient.invalidateQueries({ queryKey: ["appointments"] });
+      }
       setDone(result);
       setCheckoutOpen(false);
       dispatch({ type: "clear" });
@@ -211,6 +249,12 @@ export function QuickSale() {
             </Button>
           )}
         </div>
+        {appointment && (
+          <Notice>
+            Randevudan satış: {appointment.description} · {appointment.staffName}. Satış kaydedilince randevuya bağlanır.
+          </Notice>
+        )}
+        {saleDraft.isError && <FormMessage>{errorMessage(saleDraft.error)}</FormMessage>}
         <ProductSearch ref={searchRef} onPick={add} onNotFound={notFound} placeholder="Ürün adı veya barkod okutun" />
 
         {cart.lines.length === 0 ? (

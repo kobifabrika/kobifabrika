@@ -10,9 +10,10 @@ import { useSession } from "@/components/providers/session-provider";
 import { Card, CardContent } from "@/components/ui/card";
 import { can, type Permission } from "@/lib/permissions";
 
-const tabs: { href: string; label: string; permission: Permission }[] = [
+const tabs: { href: string; label: string; permission: Permission; module?: "appointments" }[] = [
   { href: "/panel/ayarlar", label: "İşletme", permission: "viewSettings" },
   { href: "/panel/ayarlar/calisma-saatleri", label: "Çalışma saatleri", permission: "viewSettings" },
+  { href: "/panel/ayarlar/randevu", label: "Randevu", permission: "viewSettings", module: "appointments" },
   { href: "/panel/ayarlar/finans", label: "Finans", permission: "viewFinance" },
   { href: "/panel/ayarlar/ekip", label: "Ekip", permission: "manageTeam" },
   { href: "/panel/ayarlar/aktivite", label: "Aktivite günlüğü", permission: "viewAuditLog" },
@@ -21,13 +22,13 @@ const tabs: { href: string; label: string; permission: Permission }[] = [
 /** Ayarlar sekmeleri; role göre görünür. Telefonda yatay kaydırılır. */
 export function SettingsNav() {
   const pathname = usePathname();
-  const { role } = useSession();
+  const { role, business } = useSession();
 
   return (
     <nav aria-label="Ayarlar" className="-mx-4 overflow-x-auto px-4 lg:mx-0 lg:px-0">
       <ul className="flex min-w-max gap-1 border-b border-border">
         {tabs
-          .filter((t) => can(role, t.permission))
+          .filter((t) => can(role, t.permission) && (!t.module || business.modules[t.module]))
           .map((t) => {
             const active = pathname === t.href;
             return (

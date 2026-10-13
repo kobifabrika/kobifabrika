@@ -72,4 +72,34 @@ describe("Bugün ekranı", () => {
     expect(screen.queryByRole("region", { name: "Hızlı işlemler" })).not.toBeInTheDocument();
     expect(screen.queryByRole("link", { name: /Gider ekle/ })).not.toBeInTheDocument();
   });
+
+  it("Randevular modülü açıksa bugünün randevuları en üstte; boşsa Randevu ver", async () => {
+    response = {
+      ...full,
+      appointments: {
+        total: 2,
+        pending: 1,
+        onlyOwn: false,
+        items: [
+          { id: "a1", startAt: "2026-10-30T07:00:00Z", endAt: "2026-10-30T07:45:00Z", contactName: "Ayşe Yılmaz", serviceName: "Saç kesimi", staffName: "Zeynep", status: "Confirmed" },
+          { id: "a2", startAt: "2026-10-30T11:30:00Z", endAt: "2026-10-30T12:00:00Z", contactName: "Can Demir", serviceName: "Sakal", staffName: "Mert", status: "Pending" },
+        ],
+      },
+    };
+    renderWithSession(<TodayDashboard />);
+
+    expect(await screen.findByText("Bugünün randevuları")).toBeInTheDocument();
+    expect(screen.getByText("10:00")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /Ayşe Yılmaz/ })).toHaveAttribute("href", "/panel/randevular?randevu=a1");
+    expect(screen.getByText("Onay bekleyen 1")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /Randevu ver/ })).toHaveAttribute("href", "/panel/randevular?yeni=1");
+  });
+
+  it("Personel kendi randevularını görür; randevu yoksa kart yine görünür", async () => {
+    response = { ...staffView, appointments: { total: 0, pending: 0, onlyOwn: true, items: [] } };
+    renderWithSession(<TodayDashboard />, { role: "Staff" });
+
+    expect(await screen.findByText("Bugünkü randevularım")).toBeInTheDocument();
+    expect(screen.getByText("Bugün randevu yok.")).toBeInTheDocument();
+  });
 });

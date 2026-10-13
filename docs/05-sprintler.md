@@ -2,7 +2,7 @@
 
 Tahmini, yarı zamanlı. Toplam yaklaşık 15-18 hafta. Her sprint sonunda: build ve testler geçer, ekranlar 375px'te kontrol edilir, bu dosyada maddeler işaretlenir, `docs/karar-gunlugu.md` güncellenir, commit atılır.
 
-**Durum:** Sprint 4 tamamlandı (2026-10-12; kapanış doğrulaması 2026-10-13, tam `.\test.ps1` yeşil: backend 363, lint, Vitest 200, build, E2E 84): kasa/banka, gelir-gider, vade listesi ve hatırlatma, Bugün ekranı ve ilk dört rapor. Sıradaki: Sprint 5 (Randevu). Hangfire Sprint 5'ten öne çekildi (Sprint 2); Raporlar'ın ilk dördü Sprint 7'den öne çekildi (Sprint 4).
+**Durum:** Sprint 5A (takvim ve randevu) tamamlandı (2026-10-13): personel, çalışma saatleri, tatil ve kapalı zaman, takvim, randevu, satışa çevirme, gelmeyen müşteri uyarısı, Bugün randevu kartı. Sıradaki: Sprint 5B (online randevu, SMS altyapısı, hatırlatma, paketler). Sprint 4 tamamlandı (2026-10-12). Hangfire Sprint 5'ten öne çekildi (Sprint 2); Raporlar'ın ilk dördü Sprint 7'den öne çekildi (Sprint 4); MessageLog ve sahte SMS Sprint 6'dan 5B'ye alındı.
 
 ---
 
@@ -57,16 +57,20 @@ Tahmini, yarı zamanlı. Toplam yaklaşık 15-18 hafta. Her sprint sonunda: buil
 
 ## Sprint 5 — Randevu (2-3 hafta)
 
-- [ ] Personel çalışma saatleri, takvim (gün/hafta, personel kolonlu, sürükle-bırak, çakışma kontrolü)
-- [ ] Online randevu sayfası `/r/[slug]` (telefon doğrulama, onay ayarı)
-- [ ] Hatırlatma SMS'i (Hangfire), gelmedi işaretleme
-- [ ] Randevuyu satışa çevirme
-- [ ] Paket ve seans takibi
-- [ ] Gelmeyen müşteri uyarısı
+İki parça: **5A** takvim ve randevu, **5B** online randevu, SMS altyapısı, hatırlatma ve paketler.
+
+- [x] Personel (temel kart: ad, unvan, telefon, takvim rengi, online randevuda görünür, bağlı hesap), haftalık çalışma saatleri (öğle arası), verdiği hizmetler, mola/izin, tatil günleri (5A)
+- [x] Takvim (gün/hafta, masaüstünde personel kolonlu, sürükle-bırak ve süre uzatma, telefonda personel seçici ve "Taşı"), sunucuda eşzamanlılığa dayanıklı çakışma kontrolü (5A)
+- [ ] Online randevu sayfası `/r/[slug]` (telefon doğrulama, onay ayarı) (5B)
+- [ ] Hatırlatma SMS'i (Hangfire) (5B); [x] gelmedi işaretleme (5A)
+- [x] Randevuyu satışa çevirme (5A)
+- [ ] Paket ve seans takibi (5B)
+- [x] Gelmeyen müşteri uyarısı (5A)
+- [x] Bugün ekranında "Bugünün randevuları" (Sprint 7'den öne çekildi) (5A)
 
 ## Sprint 6 — Pazarlama ve İYS (2 hafta)
 
-- [ ] SMS kredisi, MessageLog, sahte SMS sağlayıcı (gerçeği pilot öncesi)
+- [ ] SMS kredisi ve düşümü (MessageLog ve sahte SMS sağlayıcı Sprint 5B'de; gerçek sağlayıcı pilot öncesi)
 - [ ] Kampanya akışı (segment → mesaj → önizleme/maliyet → gönder/zamanla), İYS izin süzmesi, çıkış seçeneği
 - [ ] Otomasyonlar: doğum günü, geri kazanma, randevu sonrası teşekkür
 - [ ] Memnuniyet anketi → Google yorum yönlendirmesi
@@ -80,7 +84,7 @@ Tahmini, yarı zamanlı. Toplam yaklaşık 15-18 hafta. Her sprint sonunda: buil
 - [ ] İzin türleri, talep/onay, bakiye, izin takvimi; izinli personel takvimde kapalı
 - [ ] Prim kuralları ve ay sonu prim raporu
 - [ ] Kampanya ve personel raporları + Excel dışa aktarma (satış, ürün, alacak, gelir-gider raporları Sprint 4'te geldi)
-- [ ] Bugün ekranına randevu (Sprint 5) ve aktif personel kartları
+- [ ] Bugün ekranına aktif personel kartı (randevu kartı Sprint 5A'da geldi)
 
 ## Sprint 8 — Abonelik, destek ve pilot (1-2 hafta)
 

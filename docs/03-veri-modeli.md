@@ -39,13 +39,13 @@ Benzersiz indeksler `BusinessId`'yi içerir (ör. `BusinessId + Phone`).
 - **AspNetUsers (Identity) + AppUser alanları:** FullName, PhoneNumber (E.164), CreatedAt, LastBusinessId (girişte açılacak işletme; cookie'ye claim olarak yazılır). **BusinessMemberships:** UserId, BusinessId, Role (Owner/Manager/Staff/Accountant), IsActive; benzersiz (UserId, BusinessId). Kiracı filtresi dışında (`[TenantExempt]`); sorgular UserId veya BusinessId ile açıkça süzülür.
 - **UserConsents (kiracı dışı, kullanıcı düzeyi):** UserId, Kind (KvkkPrivacyNotice), Version (ör. "2026-10"), AcceptedAt, IpAddress. Kayıtta ve davetle kayıtta yazılır.
 - **Invitations:** Email, Role, TokenHash (`binary(32)`, SHA-256; ham token sadece e-postadaki linkte), ExpiresAt (7 gün), InvitedByUserId, AcceptedAt, AcceptedByUserId, RevokedAt. Durum (Pending/Accepted/Revoked/Expired) hesaplanır. Benzersiz TokenHash.
-- **WorkingHours:** DayOfWeek (tinyint), IsClosed, OpensAt, ClosesAt (`time`, işletmenin yerel saati); benzersiz (BusinessId, DayOfWeek). Varsayılan: Pzt-Cmt 09:00-19:00, Pazar kapalı. **Holidays:** Date, Name (Sprint 5).
+- **WorkingHours:** DayOfWeek (tinyint), IsClosed, OpensAt, ClosesAt (`time`, işletmenin yerel saati; gece yarısını aşmaz); benzersiz (BusinessId, DayOfWeek). Varsayılan: Pzt-Cmt 09:00-19:00, Pazar kapalı. **Holidays (Sprint 5A):** Date (`date`), Name; filtreli benzersiz (BusinessId, Date).
 - **Notifications:** UserId, Type (ör. `invitation.accepted`, `team.role_changed`, `team.joined`), Title, Body, Link, ReadAt.
 - **AuditLogs:** UserId, Action (Login, InvitationSent, InvitationResent, InvitationRevoked, InvitationAccepted, RoleChanged, MemberRemoved, BusinessUpdated, SlugChanged, WorkingHoursUpdated, LogoChanged, ModulesChanged), EntityType, EntityId, Changes (`json`), IpAddress, At. Sadece eklenir: güncelleme/silme `AppDbContext`'te engellenir; soft delete yok.
 
 ## Müşteriler (Sprint 2, migration `Sprint2Contacts`)
 
-- **Contacts:** IsCustomer, IsSupplier (ikisi birden olabilir), FirstName, LastName, CompanyName (ad/soyad/firmadan biri zorunlu), DisplayName (aranır), Phone (E.164; benzersiz `BusinessId + Phone`, filtre: Phone dolu ve silinmemiş), Email, BirthDate (`date`), Address, City, District, Source (Instagram/Google/Referral/WalkIn/Facebook/TikTok/Other), Notes (kısa sabit not), TaxNumber, TaxOffice, Balance (önbellek; sadece SQL'de atomik `Balance = Balance + @delta`), LastVisitAt (Sprint 3/5'te dolar), IsArchived, ArchivedAt, SmsConsent/EmailConsent/CallConsent (güncel izin; varsayılan kapalı). AvgVisitIntervalDays, NoShowCount Sprint 5/6'da.
+- **Contacts:** IsCustomer, IsSupplier (ikisi birden olabilir), FirstName, LastName, CompanyName (ad/soyad/firmadan biri zorunlu), DisplayName (aranır), Phone (E.164; benzersiz `BusinessId + Phone`, filtre: Phone dolu ve silinmemiş), Email, BirthDate (`date`), Address, City, District, Source (Instagram/Google/Referral/WalkIn/Facebook/TikTok/Other; OnlineBooking sadece sistem yazar, Sprint 5), Notes (kısa sabit not), TaxNumber, TaxOffice, Balance (önbellek; sadece SQL'de atomik `Balance = Balance + @delta`), LastVisitAt (tamamlanmış satış ve randevuların en yenisi; `ContactVisits`), IsArchived, ArchivedAt, SmsConsent/EmailConsent/CallConsent (güncel izin; varsayılan kapalı). Gelmeyen müşteri uyarısı saklanmaz, randevulardan hesaplanır (`NoShowRule`). AvgVisitIntervalDays Sprint 6'da.
 - **ContactConsents** (izin geçmişi, sadece eklenir): ContactId, Channel (Sms/Email/Call), Granted, Source (Panel/Import/OnlineBooking), At, IysStatus.
 - **Tags:** Name (benzersiz, işletme içinde), Color (Gray/Black/Blue/Outline). **ContactTags:** ContactId, TagId (soft delete yok).
 - **ContactNotes:** ContactId, Body.
@@ -67,8 +67,8 @@ Miktarlar `decimal(18,3)` (kg, lt, m için).
 
 Tutarlar KDV dahil; KDV satır tutarının içinden ayrılır. Hesap: `Domain/Sales/SaleCalculator.cs` (frontend `src/lib/sales.ts` aynı algoritma ve test vektörleri).
 
-- **Sales:** Year, Seq, No (SAT-2026-000001), ContactId (opsiyonel), Date (UTC), SubTotal (brüt), LineDiscountTotal, DiscountTotal, DiscountType/DiscountValue (girilen indirim: TL/%), VatTotal, Total, Status (Completed/Cancelled), CancelledAt, CancelledBy, CancelReason, QuoteId, Note. StaffMemberId ve AppointmentId Sprint 5/7'de.
-- **SaleLines / QuoteLines** (ortak taban `DocumentLine`): ProductId (opsiyonel; serbest kalem), Description (ad kopyası), Unit, Quantity, UnitPrice (KDV dahil), LineDiscount, DiscountType/DiscountValue (girilen satır indirimi: TL/%), AllocatedDiscount (toplam indirimden pay), VatRate, VatAmount, LineTotal, SortOrder.
+- **Sales:** Year, Seq, No (SAT-2026-000001), ContactId (opsiyonel), Date (UTC), SubTotal (brüt), LineDiscountTotal, DiscountTotal, DiscountType/DiscountValue (girilen indirim: TL/%), VatTotal, Total, Status (Completed/Cancelled), CancelledAt, CancelledBy, CancelReason, QuoteId, AppointmentId (Sprint 5A; filtreli benzersiz: tamamlanmış satışlar arasında randevu başına bir), Note.
+- **SaleLines / QuoteLines** (ortak taban `DocumentLine`): ProductId (opsiyonel; serbest kalem), Description (ad kopyası), Unit, Quantity, UnitPrice (KDV dahil), LineDiscount, DiscountType/DiscountValue (girilen satır indirimi: TL/%), AllocatedDiscount (toplam indirimden pay), VatRate, VatAmount, LineTotal, SortOrder. SaleLines.StaffMemberId (Sprint 5A; randevudan çevrilen satışta hizmet satırına randevunun personeli, Sprint 7'de prim).
 - **SalePayments:** SaleId, Method (Cash/Card/Transfer/Credit), Amount, CashAccountId, CashTransactionId, LedgerEntryId. Bölünmüş ödemede birden fazla; toplam = satış tutarı.
 - **Businesses.ReceiptWidth:** fiş genişliği (mm), 58 veya 80 (varsayılan 80).
 - **Quotes:** Year, Seq, No (TKL-2026-0001), ContactId, Date, ValidUntil (varsayılan +15 gün), Status (Draft/Sent/Accepted/Rejected/Converted), TokenHash + ProtectedToken (tahsilat linkiyle aynı), SentAt, LastViewedAt, RespondedAt, ResponseNote, RespondedVia (Link/Panel), toplamlar, DiscountType/DiscountValue (girilen toplam indirim), Notes, SaleId.
@@ -86,13 +86,15 @@ Tutarlar KDV dahil; KDV satır tutarının içinden ayrılır. Hesap: `Domain/Sa
 - **PaymentRequests (tahsilat linki):** ContactId, Amount, Note, TokenHash (`binary(32)`, SHA-256; ham token sadece linkte), ExpiresAt (30 gün), Status (Open/ClaimedPaid/Confirmed/Cancelled), ClaimedAt, ClaimNote, ConfirmedAt, ConfirmedBy, CashTransactionId, CancelledAt.
 - **StatementShares (ekstre linki):** ContactId, From, To, TokenHash, ExpiresAt (30 gün), Channel (Link/WhatsApp/Email), LastViewedAt.
 
-## Randevu
+## Randevu (Sprint 5A, migration `Sprint5aAppointments`)
 
-- **Appointments:** ContactId, StaffMemberId, ProductId (hizmet), StartAt, EndAt, Status (Pending/Confirmed/Completed/NoShow/Cancelled), Source (Panel/Online), Note, CustomerPackageId (opsiyonel), SaleId (opsiyonel), ReminderSentAt.
-- **StaffWorkingHours:** StaffMemberId, DayOfWeek, StartsAt, EndsAt.
-- **ServicePackages:** Name, ProductId (hizmet), SessionCount, Price, ValidityDays.
-- **CustomerPackages:** ContactId, ServicePackageId, SaleId, TotalSessions, UsedSessions, ExpiresAt.
-- **BookingSettings:** AutoConfirm, MinNoticeHours, MaxDaysAhead, SlotMinutes, ReminderHoursBefore.
+- **Appointments:** ContactId, StaffMemberId, ProductId (hizmet), StartAt, EndAt (UTC; CHECK bitiş > başlangıç ve en fazla 12 saat), Status (Pending/Confirmed/Completed/NoShow/Cancelled), Source (Panel/Online), Note, SaleId (satışa çevrildiyse; satış iptalinde temizlenir), ConfirmedAt, CompletedAt, NoShowAt, CancelledAt, CancelledBy, CancelSource (Business/Customer), CancelReason, TimeSetAt (saatin en son belirlendiği an; hatırlatma kuralı). İndeksler: (BusinessId, StaffMemberId, StartAt) INCLUDE (EndAt, Status), (BusinessId, StartAt) INCLUDE (Status, StaffMemberId), (BusinessId, ContactId, StartAt). Çakışma kontrolü uygulamada (personel satırı kilidi; `AppointmentBooking`), iptal saati boşaltır. 5B'de: CustomerPackageId, ReminderSentAt, müşteri iptal linki token'ı.
+- **StaffMembers** (Personel bölümüne bakın), **StaffWorkingHours:** StaffMemberId, DayOfWeek, StartsAt, EndsAt (yerel saat; gün başına birden çok satır = öğle arası; CHECK `StartsAt < EndsAt`). Personel işletmenin açık saatleri dışında randevu almaz (kesişim); eklenince işletmenin saatleri kopyalanır.
+- **StaffServices:** StaffMemberId, ProductId (soft delete yok); personelin satırı yoksa bütün hizmetleri verir.
+- **StaffTimeOffs:** StaffMemberId, StartAt, EndAt (UTC), Kind (Break/Leave/Other), Note. Sprint 7'de onaylanan izinler buraya yazılır.
+- **Holidays:** Çekirdek bölümünde.
+- **Businesses.StaffSeesOnlyOwnAppointments:** Personel rolü sadece kendi randevularını görsün (varsayılan false).
+- 5B'de: **ServicePackages** (Name, ProductId, SessionCount, Price, ValidityDays), **CustomerPackages** (ContactId, ServicePackageId, SaleId, TotalSessions, UsedSessions, ExpiresAt), online randevu ayarları (docs'taki BookingSettings tablosu yerine Businesses kolonları: AutoConfirm, MinNotice, MaxDaysAhead, SlotMinutes, ReminderHoursBefore, CustomerCancelHours, BookingEnabled).
 
 ## Pazarlama
 
@@ -105,7 +107,7 @@ Tutarlar KDV dahil; KDV satır tutarının içinden ayrılır. Hesap: `Domain/Sa
 
 ## Personel
 
-- **StaffMembers:** UserId (opsiyonel), FullName, Title, Phone, StartDate, Salary (sadece Owner), Color (takvim), ShowInBooking, IsActive.
+- **StaffMembers (Sprint 5A):** UserId (opsiyonel; işletmenin aktif üyesi, filtreli benzersiz `BusinessId + UserId`), FullName, Title, Phone (E.164), Color (takvim: Black/DarkGray/Gray/LightGray/Blue/Outline), ShowInBooking, IsActive, SortOrder. Sprint 7'de: StartDate, Salary (sadece Owner).
 - **TimeEntries:** StaffMemberId, ClockInAt, ClockOutAt, Source (Self/Manager), Note.
 - **LeaveTypes:** Name, IsPaid, AnnualDays.
 - **LeaveRequests:** StaffMemberId, LeaveTypeId, StartDate, EndDate, Days, Status (Pending/Approved/Rejected), ApprovedBy, Note.

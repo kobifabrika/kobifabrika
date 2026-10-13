@@ -107,7 +107,8 @@ kopar, sahipsiz Next dev sunucusu `write EPIPE` ile bozulur (sayfalar dakikalarc
 
 ## Güncel durum
 
-- Sprint: **4 (Finans ve dashboard)** tamamlandı (2026-10-12): kasa/banka hesapları (transfer, tedarikçiye ödeme, ters kayıt, pasife alma), gelir-gider, veresiye vadesi ve FIFO vade listesi, WhatsApp/SMS hatırlatma + sabah vade bildirimi, Bugün ekranı, dört rapor + Excel. Sıradaki: **Sprint 5 (Randevu)**.
+- Sprint: **5A (takvim ve randevu)** tamamlandı (2026-10-13): personel (saatler, hizmetler, mola/izin), tatiller, takvim (sürükle-bırak, telefonda "Taşı"), randevu durumları, satışa çevirme, gelmeyen müşteri uyarısı, Bugün randevu kartı. Sıradaki: **Sprint 5B** (online randevu `/r/[slug]`, SMS altyapısı, hatırlatma, paketler); plan `docs/karar-gunlugu.md` 2026-10-13.
+- Randevu saati sadece `AppointmentBooking` ile yazılır (personel satırı kilidi + çakışma sorgusu); boş saat hesabı `Domain/Appointments/Availability`. Kilit sırası: personel → randevu → numara → satış → cari → kasa → stok.
 - Bakiyeler (`Contact.Balance`, `CashAccount.Balance`) sadece `LedgerService` ile, stok (`Product.StockQuantity`) sadece `StockService` ile, SQL'de atomik güncellenir; entity üzerinden yazılmaz. Satış sadece `SaleService` ile yazılır (numara, cari, kasa, stok aynı transaction'da).
 - Kasa hareketi silinmez: düzeltme `POST /api/cash-transactions/{id}/reverse` (ters kayıt, bugünün tarihiyle; tahsilat ve ödemede cari karşı kaydıyla). Toplamlarda ters kayıtlar düşülür (`CashTransaction.NetAmount`). Vade hesabı `ReceivableAllocator` (FIFO); "bugün" `BusinessTime` ile İstanbul günü.
 - OpenAPI: yanıtta veya sorgu parametresinde nullable enum kullanma (ortak enum şemasını `| null` yapar, frontend tipleri bozulur); metin veya ayrı enum kullan.

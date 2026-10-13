@@ -1,4 +1,5 @@
 import { addMember, createContact, createProduct, createQuote, createSale, line, ownerWithBusiness } from "./support/api";
+import { book, createService, createStaff, pastSlot } from "./support/appointments";
 import { apiUrl } from "./scripts/env.mjs";
 import { expect, test } from "./support/test";
 
@@ -14,10 +15,13 @@ test("B işletmesi A'nın müşteri, cari, ürün, satış ve teklif adreslerind
   const product = await createProduct(a, { name: "Gizli ürün", salePrice: 10 });
   const sale = await createSale(a, [line(product.id)], [{ method: "Credit", amount: 10 }], contact.id);
   const quote = await createQuote(a, contact.id, [line(product.id)]);
+  const service = await createService(a, "Gizli hizmet");
+  const staff = await createStaff(a, "Gizli Personel");
+  const appointment = await book(a, { contactId: contact.id, staffId: staff.id, serviceId: service.id, startAt: pastSlot(60).iso });
 
   const b = await ownerWithBusiness({ name: "B İşletmesi" });
   const bManager = await addMember(b, "Manager");
-  guard.allow(404, /localhost:5180\/api\/(contacts|products|sales|quotes)\//);
+  guard.allow(404, /localhost:5180\/api\/(contacts|products|sales|quotes|staff|appointments)\//);
 
   for (const user of [b, bManager]) {
     const page = await pageAs(user);
@@ -32,11 +36,13 @@ test("B işletmesi A'nın müşteri, cari, ürün, satış ve teklif adreslerind
       `/panel/satislar/${sale.id}/fis`,
       `/panel/teklifler/${quote.id}`,
       `/panel/teklifler/${quote.id}/duzenle`,
+      `/panel/personel/${staff.id}`,
+      `/panel/randevular?randevu=${appointment.id}`,
     ];
     for (const url of urls) {
       await page.goto(url);
       await expect(page.getByText(/bulunamadı/i).first(), url).toBeVisible();
-      await expect(page.getByText(/Gizli (Müşteri|Tedarikçi|ürün)/), url).toHaveCount(0);
+      await expect(page.getByText(/Gizli (Müşteri|Tedarikçi|ürün|hizmet|Personel)/), url).toHaveCount(0);
     }
     await check(page, "Kiracı ayrımı · başka işletmenin kaydı");
 
@@ -49,6 +55,9 @@ test("B işletmesi A'nın müşteri, cari, ürün, satış ve teklif adreslerind
       `/api/sales/${sale.id}/receipt.pdf`,
       `/api/quotes/${quote.id}`,
       `/api/quotes/${quote.id}/pdf`,
+      `/api/staff/${staff.id}`,
+      `/api/appointments/${appointment.id}`,
+      `/api/appointments/${appointment.id}/sale-draft`,
     ]) {
       expect((await user.ctx.get(path)).status(), path).toBe(404);
     }

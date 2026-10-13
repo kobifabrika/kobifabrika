@@ -69,6 +69,14 @@ export const auditActionLabels: Record<AuditAction, string> = {
   FinanceSettingsChanged: "Finans ayarlarını değiştirdi",
   ReportExported: "Raporu Excel'e aktardı",
   CashTransactionsExported: "Hesap hareketlerini Excel'e aktardı",
+  StaffCreated: "Personel ekledi",
+  StaffUpdated: "Personeli düzenledi",
+  StaffDeleted: "Personeli sildi",
+  StaffWorkingHoursUpdated: "Personelin çalışma saatlerini değiştirdi",
+  StaffServicesUpdated: "Personelin hizmetlerini değiştirdi",
+  HolidayCreated: "Kapalı gün ekledi",
+  HolidayDeleted: "Kapalı günü sildi",
+  AppointmentSettingsChanged: "Randevu ayarlarını değiştirdi",
 };
 
 const fieldLabels: Record<string, string> = {
@@ -176,6 +184,16 @@ export function auditDetail(item: Pick<AuditLogItem, "action" | "changes">): str
       return reportNames[text(c.report)] ?? text(c.report);
     case "CashTransactionsExported":
       return `${c.count ?? 0} kayıt`;
+    case "StaffCreated":
+    case "StaffDeleted":
+      return text(c.fullName);
+    case "HolidayCreated":
+    case "HolidayDeleted":
+      return `${day(c.date)} · ${text(c.name)}`;
+    case "AppointmentSettingsChanged": {
+      const own = (c.staffSeesOnlyOwn ?? {}) as { to?: boolean };
+      return own.to ? "Personel sadece kendi randevularını görür" : "Personel bütün takvimi görür";
+    }
     case "PaymentRequestCreated":
     case "PaymentRequestConfirmed":
     case "PaymentRequestRenewed":

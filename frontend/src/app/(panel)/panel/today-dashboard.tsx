@@ -1,11 +1,12 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { AlertTriangle, Boxes, ChevronRight, HandCoins, Landmark, ReceiptText, Wallet, type LucideIcon } from "lucide-react";
+import { AlertTriangle, Boxes, CalendarPlus, ChevronRight, HandCoins, Landmark, ReceiptText, Wallet, type LucideIcon } from "lucide-react";
 import Link from "next/link";
 import { useState, type ReactNode } from "react";
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from "recharts";
 
+import { TodayAppointments } from "@/components/appointments/today-appointments";
 import { QueryError } from "@/components/feedback/query-error";
 import { AccountBalance, accountHref } from "@/components/finance/cash-accounts";
 import { CollectionDialog } from "@/components/finance/finance-dialogs";
@@ -49,7 +50,8 @@ function StatCard({ label, icon: Icon, value, children, href }: { label: string;
 
 /**
  * Bugün ekranı (Europe/Istanbul günü; tek uç: /api/dashboard/today). Personel kendi satışlarını ve kritik stoğu görür;
- * tahsilat, bakiye ve alacak kartları ona gelmez (API null döner). Randevu ve personel kartları ilgili sprintlerde.
+ * tahsilat, bakiye ve alacak kartları ona gelmez (API null döner). Randevular modülü açıksa "Bugünün randevuları" en üstte
+ * (Personel kendi randevularını görür). Aktif personel kartı Sprint 7'de.
  */
 export function TodayDashboard() {
   const { role } = useSession();
@@ -74,12 +76,21 @@ export function TodayDashboard() {
 }
 
 function QuickActions({ onCollect }: { onCollect: () => void }) {
-  const { role } = useSession();
+  const { role, business } = useSession();
   const sell = can(role, "createSales");
   const finance = can(role, "manageFinance");
-  if (!sell && !finance) return null;
+  const book = business.modules.appointments && can(role, "writeAppointments");
+  if (!sell && !finance && !book) return null;
   return (
-    <section aria-label="Hızlı işlemler" className="grid grid-cols-3 gap-2 sm:flex sm:flex-wrap">
+    <section aria-label="Hızlı işlemler" className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">
+      {book && (
+        <Button asChild size="lg" variant={sell ? "outline" : "default"}>
+          <Link href="/panel/randevular?yeni=1">
+            <CalendarPlus aria-hidden />
+            Randevu ver
+          </Link>
+        </Button>
+      )}
       {sell && (
         <Button asChild size="lg">
           <Link href="/panel/satislar/yeni">
@@ -107,11 +118,13 @@ function QuickActions({ onCollect }: { onCollect: () => void }) {
 }
 
 function DashboardBody({ data }: { data: Dashboard }) {
+  const { role } = useSession();
   const { sales, receivables, stock } = data;
   const dueTotal = receivables ? receivables.dueToday + receivables.overdue : 0;
 
   return (
     <>
+      {data.appointments && <TodayAppointments data={data.appointments} canWrite={can(role, "writeAppointments")} />}
       <section aria-label="Özet" className="grid grid-cols-2 gap-3 lg:grid-cols-4 lg:gap-4">
         <StatCard label={sales.onlyOwn ? "Bugünkü satışlarım" : "Bugünkü satış"} icon={ReceiptText} value={formatMoney(sales.total)} href="/panel/satislar">
           <span className="text-xs text-neutral-600">{sales.count} satış</span>

@@ -55,7 +55,7 @@ export const navGroups: NavGroup[] = [
   {
     title: "Yönetim",
     items: [
-      { slug: "personel", label: "Personel", icon: IdCard, sprint: 7 },
+      { slug: "personel", label: "Personel", icon: IdCard, sprint: 5, permission: "viewStaff" },
       { slug: "mesai-izin", label: "Mesai ve İzin", icon: Clock, sprint: 7 },
       { slug: "raporlar", label: "Raporlar", icon: ChartColumn, sprint: 4, permission: "viewReports" },
       { slug: "ayarlar", label: "Ayarlar", icon: Settings, sprint: 1, permission: "viewSettings" },
@@ -108,7 +108,7 @@ export type QuickAction = {
 export const quickActions: readonly QuickAction[] = [
   { label: "Yeni satış", href: "/panel/satislar/yeni", icon: ReceiptText, permission: "createSales", keywords: "satış sepet barkod fiş kasa" },
   { label: "Yeni teklif", href: "/panel/teklifler/yeni", icon: FileText, permission: "createSales", keywords: "teklif fiyat" },
-  { label: "Yeni randevu", href: "/panel/randevular", icon: CalendarPlus, module: "appointments", keywords: "randevu" },
+  { label: "Yeni randevu", href: "/panel/randevular?yeni=1", icon: CalendarPlus, module: "appointments", permission: "writeAppointments", keywords: "randevu takvim" },
   { label: "Yeni müşteri", href: "/panel/musteriler/yeni", icon: UserPlus, permission: "writeContacts", keywords: "müşteri ekle" },
   { label: "Tahsilat", href: "/panel/cari-kasa?sekme=bakiyeler", icon: Banknote, permission: "manageFinance", keywords: "tahsilat ödeme" },
   { label: "Gider ekle", href: "/panel/cari-kasa/gelir-gider/yeni?tur=gider", icon: ReceiptText, permission: "manageFinance", keywords: "gider masraf fatura kira" },

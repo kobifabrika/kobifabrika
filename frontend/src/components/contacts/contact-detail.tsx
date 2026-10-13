@@ -2,6 +2,9 @@
 
 import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
+  CalendarDays,
+  CalendarPlus,
+  CalendarX,
   Archive,
   ArchiveRestore,
   ArrowLeft,
@@ -23,6 +26,8 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useState, type ReactNode } from "react";
 import { toast } from "sonner";
 
+import { noShowText } from "@/components/appointments/appointment-form";
+import { ContactAppointmentList, useContactAppointments } from "@/components/appointments/contact-appointments";
 import { Balance, ContactActions, Notice, TabNav, TagList } from "@/components/contacts/contact-bits";
 import { QuoteList } from "@/components/quotes/quote-list";
 import { SaleList } from "@/components/sales/sale-list";
@@ -46,16 +51,18 @@ import { displayPhone } from "@/lib/contacts";
 import { formatDate, formatDateTime, formatDay, formatMoney } from "@/lib/format";
 import { can } from "@/lib/permissions";
 
-type TabKey = "ozet" | "zaman" | "satislar" | "cari" | "notlar" | "hatirlatmalar";
+type TabKey = "ozet" | "zaman" | "randevular" | "satislar" | "cari" | "notlar" | "hatirlatmalar";
 
 /** Müşteri/tedarikçi kartı. basePath: /panel/musteriler veya /panel/cari-kasa/tedarikciler. */
 export function ContactDetail({ id, basePath }: { id: string; basePath: string }) {
-  const { role } = useSession();
+  const { role, business } = useSession();
   const params = useSearchParams();
   const contact = useQuery({
     queryKey: [...contactsKey, "detail", id],
     queryFn: () => unwrap(api.GET("/api/contacts/{id}", { params: { path: { id } } })),
   });
+  const appointmentsOn = business.modules.appointments;
+  const appointments = useContactAppointments(id, appointmentsOn && !!contact.data?.isCustomer);
 
   if (contact.isPending)
     return (
@@ -85,6 +92,7 @@ export function ContactDetail({ id, basePath }: { id: string; basePath: string }
   const tabs: { key: TabKey; label: string }[] = [
     { key: "ozet", label: "Özet" },
     { key: "zaman", label: "Zaman çizelgesi" },
+    ...(c.isCustomer && appointmentsOn ? [{ key: "randevular" as const, label: "Randevular" }] : []),
     ...(c.isCustomer ? [{ key: "satislar" as const, label: "Satışlar" }] : []),
     ...(finance ? [{ key: "cari" as const, label: "Cari" }] : []),
     { key: "notlar", label: "Notlar" },
@@ -145,8 +153,17 @@ export function ContactDetail({ id, basePath }: { id: string; basePath: string }
                 Teklif hazırla
               </Link>
             </Button>
+            {appointmentsOn && can(role, "writeAppointments") && (
+              <Button asChild variant="outline">
+                <Link href={`/panel/randevular?yeni=1&musteri=${c.id}`}>
+                  <CalendarPlus aria-hidden />
+                  Randevu ver
+                </Link>
+              </Button>
+            )}
           </div>
         )}
+        {appointments.data?.noShow && <Notice>{noShowText(c.displayName, appointments.data.noShow)}</Notice>}
         {c.notes && <Notice>{c.notes}</Notice>}
       </header>
 
@@ -154,6 +171,7 @@ export function ContactDetail({ id, basePath }: { id: string; basePath: string }
 
       {active === "ozet" && <Overview contact={c} />}
       {active === "zaman" && <Timeline id={c.id} />}
+      {active === "randevular" && <ContactAppointmentList contactId={c.id} />}
       {active === "satislar" && (
         <div className="flex flex-col gap-6">
           <SaleList contactId={c.id} />
@@ -310,6 +328,9 @@ const timelineIcons: Record<string, typeof StickyNote> = {
   quote: FileText,
   quote_accepted: FileText,
   quote_rejected: FileText,
+  appointment: CalendarDays,
+  appointment_no_show: CalendarX,
+  appointment_cancelled: CalendarX,
 };
 
 /** Satış ve teklif öğeleri belgenin sayfasına gider. */
@@ -317,6 +338,7 @@ function timelineHref(item: TimelineItem): string | null {
   if (!item.refId) return null;
   if (item.kind.startsWith("sale")) return `/panel/satislar/${item.refId}`;
   if (item.kind.startsWith("quote")) return `/panel/teklifler/${item.refId}`;
+  if (item.kind.startsWith("appointment")) return `/panel/randevular?randevu=${item.refId}`;
   return null;
 }
 

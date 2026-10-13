@@ -471,6 +471,180 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/time-offs/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Kapalı zamanı sil. Personel sadece kendi molasını siler */
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description No Content */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/calendar": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Takvim: from-to (en fazla 14 gün) randevular, personel çalışma aralıkları, kapalı zamanlar, tatiller */
+        get: {
+            parameters: {
+                query: {
+                    from: string;
+                    to: string;
+                    staffId?: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["CalendarResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/contacts/{id}/appointments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Müşterinin randevuları (yeniden eskiye) ve gelmeyen müşteri uyarısı */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ContactAppointmentsResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/business/appointment-settings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Randevu ayarları */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["AppointmentSettingsResponse"];
+                    };
+                };
+            };
+        };
+        /** Randevu ayarları: personel sadece kendi randevularını görsün */
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["AppointmentSettingsRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["AppointmentSettingsResponse"];
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/system/info": {
         parameters: {
             query?: never;
@@ -7138,6 +7312,917 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/staff": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Personel listesi (includeInactive ile pasifler de) */
+        get: {
+            parameters: {
+                query?: {
+                    includeInactive?: boolean;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["StaffResponse"][];
+                    };
+                };
+            };
+        };
+        put?: never;
+        /** Personel ekle (çalışma saatleri işletmenin saatlerinden kopyalanır) */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["StaffRequest"];
+                };
+            };
+            responses: {
+                /** @description Created */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["StaffResponse"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/staff/me": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Oturumdaki kullanıcıya bağlı personel kaydı */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["MyStaffResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/staff/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Personel */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["StaffResponse"];
+                    };
+                };
+            };
+        };
+        /** Personeli güncelle (pasife alma dahil) */
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["StaffRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["StaffResponse"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+                    };
+                };
+            };
+        };
+        post?: never;
+        /** Personeli sil (randevusu olan personel silinmez, pasife alınır) */
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description No Content */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/staff/{id}/working-hours": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Haftalık çalışma saatleri */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["StaffWorkingHoursDto"];
+                    };
+                };
+            };
+        };
+        /** Haftalık çalışma saatlerini güncelle */
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["StaffWorkingHoursDto"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["StaffWorkingHoursDto"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/staff/{id}/services": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Verebildiği hizmetler (boş: hepsi) */
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["StaffServicesRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["StaffResponse"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/staff/{id}/time-offs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Kapalı zamanlar (from/to yerel gün) */
+        get: {
+            parameters: {
+                query?: {
+                    from?: string;
+                    to?: string;
+                };
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["TimeOffResponse"][];
+                    };
+                };
+            };
+        };
+        put?: never;
+        /** Kapalı zaman ekle (mola, izin). Personel sadece kendine mola ekler */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["TimeOffRequest"];
+                };
+            };
+            responses: {
+                /** @description Created */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["TimeOffResponse"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/appointments/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Randevu */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["AppointmentResponse"];
+                    };
+                };
+            };
+        };
+        /** Taşı, süreyi/personeli/hizmeti değiştir, not */
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["AppointmentUpdateRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["AppointmentSavedResponse"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/appointments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Randevu ver (bitiş boşsa hizmet süresinden). Çakışma 409 appointment_overlap */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["AppointmentRequest"];
+                };
+            };
+            responses: {
+                /** @description Created */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["AppointmentSavedResponse"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/appointments/check": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Kaydetmeden önce uyarılar: çakışma, çalışma saati dışı, gelmeyen müşteri */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["AppointmentCheckRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["AppointmentCheckResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/appointments/{id}/confirm": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Onayla (Beklemede → Onaylı) */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["AppointmentResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/appointments/{id}/complete": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Tamamlandı */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["AppointmentResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/appointments/{id}/no-show": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Gelmedi */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["AppointmentResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/appointments/{id}/cancel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** İptal et */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["CancelAppointmentRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["AppointmentResponse"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/appointments/{id}/reopen": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Geri al: Tamamlandı (satışa çevrilmemişse) veya Gelmedi → Onaylı */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["AppointmentResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/appointments/{id}/sale-draft": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Satışa çevir: hızlı satış için müşteri, hizmet ve personel */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["AppointmentSaleDraft"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/holidays": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Tatil ve kapalı günler (from/to; varsayılan bugünden 1 yıl) */
+        get: {
+            parameters: {
+                query?: {
+                    from?: string;
+                    to?: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["HolidayResponse"][];
+                    };
+                };
+            };
+        };
+        put?: never;
+        /** Tatil / kapalı gün ekle */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["HolidayRequest"];
+                };
+            };
+            responses: {
+                /** @description Created */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["HolidayResponse"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/holidays/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Tatil / kapalı günü sil */
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description No Content */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -7154,13 +8239,113 @@ export interface components {
             /** Format: double */
             balance: number;
         };
+        AppointmentCheckRequest: {
+            /** Format: uuid */
+            contactId: null | string;
+            /** Format: uuid */
+            staffMemberId: string;
+            /** Format: date-time */
+            startAt: string;
+            /** Format: date-time */
+            endAt: string;
+            /** Format: uuid */
+            excludeId: null | string;
+        };
+        AppointmentCheckResponse: {
+            overlap: null | string;
+            outsideHours: null | string;
+            noShow: null | components["schemas"]["NoShowWarning"];
+        };
+        AppointmentRequest: {
+            /** Format: uuid */
+            contactId: string;
+            /** Format: uuid */
+            staffMemberId: string;
+            /** Format: uuid */
+            productId: string;
+            /** Format: date-time */
+            startAt: string;
+            /** Format: date-time */
+            endAt: null | string;
+            note: null | string;
+        };
+        AppointmentResponse: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            contactId: string;
+            contactName: string;
+            contactPhone: null | string;
+            /** Format: uuid */
+            staffMemberId: string;
+            staffName: string;
+            /** Format: uuid */
+            productId: string;
+            serviceName: string;
+            /** Format: date-time */
+            startAt: string;
+            /** Format: date-time */
+            endAt: string;
+            status: components["schemas"]["AppointmentStatus"];
+            source: components["schemas"]["AppointmentSource"];
+            note: null | string;
+            /** Format: uuid */
+            saleId: null | string;
+            saleNo: null | string;
+            /** Format: date-time */
+            createdAt: string;
+            createdByName: null | string;
+            /** Format: date-time */
+            cancelledAt: null | string;
+            cancelReason: null | string;
+        };
+        AppointmentSaleDraft: {
+            /** Format: uuid */
+            appointmentId: string;
+            /** Format: uuid */
+            contactId: string;
+            contactName: string;
+            /** Format: uuid */
+            productId: string;
+            description: string;
+            /** Format: double */
+            unitPrice: number;
+            /** Format: uuid */
+            staffMemberId: string;
+            staffName: string;
+        };
+        AppointmentSavedResponse: {
+            appointment: components["schemas"]["AppointmentResponse"];
+            warnings: string[];
+        };
+        AppointmentSettingsRequest: {
+            staffSeesOnlyOwn: boolean;
+        };
+        AppointmentSettingsResponse: {
+            staffSeesOnlyOwn: boolean;
+        };
+        /** @enum {unknown} */
+        AppointmentSource: "Panel" | "Online";
+        /** @enum {unknown} */
+        AppointmentStatus: "Pending" | "Confirmed" | "Completed" | "NoShow" | "Cancelled";
+        AppointmentUpdateRequest: {
+            /** Format: uuid */
+            staffMemberId: string;
+            /** Format: uuid */
+            productId: string;
+            /** Format: date-time */
+            startAt: string;
+            /** Format: date-time */
+            endAt: string;
+            note: null | string;
+        };
         AssigneeResponse: {
             /** Format: uuid */
             userId: string;
             fullName: string;
         };
         /** @enum {unknown} */
-        AuditAction: "Login" | "InvitationSent" | "InvitationResent" | "InvitationRevoked" | "InvitationAccepted" | "RoleChanged" | "MemberRemoved" | "BusinessUpdated" | "SlugChanged" | "WorkingHoursUpdated" | "LogoChanged" | "ModulesChanged" | "PaymentInfoChanged" | "ReceiptSettingsChanged" | "ContactCreated" | "ContactUpdated" | "ContactArchived" | "ContactRestored" | "ContactDeleted" | "ContactsImported" | "ContactsExported" | "LedgerEntryCreated" | "LedgerEntryDeleted" | "OpeningBalanceSet" | "CollectionRecorded" | "CollectionReverted" | "PaymentRequestCreated" | "PaymentRequestConfirmed" | "PaymentRequestRejected" | "PaymentRequestCancelled" | "PaymentRequestRenewed" | "StatementShared" | "ProductCreated" | "ProductUpdated" | "ProductDeleted" | "ProductsImported" | "ProductsExported" | "StockMovementAdded" | "SaleDiscounted" | "SaleCancelled" | "SalesExported" | "QuoteCreated" | "QuoteUpdated" | "QuoteShared" | "QuoteRenewed" | "QuoteExtended" | "QuoteAccepted" | "QuoteRejected" | "QuoteConverted" | "QuoteDeleted" | "CashAccountCreated" | "CashAccountUpdated" | "CashAccountDeactivated" | "CashAccountActivated" | "DefaultCashAccountChanged" | "CashTransferRecorded" | "CashTransactionReversed" | "SupplierPaymentRecorded" | "ExpenseRecorded" | "IncomeRecorded" | "ExpenseCategoryCreated" | "ExpenseCategoryUpdated" | "ExpenseCategoryDeactivated" | "ExpenseCategoryActivated" | "DueReminderSent" | "FinanceSettingsChanged" | "ReportExported" | "CashTransactionsExported";
+        AuditAction: "Login" | "InvitationSent" | "InvitationResent" | "InvitationRevoked" | "InvitationAccepted" | "RoleChanged" | "MemberRemoved" | "BusinessUpdated" | "SlugChanged" | "WorkingHoursUpdated" | "LogoChanged" | "ModulesChanged" | "PaymentInfoChanged" | "ReceiptSettingsChanged" | "ContactCreated" | "ContactUpdated" | "ContactArchived" | "ContactRestored" | "ContactDeleted" | "ContactsImported" | "ContactsExported" | "LedgerEntryCreated" | "LedgerEntryDeleted" | "OpeningBalanceSet" | "CollectionRecorded" | "CollectionReverted" | "PaymentRequestCreated" | "PaymentRequestConfirmed" | "PaymentRequestRejected" | "PaymentRequestCancelled" | "PaymentRequestRenewed" | "StatementShared" | "ProductCreated" | "ProductUpdated" | "ProductDeleted" | "ProductsImported" | "ProductsExported" | "StockMovementAdded" | "SaleDiscounted" | "SaleCancelled" | "SalesExported" | "QuoteCreated" | "QuoteUpdated" | "QuoteShared" | "QuoteRenewed" | "QuoteExtended" | "QuoteAccepted" | "QuoteRejected" | "QuoteConverted" | "QuoteDeleted" | "CashAccountCreated" | "CashAccountUpdated" | "CashAccountDeactivated" | "CashAccountActivated" | "DefaultCashAccountChanged" | "CashTransferRecorded" | "CashTransactionReversed" | "SupplierPaymentRecorded" | "ExpenseRecorded" | "IncomeRecorded" | "ExpenseCategoryCreated" | "ExpenseCategoryUpdated" | "ExpenseCategoryDeactivated" | "ExpenseCategoryActivated" | "DueReminderSent" | "FinanceSettingsChanged" | "ReportExported" | "CashTransactionsExported" | "StaffCreated" | "StaffUpdated" | "StaffDeleted" | "StaffWorkingHoursUpdated" | "StaffServicesUpdated" | "HolidayCreated" | "HolidayDeleted" | "AppointmentSettingsChanged";
         AuditLogListResponse: {
             items: components["schemas"]["AuditLogResponse"][];
             /** Format: int32 */
@@ -7210,6 +8395,43 @@ export interface components {
         BusinessSector: "HairBarber" | "BeautyCare" | "ClinicHealth" | "SportsFitness" | "AutoService" | "RetailStore" | "CafeRestaurant" | "Other";
         /** @enum {unknown} */
         BusinessTemplate: "Service" | "Retail" | "General";
+        CalendarDay: {
+            /** Format: date */
+            date: string;
+            closed: boolean;
+            holidayName: null | string;
+            opens: null | string;
+            closes: null | string;
+        };
+        CalendarResponse: {
+            /** Format: date */
+            from: string;
+            /** Format: date */
+            to: string;
+            days: components["schemas"]["CalendarDay"][];
+            staff: components["schemas"]["CalendarStaff"][];
+            appointments: components["schemas"]["AppointmentResponse"][];
+            timeOffs: components["schemas"]["TimeOffResponse"][];
+            onlyOwn: boolean;
+            /** Format: uuid */
+            myStaffId: null | string;
+        };
+        CalendarStaff: {
+            /** Format: uuid */
+            id: string;
+            fullName: string;
+            title: null | string;
+            color: components["schemas"]["StaffColor"];
+            days: components["schemas"]["CalendarStaffDay"][];
+        };
+        CalendarStaffDay: {
+            /** Format: date */
+            date: string;
+            ranges: components["schemas"]["TimeRangeDto"][];
+        };
+        CancelAppointmentRequest: {
+            reason: null | string;
+        };
         CancelSaleRequest: {
             reason: null | string;
         };
@@ -7373,6 +8595,10 @@ export interface components {
             at: null | string;
             source: null | components["schemas"]["ConsentSource"];
         };
+        ContactAppointmentsResponse: {
+            items: components["schemas"]["AppointmentResponse"][];
+            noShow: null | components["schemas"]["NoShowWarning"];
+        };
         ContactFilter: {
             type?: null | string;
             tagIds?: null | string[];
@@ -7493,7 +8719,7 @@ export interface components {
             createdAt: string;
         };
         /** @enum {unknown} */
-        ContactSource: "Instagram" | "Google" | "Referral" | "WalkIn" | "Facebook" | "TikTok" | "Other" | null;
+        ContactSource: "Instagram" | "Google" | "Referral" | "WalkIn" | "Facebook" | "TikTok" | "Other" | "OnlineBooking" | null;
         ConvertQuoteRequest: {
             payments: null | components["schemas"]["SalePaymentRequest"][];
             note: null | string;
@@ -7524,6 +8750,26 @@ export interface components {
             /** Format: double */
             balance: number;
         };
+        DashboardAppointment: {
+            /** Format: uuid */
+            id: string;
+            /** Format: date-time */
+            startAt: string;
+            /** Format: date-time */
+            endAt: string;
+            contactName: string;
+            serviceName: string;
+            staffName: string;
+            status: components["schemas"]["AppointmentStatus"];
+        };
+        DashboardAppointments: {
+            /** Format: int32 */
+            total: number;
+            /** Format: int32 */
+            pending: number;
+            onlyOwn: boolean;
+            items: components["schemas"]["DashboardAppointment"][];
+        };
         DashboardReceivables: {
             /** Format: double */
             overdue: number;
@@ -7545,6 +8791,7 @@ export interface components {
             stock: components["schemas"]["DashboardStock"];
             recentSales: components["schemas"]["DashboardSale"][];
             last30Days: components["schemas"]["DailyTotal"][];
+            appointments: null | components["schemas"]["DashboardAppointments"];
         };
         DashboardSale: {
             /** Format: uuid */
@@ -7695,6 +8942,18 @@ export interface components {
         };
         ForgotPasswordRequest: {
             email: string;
+        };
+        HolidayRequest: {
+            /** Format: date */
+            date: string;
+            name: string;
+        };
+        HolidayResponse: {
+            /** Format: uuid */
+            id: string;
+            /** Format: date */
+            date: string;
+            name: string;
         };
         HttpValidationProblemDetails: {
             type?: null | string;
@@ -7938,6 +9197,16 @@ export interface components {
         ModulesDto: {
             appointments: boolean;
             stock: boolean;
+        };
+        MyStaffResponse: {
+            /** Format: uuid */
+            staffMemberId: null | string;
+        };
+        NoShowWarning: {
+            /** Format: int32 */
+            noShows: number;
+            /** Format: int32 */
+            of: number;
         };
         NoteRequest: {
             body: string;
@@ -8496,6 +9765,8 @@ export interface components {
             note: null | string;
             /** Format: date */
             dueDate?: null | string;
+            /** Format: uuid */
+            appointmentId?: null | string;
         };
         SaleResponse: {
             /** Format: uuid */
@@ -8535,6 +9806,9 @@ export interface components {
             quoteNo: null | string;
             /** Format: date */
             dueDate: null | string;
+            /** Format: uuid */
+            appointmentId: null | string;
+            staffName: null | string;
         };
         SalesReportResponse: {
             /** Format: date */
@@ -8650,6 +9924,45 @@ export interface components {
             valid: boolean;
             available: boolean;
             message: null | string;
+        };
+        /** @enum {unknown} */
+        StaffColor: "Black" | "DarkGray" | "Gray" | "LightGray" | "Blue" | "Outline";
+        StaffDayDto: {
+            day: components["schemas"]["DayOfWeek"];
+            ranges: components["schemas"]["TimeRangeDto"][];
+        };
+        StaffRequest: {
+            fullName: string;
+            title: null | string;
+            phone: null | string;
+            color: components["schemas"]["StaffColor"];
+            showInBooking: boolean;
+            /** Format: uuid */
+            userId: null | string;
+            isActive: boolean;
+        };
+        StaffResponse: {
+            /** Format: uuid */
+            id: string;
+            fullName: string;
+            title: null | string;
+            phone: null | string;
+            color: components["schemas"]["StaffColor"];
+            showInBooking: boolean;
+            /** Format: uuid */
+            userId: null | string;
+            userName: null | string;
+            isActive: boolean;
+            /** Format: int32 */
+            sortOrder: number;
+            allServices: boolean;
+            serviceIds: string[];
+        };
+        StaffServicesRequest: {
+            productIds: string[];
+        };
+        StaffWorkingHoursDto: {
+            days: components["schemas"]["StaffDayDto"][];
         };
         StatementShareRequest: {
             /** Format: date */
@@ -8772,6 +10085,32 @@ export interface components {
             items: components["schemas"]["TimelineItem"][];
             /** Format: date-time */
             nextBefore: null | string;
+        };
+        /** @enum {unknown} */
+        TimeOffKind: "Break" | "Leave" | "Other";
+        TimeOffRequest: {
+            /** Format: date-time */
+            startAt: string;
+            /** Format: date-time */
+            endAt: string;
+            kind: components["schemas"]["TimeOffKind"];
+            note: null | string;
+        };
+        TimeOffResponse: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            staffMemberId: string;
+            /** Format: date-time */
+            startAt: string;
+            /** Format: date-time */
+            endAt: string;
+            kind: components["schemas"]["TimeOffKind"];
+            note: null | string;
+        };
+        TimeRangeDto: {
+            start: string;
+            end: string;
         };
         /** @enum {unknown} */
         TopProductKind: "Product" | "Service" | "Free";

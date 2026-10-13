@@ -274,7 +274,9 @@ export function ContactForm({ contact, supplier = false }: { contact?: Contact; 
         <Field label="Bizi nereden buldu?">
           <select className={selectClass} {...register("source")}>
             <option value="">Seçin</option>
-            {Object.entries(sourceNames).map(([value, label]) => (
+            {Object.entries(sourceNames)
+              .filter(([value]) => value !== "OnlineBooking" || value === contact?.source)
+              .map(([value, label]) => (
               <option key={value} value={value}>
                 {label}
               </option>

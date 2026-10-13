@@ -1,4 +1,5 @@
 import { createContact, createProduct, createQuote, createSale, line } from "./support/api";
+import { book, createService, createStaff, pastSlot } from "./support/appointments";
 import { test } from "./support/test";
 
 /**
@@ -30,6 +31,10 @@ test("panel ekranları (Sahip, dolu veri)", async ({ owner, ownerPage: page, vis
   const sale = await createSale(owner, [line(product.id, 2)], [{ method: "Credit", amount: 499.8 }], contact.id);
   const quote = await createQuote(owner, contact.id, [line(product.id, 1)]);
   const accounts = await owner.get<{ id: string }[]>("/api/cash-accounts");
+  const service = await createService(owner, "Saç kesimi", 45);
+  const staff = await createStaff(owner, "Zeynep Usta");
+  const slot = pastSlot(90);
+  const appointment = await book(owner, { contactId: contact.id, staffId: staff.id, serviceId: service.id, startAt: slot.iso });
 
   const screens: [string, string][] = [
     ["/panel", "Bugün"],
@@ -72,6 +77,17 @@ test("panel ekranları (Sahip, dolu veri)", async ({ owner, ownerPage: page, vis
     ["/panel/ayarlar/ekip", "Ekip"],
     ["/panel/ayarlar/aktivite", "Aktivite günlüğü"],
     ["/panel/hesabim", "Hesabım"],
+    [`/panel/randevular?tarih=${slot.day}`, "Takvim · gün"],
+    [`/panel/randevular?gorunum=hafta&tarih=${slot.day}`, "Takvim · hafta"],
+    [`/panel/randevular?tarih=${slot.day}&randevu=${appointment.id}`, "Randevu ayrıntısı"],
+    [`/panel/musteriler/${contact.id}?sekme=randevular`, "Müşteri kartı · randevular"],
+    ["/panel/personel", "Personel"],
+    ["/panel/personel/yeni", "Personel ekle"],
+    [`/panel/personel/${staff.id}`, "Personel kartı"],
+    [`/panel/personel/${staff.id}?sekme=saatler`, "Personel · çalışma saatleri"],
+    [`/panel/personel/${staff.id}?sekme=hizmetler`, "Personel · hizmetler"],
+    [`/panel/personel/${staff.id}?sekme=kapali`, "Personel · kapalı zamanlar"],
+    ["/panel/ayarlar/randevu", "Randevu ayarları"],
   ];
   for (const [url, name] of screens) await visit(page, url, name);
 });

@@ -10,7 +10,7 @@ Parantez içindeki rakip adı, fikrin nereden alındığını gösterir.
 - **Ekip ve roller:** E-posta ile davet. 4 sabit rol:
   - Owner (Sahip): her şey, maaş ve abonelik dahil.
   - Manager (Yönetici): maaş ve abonelik hariç her şey.
-  - Staff (Personel): kendi randevuları, satış girme, müşteri görme; finans raporlarını göremez.
+  - Staff (Personel): takvimi görür, herkes için randevu açar ve taşır (Ayarlar'dan "sadece kendi randevularını görsün" seçilebilir; karar 2026-10-13), satış girme, müşteri görme; finans raporlarını göremez.
   - Accountant (Mali Müşavir): ücretsiz, salt okunur; raporları ve hareketleri Excel olarak indirir (KolayBi, Paraşüt).
   - Kullanıcı sayısı pakete göre sınırlı; mali müşavir sınıra sayılmaz.
 - **Ortak araçlar:** uygulama içi bildirimler, Ctrl+K genel arama (müşteri, ürün, satış), aktivite günlüğü, Excel'den müşteri ve ürün içe aktarma (şablon indirilebilir).

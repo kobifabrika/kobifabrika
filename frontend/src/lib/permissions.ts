@@ -32,6 +32,12 @@ const matrix = {
   cancelSales: ["Owner", "Manager"],
   /** Excel'e aktarma. */
   exportData: ["Owner", "Manager", "Accountant"],
+  /** Personel ekranı (Mali Müşavir salt okunur; Personel menüde görmez). */
+  viewStaff: ["Owner", "Manager", "Accountant"],
+  /** Personel ekleme/düzenleme, çalışma saatleri, hizmetler, izin; tatil günleri ve randevu ayarları. */
+  manageStaff: ["Owner", "Manager"],
+  /** Randevu açma, taşıma, durum değiştirme (karar a: Personel herkes için; ayar açıksa sadece kendisi). */
+  writeAppointments: ["Owner", "Manager", "Staff"],
 } as const satisfies Record<string, readonly Role[]>;
 
 export type Permission = keyof typeof matrix;

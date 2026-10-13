@@ -80,6 +80,47 @@ export type ReceivablesReport = Schemas["ReceivablesReportResponse"];
 export type IncomeExpenseReport = Schemas["IncomeExpenseResponse"];
 export type ReportGroupBy = Schemas["ReportGroupBy"];
 
+// Personel ve randevu (Sprint 5)
+export type Staff = Schemas["StaffResponse"];
+export type StaffRequest = Schemas["StaffRequest"];
+export type StaffColor = Schemas["StaffColor"];
+export type StaffWorkingHours = Schemas["StaffWorkingHoursDto"];
+export type StaffDay = Schemas["StaffDayDto"];
+export type TimeRange = Schemas["TimeRangeDto"];
+export type TimeOff = Schemas["TimeOffResponse"];
+export type TimeOffKind = Schemas["TimeOffKind"];
+export type Holiday = Schemas["HolidayResponse"];
+export type Appointment = Schemas["AppointmentResponse"];
+export type AppointmentStatus = Schemas["AppointmentStatus"];
+export type AppointmentSaved = Schemas["AppointmentSavedResponse"];
+export type AppointmentCheck = Schemas["AppointmentCheckResponse"];
+export type AppointmentSaleDraft = Schemas["AppointmentSaleDraft"];
+export type Calendar = Schemas["CalendarResponse"];
+export type CalendarStaff = Schemas["CalendarStaff"];
+export type CalendarDay = Schemas["CalendarDay"];
+export type ContactAppointments = Schemas["ContactAppointmentsResponse"];
+export type NoShowWarning = Schemas["NoShowWarning"];
+export type DashboardAppointments = Schemas["DashboardAppointments"];
+
+export const staffColorNames: Record<StaffColor, string> = {
+  Black: "Siyah",
+  DarkGray: "Koyu gri",
+  Gray: "Gri",
+  LightGray: "Açık gri",
+  Blue: "Mavi",
+  Outline: "Çerçeveli",
+};
+
+export const timeOffKindNames: Record<TimeOffKind, string> = { Break: "Mola", Leave: "İzin", Other: "Kapalı" };
+
+export const appointmentStatusNames: Record<AppointmentStatus, string> = {
+  Pending: "Beklemede",
+  Confirmed: "Onaylı",
+  Completed: "Tamamlandı",
+  NoShow: "Gelmedi",
+  Cancelled: "İptal",
+};
+
 export const cashAccountTypeNames: Record<CashAccountType, string> = { Cash: "Nakit", Bank: "Banka" };
 
 /** Kaynak listesi sabit; sıra arayüzdeki sıradır. */
@@ -91,6 +132,7 @@ export const sourceNames: Record<ContactSource, string> = {
   Facebook: "Facebook",
   TikTok: "TikTok",
   Other: "Diğer",
+  OnlineBooking: "Online randevu",
 };
 
 export const consentNames: Record<ConsentChannel, string> = { Sms: "SMS", Email: "E-posta", Call: "Arama" };
