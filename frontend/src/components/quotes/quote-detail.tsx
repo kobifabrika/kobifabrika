@@ -17,6 +17,7 @@ import { QuoteStatusBadge, quotesKey, useQuotesRefresh } from "@/components/quot
 import { PaymentForm, initialPayment, paymentDrafts, type PaymentState } from "@/components/sales/payment-form";
 import { salesKey } from "@/components/sales/quick-sale";
 import { LineList } from "@/components/sales/sale-detail";
+import { SaleExtras, initialSaleExtras, type SaleExtrasState } from "@/components/sales/sale-extras";
 import { TotalsSummary } from "@/components/sales/totals";
 import { Button } from "@/components/ui/button";
 import {
@@ -36,8 +37,8 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { API_URL, ApiError, api, errorMessage, problemCode, unwrap } from "@/lib/api/client";
 import type { Quote, QuoteStatus } from "@/lib/api/types";
-import { paymentError } from "@/lib/cart";
-import { formatDateTime, formatDay, formatMoney } from "@/lib/format";
+import { defaultDueDate, dueDateError, paymentError, type PaymentDraft } from "@/lib/cart";
+import { formatDateTime, formatDay, formatMoney, todayIstanbul } from "@/lib/format";
 import { can } from "@/lib/permissions";
 
 const steps: { status: QuoteStatus; label: string }[] = [
@@ -446,22 +447,34 @@ function RespondDialog({
   );
 }
 
-/** Satışa dönüştür: kalemler ve tutar tekliften; ödeme seçilir (varsayılan tamamı veresiye → müşterinin carisine). */
-function ConvertDialog({ quote, onClose }: { quote: Quote; onClose: () => void }) {
+/**
+ * Satışa dönüştür: kalemler ve tutar tekliften; ödeme seçilir (varsayılan tamamı veresiye → müşterinin carisine).
+ * Veresiye varsa vade (varsayılan bugün + Ayarlar'daki gün) ve gerekirse paranın gireceği hesap satış ekranındaki gibi seçilir.
+ */
+export function ConvertDialog({ quote, onClose }: { quote: Quote; onClose: () => void }) {
+  const { business } = useSession();
   const queryClient = useQueryClient();
   const router = useRouter();
   const [payment, setPayment] = useState<PaymentState>(initialPayment("Credit"));
+  const [extras, setExtras] = useState<SaleExtrasState>(initialSaleExtras);
   const [submitted, setSubmitted] = useState(false);
   const drafts = paymentDrafts(payment, quote.total);
-  const problem = paymentError(quote.total, drafts, true);
+  const today = todayIstanbul();
+  const suggestedDue = defaultDueDate(today, business.defaultDueDays);
+  const hasCredit = drafts.some((p) => p.method === "Credit");
+  const dueError = hasCredit ? dueDateError(extras.dueDate, today) : null;
+  const problem = paymentError(quote.total, drafts, true) ?? dueError;
+  const accountFor = (p: PaymentDraft) =>
+    p.method === "Cash" ? extras.cashAccountId || null : p.method === "Credit" ? null : extras.bankAccountId || null;
   const convert = useMutation({
     mutationFn: () =>
       unwrap(
         api.POST("/api/quotes/{id}/convert", {
           params: { path: { id: quote.id } },
           body: {
-            payments: drafts.map((p) => ({ method: p.method, amount: p.amount, cashAccountId: null })),
+            payments: drafts.map((p) => ({ method: p.method, amount: p.amount, cashAccountId: accountFor(p) })),
             note: null,
+            dueDate: hasCredit ? extras.dueDate || suggestedDue : null,
           },
         }),
       ),
@@ -488,6 +501,14 @@ function ConvertDialog({ quote, onClose }: { quote: Quote; onClose: () => void }
       <div className="flex flex-col gap-4">
         <TotalsSummary totals={quote} />
         <PaymentForm total={quote.total} value={payment} onChange={setPayment} />
+        <SaleExtras
+          drafts={drafts}
+          value={extras}
+          onChange={setExtras}
+          defaultDueDate={suggestedDue}
+          today={today}
+          dueError={submitted ? dueError : null}
+        />
         {submitted && problem && (
           <p role="alert" className="text-sm text-danger-600">
             {problem}

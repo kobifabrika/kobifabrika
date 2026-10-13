@@ -216,6 +216,30 @@ public sealed partial class QuoteTests(SqlServerFixture db) : ApiTestBase(db)
     }
 
     [Fact]
+    public async Task Converted_credit_sale_gets_the_chosen_or_default_due_date()
+    {
+        var (owner, contactId, productId) = await ShopAsync();
+        var today = BusinessTime.Today(Factory.Clock);
+        async Task<Guid> AcceptedAsync()
+        {
+            var id = (await CreateQuoteAsync(owner.Client, Body(contactId, [SaleTests.Line(productId)]))).GetProperty("id").GetGuid();
+            await PostAsync(owner.Client, $"/api/quotes/{id}/mark-accepted", new { note = (string?)null });
+            return id;
+        }
+
+        var past = await AcceptedAsync();
+        (await ProblemAsync(await owner.Client.PostAsJsonAsync($"/api/quotes/{past}/convert",
+                new { dueDate = today.AddDays(-1).ToString("yyyy-MM-dd") }, Ct), HttpStatusCode.BadRequest))
+            .GetProperty("errors").GetProperty("dueDate")[0].GetString().ShouldBe("Vade tarihi satış tarihinden önce olamaz.");
+
+        var chosen = await PostAsync(owner.Client, $"/api/quotes/{past}/convert", new { dueDate = today.AddDays(45).ToString("yyyy-MM-dd") });
+        chosen.GetProperty("sale").GetProperty("dueDate").GetString().ShouldBe(today.AddDays(45).ToString("yyyy-MM-dd"));
+
+        var fallback = await PostAsync(owner.Client, $"/api/quotes/{await AcceptedAsync()}/convert", new { });
+        fallback.GetProperty("sale").GetProperty("dueDate").GetString().ShouldBe(today.AddDays(30).ToString("yyyy-MM-dd"));
+    }
+
+    [Fact]
     public async Task Rejected_quote_cannot_be_accepted_or_converted()
     {
         var (owner, contactId, productId) = await ShopAsync();

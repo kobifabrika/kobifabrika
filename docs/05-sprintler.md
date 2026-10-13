@@ -2,7 +2,7 @@
 
 Tahmini, yarı zamanlı. Toplam yaklaşık 15-18 hafta. Her sprint sonunda: build ve testler geçer, ekranlar 375px'te kontrol edilir, bu dosyada maddeler işaretlenir, `docs/karar-gunlugu.md` güncellenir, commit atılır.
 
-**Durum:** Sprint 4 tamamlandı (2026-10-12): kasa/banka, gelir-gider, vade listesi ve hatırlatma, Bugün ekranı ve ilk dört rapor. Sıradaki: Sprint 5 (Randevu). Hangfire Sprint 5'ten öne çekildi (Sprint 2); Raporlar'ın ilk dördü Sprint 7'den öne çekildi (Sprint 4).
+**Durum:** Sprint 4 tamamlandı (2026-10-12; kapanış doğrulaması 2026-10-13, tam `.\test.ps1` yeşil: backend 363, lint, Vitest 200, build, E2E 84): kasa/banka, gelir-gider, vade listesi ve hatırlatma, Bugün ekranı ve ilk dört rapor. Sıradaki: Sprint 5 (Randevu). Hangfire Sprint 5'ten öne çekildi (Sprint 2); Raporlar'ın ilk dördü Sprint 7'den öne çekildi (Sprint 4).
 
 ---
 

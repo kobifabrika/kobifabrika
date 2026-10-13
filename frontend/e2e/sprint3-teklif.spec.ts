@@ -59,9 +59,16 @@ test("teklif: hazırla, paylaş, müşteri onayı, bildirim, satışa dönüşt�
   // Satışa dönüştür (varsayılan veresiye)
   await page.goto(`/panel/teklifler/${quoteId}`);
   await page.getByRole("button", { name: "Satışa dönüştür" }).click();
+  // Veresiye seçili: vade alanı varsayılan tarihle (bugün + 30) görünür; başka bir tarih seçilir.
+  const dueInput = page.getByRole("dialog").getByLabel("Vade");
+  await expect(dueInput).toHaveValue(/^\d{4}-\d{2}-\d{2}$/);
   await check(page, "Satışa dönüştür");
+  const due = new Date(Date.now() + 45 * 86_400_000).toISOString().slice(0, 10);
+  await dueInput.fill(due);
   await page.getByRole("button", { name: /Satışı kaydet/ }).click();
   await expect(page).toHaveURL(/\/panel\/satislar\/[0-9a-f-]{36}$/);
+  const saleId = page.url().split("/").pop()!;
+  expect((await owner.get<{ dueDate: string | null }>(`/api/sales/${saleId}`)).dueDate).toBe(due);
   await expect(page.getByText(/Teklif TKL-\d{4}-\d{4}/).first()).toBeVisible();
   expect((await owner.get<{ balance: number }>(`/api/contacts/${contact.id}`)).balance).toBe(288);
   const quote = await owner.get<{ status: string }>(`/api/quotes/${quoteId}`);

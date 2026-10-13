@@ -2,6 +2,10 @@
 
 En yeni en üstte. Notion'daki "Proje Planı ve Kararlar" sayfasıyla aynı kararlar; teknik kararlar burada daha ayrıntılı.
 
+- **2026-10-13 (Sprint 4 kapanışı):**
+  - Teklifi satışa dönüştürme penceresi satış ekranıyla aynı ek alanları gösterir: veresiye varsa **Vade** (varsayılan bugün + Ayarlar'daki gün, geçmiş tarih kabul edilmez), birden fazla aktif kasa/banka varsa paranın gireceği hesap. Backend `dueDate`'i zaten kabul ediyordu; arayüz göndermiyordu.
+  - Sprint 4, tam `.\test.ps1` koşusu yeşil olunca kapandı (888 test, 0 kalan). 16 GB makinede en çok belleği Docker'ın WSL sanal makinesi (vmmemWSL, ~3,6 GB; SQL Server konteynerleri) ve backend test süreci (~1,7 GB) kullanıyor; E2E'de Next ve Playwright node süreçleri ~2,2 GB. Arka planda açık başka uygulamalar varken boş bellek 150 MB'a iniyor; `.wslconfig` ile sınır şimdilik konmadı.
+
 - **2026-10-12 (Sprint 4, ürün):**
   - Adresler: `/panel` (Bugün), `/panel/cari-kasa` sekmeleri `?sekme=bakiyeler|vadeler|kasa|gelir-gider|tahsilat-linkleri|tedarikciler` (vadelerde `&filtre=gecikmis|bugun|bu-hafta|ileri`), `/panel/cari-kasa/hesaplar/[id]` (hesap kartı), `/panel/cari-kasa/gelir-gider/yeni?tur=gider|gelir`, `/panel/ayarlar/finans`, `/panel/raporlar?rapor=satislar|urunler|alacaklar|gelir-gider&aralik=bugun|bu-hafta|bu-ay|gecen-ay|bu-yil|ozel&from&to&kirilim=gun|hafta|ay&siralama=adet|tutar`.
   - **Maaş (karar a):** maaş kategorisinin (`SystemKey=salary`) satır ayrıntısını (açıklama, kategori, belge no) Sahip ve Mali Müşavir görür. Yönetici listede, hesap hareketlerinde, raporlarda ve Excel'de "Personel gideri" / "Personel giderleri" olarak tutarla görür (bakiye zaten içerir). Maaş gideri kaydını ve ters kaydını **sadece Sahip** yapar (403 `salary_owner_only`).
