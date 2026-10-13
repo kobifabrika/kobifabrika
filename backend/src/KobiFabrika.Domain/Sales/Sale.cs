@@ -48,6 +48,10 @@ public class Sale : TenantEntity
     public Guid? CancelledBy { get; set; }
     public string? CancelReason { get; set; }
     public Guid? QuoteId { get; set; }
+
+    /// <summary>Randevudan çevrilen satış (tamamlanmış satışlar arasında randevu başına bir tane).</summary>
+    public Guid? AppointmentId { get; set; }
+
     public string? Note { get; set; }
 
     public List<SaleLine> Lines { get; set; } = [];
@@ -85,6 +89,9 @@ public abstract class DocumentLine : TenantEntity
 public class SaleLine : DocumentLine
 {
     public Guid SaleId { get; set; }
+
+    /// <summary>Hizmeti veren personel (randevudan gelir; Sprint 7'de prim hesabı kullanır).</summary>
+    public Guid? StaffMemberId { get; set; }
 }
 
 /// <summary>Satışın ödemesi (bölünmüş ödemede birden fazla). Veresiye cari hareketine, diğerleri kasa/banka hareketine bağlanır.</summary>

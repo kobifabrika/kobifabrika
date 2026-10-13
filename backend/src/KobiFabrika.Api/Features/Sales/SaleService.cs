@@ -1,5 +1,8 @@
+using KobiFabrika.Api.Common;
 using KobiFabrika.Api.Features.Catalog;
+using KobiFabrika.Api.Features.Customers;
 using KobiFabrika.Api.Features.Finance;
+using KobiFabrika.Domain.Appointments;
 using KobiFabrika.Domain.Auditing;
 using KobiFabrika.Domain.Catalog;
 using KobiFabrika.Domain.Common;
@@ -14,15 +17,19 @@ namespace KobiFabrika.Api.Features.Sales;
 
 public sealed record ResolvedPayment(PaymentMethod Method, decimal Amount, CashAccount? Account);
 
+/// <summary>Randevudan çevrilen satış: hizmet satırlarına randevunun personeli yazılır.</summary>
+public sealed record AppointmentLink(Guid AppointmentId, Guid StaffMemberId, Guid ProductId);
+
 /// <summary>DueDate: veresiye kısmının vadesi; boşsa satış günü + işletmenin varsayılan vade günü.</summary>
 public sealed record SaleDraft(
     Guid? ContactId, DateTime DateUtc, ResolvedDocument Document, IReadOnlyList<ResolvedPayment> Payments, string? Note, Guid? QuoteId,
-    DateOnly? DueDate = null);
+    DateOnly? DueDate = null, AppointmentLink? Appointment = null);
 
 /// <summary>
 /// Satışın tek yazıldığı yer. Tek transaction'da: belge numarası → satış, kalemler, ödemeler → veresiye kısmı cariye borç
 /// (LedgerService) → nakit kasaya, kart/havale bankaya (LedgerService) → stok düşümü (StockService, ürünler Id sırasıyla) →
-/// müşterinin son ziyareti. Kilit sırası her yerde aynı: numara → satış → cari → kasa → stok (kilitlenme olmaz).
+/// müşterinin son ziyareti. Kilit sırası her yerde aynı: (randevu →) numara → satış → cari → kasa → stok (kilitlenme olmaz).
+/// Randevudan çevrilen satışta randevu satırı ilk adımda koşullu UPDATE ile bağlanır: ikinci çevirme 409 alır.
 /// İptal kaydı silmez: koşullu UPDATE ile bir kez iptal edilir, cari/kasa/stok ters kayıtla geri alınır.
 /// </summary>
 public sealed class SaleService(
@@ -98,6 +105,22 @@ public sealed class SaleService(
     public Task<(Sale Sale, List<string> Warnings)> CreateAsync(SaleDraft draft, CancellationToken ct) =>
         ledger.InTransactionAsync(async () =>
         {
+            if (draft.Appointment is { } link)
+            {
+                // Randevu satırı ilk adımda kilitlenir (UPDLOCK transaction sonuna kadar tutulur): eşzamanlı ikinci çevirme
+                // bu satırı bekler, sonra randevuyu bağlı görür ve 409 alır.
+                var completed = nameof(AppointmentStatus.Completed);
+                var free = await db.Database.SqlQuery<Guid>($"""
+                    SELECT [Id] AS [Value] FROM [Appointments] WITH (UPDLOCK, ROWLOCK)
+                    WHERE [Id] = {link.AppointmentId} AND [BusinessId] = {tenant.BusinessId} AND [Status] = {completed}
+                      AND [SaleId] IS NULL AND [IsDeleted] = 0
+                    """).ToListAsync(ct);
+                if (free.Count != 1)
+                {
+                    throw new ConflictException("appointment_already_converted", "Bu randevu zaten satışa çevrildi.");
+                }
+            }
+
             var (year, seq, no) = await numbers.NextAsync(DocumentKind.Sale, draft.DateUtc, ct);
             var totals = draft.Document.Totals;
             var sale = new Sale
@@ -116,13 +139,26 @@ public sealed class SaleService(
                 Total = totals.Total,
                 Status = SaleStatus.Completed,
                 QuoteId = draft.QuoteId,
+                AppointmentId = draft.Appointment?.AppointmentId,
                 Note = string.IsNullOrWhiteSpace(draft.Note) ? null : draft.Note.Trim(),
             };
             sale.Lines.AddRange(draft.Document.Lines.Select((l, i) => DocumentLines.ToEntity<SaleLine>(l, i)));
+            if (draft.Appointment is { } appointment)
+            {
+                foreach (var line in sale.Lines.Where(l => l.ProductId == appointment.ProductId))
+                {
+                    line.StaffMemberId = appointment.StaffMemberId;
+                }
+            }
             var payments = draft.Payments.Select(p => new SalePayment { Method = p.Method, Amount = p.Amount, CashAccountId = p.Account?.Id }).ToList();
             sale.Payments.AddRange(payments);
             db.Sales.Add(sale);
             await db.SaveChangesAsync(ct);
+            if (draft.Appointment is { } converted)
+            {
+                await db.Appointments.Where(a => a.Id == converted.AppointmentId)
+                    .ExecuteUpdateAsync(s => s.SetProperty(a => a.SaleId, sale.Id), ct);
+            }
 
             var day = DateOnly.FromDateTime(BusinessTime.ToLocal(draft.DateUtc));
             var description = $"Satış {no}";
@@ -174,8 +210,7 @@ public sealed class SaleService(
 
             if (draft.ContactId is { } contactId)
             {
-                await db.Contacts.Where(c => c.Id == contactId && (c.LastVisitAt == null || c.LastVisitAt < draft.DateUtc))
-                    .ExecuteUpdateAsync(s => s.SetProperty(c => c.LastVisitAt, draft.DateUtc), ct);
+                await ContactVisits.TouchAsync(db, contactId, draft.DateUtc, ct);
             }
 
             var discount = totals.LineDiscountTotal + totals.DiscountTotal;
@@ -242,10 +277,11 @@ public sealed class SaleService(
 
             if (sale.ContactId is { } contactId)
             {
-                var lastVisit = await db.Sales.Where(s => s.ContactId == contactId && s.Status == SaleStatus.Completed)
-                    .MaxAsync(s => (DateTime?)s.Date, ct);
-                await db.Contacts.Where(c => c.Id == contactId).ExecuteUpdateAsync(s => s.SetProperty(c => c.LastVisitAt, lastVisit), ct);
+                await ContactVisits.RecomputeAsync(db, contactId, ct);
             }
+
+            // Randevudan çevrilen satış iptal edilince randevu yeniden satışa çevrilebilir.
+            await db.Appointments.Where(a => a.SaleId == saleId).ExecuteUpdateAsync(s => s.SetProperty(a => a.SaleId, (Guid?)null), ct);
 
             audit.Log(AuditAction.SaleCancelled, nameof(Sale), sale.Id, new { no = sale.No, total = sale.Total, reason = cancelReason });
             await db.SaveChangesAsync(ct);

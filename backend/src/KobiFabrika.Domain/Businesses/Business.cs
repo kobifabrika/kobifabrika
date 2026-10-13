@@ -59,6 +59,9 @@ public class Business : Entity, ISoftDeletable, IAuditable
     /// <summary>Vade bildiriminin son üretildiği yerel gün (aynı gün ikinci bildirim olmaz).</summary>
     public DateOnly? LastDueDigestOn { get; set; }
 
+    /// <summary>Personel rolü takvimde sadece kendi (bağlı olduğu personelin) randevularını görür ve yazar.</summary>
+    public bool StaffSeesOnlyOwnAppointments { get; set; }
+
     /// <summary>Sektörü ve ona bağlı şablonu ayarlar. Kurulumda modüller de şablonun varsayılanına döner.</summary>
     public void SetSector(BusinessSector sector, bool resetModules)
     {

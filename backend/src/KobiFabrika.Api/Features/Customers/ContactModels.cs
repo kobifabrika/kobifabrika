@@ -151,6 +151,7 @@ public static class ContactLabels
         [ContactSource.Facebook] = "Facebook",
         [ContactSource.TikTok] = "TikTok",
         [ContactSource.Other] = "Diğer",
+        [ContactSource.OnlineBooking] = "Online randevu",
     };
 
     public static ContactSource? ParseSource(string? text)

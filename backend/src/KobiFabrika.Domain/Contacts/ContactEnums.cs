@@ -10,6 +10,9 @@ public enum ContactSource
     Facebook,
     TikTok,
     Other,
+
+    /// <summary>Online randevu sayfasından gelen yeni müşteri (sistem yazar).</summary>
+    OnlineBooking,
 }
 
 /// <summary>KVKK/İYS izin kanalı.</summary>

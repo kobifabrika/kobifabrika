@@ -4,6 +4,7 @@ using System.Threading.RateLimiting;
 using FluentValidation;
 using KobiFabrika.Api.Common;
 using KobiFabrika.Api.Common.Authorization;
+using KobiFabrika.Api.Features.Appointments;
 using KobiFabrika.Api.Features.AuditLogs;
 using KobiFabrika.Api.Features.Auth;
 using KobiFabrika.Api.Features.Businesses;
@@ -20,6 +21,7 @@ using KobiFabrika.Api.Features.Public;
 using KobiFabrika.Api.Features.Reference;
 using KobiFabrika.Api.Features.Search;
 using KobiFabrika.Api.Features.Setup;
+using KobiFabrika.Api.Features.Staff;
 using KobiFabrika.Api.Features.SystemInfo;
 using KobiFabrika.Api.Features.Team;
 using Hangfire;
@@ -87,6 +89,7 @@ builder.Services.AddScoped<CashOperations>();
 builder.Services.AddScoped<DocumentNumbers>();
 builder.Services.AddScoped<StockService>();
 builder.Services.AddScoped<SaleService>();
+builder.Services.AddScoped<AppointmentBooking>();
 builder.Services.AddScoped<ISearchProvider, ContactSearchProvider>();
 builder.Services.AddScoped<ISearchProvider, ProductSearchProvider>();
 builder.Services.AddScoped<ISearchProvider, SaleSearchProvider>();
@@ -201,6 +204,8 @@ app.MapProductImportEndpoints();
 app.MapStockEndpoints();
 app.MapSaleEndpoints();
 app.MapQuoteEndpoints();
+app.MapStaffEndpoints();
+app.MapAppointmentEndpoints();
 
 if (BackgroundJobs.IsEnabled(app.Configuration))
 {

@@ -75,6 +75,14 @@ public enum AuditAction
     FinanceSettingsChanged,
     ReportExported,
     CashTransactionsExported,
+    StaffCreated,
+    StaffUpdated,
+    StaffDeleted,
+    StaffWorkingHoursUpdated,
+    StaffServicesUpdated,
+    HolidayCreated,
+    HolidayDeleted,
+    AppointmentSettingsChanged,
 }
 
 /// <summary>

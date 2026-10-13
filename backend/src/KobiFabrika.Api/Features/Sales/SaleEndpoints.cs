@@ -4,6 +4,8 @@ using KobiFabrika.Api.Common.Authorization;
 using KobiFabrika.Api.Features.Catalog;
 using KobiFabrika.Api.Features.Customers;
 using KobiFabrika.Api.Features.Finance;
+using KobiFabrika.Api.Features.Staff;
+using KobiFabrika.Domain.Appointments;
 using KobiFabrika.Domain.Auditing;
 using KobiFabrika.Domain.Common;
 using KobiFabrika.Domain.Sales;
@@ -71,6 +73,9 @@ public static class SaleEndpoints
         var creditEntryIds = sale.Payments.Select(p => p.LedgerEntryId).OfType<Guid>().ToList();
         var dueDate = creditEntryIds.Count == 0 ? null : await db.LedgerEntries.IgnoreQueryFilters([QueryFilters.SoftDelete])
             .Where(e => creditEntryIds.Contains(e.Id)).Select(e => e.DueDate).FirstOrDefaultAsync(ct);
+        var staffId = sale.Lines.Select(l => l.StaffMemberId).OfType<Guid>().FirstOrDefault();
+        var staffName = staffId == Guid.Empty ? null : await db.StaffMembers.IgnoreQueryFilters([QueryFilters.SoftDelete])
+            .Where(s => s.Id == staffId).Select(s => s.FullName).FirstOrDefaultAsync(ct);
 
         return new SaleResponse(
             sale.Id, sale.No, sale.Date, sale.ContactId, contact?.DisplayName, contact?.Phone, sale.Status,
@@ -80,7 +85,8 @@ public static class SaleEndpoints
             sale.Payments.OrderBy(p => p.Method).Select(p => new SalePaymentResponse(
                 p.Id, p.Method, p.Amount, p.CashAccountId, p.CashAccountId is { } a ? accounts.GetValueOrDefault(a) : null)).ToList(),
             sale.Note, sale.CreatedBy, sale.CreatedBy is { } c ? users.GetValueOrDefault(c) : null,
-            sale.CancelledAt, sale.CancelledBy is { } cb ? users.GetValueOrDefault(cb) : null, sale.CancelReason, sale.QuoteId, quoteNo, dueDate);
+            sale.CancelledAt, sale.CancelledBy is { } cb ? users.GetValueOrDefault(cb) : null, sale.CancelReason, sale.QuoteId, quoteNo, dueDate,
+            sale.AppointmentId, staffName);
     }
 
     private static IQueryable<Sale> Filter(
@@ -191,6 +197,37 @@ public static class SaleEndpoints
             return Validation.FieldProblem(paymentField!, paymentError!);
         }
 
+        AppointmentLink? appointment = null;
+        if (request.AppointmentId is { } appointmentId)
+        {
+            var scope = await StaffAccess.ScopeAsync(db, member, ct);
+            var row = await db.Appointments.AsNoTracking()
+                .Where(a => a.Id == appointmentId && (!scope.Restricted || a.StaffMemberId == scope.StaffId))
+                .Select(a => new { a.ContactId, a.StaffMemberId, a.ProductId, a.Status, a.SaleId })
+                .FirstOrDefaultAsync(ct);
+            if (row is null)
+            {
+                return Validation.FieldProblem("appointmentId", "Randevu bulunamadı.");
+            }
+
+            if (row.SaleId is not null)
+            {
+                return Problems.Conflict("appointment_already_converted", "Bu randevu zaten satışa çevrildi.");
+            }
+
+            if (row.Status != AppointmentStatus.Completed)
+            {
+                return Problems.Conflict("appointment_not_completed", "Satışa çevirmek için önce randevuyu tamamlandı olarak işaretleyin.");
+            }
+
+            if (request.ContactId != row.ContactId)
+            {
+                return Validation.FieldProblem("contactId", "Randevudan çevrilen satışın müşterisi randevunun müşterisi olmalı.");
+            }
+
+            appointment = new AppointmentLink(appointmentId, row.StaffMemberId, row.ProductId);
+        }
+
         var dateUtc = request.Date is { } d ? DateTime.SpecifyKind(d.ToUniversalTime(), DateTimeKind.Utc) : now;
         if (SaleService.DueDateError(request.DueDate, BusinessTime.LocalDay(dateUtc)) is { } dueError)
         {
@@ -198,7 +235,7 @@ public static class SaleEndpoints
         }
 
         var (sale, warnings) = await sales.CreateAsync(
-            new SaleDraft(request.ContactId, dateUtc, document, payments, request.Note, null, request.DueDate), ct);
+            new SaleDraft(request.ContactId, dateUtc, document, payments, request.Note, null, request.DueDate, appointment), ct);
         return TypedResults.Created($"/api/sales/{sale.Id}", new SaleCreatedResponse((await LoadAsync(db, member, sale.Id, ct))!, warnings));
     }
 

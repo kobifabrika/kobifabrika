@@ -1,3 +1,5 @@
+using KobiFabrika.Domain.Appointments;
+using KobiFabrika.Domain.Common;
 using KobiFabrika.Domain.Contacts;
 using KobiFabrika.Domain.Finance;
 using KobiFabrika.Infrastructure.Persistence;
@@ -7,7 +9,9 @@ namespace KobiFabrika.Api.Features.Customers;
 
 /// <summary>
 /// Zaman çizelgesi öğesi. Kind: created, note, reminder, consent, sale, sale_cancelled, quote, quote_accepted, quote_rejected, ledger, collection, payment_request,
-/// payment_claimed, payment_confirmed, statement_shared, due_reminder (vade hatırlatması). Randevu ve mesajlar ilgili sprintlerde eklenir. RefId satış/teklifte belgenin Id'si.
+/// payment_claimed, payment_confirmed, statement_shared, due_reminder (vade hatırlatması), appointment, appointment_no_show,
+/// appointment_cancelled (randevu saatinde; gelecek randevular en üstte). Mesajlar Sprint 5B/6'da eklenir. RefId satış/teklifte belgenin,
+/// randevuda randevunun Id'si.
 /// </summary>
 public sealed record TimelineItem(string Kind, DateTime At, string Title, string? Detail, decimal? Amount, Guid? RefId);
 
@@ -35,7 +39,8 @@ public static class ContactTimeline
     /// <paramref name="salesBy"/> doluysa sadece o kullanıcının girdiği satışlar (Personel).
     /// </summary>
     public static async Task<TimelineResponse> BuildAsync(
-        AppDbContext db, Guid contactId, bool includeFinance, Guid? salesBy, DateTime? before, int take, CancellationToken ct)
+        AppDbContext db, Guid contactId, bool includeFinance, Guid? salesBy, DateTime? before, int take, CancellationToken ct,
+        (bool Restricted, Guid? StaffId) appointmentScope = default)
     {
         var limit = before ?? DateTime.MaxValue;
         var items = new List<TimelineItem>();
@@ -80,6 +85,28 @@ public static class ContactTimeline
             {
                 items.Add(new TimelineItem("sale_cancelled", cancelled, $"Satış iptal edildi: {sale.No}", null, sale.Total, sale.Id));
             }
+        }
+
+        var appointments = await db.Appointments.AsNoTracking()
+            .Where(a => a.ContactId == contactId && a.StartAt < limit && (!appointmentScope.Restricted || a.StaffMemberId == appointmentScope.StaffId))
+            .OrderByDescending(a => a.StartAt).Take(take)
+            .Select(a => new
+            {
+                a.Id, a.StartAt, a.Status,
+                Service = db.Products.IgnoreQueryFilters(new[] { QueryFilters.SoftDelete }).Where(p => p.Id == a.ProductId).Select(p => p.Name).FirstOrDefault(),
+                Staff = db.StaffMembers.IgnoreQueryFilters(new[] { QueryFilters.SoftDelete }).Where(s => s.Id == a.StaffMemberId).Select(s => s.FullName).FirstOrDefault(),
+            })
+            .ToListAsync(ct);
+        foreach (var a in appointments)
+        {
+            var (kind, title) = a.Status switch
+            {
+                AppointmentStatus.NoShow => ("appointment_no_show", $"Randevuya gelmedi: {a.Service}"),
+                AppointmentStatus.Cancelled => ("appointment_cancelled", $"Randevu iptal edildi: {a.Service}"),
+                _ => ("appointment", $"Randevu: {a.Service}"),
+            };
+            items.Add(new TimelineItem(kind, a.StartAt, title,
+                $"{BusinessTime.ToLocal(a.StartAt):dd.MM.yyyy HH:mm} · {a.Staff} · {Appointments.AppointmentLabels.Statuses[a.Status]}", null, a.Id));
         }
 
         var quotes = await db.Quotes.AsNoTracking()

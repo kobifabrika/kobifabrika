@@ -1,5 +1,6 @@
 using System.Linq.Expressions;
 using System.Reflection;
+using KobiFabrika.Domain.Appointments;
 using KobiFabrika.Domain.Auditing;
 using KobiFabrika.Domain.Businesses;
 using KobiFabrika.Domain.Catalog;
@@ -9,6 +10,7 @@ using KobiFabrika.Domain.Finance;
 using KobiFabrika.Domain.Imports;
 using KobiFabrika.Domain.Notifications;
 using KobiFabrika.Domain.Sales;
+using KobiFabrika.Domain.Staff;
 using KobiFabrika.Domain.Users;
 using KobiFabrika.Infrastructure.Identity;
 using KobiFabrika.Infrastructure.Persistence.Conventions;
@@ -70,6 +72,12 @@ public class AppDbContext : IdentityDbContext<AppUser, AppRole, Guid>
     public DbSet<SalePayment> SalePayments => Set<SalePayment>();
     public DbSet<Quote> Quotes => Set<Quote>();
     public DbSet<QuoteLine> QuoteLines => Set<QuoteLine>();
+    public DbSet<StaffMember> StaffMembers => Set<StaffMember>();
+    public DbSet<StaffWorkingHour> StaffWorkingHours => Set<StaffWorkingHour>();
+    public DbSet<StaffMemberService> StaffServices => Set<StaffMemberService>();
+    public DbSet<StaffTimeOff> StaffTimeOffs => Set<StaffTimeOff>();
+    public DbSet<Holiday> Holidays => Set<Holiday>();
+    public DbSet<Appointment> Appointments => Set<Appointment>();
 
     /// <summary>
     /// Query filter'lar bu özelliğe başvurur; EF her sorguda bu context örneğinin

@@ -2,6 +2,7 @@ using KobiFabrika.Domain.Catalog;
 using KobiFabrika.Domain.Contacts;
 using KobiFabrika.Domain.Finance;
 using KobiFabrika.Domain.Sales;
+using KobiFabrika.Domain.Staff;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -40,6 +41,10 @@ internal sealed class SaleConfiguration : IEntityTypeConfiguration<Sale>
         b.HasIndex(x => new { x.BusinessId, x.Date });
         b.HasIndex(x => new { x.BusinessId, x.ContactId, x.Date });
         b.HasIndex(x => new { x.BusinessId, x.CreatedBy, x.Date });
+
+        // Randevu başına tek tamamlanmış satış (iptal edilen satıştan sonra randevu yeniden çevrilebilir).
+        b.HasIndex(x => new { x.BusinessId, x.AppointmentId }).IsUnique()
+            .HasFilter("[AppointmentId] IS NOT NULL AND [Status] = N'Completed'");
         b.HasOne<Contact>().WithMany().HasForeignKey(x => x.ContactId).OnDelete(DeleteBehavior.Restrict);
         b.HasMany(x => x.Lines).WithOne().HasForeignKey(x => x.SaleId).OnDelete(DeleteBehavior.Restrict);
         b.HasMany(x => x.Payments).WithOne().HasForeignKey(x => x.SaleId).OnDelete(DeleteBehavior.Restrict);
@@ -53,6 +58,8 @@ internal sealed class SaleLineConfiguration : IEntityTypeConfiguration<SaleLine>
         DocumentLineMapping.Map(b, "SaleLines");
         b.HasIndex(x => new { x.BusinessId, x.SaleId });
         b.HasIndex(x => new { x.BusinessId, x.ProductId });
+        b.HasIndex(x => x.StaffMemberId).HasFilter("[StaffMemberId] IS NOT NULL");
+        b.HasOne<StaffMember>().WithMany().HasForeignKey(x => x.StaffMemberId).OnDelete(DeleteBehavior.Restrict);
     }
 }
 

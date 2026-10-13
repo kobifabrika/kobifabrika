@@ -1,4 +1,8 @@
 using KobiFabrika.Api.Common.Authorization;
+using KobiFabrika.Api.Features.Appointments;
+using KobiFabrika.Api.Features.Staff;
+using KobiFabrika.Domain.Appointments;
+using KobiFabrika.Domain.Businesses;
 using KobiFabrika.Api.Features.Catalog;
 using KobiFabrika.Api.Features.Finance;
 using KobiFabrika.Api.Features.Sales;
@@ -30,13 +34,23 @@ public sealed record DashboardSale(Guid Id, string No, DateTime Date, string? Co
 
 public sealed record DailyTotal(DateOnly Date, decimal Total, int Count);
 
+public sealed record DashboardAppointment(
+    Guid Id, DateTime StartAt, DateTime EndAt, string ContactName, string ServiceName, string StaffName, AppointmentStatus Status);
+
+/// <summary>
+/// Bugünün randevuları (iptaller hariç). OnlyOwn: Personel kendi randevularını görür (bağlı personel kaydı yoksa liste boş).
+/// Pending: onay bekleyen randevu sayısı.
+/// </summary>
+public sealed record DashboardAppointments(int Total, int Pending, bool OnlyOwn, IReadOnlyList<DashboardAppointment> Items);
+
 /// <summary>
 /// "Bugün" ekranı (Europe/Istanbul günü). Collections (bugünkü tahsilat, ters kayıtlar düşülmüş), Accounts ve Receivables
 /// Personel için null döner ve hiç sorgulanmaz. Satış kartı, son satışlar ve grafik Personel'de sadece kendi satışları.
+/// Appointments: Randevular modülü kapalıysa null.
 /// </summary>
 public sealed record DashboardResponse(
     DateOnly Today, DashboardSales Sales, decimal? Collections, IReadOnlyList<DashboardAccount>? Accounts, DashboardReceivables? Receivables,
-    DashboardStock Stock, IReadOnlyList<DashboardSale> RecentSales, IReadOnlyList<DailyTotal> Last30Days);
+    DashboardStock Stock, IReadOnlyList<DashboardSale> RecentSales, IReadOnlyList<DailyTotal> Last30Days, DashboardAppointments? Appointments);
 
 public static class DashboardEndpoints
 {
@@ -98,11 +112,33 @@ public static class DashboardEndpoints
             receivables = new DashboardReceivables(totals.Overdue, totals.OverdueContacts, totals.Today, totals.TodayContacts);
         }
 
+        DashboardAppointments? appointments = null;
+        if (await AppointmentEndpoints.ModuleEnabledAsync(db, member.RequiredBusinessId, ct))
+        {
+            // Personel (rol) her zaman kendi randevularını görür; bağlı personel kaydı yoksa boş.
+            var onlyOwn = member.Role == BusinessRole.Staff;
+            var myStaffId = onlyOwn ? await StaffAccess.MyStaffIdAsync(db, member, ct) : null;
+            var todays = db.Appointments.AsNoTracking()
+                .Where(a => a.StartAt >= dayStart && a.StartAt < dayEnd && a.Status != AppointmentStatus.Cancelled)
+                .Where(a => !onlyOwn || a.StaffMemberId == myStaffId);
+            var counts = await todays.GroupBy(_ => 1)
+                .Select(g => new { Total = g.Count(), Pending = g.Count(a => a.Status == AppointmentStatus.Pending) })
+                .FirstOrDefaultAsync(ct);
+            var list = await todays.OrderBy(a => a.StartAt).Take(8)
+                .Select(a => new DashboardAppointment(a.Id, a.StartAt, a.EndAt,
+                    db.Contacts.IgnoreQueryFilters(new[] { QueryFilters.SoftDelete }).Where(c => c.Id == a.ContactId).Select(c => c.DisplayName).FirstOrDefault() ?? "",
+                    db.Products.IgnoreQueryFilters(new[] { QueryFilters.SoftDelete }).Where(p => p.Id == a.ProductId).Select(p => p.Name).FirstOrDefault() ?? "",
+                    db.StaffMembers.IgnoreQueryFilters(new[] { QueryFilters.SoftDelete }).Where(s => s.Id == a.StaffMemberId).Select(s => s.FullName).FirstOrDefault() ?? "",
+                    a.Status))
+                .ToListAsync(ct);
+            appointments = new DashboardAppointments(counts?.Total ?? 0, counts?.Pending ?? 0, onlyOwn, list);
+        }
+
         return TypedResults.Ok(new DashboardResponse(
             today,
             new DashboardSales(todayTotals?.Total ?? 0, todayTotals?.Count ?? 0, byMethod.OrderBy(m => m.Method).ToList(), !member.CanViewAllSales),
             collections, accounts, receivables,
             new DashboardStock(summary.Enabled, summary.Low, summary.Negative, lowItems),
-            recent, last30));
+            recent, last30, appointments));
     }
 }

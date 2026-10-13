@@ -1,5 +1,6 @@
 using KobiFabrika.Api.Common;
 using KobiFabrika.Api.Common.Authorization;
+using KobiFabrika.Api.Features.Staff;
 using KobiFabrika.Api.Features.Finance;
 using KobiFabrika.Domain.Auditing;
 using KobiFabrika.Domain.Common;
@@ -529,6 +530,8 @@ public static class ContactEndpoints
             return ContactNotFound();
         }
 
-        return TypedResults.Ok(await ContactTimeline.BuildAsync(db, id, member.CanViewFinance, member.CanViewAllSales ? null : member.UserId, before, Math.Clamp(take, 1, 100), ct));
+        var scope = await StaffAccess.ScopeAsync(db, member, ct);
+        return TypedResults.Ok(await ContactTimeline.BuildAsync(db, id, member.CanViewFinance, member.CanViewAllSales ? null : member.UserId, before,
+            Math.Clamp(take, 1, 100), ct, scope));
     }
 }
