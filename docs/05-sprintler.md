@@ -2,7 +2,7 @@
 
 Tahmini, yarı zamanlı. Toplam yaklaşık 15-18 hafta. Her sprint sonunda: build ve testler geçer, ekranlar 375px'te kontrol edilir, bu dosyada maddeler işaretlenir, `docs/karar-gunlugu.md` güncellenir, commit atılır.
 
-**Durum:** Sprint 5A (takvim ve randevu) bitti, Actions #7 yeşil (2026-10-14; son commit `3c26021`): personel, çalışma saatleri, tatil ve kapalı zaman, takvim, randevu, satışa çevirme, gelmeyen müşteri uyarısı, Bugün randevu kartı. Sıradaki: Sprint 5B (online randevu, SMS altyapısı, hatırlatma, paketler). Sprint 4 tamamlandı (2026-10-12). Hangfire Sprint 5'ten öne çekildi (Sprint 2); Raporlar'ın ilk dördü Sprint 7'den öne çekildi (Sprint 4); MessageLog ve sahte SMS Sprint 6'dan 5B'ye alındı.
+**Durum:** Sprint 5B (online randevu, SMS altyapısı, hatırlatma, paketler) kodlandı (2026-10-14): yerel aşamalar yeşil (backend, frontend lint + Vitest + build, yeni/değişen E2E); kapanış GitHub Actions tam koşusuyla (bitti tanımı, karar 2026-10-14). Sprint 5A bitti, Actions #7 yeşil (son commit `3c26021`). Sıradaki: Sprint 6 (pazarlama ve İYS). Sprint 4 tamamlandı (2026-10-12). Hangfire Sprint 5'ten öne çekildi (Sprint 2); Raporlar'ın ilk dördü Sprint 7'den öne çekildi (Sprint 4); MessageLog ve sahte SMS Sprint 6'dan 5B'ye alındı.
 
 ---
 
@@ -61,16 +61,17 @@ Tahmini, yarı zamanlı. Toplam yaklaşık 15-18 hafta. Her sprint sonunda: buil
 
 - [x] Personel (temel kart: ad, unvan, telefon, takvim rengi, online randevuda görünür, bağlı hesap), haftalık çalışma saatleri (öğle arası), verdiği hizmetler, mola/izin, tatil günleri (5A)
 - [x] Takvim (gün/hafta, masaüstünde personel kolonlu, sürükle-bırak ve süre uzatma, telefonda personel seçici ve "Taşı"), sunucuda eşzamanlılığa dayanıklı çakışma kontrolü (5A)
-- [ ] Online randevu sayfası `/r/[slug]` (telefon doğrulama, onay ayarı) (5B)
-- [ ] Hatırlatma SMS'i (Hangfire) (5B); [x] gelmedi işaretleme (5A)
+- [x] Online randevu sayfası `/r/[slug]` (telefon doğrulama, onay ayarı, müşteri iptal linki `/r/[slug]/randevu/[token]`) (5B)
+- [x] Hatırlatma SMS'i (Hangfire) (5B); [x] gelmedi işaretleme (5A)
 - [x] Randevuyu satışa çevirme (5A)
-- [ ] Paket ve seans takibi (5B)
+- [x] Paket ve seans takibi (5B)
 - [x] Gelmeyen müşteri uyarısı (5A)
 - [x] Bugün ekranında "Bugünün randevuları" (Sprint 7'den öne çekildi) (5A)
+- [x] SMS altyapısı: `ISmsSender`, MessageLog, sahte sağlayıcı (Mailpit yansıması), panelden onay/ret/taşıma/iptal SMS'leri (Sprint 6'dan öne çekildi) (5B)
 
 ## Sprint 6 — Pazarlama ve İYS (2 hafta)
 
-- [ ] SMS kredisi ve düşümü (MessageLog ve sahte SMS sağlayıcı Sprint 5B'de; gerçek sağlayıcı pilot öncesi)
+- [ ] SMS kredisi ve düşümü (MessageLog ve sahte SMS sağlayıcı Sprint 5B'de geldi: `Billable && Status = Sent` satırları düşülür; gerçek sağlayıcı pilot öncesi)
 - [ ] Kampanya akışı (segment → mesaj → önizleme/maliyet → gönder/zamanla), İYS izin süzmesi, çıkış seçeneği
 - [ ] Otomasyonlar: doğum günü, geri kazanma, randevu sonrası teşekkür
 - [ ] Memnuniyet anketi → Google yorum yönlendirmesi
@@ -92,6 +93,6 @@ Tahmini, yarı zamanlı. Toplam yaklaşık 15-18 hafta. Her sprint sonunda: buil
 - [ ] Şeffaf abonelik: 7 gün önce hatırlatma, tek tıkla iptal, süresi dolunca salt okunur mod
 - [ ] WhatsApp destek butonu, yardım makaleleri iskeleti
 - [ ] Süper admin paneli
-- [ ] Canlı ortam: VPS, Docker Compose, Caddy, GitHub Actions, yedekleme
+- [ ] Canlı ortam: VPS, Docker Compose, Caddy, GitHub Actions, yedekleme; forwarded headers (IP hız sınırları Caddy arkasında gerçek istemci IP'siyle çalışsın; Sprint 5B notu)
 - [ ] Tanıtım sitesi metinleri ("Bizi farklı kılan" maddeleri), KVKK metinleri
 - [ ] Pilot: 5-10 gerçek esnaf

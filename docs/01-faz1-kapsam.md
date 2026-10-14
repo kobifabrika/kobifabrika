@@ -46,10 +46,10 @@ Parantez içindeki rakip adı, fikrin nereden alındığını gösterir.
 ## F. Randevu
 
 - Takvim: personel kolonlu gün/hafta görünümü, sürükle-bırak. Hizmet süresi, personelin çalışma saatleri, izinleri ve tatiller hesaba katılır; çakışma engellenir.
-- Online randevu sayfası (`/r/{slug}`): müşteri hizmet, personel (isteğe bağlı) ve boş saati seçer; telefonunu doğrular; işletme onaylar (veya otomatik onay ayarı).
+- Online randevu sayfası (`/r/{slug}`): müşteri hizmet, personel (isteğe bağlı) ve boş saati seçer; telefonunu doğrular; işletme onaylar (veya otomatik onay ayarı); müşteri SMS'teki linkten en az X saat kala iptal eder. Sayfa varsayılan kapalı, Ayarlar → Randevu'dan açılır.
 - Hatırlatma: randevudan 24 saat önce SMS (süre ayarlanabilir). Gelmeyen müşteri "gelmedi" olarak işaretlenir.
 - Tamamlanan randevu tek tıkla satışa çevrilir.
-- **Paket ve seans takibi (Salon Randevu):** "10 seans lazer", "aylık üyelik" gibi paketler satılır; kalan seans her tamamlanan randevuda düşer; 1 seans kalınca uyarı.
+- **Paket ve seans takibi (Salon Randevu):** "10 seans lazer" gibi seanslı paketler satılır; kalan seans her tamamlanan randevuda düşer; 1 seans kalınca uyarı. Süre bazlı sınırsız üyelik ("aylık üyelik") Faz 2'de (karar 2026-10-13, soru 10).
 - **Gelmeyen müşteri uyarısı:** son 5 randevusundan 2 veya daha fazlasına gelmeyen müşterinin kartında ve yeni randevu alırken uyarı.
 
 ## G. Pazarlama (fark yaratan modül)

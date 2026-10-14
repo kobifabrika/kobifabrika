@@ -88,20 +88,29 @@ Tutarlar KDV dahil; KDV satır tutarının içinden ayrılır. Hesap: `Domain/Sa
 
 ## Randevu (Sprint 5A, migration `Sprint5aAppointments`)
 
-- **Appointments:** ContactId, StaffMemberId, ProductId (hizmet), StartAt, EndAt (UTC; CHECK bitiş > başlangıç ve en fazla 12 saat), Status (Pending/Confirmed/Completed/NoShow/Cancelled), Source (Panel/Online), Note, SaleId (satışa çevrildiyse; satış iptalinde temizlenir), ConfirmedAt, CompletedAt, NoShowAt, CancelledAt, CancelledBy, CancelSource (Business/Customer), CancelReason, TimeSetAt (saatin en son belirlendiği an; hatırlatma kuralı). İndeksler: (BusinessId, StaffMemberId, StartAt) INCLUDE (EndAt, Status), (BusinessId, StartAt) INCLUDE (Status, StaffMemberId), (BusinessId, ContactId, StartAt). Çakışma kontrolü uygulamada (personel satırı kilidi; `AppointmentBooking`), iptal saati boşaltır. 5B'de: CustomerPackageId, ReminderSentAt, müşteri iptal linki token'ı.
+- **Appointments:** ContactId, StaffMemberId, ProductId (hizmet), StartAt, EndAt (UTC; CHECK bitiş > başlangıç ve en fazla 12 saat), Status (Pending/Confirmed/Completed/NoShow/Cancelled), Source (Panel/Online), Note, SaleId (satışa çevrildiyse; satış iptalinde temizlenir), ConfirmedAt, CompletedAt, NoShowAt, CancelledAt, CancelledBy, CancelSource (Business/Customer), CancelReason, TimeSetAt (saatin en son belirlendiği an; hatırlatma kuralı), ReminderSentAt, CustomerPackageId, PackageSessionUsed, ManageTokenHash (`binary(32)`, filtreli benzersiz; müşterinin iptal linki), ManageToken (Data Protection ile şifreli; aynı link SMS'lerde yeniden kullanılır). İndeksler: (BusinessId, StaffMemberId, StartAt) INCLUDE (EndAt, Status), (BusinessId, StartAt) INCLUDE (Status, StaffMemberId), (BusinessId, ContactId, StartAt). Çakışma kontrolü uygulamada (personel satırı kilidi; `AppointmentBooking`), iptal saati boşaltır. Hatırlatma işi için filtreli indeks `IX_Appointments_ReminderDue` (StartAt; ReminderSentAt boş, Onaylı).
 - **StaffMembers** (Personel bölümüne bakın), **StaffWorkingHours:** StaffMemberId, DayOfWeek, StartsAt, EndsAt (yerel saat; gün başına birden çok satır = öğle arası; CHECK `StartsAt < EndsAt`). Personel işletmenin açık saatleri dışında randevu almaz (kesişim); eklenince işletmenin saatleri kopyalanır.
 - **StaffServices:** StaffMemberId, ProductId (soft delete yok); personelin satırı yoksa bütün hizmetleri verir.
 - **StaffTimeOffs:** StaffMemberId, StartAt, EndAt (UTC), Kind (Break/Leave/Other), Note. Sprint 7'de onaylanan izinler buraya yazılır.
 - **Holidays:** Çekirdek bölümünde.
 - **Businesses.StaffSeesOnlyOwnAppointments:** Personel rolü sadece kendi randevularını görsün (varsayılan false).
-- 5B'de: **ServicePackages** (Name, ProductId, SessionCount, Price, ValidityDays), **CustomerPackages** (ContactId, ServicePackageId, SaleId, TotalSessions, UsedSessions, ExpiresAt), online randevu ayarları (docs'taki BookingSettings tablosu yerine Businesses kolonları: AutoConfirm, MinNotice, MaxDaysAhead, SlotMinutes, ReminderHoursBefore, CustomerCancelHours, BookingEnabled).
+
+## Online randevu, SMS ve paketler (Sprint 5B, migration `Sprint5bBooking`)
+
+- **Businesses** (ayrı BookingSettings tablosu yerine kolonlar): BookingEnabled (varsayılan false), BookingAutoConfirm (false), BookingMinNoticeMinutes (120; 0-10080), BookingMaxDaysAhead (30; 1-180), BookingSlotMinutes (15; 5/10/15/20/30/60), ReminderHoursBefore (24; 0 = kapalı, en fazla 72), CustomerCancelHours (2; 0 = müşteri iptal edemez, en fazla 72). Varsayılanlar migration'da; CHECK kısıtları.
+- **PhoneVerifications:** Phone (E.164, sadece TR cep), CodeHash (`binary(32)`, SHA-256(kod + Id); kod 6 hane), ExpiresAt (+5 dk), Attempts (CHECK 0-3), VerifiedAt, ConsumedAt (tek kullanım), IpAddress, AppointmentId. İndeksler (Phone, CreatedAt) (numara sınırı bütün işletmelerde), (BusinessId, Phone, CreatedAt), (IpAddress, CreatedAt), CreatedAt (7 gün sonra silinir).
+- **MessageLogs:** Channel (Sms), To, Body (1000), Purpose (Verification/AppointmentConfirmation/AppointmentReminder/AppointmentMoved/AppointmentCancelled/AppointmentRejected), Provider, ProviderMessageId, Status (Queued/Sent/Failed), Error, Segments, CreditCost (tahmini, segment başına 1), Billable (doğrulama kodu false), ContactId, RefType, RefId, SentAt. İndeksler (BusinessId, Purpose, CreatedAt) (günlük doğrulama üst sınırı), (BusinessId, ContactId, CreatedAt).
+- **ServicePackages:** Name, ProductId (hizmet), SessionCount (1-500), Price (KDV dahil, KDV oranı hizmetinki), ValidityDays (1-1095), IsActive. Satılmış paket silinmez, pasife alınır.
+- **CustomerPackages:** ContactId, ServicePackageId, ProductId ve Name (kopya), SaleId, SaleLineId, TotalSessions, UsedSessions (CHECK `0 ≤ Used ≤ Total`; sadece atomik UPDATE), ExpiresOn (`date`, son geçerli gün dahil = satış günü + geçerlilik), Status (Active/Cancelled), CancelledAt, CloseNote. Görünen durum hesaplanır: Aktif, Bitti, Süresi doldu, İptal.
+- **SaleLines.ServicePackageId:** paket satırı (adet 1, stok etkisi yok); satışla birlikte CustomerPackage açılır.
+- **ContactConsents:** online randevudaki SMS pazarlama izni `Source = OnlineBooking` ile yazılır (işaretsizse yazılmaz).
 
 ## Pazarlama
 
 - **Campaigns:** Name, Channel (Sms/Email/WhatsappLink), SegmentId, Body, ScheduledAt, SentAt, Status, RecipientCount, CreditCost, Kind (Manual/EmptySlot).
 - **CampaignRecipients:** CampaignId, ContactId, Status (Queued/Sent/Failed/Skipped-NoConsent), MessageLogId.
 - **Automations:** Type (Birthday/WinBack/AfterVisitThanks/Survey/DueReminder), IsEnabled, Settings (JSON: gün sayısı, mesaj şablonu).
-- **MessageLogs:** Channel, To, Body, Provider, ProviderMessageId, Status, CreditCost, ContactId, RefType, RefId.
+- **MessageLogs:** Sprint 5B'de geldi (Online randevu, SMS ve paketler bölümü); Sprint 6 kampanya mesajlarını da yazar.
 - **SmsCreditTransactions:** Amount (+/−), Reason, RefId.
 - **Surveys:** AppointmentId, ContactId, PublicToken, Score (1-5), Comment, AnsweredAt, RedirectedToGoogle.
 
