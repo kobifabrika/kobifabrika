@@ -108,7 +108,9 @@ kopar, sahipsiz Next dev sunucusu `write EPIPE` ile bozulur (sayfalar dakikalarc
 
 ## Güncel durum
 
-- Sprint: **5B (online randevu, SMS, hatırlatma, paketler)** bitti (2026-10-14, Actions #11 yeşil). 5A bitti (Actions #7). Sıradaki: **Sprint 6** (pazarlama ve İYS, SMS kredisi). Kararlar `docs/karar-gunlugu.md` 2026-10-13/14.
+- Sprint: **6A (SMS kredisi, kampanya, İYS çıkışı, KVKK)** bitti (2026-10-15, Actions #13 yeşil). Sıradaki: **6B** (otomasyonlar, anket, boş saat, risk listesi); 6B'ye geçmeden kullanıcı onayı beklenir. Kararlar `docs/karar-gunlugu.md` 2026-10-15.
+- SMS kredisi sadece `SmsCredits` ile (atomik, eksiye düşmez); her SMS `ISmsSender`'dan (ücretli mesajda kredi düşer, hata iade). Pazarlama SMS'i: izin + çıkış eki + 09:00-21:00 + `MarketingDailySends` (günde 1). Kampanya gönderimi `CampaignSender`/`CampaignDispatcher` (alıcıya en fazla bir SMS; testte dağıtıcı `RunAsync(businessId)` ile sınırlanır).
+- Çip/sekme satırları `components/ui/scroll-row.tsx` (`ScrollRow`, `Chip`, `TabNav`); telefonda Menü sağ üstte (`mobile-menu.tsx`).
 - Randevu saati sadece `AppointmentBooking` ile yazılır (personel satırı kilidi + çakışma sorgusu); boş saat hesabı `Domain/Appointments/Availability`. Kilit sırası: personel → randevu → paket → numara → satış → cari → kasa → stok. Paket seansı sadece atomik UPDATE ile.
 - SMS sadece `ISmsSender` ile (önce MessageLog); randevu SMS'leri `AppointmentNotifier`. `Sms:MirrorToEmail` (Mailpit yansıması) E2E/Development'ta açık, Production'da açılamaz.
 - EF: alt sorguda `IgnoreQueryFilters([SoftDelete])` bütün sorgunun soft delete filtresini kapatır; silinebilen kayıtta adları ayrı sorguyla oku veya kökte `!IsDeleted` yaz.

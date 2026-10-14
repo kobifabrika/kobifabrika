@@ -2,7 +2,7 @@
 
 Tahmini, yarı zamanlı. Toplam yaklaşık 15-18 hafta. Her sprint sonunda: build ve testler geçer, ekranlar 375px'te kontrol edilir, bu dosyada maddeler işaretlenir, `docs/karar-gunlugu.md` güncellenir, commit atılır.
 
-**Durum:** Sprint 5B (online randevu, SMS altyapısı, hatırlatma, paketler) bitti, Actions #11 yeşil (2026-10-14; commit `3daba9e`): yerel aşamalar yeşil (backend, frontend lint + Vitest + build, yeni/değişen E2E), Actions tam koşusu yeşil (E2E 100 geçti, 2 eski WebKit senaryosu tekrar denemede geçti). Sprint 5A bitti, Actions #7 yeşil (son commit `3c26021`). Sıradaki: Sprint 6 (pazarlama ve İYS). Sprint 4 tamamlandı (2026-10-12). Hangfire Sprint 5'ten öne çekildi (Sprint 2); Raporlar'ın ilk dördü Sprint 7'den öne çekildi (Sprint 4); MessageLog ve sahte SMS Sprint 6'dan 5B'ye alındı.
+**Durum:** Sprint 6A (SMS kredisi, kampanya, İYS çıkışı, KVKK, mobil kabuk) bitti, Actions #13 yeşil (2026-10-15; commit `22ccbd3`): yerel aşamalar yeşil (backend 511, frontend lint + Vitest 238 + build, yeni/değişen E2E), Actions tam koşusu yeşil (E2E 110 geçti). Sıradaki: Sprint 6B (otomasyonlar, anket, boş saat, risk listesi). Sprint 5B (online randevu, SMS altyapısı, hatırlatma, paketler) bitti, Actions #11 yeşil (2026-10-14; commit `3daba9e`): yerel aşamalar yeşil (backend, frontend lint + Vitest + build, yeni/değişen E2E), Actions tam koşusu yeşil (E2E 100 geçti, 2 eski WebKit senaryosu tekrar denemede geçti). Sprint 5A bitti, Actions #7 yeşil (son commit `3c26021`). Sıradaki: Sprint 6 (pazarlama ve İYS). Sprint 4 tamamlandı (2026-10-12). Hangfire Sprint 5'ten öne çekildi (Sprint 2); Raporlar'ın ilk dördü Sprint 7'den öne çekildi (Sprint 4); MessageLog ve sahte SMS Sprint 6'dan 5B'ye alındı.
 
 ---
 
