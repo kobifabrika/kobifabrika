@@ -4,6 +4,9 @@ public enum DocumentKind
 {
     Sale,
     Quote,
+
+    /// <summary>"Silinmiş müşteri #N" sırası (yıl 0: yıldan bağımsız).</summary>
+    Anonymous,
 }
 
 /// <summary>

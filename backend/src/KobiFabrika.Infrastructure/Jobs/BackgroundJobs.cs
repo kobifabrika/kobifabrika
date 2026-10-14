@@ -27,6 +27,7 @@ public static class BackgroundJobs
     public const string DueDigestJobId = "due-digest";
     public const string AppointmentReminderJobId = "appointment-reminders";
     public const string PhoneVerificationCleanupJobId = "phone-verifications-cleanup";
+    public const string IysSyncJobId = "iys-sync";
 
     public static bool IsEnabled(IConfiguration configuration) => configuration.GetValue("Hangfire:Enabled", true);
 
@@ -37,6 +38,7 @@ public static class BackgroundJobs
         services.AddScoped<DueDigestJob>();
         services.AddScoped<AppointmentReminderJob>();
         services.AddScoped<PhoneVerificationCleanupJob>();
+        services.AddScoped<IysSyncJob>();
 
         if (!IsEnabled(configuration))
         {
@@ -66,6 +68,7 @@ public static class BackgroundJobs
             new RecurringJobOptions { TimeZone = BusinessTime.Zone });
         jobs.AddOrUpdate<AppointmentReminderJob>(AppointmentReminderJobId, j => j.RunAsync(CancellationToken.None), Cron.Minutely);
         jobs.AddOrUpdate<PhoneVerificationCleanupJob>(PhoneVerificationCleanupJobId, j => j.RunAsync(CancellationToken.None), Cron.Hourly);
+        jobs.AddOrUpdate<IysSyncJob>(IysSyncJobId, j => j.RunAsync(CancellationToken.None), "*/5 * * * *");
     }
 }
 
@@ -284,5 +287,96 @@ public sealed class PhoneVerificationCleanupJob(AppDbContext db, TimeProvider cl
     {
         var cutoff = clock.GetUtcNow().UtcDateTime - PhoneVerification.Retention;
         return db.PhoneVerifications.IgnoreQueryFilters().Where(v => v.CreatedAt < cutoff).ExecuteDeleteAsync(ct);
+    }
+}
+
+/// <summary>
+/// Bekleyen (Pending) izin değişikliklerini İYS'ye bildirir (5 dakikada bir; Sprint 6A). İYS marka kodu girilmemiş işletmenin
+/// kayıtları bekler. Telefonu olmayan veya anonimleştirilmiş kişinin kaydı bildirilmez (NotRequired). Satır koşullu UPDATE ile
+/// bir kez işaretlenir.
+/// </summary>
+public sealed class IysSyncJob(AppDbContext db, IServiceScopeFactory scopes, TimeProvider clock, ILogger<IysSyncJob> logger)
+{
+    public const int BatchSize = 200;
+
+    [DisableConcurrentExecution(timeoutInSeconds: 300)]
+    [AutomaticRetry(Attempts = 0)]
+    public async Task<int> RunAsync(CancellationToken ct)
+    {
+        var businesses = await db.ContactConsents.IgnoreQueryFilters([QueryFilters.Tenant])
+            .Where(c => c.IysStatus == Domain.Contacts.IysStatuses.Pending)
+            .Join(db.Businesses.Where(b => b.IysBrandCode != null && !b.IsDeleted), c => c.BusinessId, b => b.Id, (c, b) => new { b.Id, b.IysBrandCode })
+            .Distinct()
+            .ToListAsync(ct);
+
+        var total = 0;
+        foreach (var business in businesses)
+        {
+            try
+            {
+                total += await SyncBusinessAsync(business.Id, business.IysBrandCode!, ct);
+            }
+            catch (Exception ex) when (ex is not OperationCanceledException)
+            {
+                logger.LogError(ex, "İYS bildirimi yapılamadı: {BusinessId}", business.Id);
+            }
+        }
+
+        return total;
+    }
+
+    private async Task<int> SyncBusinessAsync(Guid businessId, string brandCode, CancellationToken ct)
+    {
+        await using var scope = scopes.CreateAsyncScope();
+        scope.ServiceProvider.GetRequiredService<TenantContext>().Set(businessId);
+        var tenantDb = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        var iys = scope.ServiceProvider.GetRequiredService<IIysClient>();
+
+        var pending = await tenantDb.ContactConsents.AsNoTracking()
+            .Where(c => c.IysStatus == Domain.Contacts.IysStatuses.Pending)
+            .OrderBy(c => c.CreatedAt)
+            .Take(BatchSize)
+            .Select(c => new { c.Id, c.ContactId, c.Channel, c.Granted, c.Source, c.At })
+            .ToListAsync(ct);
+
+        // Telefonlar ayrı sorguyla (alt sorguda IgnoreQueryFilters bütün sorgunun soft delete filtresini kapatır; 5B dersi).
+        var contactIds = pending.Select(c => c.ContactId).Distinct().ToList();
+        var phones = await tenantDb.Contacts.IgnoreQueryFilters([QueryFilters.SoftDelete]).AsNoTracking()
+            .Where(x => contactIds.Contains(x.Id))
+            .ToDictionaryAsync(x => x.Id, x => x.IsAnonymized ? null : x.Phone, ct);
+
+        var done = 0;
+        foreach (var c in pending)
+        {
+            var now = clock.GetUtcNow().UtcDateTime;
+            string status;
+            string? error = null;
+            var phone = phones.GetValueOrDefault(c.ContactId);
+            if (phone is null)
+            {
+                status = Domain.Contacts.IysStatuses.NotRequired;
+            }
+            else
+            {
+                try
+                {
+                    var result = await iys.ReportConsentAsync(new IysConsent(brandCode, phone, c.Channel, c.Granted, c.Source, c.At), ct);
+                    status = result == IysResult.Accepted ? Domain.Contacts.IysStatuses.Accepted : Domain.Contacts.IysStatuses.Rejected;
+                }
+                catch (Exception ex) when (ex is not OperationCanceledException)
+                {
+                    // Bir sonraki turda tekrar denenir (Pending kalır).
+                    logger.LogWarning(ex, "İYS bildirimi başarısız: {ConsentId}", c.Id);
+                    continue;
+                }
+            }
+
+            done += await tenantDb.ContactConsents
+                .Where(x => x.Id == c.Id && x.IysStatus == Domain.Contacts.IysStatuses.Pending)
+                .ExecuteUpdateAsync(s => s.SetProperty(x => x.IysStatus, status).SetProperty(x => x.IysSentAt, now)
+                    .SetProperty(x => x.IysError, error), ct);
+        }
+
+        return done;
     }
 }

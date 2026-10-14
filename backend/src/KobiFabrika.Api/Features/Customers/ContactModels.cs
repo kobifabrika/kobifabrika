@@ -55,7 +55,8 @@ public sealed record ContactListItem(
     decimal? Balance,
     DateTime? LastVisitAt,
     bool IsArchived,
-    DateTime CreatedAt);
+    DateTime CreatedAt,
+    bool IsAnonymized);
 
 public sealed record ContactListResponse(IReadOnlyList<ContactListItem> Items, int Total);
 
@@ -84,7 +85,9 @@ public sealed record ContactResponse(
     DateTime? LastVisitAt,
     bool IsArchived,
     DateTime? ArchivedAt,
-    DateTime CreatedAt);
+    DateTime CreatedAt,
+    bool IsAnonymized,
+    DateTime? AnonymizedAt);
 
 public sealed record PhoneCheckResponse(bool Valid, string? Normalized, Guid? ExistingContactId, string? ExistingContactName, bool ExistingIsArchived);
 

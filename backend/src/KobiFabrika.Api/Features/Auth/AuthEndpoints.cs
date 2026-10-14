@@ -285,7 +285,8 @@ public static class AuthEndpoints
     private static async Task<Results<Ok<MeUser>, ValidationProblem>> UpdateProfile(
         UpdateProfileRequest request,
         CurrentMember member,
-        UserManager<AppUser> users)
+        UserManager<AppUser> users,
+        PlatformAdmins admins)
     {
         var user = (await users.FindByIdAsync(member.RequiredUserId.ToString()))!;
         user.FullName = request.FullName.Trim();
@@ -293,7 +294,7 @@ public static class AuthEndpoints
 
         var result = await users.UpdateAsync(user);
         return result.Succeeded
-            ? TypedResults.Ok(new MeUser(user.Id, user.FullName, user.Email!, user.EmailConfirmed, user.PhoneNumber))
+            ? TypedResults.Ok(new MeUser(user.Id, user.FullName, user.Email!, user.EmailConfirmed, user.PhoneNumber, await admins.IsAdminAsync(user.Id)))
             : (ValidationProblem)Validation.IdentityProblem(result);
     }
 

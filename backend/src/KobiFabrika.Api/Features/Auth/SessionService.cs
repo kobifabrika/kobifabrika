@@ -9,7 +9,8 @@ namespace KobiFabrika.Api.Features.Auth;
 
 public sealed record MeResponse(MeUser User, MeBusiness? Business, BusinessRole? Role, IReadOnlyList<MeMembership> Memberships);
 
-public sealed record MeUser(Guid Id, string FullName, string Email, bool EmailConfirmed, string? Phone);
+/// <summary>IsPlatformAdmin: KobiFabrika ekibi (menüde "Kredi yükle (platform)" ekranı).</summary>
+public sealed record MeUser(Guid Id, string FullName, string Email, bool EmailConfirmed, string? Phone, bool IsPlatformAdmin);
 
 /// <summary>
 /// Phone (E.164), Address, City, District: fiş ve belgelerin başlığı için; ReceiptWidth fiş genişliği (mm);
@@ -49,7 +50,8 @@ public sealed record MeMembership(Guid BusinessId, string BusinessName, Business
 public sealed class SessionService(
     AppDbContext db,
     UserManager<AppUser> users,
-    SignInManager<AppUser> signIn)
+    SignInManager<AppUser> signIn,
+    PlatformAdmins admins)
 {
     /// <summary>Kullanıcının aktif üyelikleri; en son seçilen önce, sonra en eski üyelik.</summary>
     private Task<List<MeMembership>> ActiveMembershipsAsync(Guid userId, CancellationToken ct) =>
@@ -106,7 +108,7 @@ public sealed class SessionService(
         }
 
         return new MeResponse(
-            new MeUser(user.Id, user.FullName, user.Email!, user.EmailConfirmed, user.PhoneNumber),
+            new MeUser(user.Id, user.FullName, user.Email!, user.EmailConfirmed, user.PhoneNumber, await admins.IsAdminAsync(user.Id)),
             business,
             current?.Role,
             memberships);

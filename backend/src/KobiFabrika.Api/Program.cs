@@ -16,6 +16,7 @@ using KobiFabrika.Api.Features.Sales;
 using KobiFabrika.Api.Features.Customers;
 using KobiFabrika.Api.Features.Finance;
 using KobiFabrika.Api.Features.Invitations;
+using KobiFabrika.Api.Features.Marketing;
 using KobiFabrika.Api.Features.Messaging;
 using KobiFabrika.Api.Features.Notifications;
 using KobiFabrika.Api.Features.Public;
@@ -74,6 +75,8 @@ builder.Services.AddAuthentication(IdentityConstants.ApplicationScheme)
     }));
 
 builder.Services.AddScoped<CurrentMember>();
+builder.Services.Configure<PlatformOptions>(builder.Configuration.GetSection(PlatformOptions.Section));
+builder.Services.AddScoped<PlatformAdmins>();
 builder.Services.AddScoped<IAuthorizationHandler, MembershipAuthorizationHandler>();
 builder.Services.AddSingleton<IAuthorizationMiddlewareResultHandler, ProblemAuthorizationResultHandler>();
 builder.Services.AddAuthorizationBuilder().AddKobiFabrikaPolicies();
@@ -91,6 +94,10 @@ builder.Services.AddScoped<DocumentNumbers>();
 builder.Services.AddScoped<StockService>();
 builder.Services.AddScoped<SaleService>();
 builder.Services.AddScoped<AppointmentBooking>();
+builder.Services.Configure<MarketingOptions>(builder.Configuration.GetSection(MarketingOptions.Section));
+builder.Services.Configure<PublicLinkOptions>(builder.Configuration.GetSection(PublicLinkOptions.Section));
+builder.Services.AddScoped<CampaignSender>();
+builder.Services.AddScoped<CampaignDispatcher>();
 builder.Services.AddScoped<ISearchProvider, ContactSearchProvider>();
 builder.Services.AddScoped<ISearchProvider, ProductSearchProvider>();
 builder.Services.AddScoped<ISearchProvider, SaleSearchProvider>();
@@ -223,10 +230,16 @@ app.MapAppointmentEndpoints();
 app.MapBookingSettingsEndpoints();
 app.MapServicePackageEndpoints();
 app.MapMessageLogEndpoints();
+app.MapContactPrivacyEndpoints();
+app.MapSmsCreditEndpoints();
+app.MapCampaignEndpoints();
+app.MapOptOutEndpoints();
 
 if (BackgroundJobs.IsEnabled(app.Configuration))
 {
-    BackgroundJobs.RegisterRecurringJobs(app.Services.GetRequiredService<IRecurringJobManager>());
+    var recurring = app.Services.GetRequiredService<IRecurringJobManager>();
+    BackgroundJobs.RegisterRecurringJobs(recurring);
+    recurring.AddOrUpdate<CampaignDispatcher>(CampaignDispatcher.JobId, j => j.RunAsync(CancellationToken.None), Cron.Minutely);
 }
 
 app.Run();

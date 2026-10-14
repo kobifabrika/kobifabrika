@@ -28,6 +28,13 @@ const env = {
   RateLimiting__BookingSmsPermitLimit: "100000",
   // Sahte SMS sağlayıcısı her SMS'i sms+905…@sms.test adresine Mailpit'e de yollar; E2E doğrulama kodunu oradan okur.
   Sms__MirrorToEmail: "true",
+  // Kampanya SMS'leri her saatte gider (CI gece de koşar; 09:00-21:00 kuralı birim/entegrasyon testlerinde).
+  Marketing__SendWindowStart: "00:00",
+  Marketing__SendWindowEnd: "24:00",
+  // Çıkış linki E2E frontend'ine işaret etsin (canlıda kobifabrika.com).
+  PublicLinks__ShortBaseUrl: webUrl,
+  // Kredi yükleme ekranı için platform yöneticisi (E2E'de bu adresle kayıt olan kullanıcı).
+  Platform__AdminEmails__0: "e2e-platform@example.test",
   Storage__LocalPath: path.join(apiRunDir, "files"),
   DataProtection__KeysPath: path.join(apiRunDir, "keys"),
   Serilog__MinimumLevel__Default: "Warning",

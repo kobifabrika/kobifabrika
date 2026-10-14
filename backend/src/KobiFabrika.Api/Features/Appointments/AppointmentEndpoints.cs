@@ -74,6 +74,9 @@ public static class AppointmentEndpoints
                 ChangeStatusAsync(id, AppointmentStatus.Confirmed, null, m, db, n, c, ct, reopen: true))
             .RequireAuthorization(Policies.CanWrite).Produces<AppointmentResponse>()
             .WithSummary("Geri al: Tamamlandı (satışa çevrilmemişse; paket seansı iade) veya Gelmedi → Onaylı");
+        group.MapPost("/{id:guid}/notify-moved", NotifyMoved).RequireAuthorization(Policies.CanWrite)
+            .Produces<NotifyMovedResponse>()
+            .WithSummary("Sürükle-bırakla taşınan randevu için müşteriye SMS (son saat değişikliğinden sonra bir kez)");
         group.MapGet("/{id:guid}/sale-draft", SaleDraft).RequireAuthorization(Policies.CanWrite)
             .WithSummary("Satışa çevir: hızlı satış için müşteri, hizmet ve personel");
 
@@ -102,6 +105,42 @@ public static class AppointmentEndpoints
         (await db.Businesses.Where(b => b.Id == businessId).Select(b => b.Modules).FirstAsync(ct)).HasFlag(BusinessModules.Appointments);
 
     private static ProblemHttpResult NotFound() => Problems.NotFound("Randevu bulunamadı.");
+
+    /// <summary>
+    /// Masaüstünde sürükle-bırakla taşınan randevuda "Müşteriye SMS ile bildirilsin mi? [Gönder]". Sadece saati taşınmış,
+    /// taşınabilir durumdaki randevuda ve müşterinin cep telefonu varsa; son saat değişikliğinden sonra bir kez (409 already_notified).
+    /// </summary>
+    private static async Task<IResult> NotifyMoved(
+        Guid id, CurrentMember member, AppDbContext db, AppointmentNotifier notifier, CancellationToken ct)
+    {
+        var scope = await StaffAccess.ScopeAsync(db, member, ct);
+        var a = await db.Appointments.Visible(scope).AsNoTracking().FirstOrDefaultAsync(x => x.Id == id, ct);
+        if (a is null)
+        {
+            return NotFound();
+        }
+
+        if (a.TimeSetAt <= a.CreatedAt || !AppointmentRules.IsMovable(a.Status, a.SaleId is not null))
+        {
+            return Problems.Conflict("not_moved", "Bu randevu taşınmadı; bildirilecek değişiklik yok.");
+        }
+
+        var phone = await db.Contacts.Where(c => c.Id == a.ContactId).Select(c => c.Phone).FirstOrDefaultAsync(ct);
+        if (phone is null || !PhoneVerification.IsMobile(phone))
+        {
+            return Problems.Conflict("no_mobile", "Müşterinin cep telefonu kayıtlı değil.");
+        }
+
+        var alreadySent = await db.MessageLogs.AnyAsync(m => m.RefType == "Appointment" && m.RefId == id
+            && m.Purpose == Domain.Messaging.MessagePurpose.AppointmentMoved && m.CreatedAt >= a.TimeSetAt, ct);
+        if (alreadySent)
+        {
+            return Problems.Conflict("already_notified", "Müşteriye bu değişiklik için SMS zaten gönderildi.");
+        }
+
+        var log = await notifier.SendAsync(id, AppointmentSmsKind.Moved, ct);
+        return TypedResults.Ok(new NotifyMovedResponse(log?.Status ?? Domain.Messaging.MessageStatus.Failed));
+    }
 
     private static ProblemHttpResult OwnOnly() =>
         Problems.Forbidden("own_appointments_only", "Sadece kendi randevularınızı düzenleyebilirsiniz.");

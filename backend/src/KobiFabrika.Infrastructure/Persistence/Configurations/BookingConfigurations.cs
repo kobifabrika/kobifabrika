@@ -24,6 +24,8 @@ internal sealed class MessageLogConfiguration : IEntityTypeConfiguration<Message
         b.Property(x => x.RefType).HasMaxLength(30).IsUnicode(false);
         b.HasIndex(x => new { x.BusinessId, x.Purpose, x.CreatedAt });
         b.HasIndex(x => new { x.BusinessId, x.ContactId, x.CreatedAt });
+        // Kampanya alıcısına en fazla bir SMS (çift gönderime karşı veritabanı güvencesi).
+        b.HasIndex(x => x.RefId).IsUnique().HasDatabaseName("UX_MessageLogs_CampaignRecipient").HasFilter("[RefType] = 'CampaignRecipient'");
         b.HasOne<Contact>().WithMany().HasForeignKey(x => x.ContactId).OnDelete(DeleteBehavior.Restrict);
     }
 }

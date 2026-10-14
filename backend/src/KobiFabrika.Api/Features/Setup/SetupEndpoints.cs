@@ -9,6 +9,7 @@ using KobiFabrika.Domain.Finance;
 using KobiFabrika.Infrastructure.Businesses;
 using KobiFabrika.Infrastructure.Identity;
 using KobiFabrika.Infrastructure.Locations;
+using KobiFabrika.Infrastructure.Messaging;
 using KobiFabrika.Infrastructure.Persistence;
 using KobiFabrika.Infrastructure.Tenancy;
 using Microsoft.AspNetCore.Http.HttpResults;
@@ -153,6 +154,7 @@ public static class SetupEndpoints
         UserManager<AppUser> users,
         SessionService session,
         BusinessOperations ops,
+        SmsCredits credits,
         CancellationToken ct)
     {
         if (!member.IsMember)
@@ -163,6 +165,9 @@ public static class SetupEndpoints
         var business = await db.Businesses.SingleAsync(b => b.Id == member.BusinessId, ct);
         business.SetupCompletedAt ??= ops.Now;
         await db.SaveChangesAsync(ct);
+
+        // Bir kereye mahsus 50 SMS hoş geldin kredisi (karar 2026-10-15; deneme için).
+        await credits.GrantWelcomeAsync(ct);
 
         var user = (await users.FindByIdAsync(member.RequiredUserId.ToString()))!;
         return TypedResults.Ok(await session.BuildMeAsync(user, business.Id, ct));

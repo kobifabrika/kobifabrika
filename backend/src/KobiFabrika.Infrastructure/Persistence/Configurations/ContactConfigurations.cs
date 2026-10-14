@@ -31,6 +31,9 @@ internal sealed class ContactConfiguration : IEntityTypeConfiguration<Contact>
         b.HasIndex(x => new { x.BusinessId, x.Phone }).IsUnique().HasFilter("[Phone] IS NOT NULL AND [IsDeleted] = 0");
         b.HasIndex(x => new { x.BusinessId, x.DisplayName });
         b.HasIndex(x => new { x.BusinessId, x.Email });
+        b.Property(x => x.OptOutCode).HasMaxLength(8).IsUnicode(false).UseCollation("Latin1_General_100_BIN2");
+        // Çıkış linki /c/{kod} işletme içermez: kod bütün işletmelerde benzersiz (büyük/küçük harf duyarlı).
+        b.HasIndex(x => x.OptOutCode).IsUnique().HasFilter("[OptOutCode] IS NOT NULL");
         b.HasOne<Business>().WithMany().HasForeignKey(x => x.BusinessId).OnDelete(DeleteBehavior.Restrict);
     }
 }
@@ -42,8 +45,11 @@ internal sealed class ContactConsentConfiguration : IEntityTypeConfiguration<Con
         b.ToTable("ContactConsents");
         b.Property(x => x.Channel).HasConversion<string>().HasMaxLength(10);
         b.Property(x => x.Source).HasConversion<string>().HasMaxLength(20);
-        b.Property(x => x.IysStatus).HasMaxLength(20);
+        b.Property(x => x.IysStatus).HasMaxLength(20).IsUnicode(false);
+        b.Property(x => x.IysError).HasMaxLength(300);
         b.HasIndex(x => new { x.BusinessId, x.ContactId, x.At });
+        // İYS gönderim işi (işletmeler arası): bekleyen bildirimler.
+        b.HasIndex(x => x.CreatedAt).HasDatabaseName("IX_ContactConsents_IysPending").HasFilter("[IysStatus] = 'Pending'");
         b.HasOne<Contact>().WithMany().HasForeignKey(x => x.ContactId).OnDelete(DeleteBehavior.Restrict);
     }
 }

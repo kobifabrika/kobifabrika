@@ -121,3 +121,6 @@ public sealed class HolidayRequestValidator : AbstractValidator<HolidayRequest>
         RuleFor(x => x.Name).Must(n => !string.IsNullOrWhiteSpace(n)).WithMessage("Adını girin (ör. Kurban Bayramı).")
             .MaximumLength(Holiday.MaxNameLength).WithMessage("Ad en fazla 100 karakter olabilir.");
 }
+
+/// <summary>Taşıma SMS'inin sonucu: Sent, Failed veya NoCredit (kredi yetersiz).</summary>
+public sealed record NotifyMovedResponse(KobiFabrika.Domain.Messaging.MessageStatus Status);

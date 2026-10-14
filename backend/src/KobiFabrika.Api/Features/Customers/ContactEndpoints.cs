@@ -48,6 +48,10 @@ public static class ContactEndpoints
 
     internal static ProblemHttpResult ContactNotFound() => Problems.NotFound("Kayıt bulunamadı.");
 
+    /// <summary>Kişisel verileri silinmiş (anonimleştirilmiş) kart değiştirilemez.</summary>
+    internal static ProblemHttpResult Anonymized() =>
+        Problems.Conflict("contact_anonymized", "Bu müşterinin kişisel verileri silindi; kart değiştirilemez.");
+
     private static async Task<Results<Ok<ContactListResponse>, ProblemHttpResult>> List(
         CurrentMember member,
         AppDbContext db,
@@ -113,7 +117,7 @@ public static class ContactEndpoints
 
         var items = rows.Select(c => new ContactListItem(
             c.Id, c.DisplayName, c.CompanyName, c.Phone, c.Email, c.IsCustomer, c.IsSupplier, c.Source,
-            tags.GetValueOrDefault(c.Id) ?? [], showBalance ? c.Balance : null, c.LastVisitAt, c.IsArchived, c.CreatedAt)).ToList();
+            tags.GetValueOrDefault(c.Id) ?? [], showBalance ? c.Balance : null, c.LastVisitAt, c.IsArchived, c.CreatedAt, c.IsAnonymized)).ToList();
 
         return TypedResults.Ok(new ContactListResponse(items, total));
     }
@@ -175,7 +179,8 @@ public static class ContactEndpoints
         return new ContactResponse(
             c.Id, c.DisplayName, c.FirstName, c.LastName, c.CompanyName, c.IsCustomer, c.IsSupplier, c.Phone, c.Email, c.BirthDate,
             c.Address, c.City, c.District, c.Source, c.Notes, c.TaxNumber, c.TaxOffice, tags.GetValueOrDefault(id) ?? [], consents,
-            member.CanViewFinance ? c.Balance : null, hasEntries, c.LastVisitAt, c.IsArchived, c.ArchivedAt, c.CreatedAt);
+            member.CanViewFinance ? c.Balance : null, hasEntries, c.LastVisitAt, c.IsArchived, c.ArchivedAt, c.CreatedAt, c.IsAnonymized,
+            c.AnonymizedAt);
     }
 
     private static async Task<Results<Created<ContactResponse>, ProblemHttpResult, ValidationProblem>> Create(
@@ -259,6 +264,11 @@ public static class ContactEndpoints
         if (contact is null)
         {
             return ContactNotFound();
+        }
+
+        if (contact.IsAnonymized)
+        {
+            return Anonymized();
         }
 
         var before = Snapshot(contact);
@@ -354,7 +364,11 @@ public static class ContactEndpoints
             if (contact.HasConsent(channel) != granted)
             {
                 contact.SetConsent(channel, granted);
-                db.ContactConsents.Add(new ContactConsent { ContactId = contact.Id, Channel = channel, Granted = granted, Source = source, At = now });
+                db.ContactConsents.Add(new ContactConsent
+                {
+                    ContactId = contact.Id, Channel = channel, Granted = granted, Source = source, At = now,
+                    IysStatus = channel == ConsentChannel.Sms ? IysStatuses.Pending : IysStatuses.NotRequired,
+                });
             }
         }
     }
@@ -410,6 +424,11 @@ public static class ContactEndpoints
             return ContactNotFound();
         }
 
+        if (contact.IsAnonymized)
+        {
+            return Anonymized();
+        }
+
         if (contact.IsArchived)
         {
             contact.IsArchived = false;
@@ -450,6 +469,11 @@ public static class ContactEndpoints
             return ContactNotFound();
         }
 
+        if (contact.IsAnonymized)
+        {
+            return Anonymized();
+        }
+
         ApplyConsents(db, contact, request, ConsentSource.Panel, clock.GetUtcNow().UtcDateTime);
         await db.SaveChangesAsync(ct);
         return TypedResults.Ok((await LoadResponseAsync(db, member, id, ct))!);
@@ -458,9 +482,14 @@ public static class ContactEndpoints
     private static async Task<Results<Ok<ContactResponse>, ProblemHttpResult, ValidationProblem>> SetTags(
         Guid id, SetTagsRequest request, CurrentMember member, AppDbContext db, CancellationToken ct)
     {
-        if (!await db.Contacts.AnyAsync(c => c.Id == id, ct))
+        if (await db.Contacts.Where(c => c.Id == id).Select(c => (bool?)c.IsAnonymized).FirstOrDefaultAsync(ct) is not { } anonymized)
         {
             return ContactNotFound();
+        }
+
+        if (anonymized)
+        {
+            return Anonymized();
         }
 
         if (await InvalidTagsAsync(db, request.TagIds, ct))
@@ -491,9 +520,14 @@ public static class ContactEndpoints
     private static async Task<Results<Created<NoteResponse>, ProblemHttpResult>> AddNote(
         Guid id, NoteRequest request, CurrentMember member, AppDbContext db, CancellationToken ct)
     {
-        if (!await db.Contacts.AnyAsync(c => c.Id == id, ct))
+        if (await db.Contacts.Where(c => c.Id == id).Select(c => (bool?)c.IsAnonymized).FirstOrDefaultAsync(ct) is not { } anonymized)
         {
             return ContactNotFound();
+        }
+
+        if (anonymized)
+        {
+            return Anonymized();
         }
 
         var note = new ContactNote { ContactId = id, Body = request.Body.Trim() };

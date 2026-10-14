@@ -38,7 +38,20 @@ public class Business : Entity, ISoftDeletable, IAuditable
     /// <summary>İşletme ayarları (JSON). Yapısı ilgili sprintlerde netleşecek.</summary>
     public string? Settings { get; set; }
 
+    /// <summary>SMS kredisi (1 kredi = 1 segment). Önbellek; sadece SmsCredits ile atomik değişir, eksiye düşmez (CHECK).</summary>
     public int SmsBalance { get; set; }
+
+    /// <summary>Bakiye bu değerin altına inince Sahip ve Yöneticilere bir kez bildirim (0 = kapalı).</summary>
+    public int SmsLowBalanceThreshold { get; set; } = Marketing.SmsCredit.DefaultLowBalanceThreshold;
+
+    /// <summary>Düşük bakiye bildirimi gönderildi; yüklemede sıfırlanır.</summary>
+    public DateTime? SmsLowBalanceNotifiedAt { get; set; }
+
+    /// <summary>"Krediniz bitti" bildirimi gönderildi; yüklemede sıfırlanır.</summary>
+    public DateTime? SmsOutOfCreditNotifiedAt { get; set; }
+
+    /// <summary>İYS marka kodu (gerçek İYS bağlantısı pilot öncesi; boşken izinler İYS'ye bildirilmez, bekler).</summary>
+    public string? IysBrandCode { get; set; }
 
     /// <summary>Fiş yazıcısının kağıt genişliği (mm): 58 veya 80. Fiş sayfası ve fiş PDF'i bu genişlikte.</summary>
     public int ReceiptWidth { get; set; } = DefaultReceiptWidth;

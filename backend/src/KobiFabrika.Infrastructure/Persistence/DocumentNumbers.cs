@@ -15,13 +15,20 @@ public sealed class DocumentNumbers(AppDbContext db, ITenantContext tenant)
 {
     public async Task<(int Year, int Seq, string No)> NextAsync(DocumentKind kind, DateTime dateUtc, CancellationToken ct)
     {
+        var year = DocumentNumber.YearOf(dateUtc);
+        var seq = await NextValueAsync(kind, year, ct);
+        return (year, seq, DocumentNumber.Format(kind, year, seq));
+    }
+
+    /// <summary>Yıldan bağımsız sayaçlar için (ör. "Silinmiş müşteri #N", yıl 0).</summary>
+    public async Task<int> NextValueAsync(DocumentKind kind, int year, CancellationToken ct)
+    {
         if (db.Database.CurrentTransaction is null)
         {
             throw new InvalidOperationException("Belge numarası transaction içinde alınmalı.");
         }
 
         var businessId = tenant.BusinessId ?? throw new TenantViolationException("Kiracı bağlamı olmadan belge numarası alınamaz.");
-        var year = DocumentNumber.YearOf(dateUtc);
         var kindName = kind.ToString();
         var id = Guid.CreateVersion7();
 
@@ -38,7 +45,6 @@ public sealed class DocumentNumbers(AppDbContext db, ITenantContext tenant)
             SELECT @next AS [Value];
             """).ToListAsync(ct);
 
-        var seq = values.Single();
-        return (year, seq, DocumentNumber.Format(kind, year, seq));
+        return values.Single();
     }
 }

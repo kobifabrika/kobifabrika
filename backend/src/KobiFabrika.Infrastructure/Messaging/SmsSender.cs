@@ -1,3 +1,4 @@
+using KobiFabrika.Domain.Marketing;
 using KobiFabrika.Domain.Messaging;
 using KobiFabrika.Infrastructure.Email;
 using KobiFabrika.Infrastructure.Persistence;
@@ -34,8 +35,10 @@ public sealed record SmsMessage(
     string To, string Body, MessagePurpose Purpose, Guid? ContactId = null, string? RefType = null, Guid? RefId = null);
 
 /// <summary>
-/// SMS gönderimi: önce MessageLog satırı, sonra sağlayıcı. Hata fırlatmaz; sonuç satırın Status/Error alanında.
-/// Kiracı bağlamında çağrılır (MessageLog işletmeye aittir). Çağıranın bekleyen değişikliklerini de yazar; commit'ten sonra çağırın.
+/// SMS gönderimi: önce MessageLog satırı (ücretli mesajda kredi düşümüyle aynı transaction'da), sonra sağlayıcı.
+/// Kredi yetmezse Status = NoCredit (gönderilmez, bir kez "kredi bitti" bildirimi); sağlayıcı hatasında Failed + kredi iadesi.
+/// Hata fırlatmaz; sonuç satırın Status/Error alanında. Kiracı bağlamında, açık transaction olmadan çağrılır (commit'ten sonra);
+/// çağıranın bekleyen değişikliklerini de yazar.
 /// </summary>
 public interface ISmsSender
 {
@@ -50,15 +53,15 @@ public interface ISmsGateway
     Task<string?> SendAsync(string to, string body, CancellationToken ct);
 }
 
-internal sealed class SmsSender(AppDbContext db, ISmsGateway gateway, TimeProvider clock, ILogger<SmsSender> logger) : ISmsSender
+internal sealed class SmsSender(
+    AppDbContext db, ISmsGateway gateway, SmsCredits credits, TimeProvider clock, ILogger<SmsSender> logger) : ISmsSender
 {
-    /// <summary>Şimdilik segment başına 1 kredi (Sprint 6'da paket fiyatına göre).</summary>
-    public const decimal CreditPerSegment = 1m;
-
     public async Task<MessageLog> SendAsync(SmsMessage message, CancellationToken ct)
     {
         var size = SmsSegments.Measure(message.Body);
         var body = message.Body.Length > MessageLog.MaxBodyLength ? message.Body[..MessageLog.MaxBodyLength] : message.Body;
+        var billable = MessagePurposes.IsBillable(message.Purpose);
+        var cost = SmsCredit.Cost(size.Segments);
         var log = new MessageLog
         {
             Channel = MessageChannel.Sms,
@@ -68,30 +71,84 @@ internal sealed class SmsSender(AppDbContext db, ISmsGateway gateway, TimeProvid
             Provider = gateway.Name,
             Status = MessageStatus.Queued,
             Segments = size.Segments,
-            CreditCost = size.Segments * CreditPerSegment,
-            Billable = message.Purpose != MessagePurpose.Verification,
+            CreditCost = cost,
+            Billable = billable,
             ContactId = message.ContactId,
             RefType = message.RefType,
             RefId = message.RefId,
         };
-        db.MessageLogs.Add(log);
-        await db.SaveChangesAsync(ct);
 
+        if (!billable)
+        {
+            db.MessageLogs.Add(log);
+            await db.SaveChangesAsync(ct);
+            await DeliverAsync(log, ct);
+            await db.SaveChangesAsync(CancellationToken.None);
+            return log;
+        }
+
+        // Önce kredi: log ve düşüm aynı transaction'da. Yetmezse gönderilmez (bakiye eksiye düşmez).
+        int? balance;
+        await using (var tx = await db.Database.BeginTransactionAsync(ct))
+        {
+            db.MessageLogs.Add(log);
+            balance = await credits.TryDebitAsync(cost, ct);
+            if (balance is null)
+            {
+                log.Status = MessageStatus.NoCredit;
+                log.Error = "Kredi yetersiz";
+            }
+            else
+            {
+                db.SmsCreditTransactions.Add(new SmsCreditTransaction
+                {
+                    Amount = -cost, Kind = SmsCreditKind.Send, BalanceAfter = balance.Value, MessageLogId = log.Id,
+                });
+            }
+
+            await db.SaveChangesAsync(ct);
+            await tx.CommitAsync(ct);
+        }
+
+        if (balance is null)
+        {
+            await credits.OutOfCreditAsync(CancellationToken.None);
+            return log;
+        }
+
+        await DeliverAsync(log, ct);
+        if (log.Status == MessageStatus.Failed)
+        {
+            await using var tx = await db.Database.BeginTransactionAsync(CancellationToken.None);
+            var after = await credits.CreditAsync(cost, CancellationToken.None);
+            db.SmsCreditTransactions.Add(new SmsCreditTransaction
+            {
+                Amount = cost, Kind = SmsCreditKind.Refund, BalanceAfter = after, MessageLogId = log.Id, Note = "Gönderilemedi",
+            });
+            await db.SaveChangesAsync(CancellationToken.None);
+            await tx.CommitAsync(CancellationToken.None);
+            return log;
+        }
+
+        await db.SaveChangesAsync(CancellationToken.None);
+        await credits.AfterDebitAsync(balance.Value + cost, balance.Value, CancellationToken.None);
+        return log;
+    }
+
+    private async Task DeliverAsync(MessageLog log, CancellationToken ct)
+    {
         try
         {
-            log.ProviderMessageId = await gateway.SendAsync(message.To, body, ct);
+            log.ProviderMessageId = await gateway.SendAsync(log.To, log.Body, ct);
             log.Status = MessageStatus.Sent;
             log.SentAt = clock.GetUtcNow().UtcDateTime;
         }
         catch (Exception ex) when (ex is not OperationCanceledException)
         {
-            logger.LogWarning(ex, "SMS gönderilemedi: {Purpose} {To}", message.Purpose, message.To);
+            logger.LogWarning(ex, "SMS gönderilemedi: {Purpose} {To}", log.Purpose, log.To);
             log.Status = MessageStatus.Failed;
             log.Error = ex.Message.Length > 500 ? ex.Message[..500] : ex.Message;
         }
-
-        await db.SaveChangesAsync(CancellationToken.None);
-        return log;
     }
 }
 

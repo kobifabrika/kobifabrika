@@ -8,6 +8,7 @@ using KobiFabrika.Domain.Common;
 using KobiFabrika.Domain.Contacts;
 using KobiFabrika.Domain.Finance;
 using KobiFabrika.Domain.Imports;
+using KobiFabrika.Domain.Marketing;
 using KobiFabrika.Domain.Messaging;
 using KobiFabrika.Domain.Notifications;
 using KobiFabrika.Domain.Sales;
@@ -83,6 +84,10 @@ public class AppDbContext : IdentityDbContext<AppUser, AppRole, Guid>
     public DbSet<MessageLog> MessageLogs => Set<MessageLog>();
     public DbSet<ServicePackage> ServicePackages => Set<ServicePackage>();
     public DbSet<CustomerPackage> CustomerPackages => Set<CustomerPackage>();
+    public DbSet<SmsCreditTransaction> SmsCreditTransactions => Set<SmsCreditTransaction>();
+    public DbSet<Campaign> Campaigns => Set<Campaign>();
+    public DbSet<CampaignRecipient> CampaignRecipients => Set<CampaignRecipient>();
+    public DbSet<MarketingDailySend> MarketingDailySends => Set<MarketingDailySend>();
 
     /// <summary>
     /// Query filter'lar bu özelliğe başvurur; EF her sorguda bu context örneğinin

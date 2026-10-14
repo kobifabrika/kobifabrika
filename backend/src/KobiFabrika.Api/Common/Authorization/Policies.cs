@@ -42,11 +42,20 @@ public static class Policies
     /// <summary>Excel'e aktarma: Owner, Manager, Accountant.</summary>
     public const string Export = nameof(Export);
 
-    /// <summary>Sadece Owner (ileride maaş, abonelik).</summary>
     /// <summary>Raporlar: Sahip, Yönetici, Mali Müşavir (Personel göremez).</summary>
     public const string ViewReports = nameof(ViewReports);
 
+    /// <summary>Sadece Owner (KVKK anonimleştirme; ileride maaş, abonelik).</summary>
     public const string OwnerOnly = nameof(OwnerOnly);
+
+    /// <summary>Kampanya sonuçları, SMS kredisi ve hareketleri: Sahip, Yönetici, Mali Müşavir (salt okunur).</summary>
+    public const string ViewMarketing = nameof(ViewMarketing);
+
+    /// <summary>Kampanya oluşturma, gönderme, iptal: Sahip, Yönetici (Personel gönderemez).</summary>
+    public const string ManageMarketing = nameof(ManageMarketing);
+
+    /// <summary>KobiFabrika ekibi (kredi yükleme; süper admin paneli Sprint 8). İşletme üyeliği aranmaz.</summary>
+    public const string PlatformAdmin = nameof(PlatformAdmin);
 
     /// <summary>Kurulum sihirbazı: işletmesi olmayan kullanıcı veya kurulumu bitmemiş işletmenin Owner'ı.</summary>
     public const string Setup = nameof(Setup);
@@ -68,6 +77,9 @@ public static class Policies
         .AddPolicy(Export, p => p.AddRequirements(new MemberRequirement(RoleSets.FinanceViewers)))
         .AddPolicy(ViewReports, p => p.AddRequirements(new MemberRequirement(RoleSets.FinanceViewers)))
         .AddPolicy(OwnerOnly, p => p.AddRequirements(new MemberRequirement(BusinessRole.Owner)))
+        .AddPolicy(ViewMarketing, p => p.AddRequirements(new MemberRequirement(RoleSets.FinanceViewers)))
+        .AddPolicy(ManageMarketing, p => p.AddRequirements(new MemberRequirement(RoleSets.Managers)))
+        .AddPolicy(PlatformAdmin, p => p.AddRequirements(new PlatformAdminRequirement()))
         .AddPolicy(Setup, p => p.AddRequirements(new SetupRequirement()))
         .AddPolicy(VerifiedEmail, p => p.AddRequirements(new VerifiedEmailRequirement()));
 }
@@ -89,6 +101,8 @@ public sealed class SetupRequirement : IAuthorizationRequirement;
 
 public sealed class VerifiedEmailRequirement : IAuthorizationRequirement;
 
+public sealed class PlatformAdminRequirement : IAuthorizationRequirement;
+
 /// <summary>Yetki reddinin Türkçe açıklaması ve frontend'in yönlendirme için kullandığı kod.</summary>
 public sealed class KfFailureReason(IAuthorizationHandler handler, string code, string message)
     : AuthorizationFailureReason(handler, message)
@@ -96,13 +110,13 @@ public sealed class KfFailureReason(IAuthorizationHandler handler, string code, 
     public string Code { get; } = code;
 }
 
-internal sealed class MembershipAuthorizationHandler(CurrentMember member) : IAuthorizationHandler
+internal sealed class MembershipAuthorizationHandler(CurrentMember member, PlatformAdmins admins) : IAuthorizationHandler
 {
-    public Task HandleAsync(AuthorizationHandlerContext context)
+    public async Task HandleAsync(AuthorizationHandlerContext context)
     {
         if (context.User.Identity?.IsAuthenticated != true || member.UserId is null)
         {
-            return Task.CompletedTask;
+            return;
         }
 
         foreach (var requirement in context.PendingRequirements.ToList())
@@ -137,6 +151,18 @@ internal sealed class MembershipAuthorizationHandler(CurrentMember member) : IAu
 
                     break;
 
+                case PlatformAdminRequirement:
+                    if (await admins.IsAdminAsync(member.UserId.Value, context.User))
+                    {
+                        context.Succeed(requirement);
+                    }
+                    else
+                    {
+                        Fail(context, "forbidden_role", "Bu işlem sadece KobiFabrika ekibine açık.");
+                    }
+
+                    break;
+
                 case VerifiedEmailRequirement:
                     if (member.EmailConfirmed)
                     {
@@ -150,8 +176,6 @@ internal sealed class MembershipAuthorizationHandler(CurrentMember member) : IAu
                     break;
             }
         }
-
-        return Task.CompletedTask;
     }
 
     private void Fail(AuthorizationHandlerContext context, string code, string message) =>

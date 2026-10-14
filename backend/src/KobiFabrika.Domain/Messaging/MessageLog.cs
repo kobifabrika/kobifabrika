@@ -27,6 +27,34 @@ public enum MessagePurpose
 
     /// <summary>Beklemedeki online randevu reddedildi.</summary>
     AppointmentRejected,
+
+    /// <summary>Kampanya (pazarlama; SMS izni ve çıkış eki şart).</summary>
+    Campaign,
+
+    /// <summary>Doğum günü otomasyonu (pazarlama, Sprint 6B).</summary>
+    Birthday,
+
+    /// <summary>"X gündür gelmedi" geri kazanma otomasyonu (pazarlama, Sprint 6B).</summary>
+    WinBack,
+
+    /// <summary>Randevu sonrası teşekkür (pazarlama, Sprint 6B).</summary>
+    VisitThanks,
+
+    /// <summary>Memnuniyet anketi linki (pazarlama, Sprint 6B).</summary>
+    Survey,
+
+    /// <summary>Vade günü otomatik hatırlatma (bilgilendirme, Sprint 6B).</summary>
+    DueReminder,
+}
+
+/// <summary>Amaç grupları: pazarlama mesajı SMS izni, 09:00-21:00 penceresi, günlük üst sınır ve çıkış eki ister.</summary>
+public static class MessagePurposes
+{
+    public static bool IsMarketing(MessagePurpose purpose) => purpose is MessagePurpose.Campaign or MessagePurpose.Birthday
+        or MessagePurpose.WinBack or MessagePurpose.VisitThanks or MessagePurpose.Survey;
+
+    /// <summary>İşletmenin SMS kredisinden düşer mi (doğrulama kodu platformun; Sprint 5 kararı).</summary>
+    public static bool IsBillable(MessagePurpose purpose) => purpose != MessagePurpose.Verification;
 }
 
 public enum MessageStatus
@@ -34,11 +62,14 @@ public enum MessageStatus
     Queued,
     Sent,
     Failed,
+
+    /// <summary>İşletmenin SMS kredisi yetmedi; sağlayıcıya gönderilmedi (bakiye eksiye düşmez).</summary>
+    NoCredit,
 }
 
 /// <summary>
-/// Gönderilen her SMS'in kaydı. Sprint 6'daki kredi düşümü <c>Billable &amp;&amp; Status = Sent</c> satırlarını kullanır.
-/// CreditCost tahminidir (şimdilik segment başına 1 kredi).
+/// Gönderilen her SMS'in kaydı. Billable mesajda kredi gönderimden önce atomik düşülür (SmsCreditTransactions, Kind=Send);
+/// sağlayıcı hatasında iade edilir (Refund). Kredi yetmezse Status = NoCredit. CreditCost = segment × 1 kredi.
 /// </summary>
 public class MessageLog : TenantEntity
 {

@@ -454,7 +454,8 @@ public static class PublicBookingEndpoints
     /// </summary>
     private static async Task<Contact> FindOrCreateContactAsync(AppDbContext db, PublicBookingRequest request, string phone, DateTime now, CancellationToken ct)
     {
-        var contact = await db.Contacts.FirstOrDefaultAsync(c => c.Phone == phone, ct);
+        // Anonimleştirilmiş kaydın telefonu zaten silinir; açık şart ikinci güvence (Sprint 6A, KVKK).
+        var contact = await db.Contacts.FirstOrDefaultAsync(c => c.Phone == phone && !c.IsAnonymized, ct);
         if (contact is null)
         {
             contact = new Contact
@@ -479,6 +480,7 @@ public static class PublicBookingEndpoints
             db.ContactConsents.Add(new ContactConsent
             {
                 ContactId = contact.Id, Channel = ConsentChannel.Sms, Granted = true, Source = ConsentSource.OnlineBooking, At = now,
+                IysStatus = IysStatuses.Pending,
             });
         }
 

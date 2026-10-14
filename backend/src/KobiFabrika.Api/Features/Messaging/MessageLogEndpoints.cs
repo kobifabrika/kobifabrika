@@ -22,6 +22,12 @@ public static class MessageLabels
         [MessagePurpose.AppointmentMoved] = "Randevu değişikliği",
         [MessagePurpose.AppointmentCancelled] = "Randevu iptali",
         [MessagePurpose.AppointmentRejected] = "Randevu reddi",
+        [MessagePurpose.Campaign] = "Kampanya",
+        [MessagePurpose.Birthday] = "Doğum günü",
+        [MessagePurpose.WinBack] = "Geri kazanma",
+        [MessagePurpose.VisitThanks] = "Ziyaret sonrası teşekkür",
+        [MessagePurpose.Survey] = "Memnuniyet anketi",
+        [MessagePurpose.DueReminder] = "Vade hatırlatması",
     };
 }
 

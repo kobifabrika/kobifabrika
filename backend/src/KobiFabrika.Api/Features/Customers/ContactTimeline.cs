@@ -32,6 +32,10 @@ public static class ContactTimeline
         [ConsentSource.Panel] = "panel",
         [ConsentSource.Import] = "Excel içe aktarma",
         [ConsentSource.OnlineBooking] = "online randevu",
+        [ConsentSource.OptOutLink] = "çıkış linki",
+        [ConsentSource.OptOutSms] = "RET SMS'i",
+        [ConsentSource.Iys] = "İYS",
+        [ConsentSource.Anonymization] = "kişisel veriler silindi",
     };
 
     /// <summary>
@@ -181,7 +185,12 @@ public static class ContactTimeline
                     .ToListAsync(ct))
                 .Select(m => new TimelineItem(
                     "sms", m.CreatedAt,
-                    $"SMS: {Messaging.MessageLabels.Purposes[m.Purpose]}" + (m.Status == Domain.Messaging.MessageStatus.Failed ? " (gönderilemedi)" : ""),
+                    $"SMS: {Messaging.MessageLabels.Purposes[m.Purpose]}" + m.Status switch
+                    {
+                        Domain.Messaging.MessageStatus.Failed => " (gönderilemedi)",
+                        Domain.Messaging.MessageStatus.NoCredit => " (kredi yetersiz, gönderilmedi)",
+                        _ => "",
+                    },
                     m.Body, null, m.Id)));
 
             items.AddRange((await db.DueReminderLogs.AsNoTracking()

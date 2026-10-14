@@ -29,6 +29,18 @@ public enum ConsentSource
     Panel,
     Import,
     OnlineBooking,
+
+    /// <summary>Müşteri pazarlama SMS'indeki çıkış linkinden "SMS'leri durdur" dedi.</summary>
+    OptOutLink,
+
+    /// <summary>Müşteri RET yazıp gönderdi (gerçek SMS sağlayıcısıyla; pilot öncesi).</summary>
+    OptOutSms,
+
+    /// <summary>İYS'den gelen değişiklik (pilot öncesi).</summary>
+    Iys,
+
+    /// <summary>KVKK anonimleştirme izinleri kapattı.</summary>
+    Anonymization,
 }
 
 /// <summary>Etiket rengi; sadece 3 renk kuralına uyan tonlar (docs/04-tasarim.md).</summary>

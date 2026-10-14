@@ -43,6 +43,18 @@ public class Contact : TenantEntity
     public bool IsArchived { get; set; }
     public DateTime? ArchivedAt { get; set; }
 
+    /// <summary>Pazarlama SMS'indeki kısa çıkış linkinin kodu (/c/{kod}); ilk pazarlama SMS'inde üretilir, bütün işletmelerde benzersiz.</summary>
+    public string? OptOutCode { get; set; }
+
+    /// <summary>
+    /// KVKK "kişisel verilerini sil": ad, iletişim, doğum günü, adres ve notlar silindi; kart "Silinmiş müşteri #N" olarak arşivde
+    /// kalır (satış ve cari tutarlar muhasebe için durur). Geri alınamaz; online randevuya bağlanmaz, kampanya alıcısı olmaz.
+    /// </summary>
+    public bool IsAnonymized { get; set; }
+
+    public DateTime? AnonymizedAt { get; set; }
+    public Guid? AnonymizedBy { get; set; }
+
     // Güncel KVKK izinleri (geçmiş ContactConsents'te).
     public bool SmsConsent { get; set; }
     public bool EmailConsent { get; set; }

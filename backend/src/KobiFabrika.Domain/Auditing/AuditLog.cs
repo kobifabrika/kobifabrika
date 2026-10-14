@@ -89,6 +89,15 @@ public enum AuditAction
     ServicePackageDeleted,
     CustomerPackageExtended,
     CustomerPackageClosed,
+    SmsCreditsAdded,
+    SmsCreditsExported,
+    SmsSettingsChanged,
+    CampaignCreated,
+    CampaignCancelled,
+    ContactDataExported,
+
+    /// <summary>KVKK: müşterinin kişisel verileri silindi (anonimleştirildi). Kayıtta kişisel veri tutulmaz.</summary>
+    ContactAnonymized,
 }
 
 /// <summary>

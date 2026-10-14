@@ -87,8 +87,10 @@ public static class DependencyInjection
             .Validate<IHostEnvironment>(SmsOptions.IsSafe, SmsOptions.UnsafeMessage)
             .ValidateOnStart();
         services.AddSingleton<ISmsGateway, FakeSmsGateway>();
+        services.AddScoped<SmsCredits>();
         services.AddScoped<ISmsSender, SmsSender>();
         services.AddScoped<AppointmentNotifier>();
+        services.AddSingleton<IIysClient, FakeIysClient>();
         services.AddSingleton<IFileStorage, LocalFileStorage>();
         services.AddSingleton<LocationCatalog>();
         services.AddScoped<IAuditLogger, AuditLogger>();

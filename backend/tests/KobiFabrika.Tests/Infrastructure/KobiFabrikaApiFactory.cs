@@ -36,6 +36,14 @@ public sealed class KobiFabrikaApiFactory : WebApplicationFactory<Program>
     public int BookingSmsPermitLimit { get; init; } = 100_000;
     public int BookingReadPermitLimit { get; init; } = 100_000;
     public int VerificationDailyLimit { get; init; } = 100;
+
+    /// <summary>Bu fabrikanın PlatformAdmin e-postası (Platform:AdminEmails); testler paralel olduğu için benzersiz.</summary>
+    public string AdminEmail { get; } = $"platform-{Guid.NewGuid():N}@test.com";
+
+    /// <summary>Pazarlama gönderim aralığı; varsayılan her an açık (gece koşan testler için). Pencere testleri 09:00-21:00 verir.</summary>
+    public string MarketingWindowStart { get; init; } = "00:00";
+    public string MarketingWindowEnd { get; init; } = "24:00";
+    public int MarketingBatchSize { get; init; } = 100;
     public string StoragePath { get; } = Path.Combine(Path.GetTempPath(), "kf-tests-" + Guid.NewGuid().ToString("N"));
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
@@ -50,6 +58,11 @@ public sealed class KobiFabrikaApiFactory : WebApplicationFactory<Program>
         builder.UseSetting("Storage:LocalPath", StoragePath);
         builder.UseSetting("DataProtection:KeysPath", Path.Combine(StoragePath, "keys"));
         builder.UseSetting("App:FrontendUrl", "http://localhost:3000");
+        builder.UseSetting("PublicLinks:ShortBaseUrl", "kobifabrika.com");
+        builder.UseSetting("Platform:AdminEmails:0", AdminEmail);
+        builder.UseSetting("Marketing:SendWindowStart", MarketingWindowStart);
+        builder.UseSetting("Marketing:SendWindowEnd", MarketingWindowEnd);
+        builder.UseSetting("Marketing:BatchSize", MarketingBatchSize.ToString());
         // Arka plan işleri testte zamanlanmaz; iş sınıfları doğrudan çağrılır.
         builder.UseSetting("Hangfire:Enabled", "false");
         builder.ConfigureTestServices(services =>
