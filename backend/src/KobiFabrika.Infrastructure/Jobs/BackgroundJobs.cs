@@ -1,8 +1,10 @@
 using Hangfire;
 using Hangfire.SqlServer;
+using KobiFabrika.Domain.Appointments;
 using KobiFabrika.Domain.Businesses;
 using KobiFabrika.Domain.Common;
 using KobiFabrika.Infrastructure.Finance;
+using KobiFabrika.Infrastructure.Messaging;
 using KobiFabrika.Infrastructure.Notifications;
 using KobiFabrika.Infrastructure.Persistence;
 using KobiFabrika.Infrastructure.Tenancy;
@@ -23,6 +25,8 @@ public static class BackgroundJobs
     public const string ReminderJobId = "reminders-due";
     public const string ImportCleanupJobId = "import-jobs-cleanup";
     public const string DueDigestJobId = "due-digest";
+    public const string AppointmentReminderJobId = "appointment-reminders";
+    public const string PhoneVerificationCleanupJobId = "phone-verifications-cleanup";
 
     public static bool IsEnabled(IConfiguration configuration) => configuration.GetValue("Hangfire:Enabled", true);
 
@@ -31,6 +35,8 @@ public static class BackgroundJobs
         services.AddScoped<ReminderDueJob>();
         services.AddScoped<ImportCleanupJob>();
         services.AddScoped<DueDigestJob>();
+        services.AddScoped<AppointmentReminderJob>();
+        services.AddScoped<PhoneVerificationCleanupJob>();
 
         if (!IsEnabled(configuration))
         {
@@ -58,6 +64,8 @@ public static class BackgroundJobs
         jobs.AddOrUpdate<ImportCleanupJob>(ImportCleanupJobId, j => j.RunAsync(CancellationToken.None), Cron.Hourly);
         jobs.AddOrUpdate<DueDigestJob>(DueDigestJobId, j => j.RunAsync(CancellationToken.None), Cron.Daily(9, 0),
             new RecurringJobOptions { TimeZone = BusinessTime.Zone });
+        jobs.AddOrUpdate<AppointmentReminderJob>(AppointmentReminderJobId, j => j.RunAsync(CancellationToken.None), Cron.Minutely);
+        jobs.AddOrUpdate<PhoneVerificationCleanupJob>(PhoneVerificationCleanupJobId, j => j.RunAsync(CancellationToken.None), Cron.Hourly);
     }
 }
 
@@ -200,5 +208,81 @@ public sealed class ImportCleanupJob(AppDbContext db, TimeProvider clock)
     {
         var now = clock.GetUtcNow().UtcDateTime;
         return db.ImportJobs.IgnoreQueryFilters().Where(j => j.ExpiresAt <= now).ExecuteDeleteAsync(ct);
+    }
+}
+
+/// <summary>
+/// Randevu hatırlatma SMS'i (dakikada bir). Aday: onaylı, hatırlatması gitmemiş, başlangıcı şimdi ile şimdi + işletmenin
+/// hatırlatma saati arasında ve saati en az o kadar önce belirlenmiş randevu (kısa süre kala alınan veya taşınan randevuya gitmez).
+/// Beklemede, iptal ve hatırlatması kapalı (0) işletme atlanır. Satır başına koşullu UPDATE ile bir kez işaretlenir, sonra SMS
+/// gider; gönderim hatası MessageLog'a Failed yazılır, yeniden denenmez. Taşıma ReminderSentAt'i temizler.
+/// </summary>
+public sealed class AppointmentReminderJob(AppDbContext db, IServiceScopeFactory scopes, TimeProvider clock, ILogger<AppointmentReminderJob> logger)
+{
+    [DisableConcurrentExecution(timeoutInSeconds: 120)]
+    [AutomaticRetry(Attempts = 0)]
+    public async Task<int> RunAsync(CancellationToken ct)
+    {
+        var now = clock.GetUtcNow().UtcDateTime;
+        var horizon = now.AddHours(Business.MaxReminderHoursBefore);
+        var rows = await db.Appointments.IgnoreQueryFilters([QueryFilters.Tenant])
+            .Where(a => a.Status == AppointmentStatus.Confirmed && a.ReminderSentAt == null && a.StartAt > now && a.StartAt <= horizon)
+            .Join(db.Businesses.Where(b => b.ReminderHoursBefore > 0 && !b.IsDeleted), a => a.BusinessId, b => b.Id,
+                (a, b) => new { a.Id, a.BusinessId, a.StartAt, a.TimeSetAt, b.ReminderHoursBefore, b.Modules })
+            .ToListAsync(ct);
+
+        var due = rows
+            .Where(r => r.Modules.HasFlag(BusinessModules.Appointments)
+                && r.StartAt <= now.AddHours(r.ReminderHoursBefore)
+                && r.TimeSetAt <= r.StartAt.AddHours(-r.ReminderHoursBefore))
+            .GroupBy(r => r.BusinessId);
+
+        var total = 0;
+        foreach (var business in due)
+        {
+            try
+            {
+                total += await RemindAsync(business.Key, business.Select(r => r.Id).ToList(), now, ct);
+            }
+            catch (Exception ex) when (ex is not OperationCanceledException)
+            {
+                logger.LogError(ex, "Randevu hatırlatmaları gönderilemedi: {BusinessId}", business.Key);
+            }
+        }
+
+        return total;
+    }
+
+    private async Task<int> RemindAsync(Guid businessId, List<Guid> ids, DateTime now, CancellationToken ct)
+    {
+        await using var scope = scopes.CreateAsyncScope();
+        scope.ServiceProvider.GetRequiredService<TenantContext>().Set(businessId);
+        var tenantDb = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        var notifier = scope.ServiceProvider.GetRequiredService<AppointmentNotifier>();
+
+        var sent = 0;
+        foreach (var id in ids)
+        {
+            var marked = await tenantDb.Appointments
+                .Where(a => a.Id == id && a.ReminderSentAt == null && a.Status == AppointmentStatus.Confirmed)
+                .ExecuteUpdateAsync(s => s.SetProperty(a => a.ReminderSentAt, now), ct);
+            if (marked == 1 && await notifier.SendAsync(id, AppointmentSmsKind.Reminder, ct) is not null)
+            {
+                sent++;
+            }
+        }
+
+        return sent;
+    }
+}
+
+/// <summary>7 günden eski telefon doğrulama satırlarını siler (saatlik).</summary>
+public sealed class PhoneVerificationCleanupJob(AppDbContext db, TimeProvider clock)
+{
+    [AutomaticRetry(Attempts = 0)]
+    public Task<int> RunAsync(CancellationToken ct)
+    {
+        var cutoff = clock.GetUtcNow().UtcDateTime - PhoneVerification.Retention;
+        return db.PhoneVerifications.IgnoreQueryFilters().Where(v => v.CreatedAt < cutoff).ExecuteDeleteAsync(ct);
     }
 }

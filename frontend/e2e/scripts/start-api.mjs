@@ -24,6 +24,10 @@ const env = {
   // Testler aynı IP'den çok sayıda kayıt/giriş yapar; canlıdaki sınırlar değişmez.
   RateLimiting__AuthPermitLimit: "100000",
   RateLimiting__PublicPermitLimit: "100000",
+  RateLimiting__BookingReadPermitLimit: "100000",
+  RateLimiting__BookingSmsPermitLimit: "100000",
+  // Sahte SMS sağlayıcısı her SMS'i sms+905…@sms.test adresine Mailpit'e de yollar; E2E doğrulama kodunu oradan okur.
+  Sms__MirrorToEmail: "true",
   Storage__LocalPath: path.join(apiRunDir, "files"),
   DataProtection__KeysPath: path.join(apiRunDir, "keys"),
   Serilog__MinimumLevel__Default: "Warning",

@@ -17,8 +17,11 @@ public static class Problems
     public static ProblemHttpResult Gone(string code, string detail) =>
         WithCode(StatusCodes.Status410Gone, code, detail);
 
-    public static ProblemHttpResult BadRequest(string code, string detail) =>
-        WithCode(StatusCodes.Status400BadRequest, code, detail);
+    public static ProblemHttpResult BadRequest(string code, string detail, IDictionary<string, object?>? extra = null) =>
+        WithCode(StatusCodes.Status400BadRequest, code, detail, extra);
+
+    public static ProblemHttpResult TooManyRequests(string code, string detail, IDictionary<string, object?>? extra = null) =>
+        WithCode(StatusCodes.Status429TooManyRequests, code, detail, extra);
 
     private static ProblemHttpResult WithCode(int status, string code, string detail, IDictionary<string, object?>? extra = null)
     {

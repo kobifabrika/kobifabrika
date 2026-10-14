@@ -151,7 +151,24 @@ public static class Availability
         return current;
     }
 
+    /// <summary>"Fark etmez": birden çok personelin boş başlangıçlarının birleşimi (tekil, sıralı).</summary>
+    public static IReadOnlyList<DateTime> Union(IEnumerable<IReadOnlyList<DateTime>> slots) =>
+        slots.SelectMany(s => s).Distinct().Order().ToList();
+
     private static int CeilTo(int minute, int step) => (minute + step - 1) / step * step;
 
     private static int Clamp(double minutes) => (int)Math.Clamp(Math.Round(minutes), 0, MinutesPerDay);
+}
+
+/// <summary>
+/// Online randevu penceresi: en erken başlangıç şimdi + en erken bildirim (ızgaraya yukarı yuvarlanmış slotlar
+/// <see cref="Availability.Slots"/>'ta); en geç gün bugün + en fazla gün (dahil). Tatil ve kapalı gün Availability'de.
+/// </summary>
+public static class BookingWindow
+{
+    public static DateTime EarliestStart(DateTime nowUtc, int minNoticeMinutes) => nowUtc.AddMinutes(minNoticeMinutes);
+
+    public static DateOnly LastDay(DateOnly today, int maxDaysAhead) => today.AddDays(maxDaysAhead);
+
+    public static bool Includes(DateOnly day, DateOnly today, int maxDaysAhead) => day >= today && day <= LastDay(today, maxDaysAhead);
 }

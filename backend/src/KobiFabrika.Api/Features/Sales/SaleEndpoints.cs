@@ -185,10 +185,16 @@ public static class SaleEndpoints
             return Validation.FieldProblem("contactId", "Müşteri bulunamadı.");
         }
 
-        var (document, field, error) = await DocumentLines.ResolveAsync(db, request.Lines!, request.Discount, allowInactive: false, ct);
+        var (document, field, error) = await DocumentLines.ResolveAsync(db, request.Lines!, request.Discount, allowInactive: false, ct,
+            allowPackages: true);
         if (document is null)
         {
             return Validation.FieldProblem(field!, error!);
+        }
+
+        if (request.ContactId is null && document.Lines.Any(l => l.Package is not null))
+        {
+            return Validation.FieldProblem("contactId", "Paket satışı için müşteri seçin; paket müşterinin kartına yazılır.");
         }
 
         var (payments, paymentField, paymentError) = await sales.ResolvePaymentsAsync(request.Payments ?? [], document.Totals.Total, request.ContactId, ct);

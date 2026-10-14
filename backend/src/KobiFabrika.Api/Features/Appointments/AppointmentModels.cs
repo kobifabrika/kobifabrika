@@ -5,19 +5,26 @@ using KobiFabrika.Domain.Staff;
 
 namespace KobiFabrika.Api.Features.Appointments;
 
-/// <summary>Randevu. Saatler UTC. SaleNo: satışa çevrildiyse satış numarası.</summary>
+/// <summary>
+/// Randevu. Saatler UTC. SaleNo: satışa çevrildiyse satış numarası. CustomerPackageId/PackageName: paketten kullanılan randevu
+/// (PackageSessionUsed: tamamlandı ve seans düştü). CancelSource: Business veya Customer (online iptal).
+/// </summary>
 public sealed record AppointmentResponse(
     Guid Id, Guid ContactId, string ContactName, string? ContactPhone, Guid StaffMemberId, string StaffName, Guid ProductId, string ServiceName,
     DateTime StartAt, DateTime EndAt, AppointmentStatus Status, AppointmentSource Source, string? Note, Guid? SaleId, string? SaleNo,
-    DateTime CreatedAt, string? CreatedByName, DateTime? CancelledAt, string? CancelReason);
+    DateTime CreatedAt, string? CreatedByName, DateTime? CancelledAt, string? CancelReason, Guid? CustomerPackageId, string? PackageName,
+    bool PackageSessionUsed, bool CancelledByCustomer);
 
-/// <summary>EndAt boşsa hizmet süresinden hesaplanır.</summary>
-public sealed record AppointmentRequest(Guid ContactId, Guid StaffMemberId, Guid ProductId, DateTime StartAt, DateTime? EndAt, string? Note);
+/// <summary>EndAt boşsa hizmet süresinden hesaplanır. CustomerPackageId: müşterinin bu hizmete ait paketinden kullan.</summary>
+public sealed record AppointmentRequest(
+    Guid ContactId, Guid StaffMemberId, Guid ProductId, DateTime StartAt, DateTime? EndAt, string? Note, Guid? CustomerPackageId = null);
 
-/// <summary>Taşıma, süre değiştirme, personel/hizmet değiştirme ve not.</summary>
-public sealed record AppointmentUpdateRequest(Guid StaffMemberId, Guid ProductId, DateTime StartAt, DateTime EndAt, string? Note);
+/// <summary>Taşıma, süre değiştirme, personel/hizmet değiştirme, paket ve not. NotifyCustomer: saat değiştiyse müşteriye SMS.</summary>
+public sealed record AppointmentUpdateRequest(
+    Guid StaffMemberId, Guid ProductId, DateTime StartAt, DateTime EndAt, string? Note, Guid? CustomerPackageId = null, bool NotifyCustomer = false);
 
-public sealed record CancelAppointmentRequest(string? Reason);
+/// <summary>NotifyCustomer: müşteriye iptal SMS'i (işletme telefonuyla). Ret (Beklemede) her zaman SMS'le bildirilir.</summary>
+public sealed record CancelAppointmentRequest(string? Reason, bool NotifyCustomer = false);
 
 /// <summary>Kaydetmeden önce uyarılar: çakışma, çalışma saati/kapalı zaman dışı, gelmeyen müşteri.</summary>
 public sealed record AppointmentCheckRequest(Guid? ContactId, Guid StaffMemberId, DateTime StartAt, DateTime EndAt, Guid? ExcludeId);

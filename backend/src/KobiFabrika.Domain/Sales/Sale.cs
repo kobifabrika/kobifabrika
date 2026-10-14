@@ -92,6 +92,9 @@ public class SaleLine : DocumentLine
 
     /// <summary>Hizmeti veren personel (randevudan gelir; Sprint 7'de prim hesabı kullanır).</summary>
     public Guid? StaffMemberId { get; set; }
+
+    /// <summary>Paket satırı: satışla birlikte müşteriye CustomerPackage açılır (adet 1, stok etkisi yok).</summary>
+    public Guid? ServicePackageId { get; set; }
 }
 
 /// <summary>Satışın ödemesi (bölünmüş ödemede birden fazla). Veresiye cari hareketine, diğerleri kasa/banka hareketine bağlanır.</summary>

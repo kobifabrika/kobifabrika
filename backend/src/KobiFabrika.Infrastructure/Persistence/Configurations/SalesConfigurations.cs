@@ -60,6 +60,8 @@ internal sealed class SaleLineConfiguration : IEntityTypeConfiguration<SaleLine>
         b.HasIndex(x => new { x.BusinessId, x.ProductId });
         b.HasIndex(x => x.StaffMemberId).HasFilter("[StaffMemberId] IS NOT NULL");
         b.HasOne<StaffMember>().WithMany().HasForeignKey(x => x.StaffMemberId).OnDelete(DeleteBehavior.Restrict);
+        b.HasIndex(x => x.ServicePackageId).HasFilter("[ServicePackageId] IS NOT NULL");
+        b.HasOne<ServicePackage>().WithMany().HasForeignKey(x => x.ServicePackageId).OnDelete(DeleteBehavior.Restrict);
     }
 }
 

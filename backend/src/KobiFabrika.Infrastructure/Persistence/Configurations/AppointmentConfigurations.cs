@@ -88,5 +88,15 @@ internal sealed class AppointmentConfiguration : IEntityTypeConfiguration<Appoin
         b.HasOne<StaffMember>().WithMany().HasForeignKey(x => x.StaffMemberId).OnDelete(DeleteBehavior.Restrict);
         b.HasOne<Product>().WithMany().HasForeignKey(x => x.ProductId).OnDelete(DeleteBehavior.Restrict);
         b.HasOne<Sale>().WithMany().HasForeignKey(x => x.SaleId).OnDelete(DeleteBehavior.Restrict);
+        b.Property(x => x.ManageTokenHash).HasColumnType("binary(32)");
+        b.Property(x => x.ManageToken).HasMaxLength(1000).IsUnicode(false);
+        b.HasIndex(x => x.ManageTokenHash).IsUnique().HasFilter("[ManageTokenHash] IS NOT NULL");
+        b.HasOne<CustomerPackage>().WithMany().HasForeignKey(x => x.CustomerPackageId).OnDelete(DeleteBehavior.Restrict);
+        b.HasIndex(x => x.CustomerPackageId).HasFilter("[CustomerPackageId] IS NOT NULL");
+
+        // Hatırlatma işi bütün işletmelerde gönderilmemiş onaylı randevuları başlangıca göre tarar.
+        b.HasIndex(x => x.StartAt, "IX_Appointments_ReminderDue")
+            .IncludeProperties(x => new { x.BusinessId, x.TimeSetAt })
+            .HasFilter("[ReminderSentAt] IS NULL AND [Status] = 'Confirmed' AND [IsDeleted] = 0");
     }
 }

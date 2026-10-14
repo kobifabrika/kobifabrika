@@ -9,9 +9,11 @@ namespace KobiFabrika.Api.Features.Sales;
 /// <summary>
 /// Satış/teklif kalemi. ProductId varsa ad, birim, KDV ve (verilmezse) KDV dahil fiyat üründen gelir; yoksa serbest kalem:
 /// Description ve UnitPrice zorunlu, VatRate boşsa %20. UnitPrice her zaman KDV dahil.
+/// ServicePackageId: paket satırı (sadece satışta; adet 1, KDV hizmetinki, fiyat verilmezse paket fiyatı, müşteri zorunlu).
 /// </summary>
 public sealed record DocumentLineRequest(
-    Guid? ProductId, string? Description, decimal? Quantity, decimal? UnitPrice, decimal? VatRate, DiscountSpec? Discount);
+    Guid? ProductId, string? Description, decimal? Quantity, decimal? UnitPrice, decimal? VatRate, DiscountSpec? Discount,
+    Guid? ServicePackageId = null);
 
 public sealed record SalePaymentRequest(PaymentMethod Method, decimal? Amount, Guid? CashAccountId);
 
@@ -78,9 +80,9 @@ public sealed class DocumentLineRequestValidator : AbstractValidator<DocumentLin
 {
     public DocumentLineRequestValidator()
     {
-        RuleFor(x => x.Description).Must(d => !string.IsNullOrWhiteSpace(d)).When(x => x.ProductId is null)
+        RuleFor(x => x.Description).Must(d => !string.IsNullOrWhiteSpace(d)).When(x => x.ProductId is null && x.ServicePackageId is null)
             .WithMessage("Kalem adı girin.").MaximumLength(Product.MaxNameLength).WithMessage("Kalem adı en fazla 200 karakter olabilir.");
-        RuleFor(x => x.UnitPrice).NotNull().When(x => x.ProductId is null).WithMessage("Fiyat girin.");
+        RuleFor(x => x.UnitPrice).NotNull().When(x => x.ProductId is null && x.ServicePackageId is null).WithMessage("Fiyat girin.");
         RuleFor(x => x.UnitPrice).Must(ProductRequestValidator.ValidPrice).WithMessage(ProductRequestValidator.PriceMessage);
         RuleFor(x => x.Quantity).NotNull().WithMessage("Miktar girin.")
             .GreaterThan(0).WithMessage("Miktar 0'dan büyük olmalı.")

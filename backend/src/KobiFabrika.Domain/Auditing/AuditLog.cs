@@ -83,6 +83,12 @@ public enum AuditAction
     HolidayCreated,
     HolidayDeleted,
     AppointmentSettingsChanged,
+    BookingSettingsChanged,
+    ServicePackageCreated,
+    ServicePackageUpdated,
+    ServicePackageDeleted,
+    CustomerPackageExtended,
+    CustomerPackageClosed,
 }
 
 /// <summary>

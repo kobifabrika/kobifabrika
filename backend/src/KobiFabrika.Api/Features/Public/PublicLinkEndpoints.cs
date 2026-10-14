@@ -41,14 +41,7 @@ public static class PublicLinkEndpoints
     public static IEndpointRouteBuilder MapPublicLinkEndpoints(this IEndpointRouteBuilder app)
     {
         var group = app.MapGroup("/api/public").WithTags("Public").AllowAnonymous().RequireRateLimiting(RateLimit)
-            .AddEndpointFilter(async (context, next) =>
-            {
-                var headers = context.HttpContext.Response.Headers;
-                headers["X-Robots-Tag"] = "noindex, nofollow";
-                headers["Referrer-Policy"] = "no-referrer";
-                headers.CacheControl = "no-store";
-                return await next(context);
-            });
+            .AddEndpointFilter(PrivateHeaders);
 
         group.MapGet("/statements/{token}", Statement).WithSummary("Herkese açık ekstre");
         group.MapGet("/statements/{token}/pdf", StatementPdf).WithSummary("Herkese açık ekstre PDF");
@@ -58,6 +51,16 @@ public static class PublicLinkEndpoints
         group.MapPublicQuoteEndpoints();
 
         return app;
+    }
+
+    /// <summary>Herkese açık yanıtlar arama motorlarına kapalı, önbelleğe alınmaz, referrer göndermez.</summary>
+    internal static async ValueTask<object?> PrivateHeaders(EndpointFilterInvocationContext context, EndpointFilterDelegate next)
+    {
+        var headers = context.HttpContext.Response.Headers;
+        headers["X-Robots-Tag"] = "noindex, nofollow";
+        headers["Referrer-Policy"] = "no-referrer";
+        headers.CacheControl = "no-store";
+        return await next(context);
     }
 
     private static ProblemHttpResult LinkNotFound() => Problems.NotFound("Bağlantı bulunamadı. Linki kontrol edin veya işletmeden yenisini isteyin.");

@@ -62,6 +62,33 @@ public class Business : Entity, ISoftDeletable, IAuditable
     /// <summary>Personel rolü takvimde sadece kendi (bağlı olduğu personelin) randevularını görür ve yazar.</summary>
     public bool StaffSeesOnlyOwnAppointments { get; set; }
 
+    /// <summary>Online randevu sayfası (/r/[slug]) açık mı; varsayılan kapalı, Ayarlar → Randevu'dan açılır.</summary>
+    public bool BookingEnabled { get; set; }
+
+    /// <summary>Online randevu kendiliğinden onaylanır; kapalıysa Beklemede düşer.</summary>
+    public bool BookingAutoConfirm { get; set; }
+
+    /// <summary>Online randevu en az bu kadar dakika sonrasına alınır.</summary>
+    public int BookingMinNoticeMinutes { get; set; } = 120;
+
+    /// <summary>Online randevu en fazla bu kadar gün ilerisine alınır (1-180).</summary>
+    public int BookingMaxDaysAhead { get; set; } = 30;
+
+    /// <summary>Online sayfadaki saat aralığı (dakika): 5, 10, 15, 20, 30 veya 60.</summary>
+    public int BookingSlotMinutes { get; set; } = 15;
+
+    /// <summary>Hatırlatma SMS'i randevudan kaç saat önce (0 = kapalı, 1-72).</summary>
+    public int ReminderHoursBefore { get; set; } = 24;
+
+    /// <summary>Müşteri randevusunu en az kaç saat kala iptal edebilir (0 = müşteri iptal edemez).</summary>
+    public int CustomerCancelHours { get; set; } = 2;
+
+    public static readonly int[] BookingSlotOptions = [5, 10, 15, 20, 30, 60];
+    public const int MaxBookingDaysAhead = 180;
+    public const int MaxBookingMinNoticeMinutes = 7 * 24 * 60;
+    public const int MaxReminderHoursBefore = 72;
+    public const int MaxCustomerCancelHours = 72;
+
     /// <summary>Sektörü ve ona bağlı şablonu ayarlar. Kurulumda modüller de şablonun varsayılanına döner.</summary>
     public void SetSector(BusinessSector sector, bool resetModules)
     {

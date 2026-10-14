@@ -106,7 +106,8 @@ public static class QuoteEndpoints
     {
         page = Math.Max(page, 1);
         pageSize = Math.Clamp(pageSize, 1, 100);
-        var query = db.Quotes.AsNoTracking().VisibleTo(member);
+        // Alt sorgulardaki IgnoreQueryFilters([SoftDelete]) bütün sorgunun soft delete filtresini kapatır: silinmiş teklifler açıkça elenir.
+        var query = db.Quotes.AsNoTracking().VisibleTo(member).Where(x => !x.IsDeleted);
         if (status is { } s)
         {
             query = query.Where(x => x.Status == s);

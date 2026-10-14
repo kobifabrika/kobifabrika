@@ -16,6 +16,7 @@ using KobiFabrika.Api.Features.Sales;
 using KobiFabrika.Api.Features.Customers;
 using KobiFabrika.Api.Features.Finance;
 using KobiFabrika.Api.Features.Invitations;
+using KobiFabrika.Api.Features.Messaging;
 using KobiFabrika.Api.Features.Notifications;
 using KobiFabrika.Api.Features.Public;
 using KobiFabrika.Api.Features.Reference;
@@ -119,6 +120,18 @@ builder.Services.AddRateLimiter(options =>
         http.Connection.RemoteIpAddress?.ToString() ?? "unknown",
         _ => new FixedWindowRateLimiterOptions { PermitLimit = publicLimit, Window = TimeSpan.FromMinutes(1) }));
 
+    // Online randevu sayfası ve boş saatler: IP başına dakikada 120 istek.
+    var bookingReadLimit = builder.Configuration.GetValue("RateLimiting:BookingReadPermitLimit", 120);
+    options.AddPolicy(PublicBookingEndpoints.ReadRateLimit, http => RateLimitPartition.GetFixedWindowLimiter(
+        http.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+        _ => new FixedWindowRateLimiterOptions { PermitLimit = bookingReadLimit, Window = TimeSpan.FromMinutes(1) }));
+
+    // Online randevu doğrulama kodu: IP başına 10 dakikada 5 (numara ve işletme sınırları ayrıca veritabanından sayılır).
+    var bookingSmsLimit = builder.Configuration.GetValue("RateLimiting:BookingSmsPermitLimit", 5);
+    options.AddPolicy(PublicBookingEndpoints.SmsRateLimit, http => RateLimitPartition.GetFixedWindowLimiter(
+        http.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+        _ => new FixedWindowRateLimiterOptions { PermitLimit = bookingSmsLimit, Window = TimeSpan.FromMinutes(10) }));
+
     // Doğrulama e-postası: kullanıcı başına 60 saniyede bir.
     options.AddPolicy(AuthEndpoints.ResendRateLimit, http => RateLimitPartition.GetFixedWindowLimiter(
         http.User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "anonymous",
@@ -198,6 +211,7 @@ app.MapReminderEndpoints();
 app.MapStatementShareEndpoints();
 app.MapPaymentRequestEndpoints();
 app.MapPublicLinkEndpoints();
+app.MapPublicBookingEndpoints();
 app.MapProductEndpoints();
 app.MapCategoryEndpoints();
 app.MapProductImportEndpoints();
@@ -206,6 +220,9 @@ app.MapSaleEndpoints();
 app.MapQuoteEndpoints();
 app.MapStaffEndpoints();
 app.MapAppointmentEndpoints();
+app.MapBookingSettingsEndpoints();
+app.MapServicePackageEndpoints();
+app.MapMessageLogEndpoints();
 
 if (BackgroundJobs.IsEnabled(app.Configuration))
 {

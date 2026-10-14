@@ -358,7 +358,8 @@ public sealed class AppointmentTests(SqlServerFixture db) : ApiTestBase(db)
         // Molaya denk gelen randevu uyarıyla kaydedilir; tatildeki randevu da.
         var inBreak = await BookAsync(s.Owner.Client, Booking(s.ContactId, s.StaffId, s.ServiceId, Next(DayOfWeek.Wednesday, 12)), Ct);
         inBreak.GetProperty("warnings").GetArrayLength().ShouldBe(1);
-        var onHoliday = await BookAsync(s.Owner.Client, Booking(s.ContactId, s.StaffId, s.ServiceId, Next(DayOfWeek.Thursday, 10)), Ct);
+        // Tatil, seçilen Çarşamba'nın ertesi günü (Next(Thursday) Çarşamba çalışınca yarını verir).
+        var onHoliday = await BookAsync(s.Owner.Client, Booking(s.ContactId, s.StaffId, s.ServiceId, Next(DayOfWeek.Wednesday, 10).AddDays(1)), Ct);
         onHoliday.GetProperty("warnings")[0].GetString()!.ShouldContain("tatil");
 
         (await s.Owner.Client.GetAsync($"/api/calendar?from={day:yyyy-MM-dd}&to={day.AddDays(20):yyyy-MM-dd}", Ct)).StatusCode.ShouldBe(HttpStatusCode.BadRequest);

@@ -8,7 +8,9 @@ namespace KobiFabrika.Api.Features.Sales;
 
 /// <summary>Çözümlenmiş kalem: ürün bilgisi kopyalanmış, tutarlar hesaplanmış.</summary>
 /// <summary>Discount: satır indirimi girildiği şekliyle (belgede saklanır).</summary>
-public sealed record ResolvedLine(Product? Product, string Description, ProductUnit Unit, CalcLine Calc, DiscountSpec? Discount);
+/// <summary>Package: paket satırı (satışla birlikte müşteriye paket açılır).</summary>
+public sealed record ResolvedLine(
+    Product? Product, string Description, ProductUnit Unit, CalcLine Calc, DiscountSpec? Discount, ServicePackage? Package = null);
 
 /// <summary>Discount: toplam indirim girildiği şekliyle (belgede saklanır).</summary>
 public sealed record ResolvedDocument(IReadOnlyList<ResolvedLine> Lines, CalcResult Totals, DiscountSpec? Discount);
@@ -22,22 +24,54 @@ public static class DocumentLines
     public const decimal DefaultVatRate = 20m;
 
     public static async Task<(ResolvedDocument? Document, string? Field, string? Error)> ResolveAsync(
-        AppDbContext db, IReadOnlyList<DocumentLineRequest> lines, DiscountSpec? discount, bool allowInactive, CancellationToken ct)
+        AppDbContext db, IReadOnlyList<DocumentLineRequest> lines, DiscountSpec? discount, bool allowInactive, CancellationToken ct,
+        bool allowPackages = false)
     {
-        var productIds = lines.Select(l => l.ProductId).OfType<Guid>().Distinct().ToList();
-        var products = await db.Products.AsNoTracking().Where(p => productIds.Contains(p.Id)).ToDictionaryAsync(p => p.Id, ct);
+        var packageIds = lines.Select(l => l.ServicePackageId).OfType<Guid>().Distinct().ToList();
+        var packages = await db.ServicePackages.AsNoTracking().Where(p => packageIds.Contains(p.Id)).ToDictionaryAsync(p => p.Id, ct);
+        var productIds = lines.Select(l => l.ProductId).OfType<Guid>().Concat(packages.Values.Select(p => p.ProductId)).Distinct().ToList();
+        var products = await db.Products.IgnoreQueryFilters([QueryFilters.SoftDelete]).AsNoTracking().Where(p => productIds.Contains(p.Id))
+            .ToDictionaryAsync(p => p.Id, ct);
         var vatRates = (await db.VatRates.Where(r => r.IsActive).Select(r => r.Rate).ToListAsync(ct)).ToHashSet();
 
-        var inputs = new List<(Product? Product, string Description, ProductUnit Unit, CalcLineInput Input)>();
+        var inputs = new List<(Product? Product, string Description, ProductUnit Unit, CalcLineInput Input, ServicePackage? Package)>();
         discount = DiscountSpec.Normalize(discount);
         for (var i = 0; i < lines.Count; i++)
         {
             var line = lines[i];
             var field = $"lines[{i}]";
+            if (line.ServicePackageId is { } packageId)
+            {
+                if (!allowPackages)
+                {
+                    return (null, $"{field}.servicePackageId", "Paket sadece satışta kullanılır.");
+                }
+
+                if (!packages.TryGetValue(packageId, out var package) || !products.TryGetValue(package.ProductId, out var packageService))
+                {
+                    return (null, $"{field}.servicePackageId", "Paket bulunamadı.");
+                }
+
+                if (!package.IsActive && !allowInactive)
+                {
+                    return (null, $"{field}.servicePackageId", $"{package.Name} satışa kapalı (pasif).");
+                }
+
+                if (line.Quantity != 1)
+                {
+                    return (null, $"{field}.quantity", "Paket satırının adedi 1 olmalı; ikinci paket için ayrı satır ekleyin.");
+                }
+
+                var packageName = string.IsNullOrWhiteSpace(line.Description) ? package.Name : line.Description.Trim();
+                inputs.Add((null, packageName, ProductUnit.Package,
+                    new CalcLineInput(1, line.UnitPrice ?? package.Price, packageService.VatRate, DiscountSpec.Normalize(line.Discount)), package));
+                continue;
+            }
+
             Product? product = null;
             if (line.ProductId is { } productId)
             {
-                if (!products.TryGetValue(productId, out product))
+                if (!products.TryGetValue(productId, out product) || product.IsDeleted)
                 {
                     return (null, $"{field}.productId", "Ürün bulunamadı.");
                 }
@@ -62,11 +96,11 @@ public static class DocumentLines
 
             var description = string.IsNullOrWhiteSpace(line.Description) ? product!.Name : line.Description.Trim();
             var unitPrice = line.UnitPrice ?? product!.GrossSalePrice;
-            inputs.Add((product, description, unit, new CalcLineInput(line.Quantity!.Value, unitPrice, vatRate, DiscountSpec.Normalize(line.Discount))));
+            inputs.Add((product, description, unit, new CalcLineInput(line.Quantity!.Value, unitPrice, vatRate, DiscountSpec.Normalize(line.Discount)), null));
         }
 
         var totals = SaleCalculator.Calculate(inputs.Select(i => i.Input).ToList(), discount);
-        var resolved = inputs.Select((i, index) => new ResolvedLine(i.Product, i.Description, i.Unit, totals.Lines[index], i.Input.Discount))
+        var resolved = inputs.Select((i, index) => new ResolvedLine(i.Product, i.Description, i.Unit, totals.Lines[index], i.Input.Discount, i.Package))
             .ToList();
         return (new ResolvedDocument(resolved, totals, discount), null, null);
     }

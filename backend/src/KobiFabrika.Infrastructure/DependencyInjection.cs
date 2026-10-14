@@ -5,6 +5,7 @@ using KobiFabrika.Infrastructure.Email;
 using KobiFabrika.Infrastructure.Identity;
 using KobiFabrika.Infrastructure.Jobs;
 using KobiFabrika.Infrastructure.Locations;
+using KobiFabrika.Infrastructure.Messaging;
 using KobiFabrika.Infrastructure.Notifications;
 using KobiFabrika.Infrastructure.Pdf;
 using KobiFabrika.Infrastructure.Persistence;
@@ -82,6 +83,12 @@ public static class DependencyInjection
         services.Configure<StorageOptions>(configuration.GetSection(StorageOptions.Section));
 
         services.AddSingleton<IEmailSender, SmtpEmailSender>();
+        services.AddOptions<SmsOptions>().Bind(configuration.GetSection(SmsOptions.Section))
+            .Validate<IHostEnvironment>(SmsOptions.IsSafe, SmsOptions.UnsafeMessage)
+            .ValidateOnStart();
+        services.AddSingleton<ISmsGateway, FakeSmsGateway>();
+        services.AddScoped<ISmsSender, SmsSender>();
+        services.AddScoped<AppointmentNotifier>();
         services.AddSingleton<IFileStorage, LocalFileStorage>();
         services.AddSingleton<LocationCatalog>();
         services.AddScoped<IAuditLogger, AuditLogger>();

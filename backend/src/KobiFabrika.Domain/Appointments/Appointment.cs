@@ -62,6 +62,20 @@ public class Appointment : TenantEntity
 
     /// <summary>Saatin en son belirlendiği an (oluşturma veya taşıma). Hatırlatma kuralı: kısa süre kala alınan randevuya hatırlatma gitmez.</summary>
     public DateTime TimeSetAt { get; set; }
+
+    /// <summary>Hatırlatma SMS'i gönderildi (bir kez; taşınınca temizlenir).</summary>
+    public DateTime? ReminderSentAt { get; set; }
+
+    /// <summary>Paketten kullanılan randevu: Tamamlandı'da seans düşer (<see cref="PackageSessionUsed"/>), geri alınca iade edilir.</summary>
+    public Guid? CustomerPackageId { get; set; }
+
+    public bool PackageSessionUsed { get; set; }
+
+    /// <summary>Müşterinin randevu sayfası (/r/[slug]/randevu/[token]) linkinin SHA-256 özeti; filtreli benzersiz.</summary>
+    public byte[]? ManageTokenHash { get; set; }
+
+    /// <summary>Aynı linki SMS'lerde yeniden kullanmak için Data Protection ile şifrelenmiş token.</summary>
+    public string? ManageToken { get; set; }
 }
 
 /// <summary>İşletmenin tatil / kapalı günü (elle eklenir). O gün online randevu alınmaz, takvimde kapalı görünür.</summary>

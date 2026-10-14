@@ -25,4 +25,7 @@ public static class NotificationTypes
     public const string StockLow = "stock.low";
     public const string QuoteAccepted = "quote.accepted";
     public const string QuoteRejected = "quote.rejected";
+    public const string AppointmentOnlinePending = "appointment.online_pending";
+    public const string AppointmentOnlineCreated = "appointment.online_created";
+    public const string AppointmentCustomerCancelled = "appointment.customer_cancelled";
 }

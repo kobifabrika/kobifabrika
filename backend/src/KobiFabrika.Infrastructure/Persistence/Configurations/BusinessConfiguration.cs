@@ -12,6 +12,11 @@ internal sealed class BusinessConfiguration : IEntityTypeConfiguration<Business>
         {
             t.HasCheckConstraint("CK_Businesses_ReceiptWidth", "[ReceiptWidth] IN (58, 80)");
             t.HasCheckConstraint("CK_Businesses_DefaultDueDays", "[DefaultDueDays] BETWEEN 0 AND 365");
+            t.HasCheckConstraint("CK_Businesses_BookingSlotMinutes", "[BookingSlotMinutes] IN (5, 10, 15, 20, 30, 60)");
+            t.HasCheckConstraint("CK_Businesses_BookingMaxDaysAhead", "[BookingMaxDaysAhead] BETWEEN 1 AND 180");
+            t.HasCheckConstraint("CK_Businesses_BookingMinNotice", "[BookingMinNoticeMinutes] BETWEEN 0 AND 10080");
+            t.HasCheckConstraint("CK_Businesses_ReminderHours", "[ReminderHoursBefore] BETWEEN 0 AND 72");
+            t.HasCheckConstraint("CK_Businesses_CustomerCancelHours", "[CustomerCancelHours] BETWEEN 0 AND 72");
         });
         b.Property(x => x.Name).HasMaxLength(200);
         b.Property(x => x.Slug).HasMaxLength(100);

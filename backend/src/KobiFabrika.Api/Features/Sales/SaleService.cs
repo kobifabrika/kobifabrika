@@ -6,6 +6,7 @@ using KobiFabrika.Domain.Appointments;
 using KobiFabrika.Domain.Auditing;
 using KobiFabrika.Domain.Catalog;
 using KobiFabrika.Domain.Common;
+using KobiFabrika.Domain.Contacts;
 using KobiFabrika.Domain.Finance;
 using KobiFabrika.Domain.Sales;
 using KobiFabrika.Infrastructure.Auditing;
@@ -161,6 +162,25 @@ public sealed class SaleService(
             }
 
             var day = DateOnly.FromDateTime(BusinessTime.ToLocal(draft.DateUtc));
+
+            // Paket satırları: müşteriye paket açılır (seans sayısı, ad ve hizmet kopyalanır; stok etkisi yok).
+            for (var i = 0; i < draft.Document.Lines.Count; i++)
+            {
+                if (draft.Document.Lines[i].Package is not { } package)
+                {
+                    continue;
+                }
+
+                var line = sale.Lines[i];
+                line.ServicePackageId = package.Id;
+                db.CustomerPackages.Add(new CustomerPackage
+                {
+                    ContactId = draft.ContactId!.Value, ServicePackageId = package.Id, ProductId = package.ProductId, Name = package.Name,
+                    SaleId = sale.Id, SaleLineId = line.Id, TotalSessions = package.SessionCount,
+                    ExpiresOn = PackageRules.ExpiresOn(day, package.ValidityDays),
+                });
+            }
+
             var description = $"Satış {no}";
             DateOnly? dueDate = null;
             if (payments.Any(p => p.Method == PaymentMethod.Credit))
@@ -229,6 +249,20 @@ public sealed class SaleService(
         {
             var now = clock.GetUtcNow().UtcDateTime;
             var cancelReason = string.IsNullOrWhiteSpace(reason) ? null : reason.Trim();
+
+            // Paketli satış (karar d; kilit sırası paket → satış): hiç seans kullanılmamış paketler satışla birlikte iptal olur;
+            // seans kullanılmış aktif paket varsa iptal 409 package_in_use (önce paket kapatılır). Transaction geri alınır.
+            await db.CustomerPackages.Where(p => p.SaleId == saleId && p.Status == CustomerPackageStatus.Active && p.UsedSessions == 0)
+                .ExecuteUpdateAsync(s => s
+                    .SetProperty(p => p.Status, CustomerPackageStatus.Cancelled)
+                    .SetProperty(p => p.CancelledAt, now)
+                    .SetProperty(p => p.CloseNote, "Satış iptal edildi")
+                    .SetProperty(p => p.UpdatedAt, now), ct);
+            if (await db.CustomerPackages.AnyAsync(p => p.SaleId == saleId && p.Status == CustomerPackageStatus.Active, ct))
+            {
+                throw new ConflictException("package_in_use",
+                    "Bu satıştaki paketten seans kullanılmış. Önce paketi kapatın (müşteri kartı → Paketler), sonra satışı iptal edin.");
+            }
 
             // Koşullu güncelleme satırı kilitler: eşzamanlı ikinci iptal 0 satır görür ve geri döner.
             var changed = await db.Sales.Where(s => s.Id == saleId && s.Status == SaleStatus.Completed)

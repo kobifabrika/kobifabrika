@@ -7,7 +7,9 @@ using KobiFabrika.Domain.Auditing;
 using KobiFabrika.Domain.Businesses;
 using KobiFabrika.Domain.Catalog;
 using KobiFabrika.Domain.Common;
+using KobiFabrika.Domain.Contacts;
 using KobiFabrika.Infrastructure.Auditing;
+using KobiFabrika.Infrastructure.Messaging;
 using KobiFabrika.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.EntityFrameworkCore;
@@ -50,22 +52,28 @@ public static class AppointmentEndpoints
             .Produces<AppointmentSavedResponse>().WithSummary("Taşı, süreyi/personeli/hizmeti değiştir, not");
         group.MapPost("/check", Check).RequireAuthorization(Policies.CanWrite)
             .WithSummary("Kaydetmeden önce uyarılar: çakışma, çalışma saati dışı, gelmeyen müşteri");
-        group.MapPost("/{id:guid}/confirm", (Guid id, CurrentMember m, AppDbContext db, TimeProvider c, CancellationToken ct) =>
-                ChangeStatusAsync(id, AppointmentStatus.Confirmed, null, m, db, c, ct))
-            .RequireAuthorization(Policies.CanWrite).Produces<AppointmentResponse>().WithSummary("Onayla (Beklemede → Onaylı)");
-        group.MapPost("/{id:guid}/complete", (Guid id, CurrentMember m, AppDbContext db, TimeProvider c, CancellationToken ct) =>
-                ChangeStatusAsync(id, AppointmentStatus.Completed, null, m, db, c, ct))
-            .RequireAuthorization(Policies.CanWrite).Produces<AppointmentResponse>().WithSummary("Tamamlandı");
-        group.MapPost("/{id:guid}/no-show", (Guid id, CurrentMember m, AppDbContext db, TimeProvider c, CancellationToken ct) =>
-                ChangeStatusAsync(id, AppointmentStatus.NoShow, null, m, db, c, ct))
-            .RequireAuthorization(Policies.CanWrite).Produces<AppointmentResponse>().WithSummary("Gelmedi");
-        group.MapPost("/{id:guid}/cancel", (Guid id, CancelAppointmentRequest request, CurrentMember m, AppDbContext db, TimeProvider c, CancellationToken ct) =>
-                ChangeStatusAsync(id, AppointmentStatus.Cancelled, request.Reason, m, db, c, ct))
-            .RequireAuthorization(Policies.CanWrite).Validate<CancelAppointmentRequest>().Produces<AppointmentResponse>().WithSummary("İptal et");
-        group.MapPost("/{id:guid}/reopen", (Guid id, CurrentMember m, AppDbContext db, TimeProvider c, CancellationToken ct) =>
-                ChangeStatusAsync(id, AppointmentStatus.Confirmed, null, m, db, c, ct, reopen: true))
+        group.MapPost("/{id:guid}/confirm", (Guid id, CurrentMember m, AppDbContext db, AppointmentNotifier n, TimeProvider c, CancellationToken ct) =>
+                ChangeStatusAsync(id, AppointmentStatus.Confirmed, null, m, db, n, c, ct))
+            .RequireAuthorization(Policies.CanWrite).Produces<AppointmentResponse>().WithSummary("Onayla (Beklemede → Onaylı; müşteriye onay SMS'i)");
+        group.MapPost("/{id:guid}/complete", (Guid id, CurrentMember m, AppDbContext db, AppointmentNotifier n, TimeProvider c, CancellationToken ct) =>
+                ChangeStatusAsync(id, AppointmentStatus.Completed, null, m, db, n, c, ct))
             .RequireAuthorization(Policies.CanWrite).Produces<AppointmentResponse>()
-            .WithSummary("Geri al: Tamamlandı (satışa çevrilmemişse) veya Gelmedi → Onaylı");
+            .WithSummary("Tamamlandı (paketten kullanılıyorsa seans düşer; seans yoksa 409 package_exhausted)");
+        group.MapPost("/{id:guid}/no-show", (Guid id, CurrentMember m, AppDbContext db, AppointmentNotifier n, TimeProvider c, CancellationToken ct) =>
+                ChangeStatusAsync(id, AppointmentStatus.NoShow, null, m, db, n, c, ct))
+            .RequireAuthorization(Policies.CanWrite).Produces<AppointmentResponse>().WithSummary("Gelmedi");
+        group.MapPost("/{id:guid}/cancel", (Guid id, CancelAppointmentRequest request, CurrentMember m, AppDbContext db, AppointmentNotifier n, TimeProvider c, CancellationToken ct) =>
+                ChangeStatusAsync(id, AppointmentStatus.Cancelled, request.Reason, m, db, n, c, ct, notify: request.NotifyCustomer))
+            .RequireAuthorization(Policies.CanWrite).Validate<CancelAppointmentRequest>().Produces<AppointmentResponse>()
+            .WithSummary("İptal et (notifyCustomer: müşteriye SMS)");
+        group.MapPost("/{id:guid}/reject", (Guid id, CancelAppointmentRequest request, CurrentMember m, AppDbContext db, AppointmentNotifier n, TimeProvider c, CancellationToken ct) =>
+                ChangeStatusAsync(id, AppointmentStatus.Cancelled, request.Reason, m, db, n, c, ct, reject: true))
+            .RequireAuthorization(Policies.CanWrite).Validate<CancelAppointmentRequest>().Produces<AppointmentResponse>()
+            .WithSummary("Reddet (Beklemede → İptal; müşteriye onaylanmadı SMS'i)");
+        group.MapPost("/{id:guid}/reopen", (Guid id, CurrentMember m, AppDbContext db, AppointmentNotifier n, TimeProvider c, CancellationToken ct) =>
+                ChangeStatusAsync(id, AppointmentStatus.Confirmed, null, m, db, n, c, ct, reopen: true))
+            .RequireAuthorization(Policies.CanWrite).Produces<AppointmentResponse>()
+            .WithSummary("Geri al: Tamamlandı (satışa çevrilmemişse; paket seansı iade) veya Gelmedi → Onaylı");
         group.MapGet("/{id:guid}/sale-draft", SaleDraft).RequireAuthorization(Policies.CanWrite)
             .WithSummary("Satışa çevir: hızlı satış için müşteri, hizmet ve personel");
 
@@ -122,7 +130,11 @@ public static class AppointmentEndpoints
                 a.CreatedAt,
                 db.Users.Where(u => u.Id == a.CreatedBy).Select(u => u.FullName).FirstOrDefault(),
                 a.CancelledAt,
-                a.CancelReason))
+                a.CancelReason,
+                a.CustomerPackageId,
+                db.CustomerPackages.Where(p => p.Id == a.CustomerPackageId).Select(p => p.Name).FirstOrDefault(),
+                a.PackageSessionUsed,
+                a.CancelSource == AppointmentCancelSource.Customer))
             .ToListAsync(ct);
 
     private static async Task<AppointmentResponse?> LoadAsync(AppDbContext db, Guid id, CancellationToken ct) =>
@@ -199,6 +211,31 @@ public static class AppointmentEndpoints
             : $"{name} bu saatte çalışmıyor veya kapalı (mola/izin).";
     }
 
+    /// <summary>Paket müşterinin, bu hizmete ait, aktif, seansı kalan ve randevu gününde geçerli olmalı.</summary>
+    private static async Task<IResult?> ValidatePackageAsync(
+        AppDbContext db, Guid? packageId, Guid contactId, Guid productId, DateTime start, CancellationToken ct)
+    {
+        if (packageId is not { } id)
+        {
+            return null;
+        }
+
+        var package = await db.CustomerPackages.AsNoTracking().FirstOrDefaultAsync(p => p.Id == id && p.ContactId == contactId, ct);
+        if (package is null)
+        {
+            return Validation.FieldProblem("customerPackageId", "Paket bulunamadı.");
+        }
+
+        if (package.ProductId != productId)
+        {
+            return Validation.FieldProblem("customerPackageId", "Bu paket seçilen hizmet için değil.");
+        }
+
+        return PackageRules.UsableOn(package.Status, package.TotalSessions, package.UsedSessions, package.ExpiresOn, BusinessTime.LocalDay(start))
+            ? null
+            : Validation.FieldProblem("customerPackageId", "Paketin seansı kalmadı, süresi bu tarihten önce doluyor veya paket kapatıldı.");
+    }
+
     private static async Task<IResult> Create(
         AppointmentRequest request, CurrentMember member, AppDbContext db, AppointmentBooking booking, TimeProvider clock, CancellationToken ct)
     {
@@ -236,6 +273,11 @@ public static class AppointmentEndpoints
             return problem;
         }
 
+        if (await ValidatePackageAsync(db, request.CustomerPackageId, request.ContactId, request.ProductId, start, ct) is { } packageProblem)
+        {
+            return packageProblem;
+        }
+
         var appointment = new Appointment
         {
             ContactId = request.ContactId,
@@ -248,6 +290,7 @@ public static class AppointmentEndpoints
             Note = string.IsNullOrWhiteSpace(request.Note) ? null : request.Note.Trim(),
             ConfirmedAt = now,
             TimeSetAt = now,
+            CustomerPackageId = request.CustomerPackageId,
         };
         db.Appointments.Add(appointment);
         await booking.SaveAsync(appointment, ct);
@@ -263,8 +306,8 @@ public static class AppointmentEndpoints
     }
 
     private static async Task<IResult> Update(
-        Guid id, AppointmentUpdateRequest request, CurrentMember member, AppDbContext db, AppointmentBooking booking, TimeProvider clock,
-        CancellationToken ct)
+        Guid id, AppointmentUpdateRequest request, CurrentMember member, AppDbContext db, AppointmentBooking booking, AppointmentNotifier notifier,
+        TimeProvider clock, CancellationToken ct)
     {
         var scope = await StaffAccess.ScopeAsync(db, member, ct);
         var appointment = await db.Appointments.Visible(scope).FirstOrDefaultAsync(a => a.Id == id, ct);
@@ -282,8 +325,9 @@ public static class AppointmentEndpoints
         var start = AppointmentTimes.Utc(request.StartAt);
         var end = AppointmentTimes.Utc(request.EndAt);
         var timeChanged = start != appointment.StartAt || end != appointment.EndAt;
+        var packageChanged = request.CustomerPackageId != appointment.CustomerPackageId;
         var moved = timeChanged || request.StaffMemberId != appointment.StaffMemberId || request.ProductId != appointment.ProductId;
-        if (moved && !AppointmentRules.IsMovable(appointment.Status, appointment.SaleId is not null))
+        if ((moved || packageChanged) && !AppointmentRules.IsMovable(appointment.Status, appointment.SaleId is not null))
         {
             return Problems.Conflict("appointment_locked", "Tamamlanan, gelmedi işaretlenen, iptal edilen veya satışa çevrilen randevu taşınamaz.");
         }
@@ -298,6 +342,13 @@ public static class AppointmentEndpoints
             }
         }
 
+        if ((moved || packageChanged)
+            && await ValidatePackageAsync(db, request.CustomerPackageId, appointment.ContactId, request.ProductId, start, ct) is { } packageProblem)
+        {
+            return packageProblem;
+        }
+
+        appointment.CustomerPackageId = request.CustomerPackageId;
         appointment.StaffMemberId = request.StaffMemberId;
         appointment.ProductId = request.ProductId;
         appointment.StartAt = start;
@@ -305,7 +356,9 @@ public static class AppointmentEndpoints
         appointment.Note = string.IsNullOrWhiteSpace(request.Note) ? null : request.Note.Trim();
         if (timeChanged)
         {
+            // Taşınan randevunun hatırlatması yeniden hesaplanır (kısa süre kala taşındıysa gitmez).
             appointment.TimeSetAt = now;
+            appointment.ReminderSentAt = null;
         }
 
         if (moved)
@@ -321,6 +374,11 @@ public static class AppointmentEndpoints
         if (moved && await OutsideHoursAsync(db, appointment.StaffMemberId, start, end, ct) is { } outside)
         {
             warnings.Add(outside);
+        }
+
+        if (timeChanged && request.NotifyCustomer)
+        {
+            await notifier.SendAsync(id, AppointmentSmsKind.Moved, ct);
         }
 
         return TypedResults.Ok(new AppointmentSavedResponse((await LoadAsync(db, id, ct))!, warnings));
@@ -360,8 +418,8 @@ public static class AppointmentEndpoints
     /// Tamamlandı müşterinin son ziyaretini günceller; Tamamlandı'nın geri alınması yeniden hesaplar.
     /// </summary>
     private static async Task<IResult> ChangeStatusAsync(
-        Guid id, AppointmentStatus to, string? reason, CurrentMember member, AppDbContext db, TimeProvider clock, CancellationToken ct,
-        bool reopen = false)
+        Guid id, AppointmentStatus to, string? reason, CurrentMember member, AppDbContext db, AppointmentNotifier notifier, TimeProvider clock,
+        CancellationToken ct, bool reopen = false, bool notify = false, bool reject = false)
     {
         var scope = await StaffAccess.ScopeAsync(db, member, ct);
         var appointment = await db.Appointments.AsNoTracking().Visible(scope).FirstOrDefaultAsync(a => a.Id == id, ct);
@@ -372,6 +430,11 @@ public static class AppointmentEndpoints
 
         var from = appointment.Status;
         var reopening = from is AppointmentStatus.Completed or AppointmentStatus.NoShow;
+        if (reject && from != AppointmentStatus.Pending)
+        {
+            return Problems.Conflict("invalid_status", "Sadece onay bekleyen randevu reddedilir.");
+        }
+
         if (reopen != reopening || !AppointmentRules.CanTransition(from, to, appointment.SaleId is not null))
         {
             return appointment.SaleId is not null && from == AppointmentStatus.Completed
@@ -399,10 +462,32 @@ public static class AppointmentEndpoints
                 .SetProperty(a => a.CancelledBy, a => to == AppointmentStatus.Cancelled ? userId : a.CancelledBy)
                 .SetProperty(a => a.CancelSource, a => to == AppointmentStatus.Cancelled ? AppointmentCancelSource.Business : a.CancelSource)
                 .SetProperty(a => a.CancelReason, a => to == AppointmentStatus.Cancelled ? cancelReason : a.CancelReason)
+                .SetProperty(a => a.PackageSessionUsed, a => to == AppointmentStatus.Completed ? a.CustomerPackageId != null
+                    : from == AppointmentStatus.Completed ? false : a.PackageSessionUsed)
                 .SetProperty(a => a.UpdatedAt, now), ct);
         if (changed != 1)
         {
             return Problems.Conflict("appointment_changed", "Randevu bu sırada değişti; sayfayı yenileyip tekrar deneyin.");
+        }
+
+        // Paket seansı (kilit sırası randevu → paket): Tamamlandı'da atomik +1; seans kalmadıysa veya süre randevu gününden önce
+        // bittiyse transaction geri alınır (409). Tamamlandı'nın geri alınması seansı iade eder. Gelmedi ve İptal seans düşmez.
+        if (to == AppointmentStatus.Completed && appointment.CustomerPackageId is { } usePackage)
+        {
+            var startDay = BusinessTime.LocalDay(appointment.StartAt);
+            var used = await db.CustomerPackages
+                .Where(p => p.Id == usePackage && p.Status == CustomerPackageStatus.Active && p.UsedSessions < p.TotalSessions && p.ExpiresOn >= startDay)
+                .ExecuteUpdateAsync(s => s.SetProperty(p => p.UsedSessions, p => p.UsedSessions + 1).SetProperty(p => p.UpdatedAt, now), ct);
+            if (used != 1)
+            {
+                return Problems.Conflict("package_exhausted",
+                    "Paketin seansı kalmadı, süresi doldu veya paket kapatıldı. Randevudan paketi kaldırın ya da paketin süresini uzatın.");
+            }
+        }
+        else if (from == AppointmentStatus.Completed && appointment.PackageSessionUsed && appointment.CustomerPackageId is { } returnPackage)
+        {
+            await db.CustomerPackages.Where(p => p.Id == returnPackage && p.UsedSessions > 0)
+                .ExecuteUpdateAsync(s => s.SetProperty(p => p.UsedSessions, p => p.UsedSessions - 1).SetProperty(p => p.UpdatedAt, now), ct);
         }
 
         if (to == AppointmentStatus.Completed)
@@ -415,6 +500,19 @@ public static class AppointmentEndpoints
         }
 
         await tx.CommitAsync(ct);
+
+        AppointmentSmsKind? sms = (from, to) switch
+        {
+            (AppointmentStatus.Pending, AppointmentStatus.Confirmed) => AppointmentSmsKind.Confirmed,
+            (_, AppointmentStatus.Cancelled) when reject => AppointmentSmsKind.Rejected,
+            (_, AppointmentStatus.Cancelled) when notify => AppointmentSmsKind.Cancelled,
+            _ => null,
+        };
+        if (sms is { } kind)
+        {
+            await notifier.SendAsync(id, kind, ct);
+        }
+
         return TypedResults.Ok(await LoadAsync(db, id, ct));
     }
 
@@ -441,6 +539,15 @@ public static class AppointmentEndpoints
         var contact = await db.Contacts.IgnoreQueryFilters([QueryFilters.SoftDelete]).AsNoTracking().FirstAsync(c => c.Id == appointment.ContactId, ct);
         var service = await db.Products.IgnoreQueryFilters([QueryFilters.SoftDelete]).AsNoTracking().FirstAsync(p => p.Id == appointment.ProductId, ct);
         var staff = await db.StaffMembers.IgnoreQueryFilters([QueryFilters.SoftDelete]).AsNoTracking().FirstAsync(s => s.Id == appointment.StaffMemberId, ct);
+
+        // Paketten kullanılan randevunun hizmet satırı 0,00 TL; açıklamada paket ve seans ("Paket: 10 seans lazer (4/10)").
+        if (appointment.PackageSessionUsed && appointment.CustomerPackageId is { } packageId
+            && await db.CustomerPackages.AsNoTracking().FirstOrDefaultAsync(p => p.Id == packageId, ct) is { } package)
+        {
+            return TypedResults.Ok(new AppointmentSaleDraft(appointment.Id, contact.Id, contact.DisplayName, service.Id,
+                $"Paket: {package.Name} ({package.UsedSessions}/{package.TotalSessions})", 0m, staff.Id, staff.FullName));
+        }
+
         return TypedResults.Ok(new AppointmentSaleDraft(
             appointment.Id, contact.Id, contact.DisplayName, service.Id, service.Name, service.GrossSalePrice, staff.Id, staff.FullName));
     }

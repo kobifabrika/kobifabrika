@@ -309,6 +309,7 @@ public sealed partial class QuoteTests(SqlServerFixture db) : ApiTestBase(db)
         (await owner.Client.DeleteAsync($"/api/quotes/{id}", Ct)).StatusCode.ShouldBe(HttpStatusCode.NoContent);
         (await NewClient().GetAsync($"/api/public/quotes/{TokenOf(renewed)}", Ct)).StatusCode.ShouldBe(HttpStatusCode.NotFound);
         (await owner.Client.GetAsync($"/api/quotes/{id}", Ct)).StatusCode.ShouldBe(HttpStatusCode.NotFound);
+        (await GetJsonAsync(owner.Client, "/api/quotes")).GetProperty("items").EnumerateArray().ShouldNotContain(q => q.GetProperty("id").GetGuid() == id);
     }
 
     [Fact]

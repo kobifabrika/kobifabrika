@@ -10,7 +10,7 @@ namespace KobiFabrika.Api.Features.Customers;
 /// <summary>
 /// Zaman çizelgesi öğesi. Kind: created, note, reminder, consent, sale, sale_cancelled, quote, quote_accepted, quote_rejected, ledger, collection, payment_request,
 /// payment_claimed, payment_confirmed, statement_shared, due_reminder (vade hatırlatması), appointment, appointment_no_show,
-/// appointment_cancelled (randevu saatinde; gelecek randevular en üstte). Mesajlar Sprint 5B/6'da eklenir. RefId satış/teklifte belgenin,
+/// appointment_cancelled (randevu saatinde; gelecek randevular en üstte), sms (gönderilen SMS; Sahip, Yönetici, Mali Müşavir). RefId satış/teklifte belgenin,
 /// randevuda randevunun Id'si.
 /// </summary>
 public sealed record TimelineItem(string Kind, DateTime At, string Title, string? Detail, decimal? Amount, Guid? RefId);
@@ -174,6 +174,15 @@ public static class ContactTimeline
                     .ToListAsync(ct))
                 .Select(s => new TimelineItem(
                     "statement_shared", s.CreatedAt, "Ekstre paylaşıldı", $"{s.From:dd.MM.yyyy} – {s.To:dd.MM.yyyy}", null, s.Id)));
+
+            items.AddRange((await db.MessageLogs.AsNoTracking()
+                    .Where(m => m.ContactId == contactId && m.CreatedAt < limit)
+                    .OrderByDescending(m => m.CreatedAt).Take(take)
+                    .ToListAsync(ct))
+                .Select(m => new TimelineItem(
+                    "sms", m.CreatedAt,
+                    $"SMS: {Messaging.MessageLabels.Purposes[m.Purpose]}" + (m.Status == Domain.Messaging.MessageStatus.Failed ? " (gönderilemedi)" : ""),
+                    m.Body, null, m.Id)));
 
             items.AddRange((await db.DueReminderLogs.AsNoTracking()
                     .Where(r => r.ContactId == contactId && r.SentAt < limit)
