@@ -2,6 +2,8 @@
 
 En yeni en üstte. Notion'daki "Proje Planı ve Kararlar" sayfasıyla aynı kararlar; teknik kararlar burada daha ayrıntılı.
 
+- **2026-10-14 (Sprint 5A kapanışı, bitti tanımı):** Yerel bellek tam `test.ps1`'e yetmediğinde bitti tanımı: GitHub Actions'taki tam koşu yeşil + yeni/değişen senaryolar yerelde yeşil. Yerelde aşamalar ayrı çalışır (backend; frontend lint + Vitest + build; sadece yeni/değişen E2E). Sprint 5A bu tanımla kapandı: son commit `3c26021`, Actions #7 (tam koşu) yeşil. CLAUDE.md'deki bitti tanımı buna göre güncellendi.
+
 - **2026-10-13 (Sprint 5 planı, onaylanan kararlar):** Sprint 5 iki parça: 5A takvim ve randevu, 5B online randevu, SMS altyapısı, hatırlatma, paketler (her parçanın sonunda tam `test.ps1`, commit, push).
   - **(a) Personel takvimde:** bütün takvimi görür, herkes için randevu açar, taşır, durumunu değiştirir (küçük salonlarda resepsiyonu personel yapar). Ayarlar → Randevu'da "Personel sadece kendi randevularını görsün" (`Businesses.StaffSeesOnlyOwnAppointments`, varsayılan kapalı); açıkken Personel sadece hesabının bağlı olduğu personelin randevularını görür ve yazar (başkasınınki 404, başkası adına 403 `own_appointments_only`). Mali Müşavir salt okunur. Bugün kartında Personel her zaman kendi randevularını görür. docs/01'deki "Staff: kendi randevuları" buna göre güncellendi.
   - **(b) SMS doğrulama kodu** platformun; işletmenin SMS kredisinden düşmez, işletme başına günlük üst sınır (varsayılan 100). Hatırlatma, onay, taşıma ve iptal SMS'leri Sprint 6'dan itibaren işletmenin kredisinden düşer.

@@ -2,7 +2,7 @@
 
 Tahmini, yarı zamanlı. Toplam yaklaşık 15-18 hafta. Her sprint sonunda: build ve testler geçer, ekranlar 375px'te kontrol edilir, bu dosyada maddeler işaretlenir, `docs/karar-gunlugu.md` güncellenir, commit atılır.
 
-**Durum:** Sprint 5A (takvim ve randevu) tamamlandı (2026-10-13): personel, çalışma saatleri, tatil ve kapalı zaman, takvim, randevu, satışa çevirme, gelmeyen müşteri uyarısı, Bugün randevu kartı. Sıradaki: Sprint 5B (online randevu, SMS altyapısı, hatırlatma, paketler). Sprint 4 tamamlandı (2026-10-12). Hangfire Sprint 5'ten öne çekildi (Sprint 2); Raporlar'ın ilk dördü Sprint 7'den öne çekildi (Sprint 4); MessageLog ve sahte SMS Sprint 6'dan 5B'ye alındı.
+**Durum:** Sprint 5A (takvim ve randevu) bitti, Actions #7 yeşil (2026-10-14; son commit `3c26021`): personel, çalışma saatleri, tatil ve kapalı zaman, takvim, randevu, satışa çevirme, gelmeyen müşteri uyarısı, Bugün randevu kartı. Sıradaki: Sprint 5B (online randevu, SMS altyapısı, hatırlatma, paketler). Sprint 4 tamamlandı (2026-10-12). Hangfire Sprint 5'ten öne çekildi (Sprint 2); Raporlar'ın ilk dördü Sprint 7'den öne çekildi (Sprint 4); MessageLog ve sahte SMS Sprint 6'dan 5B'ye alındı.
 
 ---
 

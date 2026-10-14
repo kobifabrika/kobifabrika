@@ -93,8 +93,9 @@ kopar, sahipsiz Next dev sunucusu `write EPIPE` ile bozulur (sayfalar dakikalarc
 - **Mobil:** En küçük yazı 12px, input yazısı 16px, dokunma alanı en az 44px. Her ekranı 375px genişlikte kontrol et.
 - Küçük, okunur commit'ler; mesajlar Türkçe ve emir kipinde ("Müşteri listesini ekle").
 - **Bitti tanımı:** Bir özellik ya da sprint ancak `.\test.ps1` tamamen yeşilse (backend, frontend lint/birim/build, E2E) ve
-  yeni her ekranın E2E senaryosu varsa (`frontend/e2e/`, masaüstü + 375 px) bitmiş sayılır. E2E gerçek bir hata bulursa
-  test gevşetilmez, uygulama düzeltilir.
+  yeni her ekranın E2E senaryosu varsa (`frontend/e2e/`, masaüstü + 375 px) bitmiş sayılır. Yerel bellek tam `test.ps1`'e
+  yetmediğinde: GitHub Actions'taki tam koşu yeşil + yeni/değişen senaryolar yerelde yeşil (yerelde aşamalar ayrı: backend;
+  frontend lint + Vitest + build; yeni/değişen E2E). E2E gerçek bir hata bulursa test gevşetilmez, uygulama düzeltilir.
 
 ## Çalışma şekli
 
@@ -107,7 +108,7 @@ kopar, sahipsiz Next dev sunucusu `write EPIPE` ile bozulur (sayfalar dakikalarc
 
 ## Güncel durum
 
-- Sprint: **5A (takvim ve randevu)** tamamlandı (2026-10-13): personel (saatler, hizmetler, mola/izin), tatiller, takvim (sürükle-bırak, telefonda "Taşı"), randevu durumları, satışa çevirme, gelmeyen müşteri uyarısı, Bugün randevu kartı. Sıradaki: **Sprint 5B** (online randevu `/r/[slug]`, SMS altyapısı, hatırlatma, paketler); plan `docs/karar-gunlugu.md` 2026-10-13.
+- Sprint: **5A (takvim ve randevu)** bitti (2026-10-14, Actions #7 yeşil): personel (saatler, hizmetler, mola/izin), tatiller, takvim (sürükle-bırak, telefonda "Taşı"), randevu durumları, satışa çevirme, gelmeyen müşteri uyarısı, Bugün randevu kartı. Sıradaki: **Sprint 5B** (online randevu `/r/[slug]`, SMS altyapısı, hatırlatma, paketler); plan `docs/karar-gunlugu.md` 2026-10-13.
 - Randevu saati sadece `AppointmentBooking` ile yazılır (personel satırı kilidi + çakışma sorgusu); boş saat hesabı `Domain/Appointments/Availability`. Kilit sırası: personel → randevu → numara → satış → cari → kasa → stok.
 - Bakiyeler (`Contact.Balance`, `CashAccount.Balance`) sadece `LedgerService` ile, stok (`Product.StockQuantity`) sadece `StockService` ile, SQL'de atomik güncellenir; entity üzerinden yazılmaz. Satış sadece `SaleService` ile yazılır (numara, cari, kasa, stok aynı transaction'da).
 - Kasa hareketi silinmez: düzeltme `POST /api/cash-transactions/{id}/reverse` (ters kayıt, bugünün tarihiyle; tahsilat ve ödemede cari karşı kaydıyla). Toplamlarda ters kayıtlar düşülür (`CashTransaction.NetAmount`). Vade hesabı `ReceivableAllocator` (FIFO); "bugün" `BusinessTime` ile İstanbul günü.
