@@ -83,6 +83,13 @@ export const auditActionLabels: Record<AuditAction, string> = {
   ServicePackageDeleted: "Paketi sildi",
   CustomerPackageExtended: "Müşteri paketinin süresini uzattı",
   CustomerPackageClosed: "Müşteri paketini kapattı",
+  SmsCreditsAdded: "SMS kredisi yüklendi (KobiFabrika)",
+  SmsCreditsExported: "SMS kredi hareketlerini Excel'e aktardı",
+  SmsSettingsChanged: "SMS uyarı eşiğini değiştirdi",
+  CampaignCreated: "Kampanya oluşturdu",
+  CampaignCancelled: "Kampanyayı iptal etti",
+  ContactDataExported: "Müşterinin verilerini dışa aktardı",
+  ContactAnonymized: "Müşterinin kişisel verilerini sildi",
 };
 
 const fieldLabels: Record<string, string> = {

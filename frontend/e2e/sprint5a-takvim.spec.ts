@@ -1,6 +1,7 @@
 import type { Locator, Page } from "@playwright/test";
 
-import { createContact } from "./support/api";
+import { createContact, uniquePhone } from "./support/api";
+import { smsTexts } from "./support/mailpit";
 import { at, book, createService, createStaff, openAllDay, type Appointment } from "./support/appointments";
 import { istanbulDay } from "./support/finance";
 import { toast } from "./support/nav";
@@ -30,7 +31,8 @@ test("takvim: yeni randevu, sürükle-bırak / Taşı, çakışma ve hafta gör�
   const service = await createService(owner, "Saç kesimi", 45);
   const ayse = await createStaff(owner, "Ayşe Usta");
   const mert = await createStaff(owner, "Mert Usta");
-  await createContact(owner, { firstName: "Zeynep", lastName: "Kaya" });
+  const zeynepPhone = uniquePhone();
+  await createContact(owner, { firstName: "Zeynep", lastName: "Kaya", phone: zeynepPhone });
   const day = istanbulDay(1);
 
   await visit(page, `/panel/randevular?tarih=${day}`, "Takvim · gün");
@@ -80,6 +82,14 @@ test("takvim: yeni randevu, sürükle-bırak / Taşı, çakışma ve hafta gör�
     await drag(page, zeynep, 120 * PX_PER_MIN);
     await expect(toast(page, "Randevu taşındı.")).toBeVisible();
     await expect.poll(async () => (await of("Zeynep Kaya")).startAt).toBe(at(day, "12:00"));
+
+    // Sprint 6A: sürükle-bırakta SMS kendiliğinden gitmez; "Müşteriye SMS ile bildirilsin mi? [Gönder]".
+    const ask = toast(page, "Müşteriye SMS ile bildirilsin mi?");
+    await expect(ask).toBeVisible();
+    expect(await smsTexts(zeynepPhone)).toHaveLength(0);
+    await ask.getByRole("button", { name: "Gönder" }).click();
+    await expect(toast(page, "Müşteriye SMS ile bildirildi.")).toBeVisible();
+    await expect.poll(async () => (await smsTexts(zeynepPhone)).some((t) => t.includes("olarak değişti"))).toBe(true);
 
     // Alt kenardan çek: 30 dk uzat → 12:00-13:15.
     const moved = page.getByRole("button", { name: /^12:00-12:45 Zeynep Kaya/ });

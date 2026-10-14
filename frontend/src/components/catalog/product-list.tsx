@@ -19,6 +19,7 @@ import { API_URL, ApiError, api, errorMessage, unwrap } from "@/lib/api/client";
 import { productTypeNames, type Category, type Product } from "@/lib/api/types";
 import { formatMoney } from "@/lib/format";
 import { can } from "@/lib/permissions";
+import { Chip, ScrollRow } from "@/components/ui/scroll-row";
 
 const PAGE_SIZE = 25;
 
@@ -159,24 +160,13 @@ export function ProductList() {
         )}
       </div>
 
-      <div className="-mx-4 overflow-x-auto px-4 lg:mx-0 lg:px-0" role="group" aria-label="Süzgeç">
-        <div className="flex min-w-max gap-2">
-          {chips.map((c) => (
-            <button
-              key={c.key}
-              type="button"
-              onClick={() => setChip(c.key)}
-              aria-pressed={chip === c.key}
-              className={cn(
-                "min-h-11 shrink-0 rounded-full border px-4 text-sm font-medium whitespace-nowrap",
-                chip === c.key ? "border-black bg-black text-white" : "border-border bg-background text-black hover:border-black",
-              )}
-            >
-              {c.label}
-            </button>
-          ))}
-        </div>
-      </div>
+      <ScrollRow role="group" aria-label="Süzgeç">
+        {chips.map((c) => (
+          <Chip key={c.key} active={chip === c.key} onClick={() => setChip(c.key)}>
+            {c.label}
+          </Chip>
+        ))}
+      </ScrollRow>
 
       {list.isPending ? (
         <p role="status" className="text-sm text-neutral-600">

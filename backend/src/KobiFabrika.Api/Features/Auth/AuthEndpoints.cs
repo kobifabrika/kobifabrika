@@ -143,7 +143,18 @@ public static class AuthEndpoints
         {
             tenant.Set(businessId, user.Id);
             audit.Log(AuditAction.Login);
-            await db.SaveChangesAsync(ct);
+            try
+            {
+                await db.SaveChangesAsync(ct);
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                // Aynı kullanıcı aynı anda iki kez giriş yaptı (çift tıklama, paralel sekme): kullanıcı satırı diğer istekte
+                // güncellendi. Giriş zaten tamam; sadece günlük satırı yeniden yazılır (Sprint 6A'da E2E'de bulundu).
+                db.ChangeTracker.Clear();
+                audit.Log(AuditAction.Login);
+                await db.SaveChangesAsync(ct);
+            }
         }
 
         return TypedResults.Ok(await session.BuildMeAsync(user, user.LastBusinessId, ct));

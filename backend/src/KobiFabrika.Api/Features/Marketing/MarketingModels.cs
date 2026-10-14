@@ -62,9 +62,12 @@ public sealed record CampaignResponse(
 
 public sealed record CampaignListResponse(IReadOnlyList<CampaignResponse> Items, int Total);
 
-/// <summary>Kampanya alıcısı; Text gönderilen mesaj (gönderildiyse). Anonimleştirilmiş müşteride telefon boş.</summary>
+/// <summary>
+/// Kampanya alıcısı; Text gönderilen mesaj (gönderildiyse). Anonimleştirilmiş müşteride telefon boş. SkipReason metin
+/// (RecipientSkipReason adı): yanıtta nullable enum ortak enum şemasını "| null" yapıyor (CLAUDE.md).
+/// </summary>
 public sealed record CampaignRecipientItem(
-    Guid Id, Guid ContactId, string ContactName, string? Phone, RecipientStatus Status, RecipientSkipReason? SkipReason, int Segments,
+    Guid Id, Guid ContactId, string ContactName, string? Phone, RecipientStatus Status, string? SkipReason, int Segments,
     DateTime? ProcessedAt, string? Text);
 
 public sealed record CampaignRecipientListResponse(IReadOnlyList<CampaignRecipientItem> Items, int Total);

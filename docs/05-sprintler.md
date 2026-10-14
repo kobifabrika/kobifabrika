@@ -71,12 +71,17 @@ Tahmini, yarı zamanlı. Toplam yaklaşık 15-18 hafta. Her sprint sonunda: buil
 
 ## Sprint 6 — Pazarlama ve İYS (2 hafta)
 
-- [ ] SMS kredisi ve düşümü (MessageLog ve sahte SMS sağlayıcı Sprint 5B'de geldi: `Billable && Status = Sent` satırları düşülür; gerçek sağlayıcı pilot öncesi)
-- [ ] Kampanya akışı (segment → mesaj → önizleme/maliyet → gönder/zamanla), İYS izin süzmesi, çıkış seçeneği
-- [ ] Otomasyonlar: doğum günü, geri kazanma, randevu sonrası teşekkür
-- [ ] Memnuniyet anketi → Google yorum yönlendirmesi
-- [ ] Boş saat kampanyası önerisi
-- [ ] Risk listesi
+İki parça: **6A** kredi, kampanya, İYS ve KVKK; **6B** otomasyonlar, anket, boş saat, risk listesi.
+
+- [x] SMS kredisi ve düşümü: her ücretli SMS segment kadar atomik düşer, eksiye düşmez, hata iade; bilgilendirme SMS'leri de düşer, doğrulama kodu düşmez; düşük bakiye ve "kredi bitti" bildirimi; hoş geldin kredisi (50); platform yüklemesi (PlatformAdmin ekranı) (6A)
+- [x] Kampanya akışı (segment → mesaj → önizleme/maliyet → gönder/zamanla), 09:00-21:00, günde en fazla 1 pazarlama SMS'i, iptal, Hangfire dağıtıcısı (6A)
+- [x] İYS izin süzmesi, çıkış seçeneği (kısa link /c/[kod] + RET), IIysClient + sahte istemci (6A)
+- [x] KVKK: müşteri verisini dışa aktarma (Excel/JSON) ve kişisel verileri silme (anonimleştirme) (Faz 1 A'dan) (6A)
+- [x] Devredenler: sürükle-bırakta "Müşteriye SMS ile bildirilsin mi? [Gönder]", mobil alt çubuk (5 düğme, Menü sağ üstte), ortak çip/sekme satırı (6A)
+- [ ] Otomasyonlar: doğum günü, geri kazanma, randevu sonrası teşekkür, vade günü hatırlatması (6B)
+- [ ] Memnuniyet anketi → Google yorum yönlendirmesi (6B)
+- [ ] Boş saat kampanyası önerisi (6B)
+- [ ] Risk listesi (6B)
 
 ## Sprint 7 — Personel, mesai, izin, prim (2 hafta)
 

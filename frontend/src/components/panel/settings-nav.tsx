@@ -1,13 +1,12 @@
 "use client";
 
-import { cn } from "cn";
 import { ShieldAlert } from "lucide-react";
-import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
 
 import { useSession } from "@/components/providers/session-provider";
 import { Card, CardContent } from "@/components/ui/card";
+import { TabNav } from "@/components/ui/scroll-row";
 import { can, type Permission } from "@/lib/permissions";
 
 const tabs: { href: string; label: string; permission: Permission; module?: "appointments" }[] = [
@@ -15,6 +14,7 @@ const tabs: { href: string; label: string; permission: Permission; module?: "app
   { href: "/panel/ayarlar/calisma-saatleri", label: "Çalışma saatleri", permission: "viewSettings" },
   { href: "/panel/ayarlar/randevu", label: "Randevu", permission: "viewSettings", module: "appointments" },
   { href: "/panel/ayarlar/finans", label: "Finans", permission: "viewFinance" },
+  { href: "/panel/ayarlar/sms", label: "SMS", permission: "viewMarketing" },
   { href: "/panel/ayarlar/ekip", label: "Ekip", permission: "manageTeam" },
   { href: "/panel/ayarlar/aktivite", label: "Aktivite günlüğü", permission: "viewAuditLog" },
 ];
@@ -24,30 +24,13 @@ export function SettingsNav() {
   const pathname = usePathname();
   const { role, business } = useSession();
 
+  const visible = tabs.filter((t) => can(role, t.permission) && (!t.module || business.modules[t.module]));
   return (
-    <nav aria-label="Ayarlar" className="-mx-4 overflow-x-auto px-4 lg:mx-0 lg:px-0">
-      <ul className="flex min-w-max gap-1 border-b border-border">
-        {tabs
-          .filter((t) => can(role, t.permission) && (!t.module || business.modules[t.module]))
-          .map((t) => {
-            const active = pathname === t.href;
-            return (
-              <li key={t.href}>
-                <Link
-                  href={t.href}
-                  aria-current={active ? "page" : undefined}
-                  className={cn(
-                    "-mb-px flex min-h-11 items-center border-b-2 px-3 text-sm font-semibold whitespace-nowrap",
-                    active ? "border-brand text-black" : "border-transparent text-neutral-600 hover:text-black",
-                  )}
-                >
-                  {t.label}
-                </Link>
-              </li>
-            );
-          })}
-      </ul>
-    </nav>
+    <TabNav
+      label="Ayarlar"
+      active={pathname}
+      tabs={visible.map((t) => ({ key: t.href, label: t.label, href: t.href }))}
+    />
   );
 }
 

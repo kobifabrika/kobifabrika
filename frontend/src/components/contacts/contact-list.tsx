@@ -1,8 +1,7 @@
 "use client";
 
 import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { cn } from "cn";
-import { Download, FileSpreadsheet, Filter, Plus, Search, Users, X } from "lucide-react";
+import { Download, FileSpreadsheet, Filter, Megaphone, Plus, Search, Users, X } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
@@ -27,6 +26,7 @@ import {
 import { displayPhone } from "@/lib/contacts";
 import { formatDate } from "@/lib/format";
 import { can } from "@/lib/permissions";
+import { Chip, ScrollRow } from "@/components/ui/scroll-row";
 
 export const contactsKey = ["contacts"] as const;
 const PAGE_SIZE = 25;
@@ -177,6 +177,13 @@ export function ContactList({ mode = "customer" }: { mode?: Mode }) {
       {mode === "customer" && (segments.data?.length ?? 0) > 0 && (
         <SegmentChips segments={segments.data!} active={segment} onChange={setSegment} />
       )}
+      {mode === "customer" && segment && can(role, "manageMarketing") && (
+        <Button asChild variant="outline" className="self-start">
+          <Link href={`/panel/kampanyalar/yeni?segment=${encodeURIComponent(segment)}`}>
+            <Megaphone aria-hidden /> Bu segmente kampanya
+          </Link>
+        </Button>
+      )}
 
       {list.isPending ? (
         <p role="status" className="text-sm text-neutral-600">
@@ -252,28 +259,15 @@ function SegmentChips({
   onChange: (v: string) => void;
 }) {
   const chip = (key: string, label: string) => (
-    <button
-      key={key || "all"}
-      type="button"
-      onClick={() => onChange(key)}
-      aria-pressed={active === key}
-      className={cn(
-        "min-h-11 shrink-0 rounded-full border px-4 text-sm font-medium whitespace-nowrap",
-        active === key
-          ? "border-black bg-black text-white"
-          : "border-border bg-background text-black hover:border-black",
-      )}
-    >
+    <Chip key={key || "all"} active={active === key} onClick={() => onChange(key)}>
       {label}
-    </button>
+    </Chip>
   );
   return (
-    <div className="-mx-4 overflow-x-auto px-4 lg:mx-0 lg:px-0" role="group" aria-label="Segmentler">
-      <div className="flex min-w-max gap-2">
-        {chip("", "Tümü")}
-        {segments.map((s) => chip(s.code ?? s.id!, s.name))}
-      </div>
-    </div>
+    <ScrollRow role="group" aria-label="Segmentler">
+      {chip("", "Tümü")}
+      {segments.map((s) => chip(s.code ?? s.id!, s.name))}
+    </ScrollRow>
   );
 }
 

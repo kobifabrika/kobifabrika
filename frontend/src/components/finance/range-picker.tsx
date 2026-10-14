@@ -1,12 +1,12 @@
 "use client";
 
-import { cn } from "cn";
 import { useState } from "react";
 
 import { Field } from "@/components/forms/field";
 import { Input } from "@/components/ui/input";
 import { type DateRange, type RangePreset, presetRange, rangePresets } from "@/lib/date-ranges";
 import { formatDayShort } from "@/lib/format";
+import { Chip, ScrollRow } from "@/components/ui/scroll-row";
 
 export type RangeValue = { preset: RangePreset; from?: string; to?: string };
 
@@ -35,24 +35,19 @@ export function RangePicker({
 
   return (
     <div className="flex flex-col gap-3">
-      <div role="group" aria-label={label} className="flex flex-wrap gap-2">
+      <ScrollRow role="group" aria-label={label}>
         {rangePresets
           .filter((p) => presets.includes(p.key))
           .map((p) => (
-            <button
+            <Chip
               key={p.key}
-              type="button"
-              aria-pressed={value.preset === p.key}
+              active={value.preset === p.key}
               onClick={() => onChange(p.key === "ozel" ? { preset: "ozel", from, to } : { preset: p.key })}
-              className={cn(
-                "min-h-11 border px-3 text-sm font-semibold",
-                value.preset === p.key ? "border-black bg-black text-white" : "border-border bg-white text-black hover:border-black",
-              )}
             >
               {p.label}
-            </button>
+            </Chip>
           ))}
-      </div>
+      </ScrollRow>
       {value.preset === "ozel" ? (
         <div className="grid max-w-md grid-cols-2 gap-3">
           <Field label="Başlangıç">

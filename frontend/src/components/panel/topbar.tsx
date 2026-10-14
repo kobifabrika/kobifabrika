@@ -2,11 +2,12 @@
 
 import { BusinessSwitcher } from "@/components/panel/business-switcher";
 import { CommandMenu } from "@/components/panel/command-menu";
+import { MobileMenu } from "@/components/panel/mobile-menu";
 import { NotificationBell } from "@/components/panel/notification-bell";
 import { QuickActionsMenu } from "@/components/panel/quick-actions-menu";
 import { UserMenu } from "@/components/panel/user-menu";
 
-/** Panel üst çubuğu (siyah, sol menüyle aynı dil): telefonda işletme adı; arama (Ctrl+K), masaüstünde (+) hızlı işlem, bildirim zili, kullanıcı menüsü. */
+/** Panel üst çubuğu (siyah, sol menüyle aynı dil): telefonda işletme adı, arama, zil ve sağda Menü (kullanıcı menüsüyle birleşik); masaüstünde arama (Ctrl+K), (+) hızlı işlem, zil, kullanıcı menüsü. */
 export function Topbar() {
   return (
     <header className="dark sticky print:hidden top-0 z-20 flex h-14 items-center justify-between gap-2 border-b border-sidebar-border bg-background px-4 text-foreground lg:h-16 lg:px-8">
@@ -18,6 +19,7 @@ export function Topbar() {
           <QuickActionsMenu />
           <NotificationBell />
           <UserMenu />
+          <MobileMenu />
         </div>
       </div>
     </header>

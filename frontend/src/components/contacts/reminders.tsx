@@ -25,6 +25,7 @@ import { api, errorMessage, fieldErrors, unwrap } from "@/lib/api/client";
 import type { Reminder } from "@/lib/api/types";
 import { formatDateTime, istanbulParts, istanbulToUtcIso, todayIstanbul } from "@/lib/format";
 import { can } from "@/lib/permissions";
+import { Chip, ScrollRow } from "@/components/ui/scroll-row";
 
 const remindersKey = ["reminders"] as const;
 
@@ -50,7 +51,7 @@ export function ReminderList({ contactId, contactName }: { contactId?: string; c
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <div className="flex flex-wrap gap-2" role="group" aria-label="Hatırlatma süzgeci">
+        <ScrollRow role="group" aria-label="Hatırlatma süzgeci" className="min-w-0 flex-1">
           {!contactId && managers && (
             <>
               <Chip active={scope === "mine"} onClick={() => setScope("mine")}>
@@ -67,7 +68,7 @@ export function ReminderList({ contactId, contactName }: { contactId?: string; c
           <Chip active={status === "done"} onClick={() => setStatus("done")}>
             Tamamlanan
           </Chip>
-        </div>
+        </ScrollRow>
         {write && (
           <Button onClick={() => setEditing("new")}>
             <Plus aria-hidden />
@@ -113,21 +114,6 @@ export function ReminderList({ contactId, contactName }: { contactId?: string; c
   );
 }
 
-function Chip({ active, onClick, children }: { active: boolean; onClick: () => void; children: React.ReactNode }) {
-  return (
-    <button
-      type="button"
-      aria-pressed={active}
-      onClick={onClick}
-      className={cn(
-        "min-h-11 rounded-full border px-4 text-sm font-medium",
-        active ? "border-black bg-black text-white" : "border-border bg-background text-black hover:border-black",
-      )}
-    >
-      {children}
-    </button>
-  );
-}
 
 function ReminderRow({
   reminder: r,

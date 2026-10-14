@@ -75,5 +75,6 @@ Rakip incelemesi: `docs/rakip-site-notlari.md`.
 ## Mobil
 
 - 375px genişlikte her ekran kullanılabilir olmalı.
-- Telefonda alt sekme çubuğu: Bugün, Randevu, Satış, Müşteri, Menü; ortada hızlı işlem (+) butonu (yeni satış / randevu / müşteri / tahsilat).
+- Telefonda alt çubuk simetrik 5 düğme: Bugün, Randevu, ortada hızlı işlem (+), Satış, Müşteri (Randevular kapalıysa Randevu yerine Ürün). Menü sağ üstte, kullanıcı menüsüyle birleşik tek düğme (Sprint 6A).
+- Yatay kaydırılan çip ve sekme satırları tek bileşen (`components/ui/scroll-row.tsx`: `ScrollRow`, `Chip`, `TabNav`): kaydırma çubuğu gizli, son öğenin sağında iç boşluk; kenarda solma (gradyan) yok.
 - Dokunma alanı en az 44×44px. Tablolar telefonda kart listesine dönüşür.

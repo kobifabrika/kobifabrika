@@ -17,6 +17,7 @@ import { API_URL, api, unwrap } from "@/lib/api/client";
 import { paymentMethodNames, type SaleListItem } from "@/lib/api/types";
 import { formatMoney, istanbulParts, todayIstanbul } from "@/lib/format";
 import { can } from "@/lib/permissions";
+import { Chip, ScrollRow } from "@/components/ui/scroll-row";
 
 const PAGE_SIZE = 25;
 type Range = "today" | "week" | "month" | "all";
@@ -70,24 +71,13 @@ export function SaleList({ contactId }: { contactId?: string }) {
     <div className="flex flex-col gap-4">
       {!contactId && (
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <div className="-mx-4 overflow-x-auto px-4 lg:mx-0 lg:px-0" role="group" aria-label="Dönem">
-            <div className="flex min-w-max gap-2">
-              {ranges.map((r) => (
-                <button
-                  key={r.key}
-                  type="button"
-                  aria-pressed={range === r.key}
-                  onClick={() => setRange(r.key)}
-                  className={cn(
-                    "min-h-11 rounded-full border px-4 text-sm font-medium whitespace-nowrap",
-                    range === r.key ? "border-black bg-black text-white" : "border-border bg-background text-black hover:border-black",
-                  )}
-                >
-                  {r.label}
-                </button>
-              ))}
-            </div>
-          </div>
+          <ScrollRow role="group" aria-label="Dönem" className="min-w-0 flex-1">
+            {ranges.map((r) => (
+              <Chip key={r.key} active={range === r.key} onClick={() => setRange(r.key)}>
+                {r.label}
+              </Chip>
+            ))}
+          </ScrollRow>
           {can(role, "exportData") && (
             <Button asChild variant="outline">
               <a href={exportHref} download>

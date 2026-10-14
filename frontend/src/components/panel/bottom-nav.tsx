@@ -3,12 +3,9 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
-import { Menu, Package, Plus } from "lucide-react";
+import { Package, Plus } from "lucide-react";
 import { cn } from "cn";
 
-import { Wordmark } from "@/components/brand/wordmark";
-import { ApiStatus } from "@/components/panel/api-status";
-import { NavList } from "@/components/panel/sidebar";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { useSession } from "@/components/providers/session-provider";
 import { bottomTabs, isActive, panelHref, visibleQuickActions } from "@/lib/navigation";
@@ -16,10 +13,12 @@ import { bottomTabs, isActive, panelHref, visibleQuickActions } from "@/lib/navi
 const tabClass =
   "flex min-h-14 flex-1 flex-col items-center justify-center gap-0.5 text-xs font-medium transition-colors";
 
-/** Telefonda (lg altı) alt sekme çubuğu: Bugün, Randevu, (+), Satış, Müşteri, Menü. */
+/**
+ * Telefonda (lg altı) alt çubuk: simetrik 5 düğme — Bugün, Randevu, (+), Satış, Müşteri. Menü sağ üstte (üst çubuk,
+ * MobileMenu). Randevular modülü kapalıysa (Perakende) Randevu'nun yerinde Ürün.
+ */
 export function BottomNav() {
   const pathname = usePathname();
-  const [menuOpen, setMenuOpen] = useState(false);
   const [quickOpen, setQuickOpen] = useState(false);
   const { business, role } = useSession();
 
@@ -86,31 +85,6 @@ export function BottomNav() {
         {tab(tabs[2])}
         {tab(tabs[3])}
 
-        <Sheet open={menuOpen} onOpenChange={setMenuOpen}>
-          <SheetTrigger asChild>
-            <button type="button" className={cn(tabClass, menuOpen ? "text-black" : "text-neutral-600")}>
-              <Menu aria-hidden className="size-6" />
-              Menü
-            </button>
-          </SheetTrigger>
-          <SheetContent
-            side="right"
-            className="w-[85%] max-w-xs gap-0 border-sidebar-border bg-sidebar p-0 text-sidebar-foreground"
-          >
-            <SheetHeader className="border-b border-sidebar-border px-5 py-4">
-              <SheetTitle>
-                <Wordmark onDark className="text-xl" />
-              </SheetTitle>
-              <SheetDescription className="sr-only">Panel menüsü</SheetDescription>
-            </SheetHeader>
-            <div className="flex-1 overflow-y-auto px-3 py-5">
-              <NavList onNavigate={() => setMenuOpen(false)} />
-            </div>
-            <div className="border-t border-sidebar-border px-5 py-4">
-              <ApiStatus className="text-sidebar-foreground" />
-            </div>
-          </SheetContent>
-        </Sheet>
       </div>
     </nav>
   );

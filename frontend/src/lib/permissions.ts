@@ -38,6 +38,14 @@ const matrix = {
   manageStaff: ["Owner", "Manager"],
   /** Randevu açma, taşıma, durum değiştirme (karar a: Personel herkes için; ayar açıksa sadece kendisi). */
   writeAppointments: ["Owner", "Manager", "Staff"],
+  /** Kampanyalar, SMS kredisi ve hareketleri (Mali Müşavir salt okunur; Personel görmez). */
+  viewMarketing: ["Owner", "Manager", "Accountant"],
+  /** Kampanya oluşturma, zamanlama, iptal; boş saat ve risk listesinden kampanya. */
+  manageMarketing: ["Owner", "Manager"],
+  /** KVKK: müşterinin verilerini dışa aktarma. */
+  exportContactData: ["Owner", "Manager"],
+  /** KVKK: müşterinin kişisel verilerini silme (anonimleştirme; geri alınamaz). */
+  anonymizeContacts: ["Owner"],
 } as const satisfies Record<string, readonly Role[]>;
 
 export type Permission = keyof typeof matrix;

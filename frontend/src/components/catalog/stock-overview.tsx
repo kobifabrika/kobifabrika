@@ -1,7 +1,6 @@
 "use client";
 
 import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
-import { cn } from "cn";
 import { Boxes, Plus } from "lucide-react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -16,6 +15,7 @@ import { useSession } from "@/components/providers/session-provider";
 import { Button } from "@/components/ui/button";
 import { api, unwrap } from "@/lib/api/client";
 import { can } from "@/lib/permissions";
+import { Chip, ScrollRow } from "@/components/ui/scroll-row";
 
 const PAGE_SIZE = 25;
 type Filter = "tum" | "kritik" | "eksi";
@@ -80,25 +80,18 @@ export function StockOverview() {
         )}
       </div>
 
-      <div className="-mx-4 overflow-x-auto px-4 lg:mx-0 lg:px-0" role="group" aria-label="Süzgeç">
-        <div className="flex min-w-max gap-2">
-          {chips.map((c) => (
-            <button
-              key={c.key}
-              type="button"
-              aria-pressed={filter === c.key}
-              onClick={() => router.replace(c.key === "tum" ? "/panel/stok" : `/panel/stok?filtre=${c.key}`, { scroll: false })}
-              className={cn(
-                "min-h-11 shrink-0 rounded-full border px-4 text-sm font-medium whitespace-nowrap",
-                filter === c.key ? "border-black bg-black text-white" : "border-border bg-background text-black hover:border-black",
-              )}
-            >
-              {c.label}
-              {c.count != null && <span className="ml-1 tabular-nums">({c.count})</span>}
-            </button>
-          ))}
-        </div>
-      </div>
+      <ScrollRow role="group" aria-label="Süzgeç">
+        {chips.map((c) => (
+          <Chip
+            key={c.key}
+            active={filter === c.key}
+            onClick={() => router.replace(c.key === "tum" ? "/panel/stok" : `/panel/stok?filtre=${c.key}`, { scroll: false })}
+          >
+            {c.label}
+            {c.count != null && <span className="ml-1 tabular-nums">({c.count})</span>}
+          </Chip>
+        ))}
+      </ScrollRow>
 
       {list.isPending ? (
         <p role="status" className="text-sm text-neutral-600">

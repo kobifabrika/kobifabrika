@@ -1,7 +1,6 @@
 "use client";
 
 import { useInfiniteQuery } from "@tanstack/react-query";
-import { cn } from "cn";
 import { FileText, Plus, Search } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
@@ -17,6 +16,7 @@ import { api, unwrap } from "@/lib/api/client";
 import type { QuoteStatus } from "@/lib/api/types";
 import { formatDayShort, formatMoney } from "@/lib/format";
 import { can } from "@/lib/permissions";
+import { Chip, ScrollRow } from "@/components/ui/scroll-row";
 
 const PAGE_SIZE = 25;
 
@@ -47,24 +47,13 @@ export function QuoteList({ contactId }: { contactId?: string }) {
   return (
     <div className="flex flex-col gap-4">
       {!contactId && (
-        <div className="-mx-4 overflow-x-auto px-4 lg:mx-0 lg:px-0" role="group" aria-label="Durum">
-          <div className="flex min-w-max gap-2">
-            {statuses.map((s) => (
-              <button
-                key={s.key}
-                type="button"
-                aria-pressed={status === s.key}
-                onClick={() => setStatus(s.key)}
-                className={cn(
-                  "min-h-11 rounded-full border px-4 text-sm font-medium whitespace-nowrap",
-                  status === s.key ? "border-black bg-black text-white" : "border-border bg-background text-black hover:border-black",
-                )}
-              >
-                {s.label}
-              </button>
-            ))}
-          </div>
-        </div>
+        <ScrollRow role="group" aria-label="Durum">
+          {statuses.map((s) => (
+            <Chip key={s.key} active={status === s.key} onClick={() => setStatus(s.key)}>
+              {s.label}
+            </Chip>
+          ))}
+        </ScrollRow>
       )}
       {!contactId && (
         <div className="relative">

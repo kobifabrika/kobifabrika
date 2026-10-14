@@ -2,7 +2,6 @@
 
 import { cn } from "cn";
 import { MessageCircle, Phone } from "lucide-react";
-import Link from "next/link";
 import type { ReactNode } from "react";
 
 import type { Tag, TagColor } from "@/lib/api/types";
@@ -82,32 +81,7 @@ export function ContactActions({ phone, compact = false }: { phone: string | nul
   );
 }
 
-export type TabItem = { key: string; label: string; href: string };
-
-/** Ayarlar sekmeleriyle aynı görünüm: alt çizgi mavi, telefonda yatay kaydırma. */
-export function TabNav({ tabs, active, label }: { tabs: TabItem[]; active: string; label: string }) {
-  return (
-    <nav aria-label={label} className="-mx-4 overflow-x-auto px-4 lg:mx-0 lg:px-0">
-      <ul className="flex min-w-max gap-1 border-b border-border">
-        {tabs.map((t) => (
-          <li key={t.key}>
-            <Link
-              href={t.href}
-              scroll={false}
-              aria-current={t.key === active ? "page" : undefined}
-              className={cn(
-                "-mb-px flex min-h-11 items-center border-b-2 px-3 text-sm font-semibold whitespace-nowrap",
-                t.key === active ? "border-brand text-black" : "border-transparent text-neutral-600 hover:text-black",
-              )}
-            >
-              {t.label}
-            </Link>
-          </li>
-        ))}
-      </ul>
-    </nav>
-  );
-}
+export { TabNav, type TabItem } from "@/components/ui/scroll-row";
 
 /** Boş liste/ekran açıklaması. */
 export function EmptyState({ icon, title, children }: { icon: ReactNode; title: string; children?: ReactNode }) {

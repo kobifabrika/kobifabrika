@@ -49,7 +49,7 @@ export const navGroups: NavGroup[] = [
       { slug: "urunler", label: "Ürünler/Hizmetler", icon: Package, sprint: 3 },
       { slug: "stok", label: "Stok", icon: Boxes, sprint: 3, module: "stock" },
       { slug: "cari-kasa", label: "Cari ve Kasa", icon: Wallet, sprint: 2, permission: "viewFinance" },
-      { slug: "kampanyalar", label: "Kampanyalar", icon: Megaphone, sprint: 6 },
+      { slug: "kampanyalar", label: "Kampanyalar", icon: Megaphone, sprint: 6, permission: "viewMarketing" },
     ],
   },
   {
@@ -86,7 +86,7 @@ export function findNavItem(slug: string) {
   return allNavItems.find((item) => item.slug === slug);
 }
 
-/** Telefondaki alt sekme çubuğu: Bugün, Randevu, (+), Satış, Müşteri, Menü. */
+/** Telefondaki alt çubuk: Bugün, Randevu, (+), Satış, Müşteri (Menü sağ üstte). */
 export const bottomTabs: readonly { slug: string; label: string; icon: LucideIcon; module?: NavItem["module"] }[] = [
   { slug: "", label: "Bugün", icon: House },
   { slug: "randevular", label: "Randevu", icon: CalendarDays, module: "appointments" },

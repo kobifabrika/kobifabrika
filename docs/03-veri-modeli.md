@@ -17,7 +17,8 @@ Bu bir taslaktır; her sprint ilgili tabloları EF Core migration ile oluşturur
 | PaymentRequest | Tahsilat linki |
 | Appointment | Randevu |
 | ServicePackage, CustomerPackage | Paket tanımı, müşterinin aldığı paket (seans) |
-| Campaign, Automation | Kampanya, otomasyon |
+| Campaign, CampaignRecipient, Automation | Kampanya, kampanya alıcısı, otomasyon |
+| SmsCreditTransaction | SMS kredi hareketi |
 | Survey | Memnuniyet anketi |
 | StaffMember | Personel |
 | TimeEntry | Mesai kaydı |
@@ -105,14 +106,17 @@ Tutarlar KDV dahil; KDV satır tutarının içinden ayrılır. Hesap: `Domain/Sa
 - **SaleLines.ServicePackageId:** paket satırı (adet 1, stok etkisi yok); satışla birlikte CustomerPackage açılır.
 - **ContactConsents:** online randevudaki SMS pazarlama izni `Source = OnlineBooking` ile yazılır (işaretsizse yazılmaz).
 
-## Pazarlama
+## Pazarlama (Sprint 6A, migration `Sprint6aMarketing`)
 
-- **Campaigns:** Name, Channel (Sms/Email/WhatsappLink), SegmentId, Body, ScheduledAt, SentAt, Status, RecipientCount, CreditCost, Kind (Manual/EmptySlot).
-- **CampaignRecipients:** CampaignId, ContactId, Status (Queued/Sent/Failed/Skipped-NoConsent), MessageLogId.
-- **Automations:** Type (Birthday/WinBack/AfterVisitThanks/Survey/DueReminder), IsEnabled, Settings (JSON: gün sayısı, mesaj şablonu).
-- **MessageLogs:** Sprint 5B'de geldi (Online randevu, SMS ve paketler bölümü); Sprint 6 kampanya mesajlarını da yazar.
-- **SmsCreditTransactions:** Amount (+/−), Reason, RefId.
-- **Surveys:** AppointmentId, ContactId, PublicToken, Score (1-5), Comment, AnsweredAt, RedirectedToGoogle.
+- **Businesses:** `SmsBalance` (int, 1 kredi = 1 segment; önbellek, sadece `SmsCredits` ile atomik, CHECK `>= 0`, SaveChanges yazmaz), `SmsLowBalanceThreshold` (50; 0 = kapalı, CHECK 0-100000), `SmsLowBalanceNotifiedAt`, `SmsOutOfCreditNotifiedAt` (bildirim bir kez; yüklemede sıfırlanır), `IysBrandCode` (İYS marka kodu; boşken izinler İYS'ye bildirilmez).
+- **SmsCreditTransactions** (sadece eklenir): Amount (int, ≠ 0; artı yükleme/iade, eksi gönderim), Kind (TopUp/Welcome/Send/Refund/Adjustment), BalanceAfter (CHECK ≥ 0), MessageLogId, Note. Filtreli benzersiz: işletme başına bir `Welcome`, gönderim başına bir `Refund`. Σ Amount = bakiye. Veri adımı: kurulumu bitmiş işletmelere bir kez 50 hoş geldin kredisi (`BackfillWelcomeCreditsSql`, testli).
+- **MessageLogs:** Status'a `NoCredit` (kredi yetmedi, sağlayıcıya gitmedi); Purpose'a `Campaign`, `Birthday`, `WinBack`, `VisitThanks`, `Survey` (pazarlama) ve `DueReminder` (bilgilendirme). Filtreli benzersiz `UX_MessageLogs_CampaignRecipient` (RefId; RefType = 'CampaignRecipient'): kampanya alıcısına en fazla bir SMS.
+- **Campaigns:** Name, Kind (Manual/EmptySlot/RiskList), Status (Scheduled/Sending/Completed/Cancelled), SegmentId / SegmentCode / Filter (json; kayıtlı segmentin o anki kopyası), TargetName, Body (600; `{ad}`, `{isletme}`), ScheduledAt (09:00-21:00'a kaydırılmış), RequestedAt (kaydırıldıysa istenen zaman), StartedAt, RecipientsResolvedAt, CompletedAt, CancelledAt/By, RecipientCount, SentCount, FailedCount, SkippedCount, CreditUsed, RanOutOfCredit. Dağıtıcı indeksi `IX_Campaigns_Dispatch` (Status, ScheduledAt; Scheduled/Sending). Kanal sadece SMS (Faz 1; e-posta kampanyası sonra).
+- **CampaignRecipients:** CampaignId, ContactId (benzersiz çift), Phone (gönderim anındaki; KVKK silmede null), Status (Pending/Sending/Sent/Failed/Skipped), SkipReason (NoPhone/NoConsent/OptedOut/DailyLimit/NoCredit/Cancelled/Unavailable/Interrupted), MessageLogId, Segments, ClaimedAt, ProcessedAt.
+- **MarketingDailySends:** (BusinessId, ContactId, LocalDate) benzersiz; günde en fazla 1 pazarlama SMS'i (kampanya + otomasyon). Gönderimden önce eklenir, gönderilemezse silinir.
+- **Contacts:** `OptOutCode` (8 karakter, bütün işletmelerde benzersiz, büyük/küçük harf duyarlı; /c/{kod}), `IsAnonymized`, `AnonymizedAt`, `AnonymizedBy` (KVKK). **ContactConsents:** Source'a `OptOutLink`, `OptOutSms`, `Iys`, `Anonymization`; `IysStatus` (Pending/Accepted/Rejected/NotRequired; SMS izni değişince Pending), `IysSentAt`, `IysError`; bekleyenler için filtreli indeks.
+- **DocumentSequences:** Kind `Anonymous` (yıl 0): "Silinmiş müşteri #N".
+- 6B'de: Automations, AutomationSends, Surveys; Contacts ziyaret istatistiği (VisitCount, AvgVisitIntervalDays).
 
 ## Personel
 

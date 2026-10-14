@@ -274,7 +274,7 @@ public static class CampaignEndpoints
         {
             var contact = contacts.GetValueOrDefault(r.ContactId);
             return new CampaignRecipientItem(r.Id, r.ContactId, contact?.DisplayName ?? "Silinmiş müşteri", contact?.IsAnonymized == true ? null : r.Phone,
-                r.Status, r.SkipReason, r.Segments, r.ProcessedAt, r.MessageLogId is { } logId ? texts.GetValueOrDefault(logId) : null);
+                r.Status, r.SkipReason?.ToString(), r.Segments, r.ProcessedAt, r.MessageLogId is { } logId ? texts.GetValueOrDefault(logId) : null);
         }).ToList();
         return TypedResults.Ok(new CampaignRecipientListResponse(items, total));
     }

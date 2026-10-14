@@ -81,6 +81,18 @@ export async function waitReady(page: Page) {
   await expect(page.getByRole("status").filter({ hasText: /Yükleniyor|hazırlanıyor/ })).toHaveCount(0, {
     timeout: 15_000,
   });
+  // Açılan pencere/alt sayfanın giriş animasyonu bitsin: yarı saydam halde kontrast ölçülmesin (Sprint 6A; aralıklı axe hatası).
+  // Sonsuz animasyonlar (yükleme dönmesi) beklenmez; toast'lar axe'den zaten hariç.
+  await page
+    .evaluate(() =>
+      Promise.all(
+        document
+          .getAnimations()
+          .filter((a) => a.effect?.getComputedTiming().iterations !== Infinity)
+          .map((a) => a.finished.catch(() => undefined)),
+      ),
+    )
+    .catch(() => undefined);
 }
 
 type Fixtures = {

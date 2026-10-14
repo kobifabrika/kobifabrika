@@ -17,6 +17,7 @@ import type { IncomeExpenseReport, ReceivablesReport, ReportGroupBy, SalesReport
 import { isPreset } from "@/lib/date-ranges";
 import { formatDayShort, formatMoney } from "@/lib/format";
 import { can } from "@/lib/permissions";
+import { Chip, ScrollRow } from "@/components/ui/scroll-row";
 
 const reports = [
   { key: "satislar", label: "Satışlar" },
@@ -120,19 +121,13 @@ function Loading() {
 
 function Toggle({ label, options, value, onChange }: { label: string; options: [string, string][]; value: string; onChange: (v: string) => void }) {
   return (
-    <div role="group" aria-label={label} className="flex flex-wrap gap-2">
+    <ScrollRow role="group" aria-label={label}>
       {options.map(([key, text]) => (
-        <button
-          key={key}
-          type="button"
-          aria-pressed={value === key}
-          onClick={() => onChange(key)}
-          className={cn("min-h-11 border px-3 text-sm font-semibold", value === key ? "border-black bg-black text-white" : "border-border text-black hover:border-black")}
-        >
+        <Chip key={key} active={value === key} onClick={() => onChange(key)}>
           {text}
-        </button>
+        </Chip>
       ))}
-    </div>
+    </ScrollRow>
   );
 }
 

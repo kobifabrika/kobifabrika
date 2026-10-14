@@ -1,6 +1,6 @@
 "use client";
 
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { cn } from "cn";
 import { CalendarPlus, Check, ChevronLeft, ChevronRight, Clock, UserRound } from "lucide-react";
 import Link from "next/link";
@@ -50,6 +50,7 @@ export const bookingKey = (slug: string) => ["public", "booking", slug] as const
  * adreste; tarayıcının geri tuşu adımlar arasında çalışır. Seçimler sayfada tutulur; sayfa yenilenirse baştan başlar.
  */
 export function BookingFlow({ slug }: { slug: string }) {
+  const queryClient = useQueryClient();
   const router = useRouter();
   const pathname = usePathname();
   const params = useSearchParams();
@@ -194,6 +195,8 @@ export function BookingFlow({ slug }: { slug: string }) {
           verification={verification}
           onResent={(id) => setVerification({ id, sentAt: Date.now() })}
           onSlotTaken={() => {
+            // Dolan saat listede kalmasın: boş saatler önbellekten değil sunucudan yeniden gelir (staleTime 30 sn).
+            void queryClient.invalidateQueries({ queryKey: ["public", "booking", slug, "slots"] });
             setChoice((c) => ({ ...c, time: undefined }));
             go("saat", true);
           }}

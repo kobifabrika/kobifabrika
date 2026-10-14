@@ -8,7 +8,7 @@ import { BottomNav } from "./bottom-nav";
 vi.mock("next/navigation", () => ({ usePathname: () => "/panel/randevular" }));
 
 describe("BottomNav", () => {
-  it("Bugün, Randevu, hızlı işlem, Satış, Müşteri ve Menü sekmelerini sırayla gösterir", () => {
+  it("simetrik 5 düğme: Bugün, Randevu, hızlı işlem, Satış, Müşteri (Menü üst çubukta)", () => {
     renderWithSession(<BottomNav />);
 
     const nav = screen.getByRole("navigation", { name: "Alt menü" });
@@ -16,7 +16,7 @@ describe("BottomNav", () => {
       (el) => el.getAttribute("aria-label") ?? el.textContent?.trim(),
     );
 
-    expect(labels).toEqual(["Bugün", "Randevu", "Hızlı işlem", "Satış", "Müşteri", "Menü"]);
+    expect(labels).toEqual(["Bugün", "Randevu", "Hızlı işlem", "Satış", "Müşteri"]);
   });
 
   it("aktif sekmeyi aria-current ile işaretler", () => {
@@ -31,5 +31,8 @@ describe("BottomNav", () => {
 
     expect(screen.queryByRole("link", { name: "Randevu" })).not.toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Ürün" })).toHaveAttribute("href", "/panel/urunler");
+    const nav = screen.getByRole("navigation", { name: "Alt menü" });
+    const labels = Array.from(nav.querySelectorAll("a, button")).map((el) => el.getAttribute("aria-label") ?? el.textContent?.trim());
+    expect(labels).toEqual(["Bugün", "Ürün", "Hızlı işlem", "Satış", "Müşteri"]);
   });
 });

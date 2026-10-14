@@ -133,6 +133,12 @@ export const messagePurposeNames: Record<MessagePurpose, string> = {
   AppointmentMoved: "Randevu değişikliği",
   AppointmentCancelled: "Randevu iptali",
   AppointmentRejected: "Randevu reddi",
+  Campaign: "Kampanya",
+  Birthday: "Doğum günü",
+  WinBack: "Geri kazanma",
+  VisitThanks: "Ziyaret sonrası teşekkür",
+  Survey: "Memnuniyet anketi",
+  DueReminder: "Vade hatırlatması",
 };
 
 export const staffColorNames: Record<StaffColor, string> = {
@@ -174,6 +180,10 @@ export const consentSourceNames: Record<NonNullable<Schemas["ConsentSource"]>, s
   Panel: "panelden",
   Import: "Excel içe aktarmadan",
   OnlineBooking: "online randevudan",
+  OptOutLink: "çıkış linkinden",
+  OptOutSms: "RET SMS'iyle",
+  Iys: "İYS'den",
+  Anonymization: "kişisel veriler silinirken",
 };
 
 export const tagColorNames: Record<TagColor, string> = {
@@ -227,4 +237,63 @@ export const roleDescriptions: Record<Role, string> = {
   Manager: "Maaş ve abonelik hariç her şey.",
   Staff: "Kendi randevuları, satış girme, müşteri görme.",
   Accountant: "Salt okunur; raporları indirir. Kullanıcı sınırına sayılmaz.",
+};
+
+// Pazarlama, SMS kredisi, KVKK (Sprint 6A)
+export type SmsCreditSummary = Schemas["SmsCreditSummary"];
+export type SmsCreditTransactionItem = Schemas["SmsCreditTransactionItem"];
+export type SmsCreditKind = Schemas["SmsCreditKind"];
+export type Campaign = Schemas["CampaignResponse"];
+export type CampaignStatus = Schemas["CampaignStatus"];
+export type CampaignKind = Schemas["CampaignKind"];
+export type CampaignTarget = Schemas["CampaignTarget"];
+export type CampaignPreview = Schemas["CampaignPreviewResponse"];
+export type CampaignComposeInfo = Schemas["CampaignComposeInfo"];
+export type CampaignRecipientItem = Schemas["CampaignRecipientItem"];
+export type RecipientStatus = Schemas["RecipientStatus"];
+/** Yanıtta metin (nullable enum ortak şemayı bozduğu için); değerler backend RecipientSkipReason. */
+export type RecipientSkipReason =
+  | "NoPhone"
+  | "NoConsent"
+  | "OptedOut"
+  | "DailyLimit"
+  | "NoCredit"
+  | "Cancelled"
+  | "Unavailable"
+  | "Interrupted";
+export type AdminBusinessItem = Schemas["AdminBusinessItem"];
+export type PublicOptOut = Schemas["PublicOptOutResponse"];
+
+export const smsCreditKindNames: Record<SmsCreditKind, string> = {
+  TopUp: "Yükleme",
+  Welcome: "Hoş geldin kredisi",
+  Send: "Gönderim",
+  Refund: "İade",
+  Adjustment: "Düzeltme",
+};
+
+export const campaignStatusNames: Record<CampaignStatus, string> = {
+  Scheduled: "Zamanlandı",
+  Sending: "Gönderiliyor",
+  Completed: "Tamamlandı",
+  Cancelled: "İptal edildi",
+};
+
+export const recipientStatusNames: Record<RecipientStatus, string> = {
+  Pending: "Sırada",
+  Sending: "Gönderiliyor",
+  Sent: "Gönderildi",
+  Failed: "Başarısız",
+  Skipped: "Elendi",
+};
+
+export const skipReasonNames: Record<RecipientSkipReason, string> = {
+  NoPhone: "cep telefonu yok",
+  NoConsent: "SMS izni yok",
+  OptedOut: "çıkış yaptı",
+  DailyLimit: "bugün SMS aldı",
+  NoCredit: "kredi yetersiz",
+  Cancelled: "kampanya iptal",
+  Unavailable: "kayıt silindi/arşivde",
+  Interrupted: "sonuç belirsiz",
 };

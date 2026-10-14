@@ -9,6 +9,7 @@ import {
   ArchiveRestore,
   ArrowLeft,
   BellRing,
+  Download,
   FileText,
   HandCoins,
   Link2,
@@ -18,6 +19,7 @@ import {
   Pencil,
   ReceiptText,
   ShieldCheck,
+  ShieldX,
   StickyNote,
   Trash2,
   UserPlus,
@@ -47,8 +49,10 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { ApiError, api, errorMessage, unwrap } from "@/lib/api/client";
+import { ResponsivePanel } from "@/components/appointments/appointment-bits";
+import { API_URL, ApiError, api, errorMessage, unwrap } from "@/lib/api/client";
 import { consentNames, consentSourceNames, sourceNames, type Contact, type TimelineItem } from "@/lib/api/types";
 import { displayPhone } from "@/lib/contacts";
 import { formatDate, formatDateTime, formatDay, formatMoney } from "@/lib/format";
@@ -124,7 +128,7 @@ export function ContactDetail({ id, basePath }: { id: string; basePath: string }
               {c.isCustomer && c.isSupplier ? "Müşteri ve tedarikçi" : c.isSupplier ? "Tedarikçi" : "Müşteri"}
               {c.companyName && c.companyName !== c.displayName && <span>{c.companyName}</span>}
               {c.source && <span>Kaynak: {sourceNames[c.source]}</span>}
-              {c.isArchived && <span className="font-semibold text-black">Arşivde</span>}
+              {c.isArchived && !c.isAnonymized && <span className="font-semibold text-black">Arşivde</span>}
             </p>
             <TagList tags={c.tags} max={10} />
           </div>
@@ -167,6 +171,12 @@ export function ContactDetail({ id, basePath }: { id: string; basePath: string }
               </Button>
             )}
           </div>
+        )}
+        {c.isAnonymized && (
+          <Notice>
+            Bu müşterinin kişisel verileri {c.anonymizedAt ? formatDate(c.anonymizedAt) : ""} tarihinde silindi. Satış ve cari tutarlar muhasebe
+            için duruyor; kart değiştirilemez.
+          </Notice>
         )}
         {appointments.data?.noShow && <Notice>{noShowText(c.displayName, appointments.data.noShow)}</Notice>}
         {packages.data?.notice && <Notice>{packages.data.notice}</Notice>}
@@ -224,11 +234,16 @@ function ContactMenu({ contact: c, basePath }: { contact: Contact; basePath: str
     onError: (e) => toast.error(errorMessage(e)),
   });
 
+  const [anonymizeOpen, setAnonymizeOpen] = useState(false);
   const write = can(role, "writeContacts");
   const manage = can(role, "manageContacts");
-  if (!write) return null;
+  const exportData = can(role, "exportContactData");
+  const anonymize = can(role, "anonymizeContacts") && !c.isAnonymized && !isLegalEntity(c);
+  if (!write || c.isAnonymized) return null;
+  const exportHref = (format: "xlsx" | "json") => `${API_URL}/api/contacts/${c.id}/personal-data?format=${format}`;
 
   return (
+    <>
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="outline" size="icon" aria-label="Diğer işlemler">
@@ -262,8 +277,81 @@ function ContactMenu({ contact: c, basePath }: { contact: Contact; basePath: str
             Cari hareketi olduğu için silinemez; arşivleyebilirsiniz.
           </p>
         )}
+        {exportData && (
+          <>
+            <DropdownMenuItem asChild className="min-h-11">
+              <a href={exportHref("xlsx")} download>
+                <Download aria-hidden />
+                Verilerini dışa aktar (Excel)
+              </a>
+            </DropdownMenuItem>
+            <DropdownMenuItem asChild className="min-h-11">
+              <a href={exportHref("json")} download>
+                <Download aria-hidden />
+                Verilerini dışa aktar (JSON)
+              </a>
+            </DropdownMenuItem>
+          </>
+        )}
+        {anonymize && (
+          <DropdownMenuItem className="min-h-11 text-danger-600" onSelect={() => setAnonymizeOpen(true)}>
+            <ShieldX aria-hidden />
+            Kişisel verilerini sil
+          </DropdownMenuItem>
+        )}
       </DropdownMenuContent>
     </DropdownMenu>
+    {anonymize && <AnonymizeDialog contact={c} open={anonymizeOpen} onOpenChange={setAnonymizeOpen} />}
+    </>
+  );
+}
+
+/** Sadece firma adı olan kayıt tüzel kişidir; KVKK kapsamı dışında, anonimleştirilmez (backend 409 legal_entity). */
+function isLegalEntity(c: Contact) {
+  return !c.firstName?.trim() && !c.lastName?.trim() && !!c.companyName?.trim();
+}
+
+/** KVKK "kişisel verilerini sil": geri alınamaz; onay için müşterinin adı yazılır. Sadece Sahip. */
+function AnonymizeDialog({ contact: c, open, onOpenChange }: { contact: Contact; open: boolean; onOpenChange: (open: boolean) => void }) {
+  const queryClient = useQueryClient();
+  const [typed, setTyped] = useState("");
+  const run = useMutation({
+    mutationFn: () => unwrap(api.POST("/api/contacts/{id}/anonymize", { params: { path: { id: c.id } }, body: { confirm: true } })),
+    onSuccess: async (next) => {
+      queryClient.setQueryData([...contactsKey, "detail", c.id], next);
+      await queryClient.invalidateQueries({ queryKey: contactsKey });
+      onOpenChange(false);
+      toast.success(`Kişisel veriler silindi. Kart artık "${next.displayName}" olarak görünür.`);
+    },
+    onError: (e) => toast.error(errorMessage(e)),
+  });
+  const matches = typed.trim().toLocaleLowerCase("tr-TR") === c.displayName.trim().toLocaleLowerCase("tr-TR");
+
+  return (
+    <ResponsivePanel open={open} onOpenChange={onOpenChange} title="Kişisel verilerini sil">
+      <div className="flex flex-col gap-4">
+        <p className="border-l-2 border-danger-600 bg-danger-50 px-3 py-2 text-sm font-semibold text-danger-600">
+          Bu işlem geri alınamaz.
+        </p>
+        <ul className="flex list-disc flex-col gap-1 pl-5 text-sm text-black">
+          <li>Ad, telefon, e-posta, adres, doğum günü, vergi bilgisi ve notlar kalıcı olarak silinir.</li>
+          <li>Satışlar, cari hareketler ve kasa tutarları muhasebe için kalır; müşteri &quot;Silinmiş müşteri #…&quot; olarak görünür.</li>
+          <li>Bu kayıt kampanya alıcısı olmaz, online randevuya bağlanmaz.</li>
+        </ul>
+        <label className="flex flex-col gap-2 text-sm font-semibold text-black">
+          Onaylamak için müşterinin adını yazın: {c.displayName}
+          <Input value={typed} onChange={(e) => setTyped(e.target.value)} autoComplete="off" />
+        </label>
+        <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+          <Button variant="outline" onClick={() => onOpenChange(false)}>
+            Vazgeç
+          </Button>
+          <Button variant="destructive" disabled={!matches || run.isPending} onClick={() => run.mutate()}>
+            Kişisel verilerini sil
+          </Button>
+        </div>
+      </div>
+    </ResponsivePanel>
   );
 }
 
@@ -311,9 +399,11 @@ function Overview({ contact: c }: { contact: Contact }) {
             </li>
           ))}
         </ul>
-        <p className="text-xs text-neutral-600">
-          İzinleri değiştirmek için Düzenle&apos;yi kullanın; her değişiklik tarih ve kaynakla saklanır.
-        </p>
+        {!c.isAnonymized && (
+          <p className="text-xs text-neutral-600">
+            İzinleri değiştirmek için Düzenle&apos;yi kullanın; her değişiklik tarih ve kaynakla saklanır.
+          </p>
+        )}
       </section>
     </div>
   );

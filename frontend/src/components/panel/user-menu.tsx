@@ -1,6 +1,6 @@
 "use client";
 
-import { Building2, Check, LogOut, UserRound } from "lucide-react";
+import { Building2, Check, Coins, LogOut, UserRound } from "lucide-react";
 import Link from "next/link";
 
 import { useSwitchBusiness } from "@/components/panel/business-switcher";
@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { roleNames, type Role } from "@/lib/api/types";
 
-function initials(name: string) {
+export function initials(name: string) {
   return name
     .split(/\s+/)
     .filter(Boolean)
@@ -24,7 +24,7 @@ function initials(name: string) {
     .join("");
 }
 
-/** Kullanıcı menüsü: ad, rol, Hesabım, işletme değiştir (birden çok üyelik varsa), Çıkış. */
+/** Masaüstü kullanıcı menüsü: ad, rol, Hesabım, işletme değiştir (birden çok üyelik varsa), Çıkış. Telefonda MobileMenu. */
 export function UserMenu() {
   const { me, business, role } = useSession();
   const logout = useLogout();
@@ -34,7 +34,7 @@ export function UserMenu() {
     <DropdownMenu>
       <DropdownMenuTrigger
         aria-label={`Kullanıcı menüsü: ${me.user.fullName}`}
-        className="flex size-11 items-center justify-center rounded-full bg-neutral-800 text-sm font-bold text-white"
+        className="hidden size-11 items-center justify-center rounded-full bg-neutral-800 text-sm font-bold text-white lg:flex"
       >
         {initials(me.user.fullName)}
       </DropdownMenuTrigger>
@@ -51,6 +51,13 @@ export function UserMenu() {
             <UserRound aria-hidden /> Hesabım
           </Link>
         </DropdownMenuItem>
+        {me.user.isPlatformAdmin && (
+          <DropdownMenuItem asChild>
+            <Link href="/panel/platform/kredi">
+              <Coins aria-hidden /> Kredi yükle (platform)
+            </Link>
+          </DropdownMenuItem>
+        )}
         {me.memberships.length > 1 && (
           <>
             <DropdownMenuSeparator />

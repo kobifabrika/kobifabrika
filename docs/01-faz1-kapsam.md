@@ -14,7 +14,7 @@ Parantez içindeki rakip adı, fikrin nereden alındığını gösterir.
   - Accountant (Mali Müşavir): ücretsiz, salt okunur; raporları ve hareketleri Excel olarak indirir (KolayBi, Paraşüt).
   - Kullanıcı sayısı pakete göre sınırlı; mali müşavir sınıra sayılmaz.
 - **Ortak araçlar:** uygulama içi bildirimler, Ctrl+K genel arama (müşteri, ürün, satış), aktivite günlüğü, Excel'den müşteri ve ürün içe aktarma (şablon indirilebilir).
-- **KVKK:** aydınlatma metni, müşteri bazında SMS/e-posta/arama izin kaydı (tarih ve kaynakla), müşteri verisini dışa aktarma ve silme.
+- **KVKK:** aydınlatma metni, müşteri bazında SMS/e-posta/arama izin kaydı (tarih ve kaynakla), müşteri verisini dışa aktarma (Excel/JSON; Sahip, Yönetici) ve silme (anonimleştirme; sadece Sahip, geri alınamaz; satış ve cari tutarlar kalır, kart "Silinmiş müşteri #N"; tüzel kişi kaydı anonimleştirilmez) (Sprint 6A).
 
 ## B. Müşteriler
 
@@ -54,13 +54,13 @@ Parantez içindeki rakip adı, fikrin nereden alındığını gösterir.
 
 ## G. Pazarlama (fark yaratan modül)
 
-- Kampanya akışı: segment seç → mesaj yaz (değişkenler: {ad}, {isletme}) → önizle ve maliyet tahminini (SMS kredisi) gör → hemen gönder veya zamanla.
+- Kampanya akışı: segment seç → mesaj yaz (değişkenler: {ad}, {isletme}) → önizle ve maliyet tahminini (SMS kredisi) gör → hemen gönder veya zamanla. Sadece SMS (e-posta kampanyası Faz 1'de yok); pazarlama SMS'i 09:00-21:00 arası, aynı müşteriye günde en fazla 1 (Sprint 6A).
 - Hazır otomasyonlar (aç/kapa): doğum günü mesajı; "X gündür gelmedi" geri kazanma; randevu sonrası teşekkür.
 - **Memnuniyet → Google yorum:** randevudan sonra 1-5 puan sorusu linki gider. 4-5 verene işletmenin Google yorum linki gösterilir; 1-3 verenin yorumu sadece işletmeye düşer ve bildirim oluşur.
 - **Boş saat kampanyası:** yarının takviminde boş aralık varsa panel öneri gösterir; tek tıkla seçilen segmente "yarın 14:00'te yer var" mesajı gider.
 - **Risk listesi (Salon Randevu):** ortalama ziyaret aralığının 2 katından uzun süredir gelmeyen düzenli müşteriler otomatik listelenir.
-- İYS uyumu: izni olmayan alıcılar otomatik elenir; her mesajda çıkış (RET) seçeneği.
-- SMS kredisi: işletme bakiye yükler; her gönderimde düşer; bakiye azalınca uyarı.
+- İYS uyumu: izni olmayan ve çıkış yapmış alıcılar otomatik elenir; her pazarlama mesajında kısa çıkış linki (tek ekranda "SMS'leri durdur") ve RET. Gerçek İYS bildirimi gerçek SMS sağlayıcısıyla pilot öncesi (Sprint 6A'da arayüz ve sahte istemci).
+- SMS kredisi: her ücretli SMS (bilgilendirme dahil; doğrulama kodu hariç) segment kadar düşer, eksiye düşmez; kredi bitince SMS gitmez ve işletmeye bildirim; bakiye azalınca uyarı (eşik Ayarlar → SMS). Yeni işletmeye bir kez 50 kredi. Kredi yüklemeyi Sprint 8'e (iyzico) kadar platform yapar; işletme destekten ister (Sprint 6A).
 
 ## H. Dashboard ve Raporlar
 

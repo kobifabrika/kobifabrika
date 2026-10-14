@@ -13,6 +13,7 @@ import { QueryError } from "@/components/feedback/query-error";
 import { useSession } from "@/components/providers/session-provider";
 import { StaffSwatch, staffKey, useStaffList } from "@/components/staff/staff-bits";
 import { Button } from "@/components/ui/button";
+import { ScrollRow } from "@/components/ui/scroll-row";
 import { Switch } from "@/components/ui/switch";
 import { api, errorMessage, unwrap } from "@/lib/api/client";
 import type { Appointment, Calendar, StaffColor } from "@/lib/api/types";
@@ -23,7 +24,7 @@ import { can } from "@/lib/permissions";
 import { useIsDesktop } from "@/lib/use-media";
 
 import { StatusBadge, calendarKey, useAppointmentRefresh } from "./appointment-bits";
-import { AppointmentForm, type AppointmentDraft } from "./appointment-form";
+import { AppointmentForm, hasMobile, type AppointmentDraft } from "./appointment-form";
 import { AppointmentSheet } from "./appointment-sheet";
 import { TimeGrid, type GridColumn, type MoveTarget } from "./time-grid";
 
@@ -123,11 +124,34 @@ export function CalendarView() {
       if (ctx?.previous) queryClient.setQueryData(key, ctx.previous);
       toast.error(errorMessage(e));
     },
-    onSuccess: (saved) => {
+    onSuccess: (saved, { appointment }) => {
       toast.success("Randevu taşındı.");
       for (const w of saved.warnings) toast.warning(w);
+      // Saat değiştiyse ve cep telefonu varsa: "Müşteriye SMS ile bildirilsin mi? [Gönder]" (online randevuda kapanmaz).
+      const timeChanged = saved.appointment.startAt !== appointment.startAt || saved.appointment.endAt !== appointment.endAt;
+      if (timeChanged && hasMobile(appointment.contactPhone)) {
+        const online = appointment.source === "Online";
+        toast(online ? "Online randevu taşındı. Müşteriye SMS ile bildirilsin mi?" : "Müşteriye SMS ile bildirilsin mi?", {
+          id: `notify-${appointment.id}`,
+          description: `${appointment.contactName} · yeni saat ve iptal linki`,
+          duration: online ? Infinity : 10_000,
+          closeButton: online,
+          action: { label: "Gönder", onClick: () => notifyMoved.mutate(appointment.id) },
+        });
+      }
     },
     onSettled: () => refresh(),
+  });
+
+  const notifyMoved = useMutation({
+    mutationFn: (id: string) => unwrap(api.POST("/api/appointments/{id}/notify-moved", { params: { path: { id } } })),
+    onSuccess: (r) =>
+      r.status === "Sent"
+        ? toast.success("Müşteriye SMS ile bildirildi.")
+        : r.status === "NoCredit"
+          ? toast.error("SMS gönderilemedi: krediniz yetersiz.")
+          : toast.error("SMS gönderilemedi."),
+    onError: (e) => toast.error(errorMessage(e)),
   });
 
   const addMe = useMutation({
@@ -262,7 +286,7 @@ export function CalendarView() {
       </p>
 
       {columnsStaff.length > 1 && (!desktop || view === "hafta") && (
-        <div role="radiogroup" aria-label="Personel" className="-mx-4 flex gap-2 overflow-x-auto px-4 lg:mx-0 lg:px-0">
+        <ScrollRow role="radiogroup" aria-label="Personel">
           {columnsStaff.map((s) => (
             <button
               key={s.id}
@@ -279,7 +303,7 @@ export function CalendarView() {
               {s.fullName}
             </button>
           ))}
-        </div>
+        </ScrollRow>
       )}
       {desktop && view === "gun" && selectedParam && columnsStaff.length > 1 && (
         <Button variant="ghost" className="self-start" onClick={() => setParams({ personel: null })}>

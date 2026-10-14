@@ -793,6 +793,55 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/business/sms-settings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Düşük bakiye uyarı eşiği (0 = kapalı) */
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["SmsSettingsRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["SmsCreditSummary"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/system/info": {
         parameters: {
             query?: never;
@@ -8535,6 +8584,44 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/appointments/{id}/notify-moved": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Sürükle-bırakla taşınan randevu için müşteriye SMS (son saat değişikliğinden sonra bir kez) */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["NotifyMovedResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/appointments/{id}/sale-draft": {
         parameters: {
             query?: never;
@@ -8940,6 +9027,629 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/contacts/{id}/personal-data": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Kişisel verileri dışa aktar (format=json|xlsx) */
+        get: {
+            parameters: {
+                query?: {
+                    format?: string;
+                };
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PersonalDataExport"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/contacts/{id}/anonymize": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Kişisel verilerini sil (geri alınamaz; satış ve cari tutarlar kalır) */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["AnonymizeContactRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ContactResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/sms-credits": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Bakiye, eşik, son 30 gün harcama */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["SmsCreditSummary"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/sms-credits/transactions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Kredi hareketleri (yükleme, gönderim, iade; sayfalı) */
+        get: {
+            parameters: {
+                query?: {
+                    kind?: string;
+                    from?: string;
+                    to?: string;
+                    page?: number;
+                    pageSize?: number;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["SmsCreditTransactionListResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/sms-credits/transactions.xlsx": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Kredi hareketleri Excel */
+        get: {
+            parameters: {
+                query?: {
+                    kind?: string;
+                    from?: string;
+                    to?: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/businesses": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** İşletme ara (kredi yükleme için; ad, slug, sahip e-postası) */
+        get: {
+            parameters: {
+                query?: {
+                    search?: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["AdminBusinessItem"][];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/businesses/{id}/sms-credits": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** SMS kredisi yükle */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["AdminTopUpRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["AdminTopUpResponse"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/campaigns": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Kampanyalar (yeniden eskiye, sayfalı) */
+        get: {
+            parameters: {
+                query?: {
+                    status?: string;
+                    page?: number;
+                    pageSize?: number;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["CampaignListResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        /** Hemen gönder veya zamanla (09:00-21:00 dışı 09:00'a kayar). Kredi yetmezse 409 insufficient_credit */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["CampaignCreateRequest"];
+                };
+            };
+            responses: {
+                /** @description Created */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["CampaignResponse"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/campaigns/compose-info": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Mesaj ekranı: işletme adı, çıkış eki örneği, gönderim aralığı, bakiye */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["CampaignComposeInfo"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/campaigns/preview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Önizleme: alıcı ve elenen sayıları, 3 örnek mesaj, tahmini kredi */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["CampaignPreviewRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["CampaignPreviewResponse"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/campaigns/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Kampanya */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["CampaignResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/campaigns/{id}/recipients": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Alıcılar (status ile süzülür) */
+        get: {
+            parameters: {
+                query?: {
+                    status?: string;
+                    page?: number;
+                    pageSize?: number;
+                };
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["CampaignRecipientListResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/campaigns/{id}/cancel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** İptal: henüz gönderilmemiş alıcılara gitmez */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["CampaignResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/public/opt-out/{code}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Çıkış sayfası: işletme adı, izin durumu */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    code: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PublicOptOutResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        /** SMS'leri durdur (SMS izni geri alınır) */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    code: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PublicOptOutResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -8955,6 +9665,32 @@ export interface components {
             accountId: string;
             /** Format: double */
             balance: number;
+        };
+        AdminBusinessItem: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+            slug: string;
+            ownerEmail: null | string;
+            /** Format: int32 */
+            smsBalance: number;
+            /** Format: date-time */
+            createdAt: string;
+        };
+        AdminTopUpRequest: {
+            /** Format: int32 */
+            amount: number;
+            note: string;
+        };
+        AdminTopUpResponse: {
+            /** Format: uuid */
+            businessId: string;
+            businessName: string;
+            /** Format: int32 */
+            balance: number;
+        };
+        AnonymizeContactRequest: {
+            confirm: boolean;
         };
         AppointmentCheckRequest: {
             /** Format: uuid */
@@ -9073,7 +9809,7 @@ export interface components {
             fullName: string;
         };
         /** @enum {unknown} */
-        AuditAction: "Login" | "InvitationSent" | "InvitationResent" | "InvitationRevoked" | "InvitationAccepted" | "RoleChanged" | "MemberRemoved" | "BusinessUpdated" | "SlugChanged" | "WorkingHoursUpdated" | "LogoChanged" | "ModulesChanged" | "PaymentInfoChanged" | "ReceiptSettingsChanged" | "ContactCreated" | "ContactUpdated" | "ContactArchived" | "ContactRestored" | "ContactDeleted" | "ContactsImported" | "ContactsExported" | "LedgerEntryCreated" | "LedgerEntryDeleted" | "OpeningBalanceSet" | "CollectionRecorded" | "CollectionReverted" | "PaymentRequestCreated" | "PaymentRequestConfirmed" | "PaymentRequestRejected" | "PaymentRequestCancelled" | "PaymentRequestRenewed" | "StatementShared" | "ProductCreated" | "ProductUpdated" | "ProductDeleted" | "ProductsImported" | "ProductsExported" | "StockMovementAdded" | "SaleDiscounted" | "SaleCancelled" | "SalesExported" | "QuoteCreated" | "QuoteUpdated" | "QuoteShared" | "QuoteRenewed" | "QuoteExtended" | "QuoteAccepted" | "QuoteRejected" | "QuoteConverted" | "QuoteDeleted" | "CashAccountCreated" | "CashAccountUpdated" | "CashAccountDeactivated" | "CashAccountActivated" | "DefaultCashAccountChanged" | "CashTransferRecorded" | "CashTransactionReversed" | "SupplierPaymentRecorded" | "ExpenseRecorded" | "IncomeRecorded" | "ExpenseCategoryCreated" | "ExpenseCategoryUpdated" | "ExpenseCategoryDeactivated" | "ExpenseCategoryActivated" | "DueReminderSent" | "FinanceSettingsChanged" | "ReportExported" | "CashTransactionsExported" | "StaffCreated" | "StaffUpdated" | "StaffDeleted" | "StaffWorkingHoursUpdated" | "StaffServicesUpdated" | "HolidayCreated" | "HolidayDeleted" | "AppointmentSettingsChanged" | "BookingSettingsChanged" | "ServicePackageCreated" | "ServicePackageUpdated" | "ServicePackageDeleted" | "CustomerPackageExtended" | "CustomerPackageClosed";
+        AuditAction: "Login" | "InvitationSent" | "InvitationResent" | "InvitationRevoked" | "InvitationAccepted" | "RoleChanged" | "MemberRemoved" | "BusinessUpdated" | "SlugChanged" | "WorkingHoursUpdated" | "LogoChanged" | "ModulesChanged" | "PaymentInfoChanged" | "ReceiptSettingsChanged" | "ContactCreated" | "ContactUpdated" | "ContactArchived" | "ContactRestored" | "ContactDeleted" | "ContactsImported" | "ContactsExported" | "LedgerEntryCreated" | "LedgerEntryDeleted" | "OpeningBalanceSet" | "CollectionRecorded" | "CollectionReverted" | "PaymentRequestCreated" | "PaymentRequestConfirmed" | "PaymentRequestRejected" | "PaymentRequestCancelled" | "PaymentRequestRenewed" | "StatementShared" | "ProductCreated" | "ProductUpdated" | "ProductDeleted" | "ProductsImported" | "ProductsExported" | "StockMovementAdded" | "SaleDiscounted" | "SaleCancelled" | "SalesExported" | "QuoteCreated" | "QuoteUpdated" | "QuoteShared" | "QuoteRenewed" | "QuoteExtended" | "QuoteAccepted" | "QuoteRejected" | "QuoteConverted" | "QuoteDeleted" | "CashAccountCreated" | "CashAccountUpdated" | "CashAccountDeactivated" | "CashAccountActivated" | "DefaultCashAccountChanged" | "CashTransferRecorded" | "CashTransactionReversed" | "SupplierPaymentRecorded" | "ExpenseRecorded" | "IncomeRecorded" | "ExpenseCategoryCreated" | "ExpenseCategoryUpdated" | "ExpenseCategoryDeactivated" | "ExpenseCategoryActivated" | "DueReminderSent" | "FinanceSettingsChanged" | "ReportExported" | "CashTransactionsExported" | "StaffCreated" | "StaffUpdated" | "StaffDeleted" | "StaffWorkingHoursUpdated" | "StaffServicesUpdated" | "HolidayCreated" | "HolidayDeleted" | "AppointmentSettingsChanged" | "BookingSettingsChanged" | "ServicePackageCreated" | "ServicePackageUpdated" | "ServicePackageDeleted" | "CustomerPackageExtended" | "CustomerPackageClosed" | "SmsCreditsAdded" | "SmsCreditsExported" | "SmsSettingsChanged" | "CampaignCreated" | "CampaignCancelled" | "ContactDataExported" | "ContactAnonymized";
         AuditLogListResponse: {
             items: components["schemas"]["AuditLogResponse"][];
             /** Format: int32 */
@@ -9189,6 +9925,134 @@ export interface components {
             /** Format: date */
             date: string;
             ranges: components["schemas"]["TimeRangeDto"][];
+        };
+        CampaignComposeInfo: {
+            businessName: string;
+            footerSample: string;
+            windowStart: string;
+            windowEnd: string;
+            /** Format: int32 */
+            balance: number;
+            /** Format: int32 */
+            maxBodyLength: number;
+        };
+        CampaignCreateRequest: {
+            name: string;
+            target: components["schemas"]["CampaignTarget"];
+            body: string;
+            /** Format: date-time */
+            scheduledAt?: null | string;
+            kind?: components["schemas"]["CampaignKind"];
+        };
+        /** @enum {unknown} */
+        CampaignKind: "Manual" | "EmptySlot" | "RiskList";
+        CampaignListResponse: {
+            items: components["schemas"]["CampaignResponse"][];
+            /** Format: int32 */
+            total: number;
+        };
+        CampaignPreviewRequest: {
+            target: components["schemas"]["CampaignTarget"];
+            body: string;
+            /** Format: date-time */
+            scheduledAt?: null | string;
+        };
+        CampaignPreviewResponse: {
+            targetName: string;
+            /** Format: int32 */
+            total: number;
+            /** Format: int32 */
+            recipients: number;
+            /** Format: int32 */
+            noConsent: number;
+            /** Format: int32 */
+            optedOut: number;
+            /** Format: int32 */
+            noPhone: number;
+            /** Format: int32 */
+            dailyLimit: number;
+            samples: components["schemas"]["CampaignSample"][];
+            /** Format: int32 */
+            estimatedCredits: number;
+            /** Format: int32 */
+            balance: number;
+            enoughCredit: boolean;
+            /** Format: int32 */
+            affordableRecipients: number;
+            /** Format: date-time */
+            sendAt: string;
+            shifted: boolean;
+            windowStart: string;
+            windowEnd: string;
+        };
+        CampaignRecipientItem: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            contactId: string;
+            contactName: string;
+            phone: null | string;
+            status: components["schemas"]["RecipientStatus"];
+            skipReason: null | string;
+            /** Format: int32 */
+            segments: number;
+            /** Format: date-time */
+            processedAt: null | string;
+            text: null | string;
+        };
+        CampaignRecipientListResponse: {
+            items: components["schemas"]["CampaignRecipientItem"][];
+            /** Format: int32 */
+            total: number;
+        };
+        CampaignResponse: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+            kind: components["schemas"]["CampaignKind"];
+            status: components["schemas"]["CampaignStatus"];
+            targetName: null | string;
+            body: string;
+            /** Format: date-time */
+            scheduledAt: string;
+            /** Format: date-time */
+            requestedAt: null | string;
+            /** Format: date-time */
+            startedAt: null | string;
+            /** Format: date-time */
+            completedAt: null | string;
+            /** Format: date-time */
+            cancelledAt: null | string;
+            /** Format: int32 */
+            recipientCount: number;
+            /** Format: int32 */
+            sentCount: number;
+            /** Format: int32 */
+            failedCount: number;
+            /** Format: int32 */
+            skippedCount: number;
+            /** Format: int32 */
+            pendingCount: number;
+            /** Format: int32 */
+            creditUsed: number;
+            ranOutOfCredit: boolean;
+            /** Format: date-time */
+            createdAt: string;
+            createdByName: null | string;
+        };
+        CampaignSample: {
+            contactName: string;
+            text: string;
+            /** Format: int32 */
+            segments: number;
+        };
+        /** @enum {unknown} */
+        CampaignStatus: "Scheduled" | "Sending" | "Completed" | "Cancelled";
+        CampaignTarget: {
+            /** Format: uuid */
+            segmentId?: null | string;
+            segmentCode?: null | string;
+            filter?: null | components["schemas"]["ContactFilter"];
         };
         CancelAppointmentRequest: {
             reason: null | string;
@@ -9348,7 +10212,7 @@ export interface components {
         /** @enum {unknown} */
         ConsentChannel: "Sms" | "Email" | "Call";
         /** @enum {unknown} */
-        ConsentSource: "Panel" | "Import" | "OnlineBooking" | null;
+        ConsentSource: "Panel" | "Import" | "OnlineBooking" | "OptOutLink" | "OptOutSms" | "Iys" | "Anonymization" | null;
         ConsentsRequest: {
             sms: boolean;
             email: boolean;
@@ -9392,6 +10256,7 @@ export interface components {
             isArchived: boolean;
             /** Format: date-time */
             createdAt: string;
+            isAnonymized: boolean;
         };
         ContactListResponse: {
             items: components["schemas"]["ContactListItem"][];
@@ -9487,6 +10352,9 @@ export interface components {
             archivedAt: null | string;
             /** Format: date-time */
             createdAt: string;
+            isAnonymized: boolean;
+            /** Format: date-time */
+            anonymizedAt: null | string;
         };
         /** @enum {unknown} */
         ContactSource: "Instagram" | "Google" | "Referral" | "WalkIn" | "Facebook" | "TikTok" | "Other" | "OnlineBooking" | null;
@@ -10008,9 +10876,9 @@ export interface components {
             total: number;
         };
         /** @enum {unknown} */
-        MessagePurpose: "Verification" | "AppointmentConfirmation" | "AppointmentReminder" | "AppointmentMoved" | "AppointmentCancelled" | "AppointmentRejected";
+        MessagePurpose: "Verification" | "AppointmentConfirmation" | "AppointmentReminder" | "AppointmentMoved" | "AppointmentCancelled" | "AppointmentRejected" | "Campaign" | "Birthday" | "WinBack" | "VisitThanks" | "Survey" | "DueReminder";
         /** @enum {unknown} */
-        MessageStatus: "Queued" | "Sent" | "Failed";
+        MessageStatus: "Queued" | "Sent" | "Failed" | "NoCredit";
         MethodTotal: {
             method: components["schemas"]["PaymentMethod"];
             /** Format: double */
@@ -10023,6 +10891,7 @@ export interface components {
             email: string;
             emailConfirmed: boolean;
             phone: null | string;
+            isPlatformAdmin: boolean;
         };
         ModulesDto: {
             appointments: boolean;
@@ -10069,6 +10938,9 @@ export interface components {
             createdAt: string;
             /** Format: date-time */
             readAt: null | string;
+        };
+        NotifyMovedResponse: {
+            status: components["schemas"]["MessageStatus"];
         };
         OpenDebtItem: {
             /** Format: uuid */
@@ -10130,6 +11002,98 @@ export interface components {
         };
         /** @enum {unknown} */
         PaymentRequestStatus: "Open" | "ClaimedPaid" | "Confirmed" | "Cancelled";
+        PersonalDataAppointment: {
+            /** Format: date-time */
+            startAt: string;
+            service: null | string;
+            staff: null | string;
+            status: string;
+            note: null | string;
+        };
+        PersonalDataConsent: {
+            /** Format: date-time */
+            at: string;
+            channel: string;
+            granted: boolean;
+            source: string;
+        };
+        PersonalDataContact: {
+            displayName: string;
+            firstName: null | string;
+            lastName: null | string;
+            companyName: null | string;
+            phone: null | string;
+            email: null | string;
+            /** Format: date */
+            birthDate: null | string;
+            address: null | string;
+            city: null | string;
+            district: null | string;
+            source: null | string;
+            notes: null | string;
+            taxNumber: null | string;
+            taxOffice: null | string;
+            smsConsent: boolean;
+            emailConsent: boolean;
+            callConsent: boolean;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            lastVisitAt: null | string;
+        };
+        PersonalDataExport: {
+            /** Format: date-time */
+            exportedAt: string;
+            businessName: string;
+            contact: components["schemas"]["PersonalDataContact"];
+            consents: components["schemas"]["PersonalDataConsent"][];
+            tags: string[];
+            notes: components["schemas"]["PersonalDataNote"][];
+            appointments: components["schemas"]["PersonalDataAppointment"][];
+            sales: components["schemas"]["PersonalDataSale"][];
+            ledgerEntries: components["schemas"]["PersonalDataLedgerEntry"][];
+            packages: components["schemas"]["PersonalDataPackage"][];
+            messages: components["schemas"]["PersonalDataMessage"][];
+        };
+        PersonalDataLedgerEntry: {
+            /** Format: date */
+            date: string;
+            description: null | string;
+            /** Format: double */
+            debit: number;
+            /** Format: double */
+            credit: number;
+        };
+        PersonalDataMessage: {
+            /** Format: date-time */
+            at: string;
+            purpose: string;
+            status: string;
+            body: string;
+        };
+        PersonalDataNote: {
+            /** Format: date-time */
+            createdAt: string;
+            body: string;
+        };
+        PersonalDataPackage: {
+            name: string;
+            /** Format: int32 */
+            totalSessions: number;
+            /** Format: int32 */
+            usedSessions: number;
+            /** Format: date */
+            expiresOn: string;
+            status: string;
+        };
+        PersonalDataSale: {
+            no: string;
+            /** Format: date-time */
+            date: string;
+            /** Format: double */
+            total: number;
+            status: string;
+        };
         PhoneCheckResponse: {
             valid: boolean;
             normalized: null | string;
@@ -10295,6 +11259,10 @@ export interface components {
             fullName: string;
             title: null | string;
             serviceIds: string[];
+        };
+        PublicOptOutResponse: {
+            businessName: string;
+            subscribed: boolean;
         };
         PublicPaymentResponse: {
             businessName: string;
@@ -10554,6 +11522,8 @@ export interface components {
             /** Format: double */
             later: number;
         };
+        /** @enum {unknown} */
+        RecipientStatus: "Pending" | "Sending" | "Sent" | "Failed" | "Skipped";
         RegisterRequest: {
             fullName: string;
             email: string;
@@ -10878,6 +11848,44 @@ export interface components {
             valid: boolean;
             available: boolean;
             message: null | string;
+        };
+        /** @enum {unknown} */
+        SmsCreditKind: "TopUp" | "Welcome" | "Send" | "Refund" | "Adjustment";
+        SmsCreditSummary: {
+            /** Format: int32 */
+            balance: number;
+            /** Format: int32 */
+            lowBalanceThreshold: number;
+            isLow: boolean;
+            /** Format: int32 */
+            spentLast30Days: number;
+            /** Format: int32 */
+            sentLast30Days: number;
+            /** Format: date-time */
+            lastTopUpAt: null | string;
+        };
+        SmsCreditTransactionItem: {
+            /** Format: uuid */
+            id: string;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: int32 */
+            amount: number;
+            kind: components["schemas"]["SmsCreditKind"];
+            /** Format: int32 */
+            balanceAfter: number;
+            note: null | string;
+            purpose: null | string;
+            to: null | string;
+        };
+        SmsCreditTransactionListResponse: {
+            items: components["schemas"]["SmsCreditTransactionItem"][];
+            /** Format: int32 */
+            total: number;
+        };
+        SmsSettingsRequest: {
+            /** Format: int32 */
+            lowBalanceThreshold: number;
         };
         /** @enum {unknown} */
         StaffColor: "Black" | "DarkGray" | "Gray" | "LightGray" | "Blue" | "Outline";

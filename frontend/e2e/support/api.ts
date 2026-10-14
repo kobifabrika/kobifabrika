@@ -151,7 +151,7 @@ export function createContact(
     lastName?: string;
     phone?: string;
     email?: string | null;
-    openingBalance?: number | null;
+    openingBalance?: { amount: number; direction: "Receivable" | "Payable"; date?: string } | null;
   } & Record<string, unknown>,
 ): Promise<Contact> {
   return user.post("/api/contacts", {
@@ -231,4 +231,36 @@ export function createQuote(
   discount: { type: "Amount" | "Percent"; value: number } | null = null,
 ): Promise<Quote> {
   return user.post("/api/quotes", { contactId, date: null, validUntil: null, lines, discount, notes: null });
+}
+
+// --- Platform yöneticisi (Sprint 6A) -------------------------------------------------------------------
+
+/** E2E API'sinde Platform:AdminEmails (scripts/start-api.mjs). Bütün testler aynı hesabı paylaşır. */
+export const PLATFORM_EMAIL = "e2e-platform@example.test";
+
+/**
+ * Platform yöneticisi (kredi yükleme ekranı için işletmesi de olur). Projeler paralel koştuğu için: önce giriş dener, yoksa
+ * kaydolur; aynı anda başka test kaydettiyse girişi ve e-posta doğrulamasını bekler.
+ */
+export async function platformAdmin(): Promise<ApiUser> {
+  const ctx = await newApiContext();
+  const user = new ApiUser(ctx, PLATFORM_EMAIL, "KobiFabrika Destek");
+  const login = () => ctx.post("/api/auth/login", { data: { email: PLATFORM_EMAIL, password: PASSWORD, rememberMe: false } });
+  if (!(await login()).ok()) {
+    const reg = await ctx.post("/api/auth/register", {
+      data: { fullName: user.fullName, email: PLATFORM_EMAIL, phone: uniquePhone(), password: PASSWORD, kvkkAccepted: true },
+    });
+    if (reg.ok()) {
+      await user.post("/api/setup/business", { name: "KobiFabrika Destek", sector: "Other", phone: "0212 555 44 33", city: "İstanbul", district: "Kadıköy" });
+      await user.post("/api/setup/complete");
+      await user.confirmEmail();
+    } else {
+      await expect.poll(async () => (await login()).ok(), { timeout: 20_000 }).toBe(true);
+    }
+  }
+  await expect
+    .poll(async () => (await user.get<{ user: { isPlatformAdmin: boolean }; business: unknown }>("/api/auth/me")), { timeout: 20_000 })
+    .toMatchObject({ user: { isPlatformAdmin: true }, business: expect.anything() });
+  user.emailConfirmed = true;
+  return user;
 }

@@ -14,6 +14,8 @@ type Options = {
   receiptWidth?: 58 | 80;
   /** Ek üyelikler (aktif işletme her zaman ilk sıradadır). */
   otherMemberships?: Me["memberships"];
+  /** KobiFabrika ekibi (kredi yükleme ekranı). */
+  platformAdmin?: boolean;
 };
 
 export function testMe({
@@ -24,9 +26,10 @@ export function testMe({
   logoUrl = null,
   receiptWidth = 80,
   otherMemberships = [],
+  platformAdmin = false,
 }: Options = {}): Me {
   return {
-    user: { id: "u1", fullName: "Emir Kaya", email: "emir@test.com", emailConfirmed, phone: "+905321234567" },
+    user: { id: "u1", fullName: "Emir Kaya", email: "emir@test.com", emailConfirmed, phone: "+905321234567", isPlatformAdmin: platformAdmin },
     business: {
       id: "b1",
       name: businessName,

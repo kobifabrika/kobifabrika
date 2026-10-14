@@ -2,10 +2,10 @@ import { expect, type Locator, type Page, type TestInfo } from "@playwright/test
 
 import { isDesktop } from "./test";
 
-/** Ana menü: masaüstünde sol menü, telefonda alt çubuktaki "Menü" paneli (açar). */
+/** Ana menü: masaüstünde sol menü, telefonda sağ üstteki "Menü" paneli (açar; Sprint 6A'da alt çubuktan taşındı). */
 export async function mainMenu(page: Page, info: TestInfo): Promise<Locator> {
   if (!isDesktop(info)) {
-    await page.getByRole("navigation", { name: "Alt menü" }).getByRole("button", { name: "Menü" }).click();
+    await page.getByRole("banner").getByRole("button", { name: "Menü" }).click();
   }
   const nav = page.getByRole("navigation", { name: "Ana menü" });
   await expect(nav).toBeVisible();
@@ -17,10 +17,16 @@ export async function closeMenu(page: Page, info: TestInfo) {
   if (!isDesktop(info)) await page.keyboard.press("Escape");
 }
 
-/** Sağ üstteki kullanıcı menüsünden çıkış. */
+/** Çıkış: masaüstünde sağ üstteki kullanıcı menüsünden, telefonda sağ üstteki Menü panelinden. */
 export async function logout(page: Page) {
-  await page.getByRole("button", { name: /Kullanıcı menüsü/ }).click();
-  await page.getByRole("menuitem", { name: "Çıkış yap" }).click();
+  const userMenu = page.getByRole("button", { name: /Kullanıcı menüsü/ });
+  if (await userMenu.isVisible()) {
+    await userMenu.click();
+    await page.getByRole("menuitem", { name: "Çıkış yap" }).click();
+  } else {
+    await page.getByRole("banner").getByRole("button", { name: "Menü" }).click();
+    await page.getByRole("dialog").getByRole("button", { name: "Çıkış yap" }).click();
+  }
   await expect(page).toHaveURL(/\/giris/);
 }
 
