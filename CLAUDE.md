@@ -108,7 +108,7 @@ kopar, sahipsiz Next dev sunucusu `write EPIPE` ile bozulur (sayfalar dakikalarc
 
 ## Güncel durum
 
-- Sprint: **5B (online randevu, SMS, hatırlatma, paketler)** kodlandı (2026-10-14); kapanış Actions tam koşusuyla. 5A bitti (Actions #7). Sıradaki: **Sprint 6** (pazarlama ve İYS, SMS kredisi). Kararlar `docs/karar-gunlugu.md` 2026-10-13/14.
+- Sprint: **5B (online randevu, SMS, hatırlatma, paketler)** bitti (2026-10-14, Actions #11 yeşil). 5A bitti (Actions #7). Sıradaki: **Sprint 6** (pazarlama ve İYS, SMS kredisi). Kararlar `docs/karar-gunlugu.md` 2026-10-13/14.
 - Randevu saati sadece `AppointmentBooking` ile yazılır (personel satırı kilidi + çakışma sorgusu); boş saat hesabı `Domain/Appointments/Availability`. Kilit sırası: personel → randevu → paket → numara → satış → cari → kasa → stok. Paket seansı sadece atomik UPDATE ile.
 - SMS sadece `ISmsSender` ile (önce MessageLog); randevu SMS'leri `AppointmentNotifier`. `Sms:MirrorToEmail` (Mailpit yansıması) E2E/Development'ta açık, Production'da açılamaz.
 - EF: alt sorguda `IgnoreQueryFilters([SoftDelete])` bütün sorgunun soft delete filtresini kapatır; silinebilen kayıtta adları ayrı sorguyla oku veya kökte `!IsDeleted` yaz.
