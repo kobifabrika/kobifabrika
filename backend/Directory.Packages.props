@@ -1,8 +1,12 @@
 <Project>
   <PropertyGroup>
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+    <!-- Geçişli bağımlılıklar da aşağıdaki sürümlere sabitlenir (güvenlik yaması için). -->
+    <CentralPackageTransitivePinningEnabled>true</CentralPackageTransitivePinningEnabled>
   </PropertyGroup>
   <ItemGroup>
+    <!-- Güvenlik: EF Core/SqlClient üzerinden gelen 10.0.0 için CVE-2026-84008 ve CVE-2026-70162 (DoS); yamalı sürüm 10.0.13. -->
+    <PackageVersion Include="System.Security.Cryptography.Pkcs" Version="10.0.13" />
     <!-- EF Core ve ASP.NET Core -->
     <PackageVersion Include="Microsoft.EntityFrameworkCore.SqlServer" Version="10.0.12" />
     <PackageVersion Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.12" />
