@@ -99,6 +99,8 @@ export function CalendarView() {
             startAt: toIso(target.date, target.start),
             endAt: toIso(target.date, target.end),
             note: appointment.note,
+            customerPackageId: appointment.customerPackageId,
+            notifyCustomer: false,
           },
         }),
       ),

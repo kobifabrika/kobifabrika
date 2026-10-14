@@ -52,3 +52,27 @@ export async function linkFromEmail(to: string, subject: RegExp, path: string, c
 export async function subjects(to: string): Promise<string[]> {
   return (await search(to)).map((m) => m.Subject);
 }
+
+/** Sahte SMS sağlayıcısının Mailpit yansıması (Sms:MirrorToEmail): numaraya giden SMS metinleri, en yeni önce. */
+export async function smsTexts(phone: string): Promise<string[]> {
+  const digits = phone.replace(/\D/g, "");
+  const national = digits.startsWith("90") ? digits.slice(2) : digits.startsWith("0") ? digits.slice(1) : digits;
+  const messages = await search(`sms+90${national}@sms.test`);
+  return Promise.all(messages.map((m) => text(m.ID)));
+}
+
+/** Numaraya gelen son doğrulama kodu (SMS gelene kadar 20 saniye bekler). `count`: bu kadar kod SMS'i gelmesini bekle. */
+export async function smsCode(phone: string, count = 1): Promise<string> {
+  let code = "";
+  await expect
+    .poll(
+      async () => {
+        const codes = (await smsTexts(phone)).filter((t) => /randevu kodunuz: \d{6}/.test(t));
+        code = codes[0]?.match(/\d{6}/)?.[0] ?? "";
+        return codes.length;
+      },
+      { message: `${phone} numarasına doğrulama kodu gelmedi`, timeout: 20_000 },
+    )
+    .toBeGreaterThanOrEqual(count);
+  return code;
+}

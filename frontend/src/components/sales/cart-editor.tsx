@@ -123,15 +123,17 @@ export function CartEditor({
                   >
                     {allowsFraction(line.unit) ? formatQuantity(line.quantity, line.unit) : line.quantity}
                   </button>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="icon"
-                    aria-label={`${line.name}: artır`}
-                    onClick={() => dispatch({ type: "step", key: line.key, delta: 1 })}
-                  >
-                    <Plus aria-hidden />
-                  </Button>
+                  {!line.packageId && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="icon"
+                      aria-label={`${line.name}: artır`}
+                      onClick={() => dispatch({ type: "step", key: line.key, delta: 1 })}
+                    >
+                      <Plus aria-hidden />
+                    </Button>
+                  )}
                 </div>
                 <span className="w-24 shrink-0 text-right text-sm font-semibold text-black tabular-nums">
                   {formatMoney(c ? c.gross - c.lineDiscount : line.unitPrice * line.quantity)}

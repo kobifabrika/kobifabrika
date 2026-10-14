@@ -88,6 +88,9 @@ test("panel ekranları (Sahip, dolu veri)", async ({ owner, ownerPage: page, vis
     [`/panel/personel/${staff.id}?sekme=hizmetler`, "Personel · hizmetler"],
     [`/panel/personel/${staff.id}?sekme=kapali`, "Personel · kapalı zamanlar"],
     ["/panel/ayarlar/randevu", "Randevu ayarları"],
+    ["/panel/urunler?sekme=paketler", "Paketler"],
+    ["/panel/urunler/paketler/yeni", "Yeni paket"],
+    [`/panel/musteriler/${contact.id}?sekme=paketler`, "Müşteri kartı · paketler"],
   ];
   for (const [url, name] of screens) await visit(page, url, name);
 });

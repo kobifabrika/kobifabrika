@@ -102,6 +102,39 @@ export type ContactAppointments = Schemas["ContactAppointmentsResponse"];
 export type NoShowWarning = Schemas["NoShowWarning"];
 export type DashboardAppointments = Schemas["DashboardAppointments"];
 
+// Online randevu, SMS ve paketler (Sprint 5B)
+export type BookingSettings = Schemas["BookingSettingsResponse"];
+export type BookingSettingsRequest = Schemas["BookingSettingsRequest"];
+export type PublicBooking = Schemas["PublicBookingResponse"];
+export type PublicBookingService = Schemas["PublicBookingService"];
+export type PublicBookingStaff = Schemas["PublicBookingStaff"];
+export type PublicSlots = Schemas["PublicSlotsResponse"];
+export type PublicBookingCreated = Schemas["PublicBookingCreated"];
+export type PublicAppointment = Schemas["PublicAppointmentResponse"];
+export type ServicePackage = Schemas["ServicePackageResponse"];
+export type ServicePackageRequest = Schemas["ServicePackageRequest"];
+export type CustomerPackage = Schemas["CustomerPackageResponse"];
+export type CustomerPackageState = Schemas["CustomerPackageState"];
+export type ContactPackages = Schemas["ContactPackagesResponse"];
+export type MessageLogItem = Schemas["MessageLogItem"];
+export type MessagePurpose = Schemas["MessagePurpose"];
+
+export const packageStateNames: Record<CustomerPackageState, string> = {
+  Active: "Aktif",
+  Finished: "Bitti",
+  Expired: "Süresi doldu",
+  Cancelled: "İptal",
+};
+
+export const messagePurposeNames: Record<MessagePurpose, string> = {
+  Verification: "Doğrulama kodu",
+  AppointmentConfirmation: "Randevu onayı",
+  AppointmentReminder: "Randevu hatırlatması",
+  AppointmentMoved: "Randevu değişikliği",
+  AppointmentCancelled: "Randevu iptali",
+  AppointmentRejected: "Randevu reddi",
+};
+
 export const staffColorNames: Record<StaffColor, string> = {
   Black: "Siyah",
   DarkGray: "Koyu gri",

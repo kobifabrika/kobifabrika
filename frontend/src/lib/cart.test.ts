@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import type { Product } from "@/lib/api/types";
+import type { Product, ServicePackage } from "@/lib/api/types";
 
 import {
   cartReducer,
@@ -10,6 +10,7 @@ import {
   dueDateError,
   emptyCart,
   loadDraft,
+  packageWithoutContact,
   paymentError,
   remaining,
   saveDraft,
@@ -70,8 +71,8 @@ describe("cartReducer", () => {
     cart = cartReducer(cart, { type: "discount", discount: { type: "Amount", value: 12.7 } });
     expect(cartTotals(cart).total).toBe(168.3);
     expect(toLineRequests(cart.lines)).toEqual([
-      { productId: "p1", description: null, quantity: 1, unitPrice: 100, vatRate: null, discount: null },
-      { productId: null, description: "Ütü", quantity: 3, unitPrice: 30, vatRate: 10, discount: { type: "Percent", value: 10 } },
+      { productId: "p1", description: null, quantity: 1, unitPrice: 100, vatRate: null, discount: null, servicePackageId: null },
+      { productId: null, description: "Ütü", quantity: 3, unitPrice: 30, vatRate: 10, discount: { type: "Percent", value: 10 }, servicePackageId: null },
     ]);
   });
 
@@ -119,5 +120,49 @@ describe("draft", () => {
     expect(loadDraft("test-cart")?.lines[0].name).toBe("Tişört");
     saveDraft("test-cart", emptyCart);
     expect(loadDraft("test-cart")).toBeNull();
+  });
+});
+
+describe("paket satırı", () => {
+  const pkg: ServicePackage = {
+    id: "p1",
+    name: "10 seans lazer",
+    productId: "s1",
+    serviceName: "Lazer",
+    sessionCount: 10,
+    price: 3000,
+    vatRate: 20,
+    validityDays: 90,
+    isActive: true,
+    soldCount: 0,
+  };
+
+  it("her paket ayrı satır, adet hep 1 ve müşteri zorunlu", () => {
+    let cart = cartReducer(emptyCart, { type: "addPackage", pkg });
+    cart = cartReducer(cart, { type: "addPackage", pkg });
+    expect(cart.lines).toHaveLength(2);
+    const key = cart.lines[0].key;
+    cart = cartReducer(cart, { type: "step", key, delta: 1 });
+    cart = cartReducer(cart, { type: "update", key, patch: { quantity: 3, unitPrice: 2500 } });
+    expect(cart.lines[0]).toMatchObject({ quantity: 1, unitPrice: 2500, unit: "Package", packageId: "p1" });
+    expect(packageWithoutContact(cart)).toBe(true);
+    expect(packageWithoutContact({ ...cart, contact: { id: "c1", name: "Elif" } })).toBe(false);
+    expect(toLineRequests(cart.lines)[0]).toEqual({
+      productId: null,
+      description: "10 seans lazer",
+      quantity: 1,
+      unitPrice: 2500,
+      vatRate: null,
+      discount: null,
+      servicePackageId: "p1",
+    });
+  });
+
+  it("randevudan paketli satış: ürün satırı 0 TL ve açıklamayla gider", () => {
+    const cart = cartReducer(emptyCart, { type: "addDraft", product: product({ name: "Lazer" }), name: "Paket: 10 seans lazer (4/10)", unitPrice: 0 });
+    const [line] = toLineRequests(cart.lines);
+    expect(line).toMatchObject({ description: "Paket: 10 seans lazer (4/10)", unitPrice: 0, servicePackageId: null });
+    const plain = cartReducer(emptyCart, { type: "addDraft", product: product({ name: "Lazer" }), name: "Lazer", unitPrice: 500 });
+    expect(toLineRequests(plain.lines)[0].description).toBeNull();
   });
 });

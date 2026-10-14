@@ -645,6 +645,154 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/business/booking-settings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Online randevu ve hatırlatma ayarları */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["BookingSettingsResponse"];
+                    };
+                };
+            };
+        };
+        /** Online randevu ve hatırlatma ayarları (açmak için en az bir online personel gerekir) */
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["BookingSettingsRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["BookingSettingsResponse"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/contacts/{id}/packages": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Müşterinin paketleri (aktifler önce) ve son seans uyarısı */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ContactPackagesResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/message-logs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Gönderilen SMS'ler (contactId, purpose; sayfalı, yeniden eskiye) */
+        get: {
+            parameters: {
+                query?: {
+                    contactId?: string;
+                    purpose?: components["schemas"]["MessagePurpose"];
+                    page?: number;
+                    pageSize?: number;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["MessageLogListResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/system/info": {
         parameters: {
             query?: never;
@@ -5719,6 +5867,265 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/public/booking/{slug}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Online randevu sayfası: işletme, hizmetler, personeller */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    slug: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PublicBookingResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/public/booking/{slug}/slots": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Boş saatler (serviceId, staffId boşsa "Fark etmez", from, days ≤ 14) */
+        get: {
+            parameters: {
+                query: {
+                    serviceId: string;
+                    staffId?: string;
+                    from?: string;
+                    days?: number;
+                };
+                header?: never;
+                path: {
+                    slug: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PublicSlotsResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/public/booking/{slug}/verifications": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Telefona doğrulama kodu gönder */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    slug: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["VerificationRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["VerificationResponse"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/public/booking/{slug}/appointments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Kodu doğrula ve randevuyu oluştur (saat dolduysa 409 slot_taken) */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    slug: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["PublicBookingRequest"];
+                };
+            };
+            responses: {
+                /** @description Created */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PublicBookingCreated"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/public/appointments/{token}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Müşterinin randevu sayfası */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    token: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PublicAppointmentResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/public/appointments/{token}/cancel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Müşteri randevuyu iptal eder (en az X saat kala) */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    token: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PublicAppointmentResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/products": {
         parameters: {
             query?: never;
@@ -7883,7 +8290,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Onayla (Beklemede → Onaylı) */
+        /** Onayla (Beklemede → Onaylı; müşteriye onay SMS'i) */
         post: {
             parameters: {
                 query?: never;
@@ -7921,7 +8328,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Tamamlandı */
+        /** Tamamlandı (paketten kullanılıyorsa seans düşer; seans yoksa 409 package_exhausted) */
         post: {
             parameters: {
                 query?: never;
@@ -7997,7 +8404,58 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** İptal et */
+        /** İptal et (notifyCustomer: müşteriye SMS) */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["CancelAppointmentRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["AppointmentResponse"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/appointments/{id}/reject": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Reddet (Beklemede → İptal; müşteriye onaylanmadı SMS'i) */
         post: {
             parameters: {
                 query?: never;
@@ -8048,7 +8506,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Geri al: Tamamlandı (satışa çevrilmemişse) veya Gelmedi → Onaylı */
+        /** Geri al: Tamamlandı (satışa çevrilmemişse; paket seansı iade) veya Gelmedi → Onaylı */
         post: {
             parameters: {
                 query?: never;
@@ -8223,6 +8681,265 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/service-packages": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Paket tanımları (includeInactive ile pasifler de) */
+        get: {
+            parameters: {
+                query?: {
+                    includeInactive?: boolean;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ServicePackageResponse"][];
+                    };
+                };
+            };
+        };
+        put?: never;
+        /** Paket tanımla */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["ServicePackageRequest"];
+                };
+            };
+            responses: {
+                /** @description Created */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ServicePackageResponse"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/service-packages/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Paket tanımı */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ServicePackageResponse"];
+                    };
+                };
+            };
+        };
+        /** Paket tanımını güncelle (satılmış paketler etkilenmez) */
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["ServicePackageRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ServicePackageResponse"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+                    };
+                };
+            };
+        };
+        post?: never;
+        /** Paketi sil (satıldıysa pasife alınır) */
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ProductDeleteResponse"];
+                    };
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/customer-packages/{id}/extend": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Paketin süresini uzat (son gün) */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["ExtendPackageRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["CustomerPackageResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/customer-packages/{id}/close": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Paketi kapat (kalan seanslar düşer; not zorunlu) */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["ClosePackageRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["CustomerPackageResponse"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -8268,6 +8985,8 @@ export interface components {
             /** Format: date-time */
             endAt: null | string;
             note: null | string;
+            /** Format: uuid */
+            customerPackageId?: null | string;
         };
         AppointmentResponse: {
             /** Format: uuid */
@@ -8298,6 +9017,11 @@ export interface components {
             /** Format: date-time */
             cancelledAt: null | string;
             cancelReason: null | string;
+            /** Format: uuid */
+            customerPackageId: null | string;
+            packageName: null | string;
+            packageSessionUsed: boolean;
+            cancelledByCustomer: boolean;
         };
         AppointmentSaleDraft: {
             /** Format: uuid */
@@ -8338,6 +9062,10 @@ export interface components {
             /** Format: date-time */
             endAt: string;
             note: null | string;
+            /** Format: uuid */
+            customerPackageId?: null | string;
+            /** @default false */
+            notifyCustomer: boolean;
         };
         AssigneeResponse: {
             /** Format: uuid */
@@ -8345,7 +9073,7 @@ export interface components {
             fullName: string;
         };
         /** @enum {unknown} */
-        AuditAction: "Login" | "InvitationSent" | "InvitationResent" | "InvitationRevoked" | "InvitationAccepted" | "RoleChanged" | "MemberRemoved" | "BusinessUpdated" | "SlugChanged" | "WorkingHoursUpdated" | "LogoChanged" | "ModulesChanged" | "PaymentInfoChanged" | "ReceiptSettingsChanged" | "ContactCreated" | "ContactUpdated" | "ContactArchived" | "ContactRestored" | "ContactDeleted" | "ContactsImported" | "ContactsExported" | "LedgerEntryCreated" | "LedgerEntryDeleted" | "OpeningBalanceSet" | "CollectionRecorded" | "CollectionReverted" | "PaymentRequestCreated" | "PaymentRequestConfirmed" | "PaymentRequestRejected" | "PaymentRequestCancelled" | "PaymentRequestRenewed" | "StatementShared" | "ProductCreated" | "ProductUpdated" | "ProductDeleted" | "ProductsImported" | "ProductsExported" | "StockMovementAdded" | "SaleDiscounted" | "SaleCancelled" | "SalesExported" | "QuoteCreated" | "QuoteUpdated" | "QuoteShared" | "QuoteRenewed" | "QuoteExtended" | "QuoteAccepted" | "QuoteRejected" | "QuoteConverted" | "QuoteDeleted" | "CashAccountCreated" | "CashAccountUpdated" | "CashAccountDeactivated" | "CashAccountActivated" | "DefaultCashAccountChanged" | "CashTransferRecorded" | "CashTransactionReversed" | "SupplierPaymentRecorded" | "ExpenseRecorded" | "IncomeRecorded" | "ExpenseCategoryCreated" | "ExpenseCategoryUpdated" | "ExpenseCategoryDeactivated" | "ExpenseCategoryActivated" | "DueReminderSent" | "FinanceSettingsChanged" | "ReportExported" | "CashTransactionsExported" | "StaffCreated" | "StaffUpdated" | "StaffDeleted" | "StaffWorkingHoursUpdated" | "StaffServicesUpdated" | "HolidayCreated" | "HolidayDeleted" | "AppointmentSettingsChanged";
+        AuditAction: "Login" | "InvitationSent" | "InvitationResent" | "InvitationRevoked" | "InvitationAccepted" | "RoleChanged" | "MemberRemoved" | "BusinessUpdated" | "SlugChanged" | "WorkingHoursUpdated" | "LogoChanged" | "ModulesChanged" | "PaymentInfoChanged" | "ReceiptSettingsChanged" | "ContactCreated" | "ContactUpdated" | "ContactArchived" | "ContactRestored" | "ContactDeleted" | "ContactsImported" | "ContactsExported" | "LedgerEntryCreated" | "LedgerEntryDeleted" | "OpeningBalanceSet" | "CollectionRecorded" | "CollectionReverted" | "PaymentRequestCreated" | "PaymentRequestConfirmed" | "PaymentRequestRejected" | "PaymentRequestCancelled" | "PaymentRequestRenewed" | "StatementShared" | "ProductCreated" | "ProductUpdated" | "ProductDeleted" | "ProductsImported" | "ProductsExported" | "StockMovementAdded" | "SaleDiscounted" | "SaleCancelled" | "SalesExported" | "QuoteCreated" | "QuoteUpdated" | "QuoteShared" | "QuoteRenewed" | "QuoteExtended" | "QuoteAccepted" | "QuoteRejected" | "QuoteConverted" | "QuoteDeleted" | "CashAccountCreated" | "CashAccountUpdated" | "CashAccountDeactivated" | "CashAccountActivated" | "DefaultCashAccountChanged" | "CashTransferRecorded" | "CashTransactionReversed" | "SupplierPaymentRecorded" | "ExpenseRecorded" | "IncomeRecorded" | "ExpenseCategoryCreated" | "ExpenseCategoryUpdated" | "ExpenseCategoryDeactivated" | "ExpenseCategoryActivated" | "DueReminderSent" | "FinanceSettingsChanged" | "ReportExported" | "CashTransactionsExported" | "StaffCreated" | "StaffUpdated" | "StaffDeleted" | "StaffWorkingHoursUpdated" | "StaffServicesUpdated" | "HolidayCreated" | "HolidayDeleted" | "AppointmentSettingsChanged" | "BookingSettingsChanged" | "ServicePackageCreated" | "ServicePackageUpdated" | "ServicePackageDeleted" | "CustomerPackageExtended" | "CustomerPackageClosed";
         AuditLogListResponse: {
             items: components["schemas"]["AuditLogResponse"][];
             /** Format: int32 */
@@ -8367,6 +9095,39 @@ export interface components {
         };
         /** @enum {unknown} */
         BalanceDirection: "Receivable" | "Payable";
+        BookingSettingsRequest: {
+            enabled: boolean;
+            autoConfirm: boolean;
+            /** Format: int32 */
+            minNoticeMinutes: number;
+            /** Format: int32 */
+            maxDaysAhead: number;
+            /** Format: int32 */
+            slotMinutes: number;
+            /** Format: int32 */
+            reminderHoursBefore: number;
+            /** Format: int32 */
+            customerCancelHours: number;
+        };
+        BookingSettingsResponse: {
+            enabled: boolean;
+            autoConfirm: boolean;
+            /** Format: int32 */
+            minNoticeMinutes: number;
+            /** Format: int32 */
+            maxDaysAhead: number;
+            /** Format: int32 */
+            slotMinutes: number;
+            /** Format: int32 */
+            reminderHoursBefore: number;
+            /** Format: int32 */
+            customerCancelHours: number;
+            slug: string;
+            /** Format: int32 */
+            bookableStaff: number;
+            /** Format: int32 */
+            bookableServices: number;
+        };
         BusinessResponse: {
             /** Format: uuid */
             id: string;
@@ -8431,6 +9192,8 @@ export interface components {
         };
         CancelAppointmentRequest: {
             reason: null | string;
+            /** @default false */
+            notifyCustomer: boolean;
         };
         CancelSaleRequest: {
             reason: null | string;
@@ -8547,6 +9310,9 @@ export interface components {
         ClaimPaymentRequest: {
             note: null | string;
         };
+        ClosePackageRequest: {
+            note: null | string;
+        };
         CollectionRequest: {
             /** Format: double */
             amount: null | number;
@@ -8631,6 +9397,10 @@ export interface components {
             items: components["schemas"]["ContactListItem"][];
             /** Format: int32 */
             total: number;
+        };
+        ContactPackagesResponse: {
+            items: components["schemas"]["CustomerPackageResponse"][];
+            notice: null | string;
         };
         ContactPaymentRequest: {
             /** Format: uuid */
@@ -8734,6 +9504,35 @@ export interface components {
             note: null | string;
             sendEmail: boolean;
         };
+        CustomerPackageResponse: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            servicePackageId: string;
+            name: string;
+            /** Format: uuid */
+            productId: string;
+            serviceName: string;
+            /** Format: int32 */
+            totalSessions: number;
+            /** Format: int32 */
+            usedSessions: number;
+            /** Format: int32 */
+            remaining: number;
+            /** Format: date */
+            expiresOn: string;
+            state: components["schemas"]["CustomerPackageState"];
+            /** Format: uuid */
+            saleId: string;
+            saleNo: null | string;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            cancelledAt: null | string;
+            closeNote: null | string;
+        };
+        /** @enum {unknown} */
+        CustomerPackageState: "Active" | "Finished" | "Expired" | "Cancelled";
         DailyTotal: {
             /** Format: date */
             date: string;
@@ -8840,6 +9639,8 @@ export interface components {
             /** Format: double */
             vatRate: null | number;
             discount: null | components["schemas"]["DiscountSpec"];
+            /** Format: uuid */
+            servicePackageId?: null | string;
         };
         DocumentLineResponse: {
             /** Format: uuid */
@@ -8934,6 +9735,10 @@ export interface components {
             documentNo: null | string;
             /** Format: uuid */
             contactId: null | string;
+        };
+        ExtendPackageRequest: {
+            /** Format: date */
+            expiresOn: string;
         };
         FinanceSettingsRequest: {
             /** Format: int32 */
@@ -9181,6 +9986,31 @@ export interface components {
             role: null | components["schemas"]["BusinessRole"];
             memberships: components["schemas"]["MeMembership"][];
         };
+        MessageLogItem: {
+            /** Format: uuid */
+            id: string;
+            /** Format: date-time */
+            createdAt: string;
+            to: string;
+            body: string;
+            purpose: components["schemas"]["MessagePurpose"];
+            status: components["schemas"]["MessageStatus"];
+            /** Format: int32 */
+            segments: number;
+            billable: boolean;
+            /** Format: uuid */
+            contactId: null | string;
+            contactName: null | string;
+        };
+        MessageLogListResponse: {
+            items: components["schemas"]["MessageLogItem"][];
+            /** Format: int32 */
+            total: number;
+        };
+        /** @enum {unknown} */
+        MessagePurpose: "Verification" | "AppointmentConfirmation" | "AppointmentReminder" | "AppointmentMoved" | "AppointmentCancelled" | "AppointmentRejected";
+        /** @enum {unknown} */
+        MessageStatus: "Queued" | "Sent" | "Failed";
         MethodTotal: {
             method: components["schemas"]["PaymentMethod"];
             /** Format: double */
@@ -9384,6 +10214,88 @@ export interface components {
         ProductType: "Product" | "Service";
         /** @enum {unknown} */
         ProductUnit: "Piece" | "Kg" | "Liter" | "Meter" | "Package" | "Hour" | "Session";
+        PublicAppointmentResponse: {
+            businessName: string;
+            slug: string;
+            logoUrl: null | string;
+            businessPhone: null | string;
+            businessPhoneE164: null | string;
+            address: null | string;
+            contactName: string;
+            serviceName: string;
+            staffName: string;
+            /** Format: date-time */
+            startAt: string;
+            /** Format: date-time */
+            endAt: string;
+            status: components["schemas"]["AppointmentStatus"];
+            canCancel: boolean;
+            /** Format: date-time */
+            cancelDeadline: null | string;
+        };
+        PublicBookingCreated: {
+            manageToken: string;
+            status: components["schemas"]["AppointmentStatus"];
+            /** Format: date-time */
+            startAt: string;
+            /** Format: date-time */
+            endAt: string;
+            staffName: string;
+            serviceName: string;
+        };
+        PublicBookingRequest: {
+            /** Format: uuid */
+            verificationId: string;
+            code: null | string;
+            /** Format: uuid */
+            serviceId: string;
+            /** Format: uuid */
+            staffId: null | string;
+            /** Format: date-time */
+            startAt: string;
+            firstName: null | string;
+            lastName: null | string;
+            phone: null | string;
+            marketingConsent: boolean;
+        };
+        PublicBookingResponse: {
+            slug: string;
+            name: string;
+            logoUrl: null | string;
+            address: null | string;
+            city: null | string;
+            district: null | string;
+            phone: null | string;
+            phoneE164: null | string;
+            services: components["schemas"]["PublicBookingService"][];
+            staff: components["schemas"]["PublicBookingStaff"][];
+            /** Format: date */
+            today: string;
+            /** Format: date */
+            lastDay: string;
+            /** Format: int32 */
+            slotMinutes: number;
+            autoConfirm: boolean;
+            /** Format: int32 */
+            customerCancelHours: number;
+            kvkkVersion: string;
+        };
+        PublicBookingService: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+            /** Format: int32 */
+            durationMinutes: number;
+            /** Format: double */
+            price: null | number;
+        };
+        PublicBookingStaff: {
+            /** Format: uuid */
+            id: string;
+            fullName: string;
+            title: null | string;
+            serviceIds: string[];
+        };
         PublicPaymentResponse: {
             businessName: string;
             logoUrl: null | string;
@@ -9430,6 +10342,16 @@ export interface components {
             /** Format: date-time */
             respondedAt: null | string;
             responseNote: null | string;
+        };
+        PublicSlotDay: {
+            /** Format: date */
+            date: string;
+            times: string[];
+        };
+        PublicSlotsResponse: {
+            days: components["schemas"]["PublicSlotDay"][];
+            /** Format: date */
+            lastDay: string;
         };
         PublicStatementResponse: {
             businessName: string;
@@ -9884,6 +10806,38 @@ export interface components {
             filter: null | components["schemas"]["ContactFilter"];
             isSystem: boolean;
         };
+        ServicePackageRequest: {
+            name: null | string;
+            /** Format: uuid */
+            productId: string;
+            /** Format: int32 */
+            sessionCount: number;
+            /** Format: double */
+            price: null | number;
+            /** Format: int32 */
+            validityDays: number;
+            /** @default true */
+            isActive: boolean;
+        };
+        ServicePackageResponse: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+            /** Format: uuid */
+            productId: string;
+            serviceName: string;
+            /** Format: int32 */
+            sessionCount: number;
+            /** Format: double */
+            price: number;
+            /** Format: double */
+            vatRate: number;
+            /** Format: int32 */
+            validityDays: number;
+            isActive: boolean;
+            /** Format: int32 */
+            soldCount: number;
+        };
         SetTagsRequest: {
             tagIds: string[];
         };
@@ -10188,6 +11142,18 @@ export interface components {
             /** Format: double */
             rate: number;
             name: string;
+        };
+        VerificationRequest: {
+            phone: null | string;
+            firstName: null | string;
+        };
+        VerificationResponse: {
+            /** Format: uuid */
+            verificationId: string;
+            /** Format: int32 */
+            expiresInSeconds: number;
+            /** Format: int32 */
+            resendAfterSeconds: number;
         };
         WorkingHourDto: {
             day: components["schemas"]["DayOfWeek"];

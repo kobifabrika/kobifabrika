@@ -9,7 +9,7 @@ import { StockBadge } from "@/components/catalog/catalog-bits";
 import { useDebounced } from "@/components/catalog/product-list";
 import { Input } from "@/components/ui/input";
 import { ApiError, api, errorMessage, unwrap } from "@/lib/api/client";
-import type { Product } from "@/lib/api/types";
+import type { Product, ServicePackage } from "@/lib/api/types";
 import { formatMoney } from "@/lib/format";
 
 /** Barkodla tam eşleşen ürün (yoksa null). */
@@ -24,7 +24,8 @@ export async function findByBarcode(code: string): Promise<Product | null> {
 
 /**
  * Ürün arama kutusu: ad veya barkod. Enter'a basılınca (barkod okuyucu Enter gönderir) önce barkodla tam eşleşme aranır;
- * bulunursa doğrudan seçilir, yoksa tek sonuç varsa o seçilir. Pasif ürünler listelenmez.
+ * bulunursa doğrudan seçilir, yoksa tek sonuç varsa o seçilir. Pasif ürünler listelenmez. packages verilirse (hızlı satış)
+ * adı eşleşen aktif paketler "Paketler" grubunda çıkar.
  */
 export const ProductSearch = forwardRef<
   HTMLInputElement,
@@ -34,8 +35,13 @@ export const ProductSearch = forwardRef<
     trackedOnly?: boolean;
     placeholder?: string;
     autoFocus?: boolean;
+    packages?: ServicePackage[];
+    onPickPackage?: (pkg: ServicePackage) => void;
   }
->(function ProductSearch({ onPick, onNotFound, trackedOnly = false, placeholder = "Ürün adı veya barkod", autoFocus }, ref) {
+>(function ProductSearch(
+  { onPick, onNotFound, trackedOnly = false, placeholder = "Ürün adı veya barkod", autoFocus, packages, onPickPackage },
+  ref,
+) {
   const [text, setText] = useState("");
   const debounced = useDebounced(text.trim(), 200);
   const results = useQuery({
@@ -74,6 +80,11 @@ export const ProductSearch = forwardRef<
   };
 
   const items = debounced ? (results.data?.items ?? []) : [];
+  const needle = debounced.toLocaleLowerCase("tr-TR");
+  const packageMatches =
+    needle && packages && onPickPackage
+      ? packages.filter((p) => p.isActive && (p.name.toLocaleLowerCase("tr-TR").includes(needle) || p.serviceName.toLocaleLowerCase("tr-TR").includes(needle))).slice(0, 5)
+      : [];
   return (
     <div className="flex flex-col gap-2">
       <div className="relative">
@@ -110,7 +121,36 @@ export const ProductSearch = forwardRef<
           ))}
         </ul>
       )}
-      {debounced && results.isSuccess && items.length === 0 && <p className="text-sm text-neutral-600">Bu aramaya uyan ürün yok.</p>}
+      {packageMatches.length > 0 && (
+        <div className="flex flex-col gap-1">
+          <span className="text-xs font-semibold text-neutral-700">Paketler</span>
+          <ul className="flex flex-col divide-y divide-border border border-border" aria-label="Paketler">
+            {packageMatches.map((p) => (
+              <li key={p.id}>
+                <button
+                  type="button"
+                  onClick={() => {
+                    onPickPackage!(p);
+                    setText("");
+                  }}
+                  className="flex min-h-12 w-full items-center justify-between gap-3 px-3 py-2 text-left hover:bg-neutral-50"
+                >
+                  <span className="flex min-w-0 flex-col">
+                    <span className="truncate text-sm font-semibold text-black">{p.name}</span>
+                    <span className="text-xs text-neutral-600">
+                      Paket · {p.sessionCount} seans · {p.validityDays} gün
+                    </span>
+                  </span>
+                  <span className="shrink-0 text-sm font-semibold text-black tabular-nums">{formatMoney(p.price)}</span>
+                </button>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+      {debounced && results.isSuccess && items.length === 0 && packageMatches.length === 0 && (
+        <p className="text-sm text-neutral-600">Bu aramaya uyan ürün yok.</p>
+      )}
     </div>
   );
 });

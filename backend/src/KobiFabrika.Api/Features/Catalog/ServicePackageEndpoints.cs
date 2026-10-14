@@ -65,15 +65,17 @@ public static class ServicePackageEndpoints
         group.MapPost("/", Create).RequireAuthorization(Policies.ManageCatalog).Validate<ServicePackageRequest>()
             .Produces<ServicePackageResponse>(StatusCodes.Status201Created).WithSummary("Paket tanımla");
         group.MapPut("/{id:guid}", Update).RequireAuthorization(Policies.ManageCatalog).Validate<ServicePackageRequest>()
+            .Produces<ServicePackageResponse>()
             .WithSummary("Paket tanımını güncelle (satılmış paketler etkilenmez)");
-        group.MapDelete("/{id:guid}", Delete).RequireAuthorization(Policies.ManageCatalog)
+        group.MapDelete("/{id:guid}", Delete).RequireAuthorization(Policies.ManageCatalog).Produces<ProductDeleteResponse>()
             .WithSummary("Paketi sil (satıldıysa pasife alınır)");
 
         app.MapGet("/api/contacts/{id:guid}/packages", ContactPackages).WithTags("Packages").RequireAuthorization(Policies.Panel)
+            .Produces<ContactPackagesResponse>()
             .WithSummary("Müşterinin paketleri (aktifler önce) ve son seans uyarısı");
         var customer = app.MapGroup("/api/customer-packages/{id:guid}").WithTags("Packages").RequireAuthorization(Policies.ManageCatalog);
-        customer.MapPost("/extend", Extend).WithSummary("Paketin süresini uzat (son gün)");
-        customer.MapPost("/close", Close).Validate<ClosePackageRequest>().WithSummary("Paketi kapat (kalan seanslar düşer; not zorunlu)");
+        customer.MapPost("/extend", Extend).Produces<CustomerPackageResponse>().WithSummary("Paketin süresini uzat (son gün)");
+        customer.MapPost("/close", Close).Validate<ClosePackageRequest>().Produces<CustomerPackageResponse>().WithSummary("Paketi kapat (kalan seanslar düşer; not zorunlu)");
         return app;
     }
 

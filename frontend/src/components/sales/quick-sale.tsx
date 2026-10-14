@@ -8,6 +8,7 @@ import { useEffect, useReducer, useRef, useState, type ReactNode } from "react";
 import { toast } from "sonner";
 
 import { productsKey, stockKey, useVatRates } from "@/components/catalog/catalog-bits";
+import { usePackages } from "@/components/catalog/packages";
 import { ProductSearch, findByBarcode } from "@/components/catalog/product-search";
 import { Notice } from "@/components/contacts/contact-bits";
 import { Field, FormMessage } from "@/components/forms/field";
@@ -22,7 +23,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Input } from "@/components/ui/input";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { API_URL, api, errorMessage, unwrap } from "@/lib/api/client";
-import { paymentMethodNames, type Product, type Sale } from "@/lib/api/types";
+import { paymentMethodNames, type Product, type Sale, type ServicePackage } from "@/lib/api/types";
 import { useBarcodeScanner } from "@/lib/barcode";
 import {
   cartReducer,
@@ -31,6 +32,7 @@ import {
   dueDateError,
   emptyCart,
   loadDraft,
+  packageWithoutContact,
   paymentError,
   saveDraft,
   toLineRequests,
@@ -107,7 +109,8 @@ export function QuickSale() {
     appliedAppointment.current = d.appointmentId;
     dispatch({ type: "clear" });
     dispatch({ type: "contact", contact: { id: d.contactId, name: d.contactName } });
-    dispatch({ type: "add", product: draftProduct.data });
+    // Paketten kullanılan randevu: satır 0,00 TL, açıklama "Paket: 10 seans lazer (4/10)".
+    dispatch({ type: "addDraft", product: draftProduct.data, name: d.description, unitPrice: d.unitPrice });
     setAppointment(d);
   }, [saleDraft.data, draftProduct.data]);
 
@@ -124,6 +127,11 @@ export function QuickSale() {
   const add = (product: Product) => {
     dispatch({ type: "add", product });
     toast.success(`${product.name} eklendi`, { duration: 1200 });
+  };
+  const packages = usePackages();
+  const addPackage = (pkg: ServicePackage) => {
+    dispatch({ type: "addPackage", pkg });
+    toast.success(`${pkg.name} eklendi`, { duration: 1200 });
   };
   const notFound = (code: string) =>
     toast.error(`${code} barkodlu ürün yok.`, {
@@ -153,8 +161,13 @@ export function QuickSale() {
   const suggestedDue = defaultDueDate(today, business.defaultDueDays);
   const hasCredit = drafts.some((p) => p.method === "Credit");
   const dueError = hasCredit ? dueDateError(extras.dueDate, today) : null;
+  const packageNoContact = packageWithoutContact(cart);
   const problem =
-    cart.lines.length === 0 ? "Sepet boş." : (discount.error ?? paymentError(totals.total, drafts, !!cart.contact) ?? dueError);
+    cart.lines.length === 0
+      ? "Sepet boş."
+      : packageNoContact
+        ? "Paket satışı için müşteri seçin."
+        : (discount.error ?? paymentError(totals.total, drafts, !!cart.contact) ?? dueError);
   const accountFor = (p: PaymentDraft) =>
     p.method === "Cash" ? extras.cashAccountId || null : p.method === "Credit" ? null : extras.bankAccountId || null;
 
@@ -233,6 +246,7 @@ export function QuickSale() {
       }
       problem={submitted ? problem : null}
       creditWithoutContact={drafts.some((p) => p.method === "Credit") && !cart.contact}
+      packageWithoutContact={packageNoContact}
       pending={submit.isPending}
       onComplete={complete}
     />
@@ -255,7 +269,14 @@ export function QuickSale() {
           </Notice>
         )}
         {saleDraft.isError && <FormMessage>{errorMessage(saleDraft.error)}</FormMessage>}
-        <ProductSearch ref={searchRef} onPick={add} onNotFound={notFound} placeholder="Ürün adı veya barkod okutun" />
+        <ProductSearch
+          ref={searchRef}
+          onPick={add}
+          onNotFound={notFound}
+          placeholder="Ürün, paket veya barkod"
+          packages={packages.data}
+          onPickPackage={addPackage}
+        />
 
         {cart.lines.length === 0 ? (
           <div className="flex flex-col gap-3">
@@ -338,6 +359,7 @@ function Checkout({
   extras,
   problem,
   creditWithoutContact,
+  packageWithoutContact: packageNoContact,
   pending,
   onComplete,
 }: {
@@ -354,12 +376,17 @@ function Checkout({
   extras: ReactNode;
   problem: string | null;
   creditWithoutContact: boolean;
+  packageWithoutContact: boolean;
   pending: boolean;
   onComplete: () => void;
 }) {
   return (
     <>
-      <ContactPicker value={cart.contact} onChange={onContact} error={creditWithoutContact ? "Veresiye için müşteri seçin." : null} />
+      <ContactPicker
+        value={cart.contact}
+        onChange={onContact}
+        error={packageNoContact ? "Paket satışı için müşteri seçin." : creditWithoutContact ? "Veresiye için müşteri seçin." : null}
+      />
       <DiscountInput
         label="Toplam indirim"
         type={discountType}

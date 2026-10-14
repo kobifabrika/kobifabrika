@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 
-import { ProductList } from "@/components/catalog/product-list";
+import { CatalogHome } from "@/components/catalog/catalog-home";
 
 // Panel layout'u gibi: içerik istemcide oturum doğrulanınca render edilir.
 export const instant = false;
@@ -12,7 +12,7 @@ export default function ProductsPage() {
   return (
     <div className="mx-auto max-w-6xl">
       <Suspense>
-        <ProductList />
+        <CatalogHome />
       </Suspense>
     </div>
   );

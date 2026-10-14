@@ -77,6 +77,12 @@ export const auditActionLabels: Record<AuditAction, string> = {
   HolidayCreated: "Kapalı gün ekledi",
   HolidayDeleted: "Kapalı günü sildi",
   AppointmentSettingsChanged: "Randevu ayarlarını değiştirdi",
+  BookingSettingsChanged: "Online randevu ayarlarını değiştirdi",
+  ServicePackageCreated: "Paket tanımladı",
+  ServicePackageUpdated: "Paketi düzenledi",
+  ServicePackageDeleted: "Paketi sildi",
+  CustomerPackageExtended: "Müşteri paketinin süresini uzattı",
+  CustomerPackageClosed: "Müşteri paketini kapattı",
 };
 
 const fieldLabels: Record<string, string> = {
@@ -194,6 +200,20 @@ export function auditDetail(item: Pick<AuditLogItem, "action" | "changes">): str
       const own = (c.staffSeesOnlyOwn ?? {}) as { to?: boolean };
       return own.to ? "Personel sadece kendi randevularını görür" : "Personel bütün takvimi görür";
     }
+    case "BookingSettingsChanged": {
+      const after = (c.after ?? {}) as { enabled?: boolean };
+      return after.enabled ? "Online randevu açık" : "Online randevu kapalı";
+    }
+    case "ServicePackageCreated":
+      return `${text(c.name)} · ${c.sessionCount ?? ""} seans · ${money(c.price)}`;
+    case "ServicePackageUpdated":
+      return text(((c.after ?? {}) as { name?: unknown }).name);
+    case "ServicePackageDeleted":
+      return text(c.name) + (c.deactivated ? " · pasife alındı" : "");
+    case "CustomerPackageExtended":
+      return `${text(c.name)} · son gün ${day(c.to)}`;
+    case "CustomerPackageClosed":
+      return `${text(c.name)} · ${c.used ?? 0}/${c.total ?? 0} seans · ${text(c.note)}`;
     case "PaymentRequestCreated":
     case "PaymentRequestConfirmed":
     case "PaymentRequestRenewed":

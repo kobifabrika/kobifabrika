@@ -1,32 +1,38 @@
 import type { Metadata } from "next";
+import { cacheLife } from "next/cache";
 import { Suspense } from "react";
 
-import { Wordmark } from "@/components/brand/wordmark";
+import { BookingRoute } from "@/components/booking/booking-route";
+import { API_URL } from "@/lib/api/client";
 
-export const metadata: Metadata = { title: "Online randevu" };
-
-/** İşletmenin herkese açık online randevu sayfası (kobifabrika.com/r/{slug}). Sprint 5'te yapılacak. */
-export default function BookingPage({ params }: PageProps<"/r/[slug]">) {
-  return (
-    <main className="flex min-h-screen flex-col items-center justify-center gap-4 bg-background px-4 text-center">
-      <Suspense fallback={<p className="text-sm text-neutral-600">Yükleniyor…</p>}>
-        <BookingPlaceholder params={params} />
-      </Suspense>
-      <p className="text-xs text-neutral-600">
-        <Wordmark className="text-xs" /> ile randevu
-      </p>
-    </main>
-  );
+/** Başlık için işletme adı (sunucuda, kısa önbellekli). Sayfa kapalı/bulunamadıysa null. */
+async function businessName(slug: string): Promise<string | null> {
+  "use cache";
+  cacheLife("minutes");
+  try {
+    const res = await fetch(`${API_URL}/api/public/booking/${encodeURIComponent(slug)}`, { signal: AbortSignal.timeout(3000) });
+    if (!res.ok) return null;
+    return ((await res.json()) as { name?: string }).name ?? null;
+  } catch {
+    return null;
+  }
 }
 
-async function BookingPlaceholder({ params }: { params: PageProps<"/r/[slug]">["params"] }) {
+export async function generateMetadata({ params }: PageProps<"/r/[slug]">): Promise<Metadata> {
   const { slug } = await params;
+  const name = await businessName(slug);
+  return {
+    title: { absolute: name ? `${name} · Online randevu` : "Online randevu" },
+    robots: { index: false, follow: false },
+    referrer: "no-referrer",
+  };
+}
+
+/** İşletmenin herkese açık online randevu sayfası (kobifabrika.com/r/{slug}). Oturum gerekmez. */
+export default function BookingPage() {
   return (
-    <div>
-      <h1 className="text-2xl font-bold text-black">Online randevu</h1>
-      <p className="mt-2 text-sm text-neutral-600">
-        <span className="font-semibold text-black">{slug}</span> için online randevu sayfası yakında burada.
-      </p>
-    </div>
+    <Suspense>
+      <BookingRoute />
+    </Suspense>
   );
 }

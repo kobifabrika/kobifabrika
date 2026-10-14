@@ -14,7 +14,7 @@ import { calendarKey } from "./appointment-bits";
 
 const settingsKey = ["business", "appointment-settings"] as const;
 
-/** Ayarlar → Randevu. 5A: personelin takvim görünürlüğü; online randevu ayarları 5B'de buraya eklenir. */
+/** Ayarlar → Randevu → Takvim: personelin takvim görünürlüğü (online randevu ayarları BookingSettingsCard'da). */
 export function AppointmentSettings() {
   const { role } = useSession();
   const readOnly = !can(role, "manageBusiness");

@@ -94,10 +94,11 @@ public static class PublicBookingEndpoints
     {
         var booking = app.MapGroup("/api/public/booking/{slug}").WithTags("Public").AllowAnonymous()
             .AddEndpointFilter(PublicLinkEndpoints.PrivateHeaders);
-        booking.MapGet("/", Info).RequireRateLimiting(ReadRateLimit).WithSummary("Online randevu sayfası: işletme, hizmetler, personeller");
-        booking.MapGet("/slots", Slots).RequireRateLimiting(ReadRateLimit)
+        booking.MapGet("/", Info).RequireRateLimiting(ReadRateLimit).Produces<PublicBookingResponse>().WithSummary("Online randevu sayfası: işletme, hizmetler, personeller");
+        booking.MapGet("/slots", Slots).RequireRateLimiting(ReadRateLimit).Produces<PublicSlotsResponse>()
             .WithSummary("Boş saatler (serviceId, staffId boşsa \"Fark etmez\", from, days ≤ 14)");
         booking.MapPost("/verifications", SendCode).RequireRateLimiting(SmsRateLimit).Validate<VerificationRequest>()
+            .Produces<VerificationResponse>()
             .WithSummary("Telefona doğrulama kodu gönder");
         booking.MapPost("/appointments", Book).RequireRateLimiting(PublicLinkEndpoints.RateLimit).Validate<PublicBookingRequest>()
             .Produces<PublicBookingCreated>(StatusCodes.Status201Created)
@@ -105,8 +106,8 @@ public static class PublicBookingEndpoints
 
         var manage = app.MapGroup("/api/public/appointments/{token}").WithTags("Public").AllowAnonymous()
             .RequireRateLimiting(PublicLinkEndpoints.RateLimit).AddEndpointFilter(PublicLinkEndpoints.PrivateHeaders);
-        manage.MapGet("/", ManagePage).WithSummary("Müşterinin randevu sayfası");
-        manage.MapPost("/cancel", CustomerCancel).WithSummary("Müşteri randevuyu iptal eder (en az X saat kala)");
+        manage.MapGet("/", ManagePage).Produces<PublicAppointmentResponse>().WithSummary("Müşterinin randevu sayfası");
+        manage.MapPost("/cancel", CustomerCancel).Produces<PublicAppointmentResponse>().WithSummary("Müşteri randevuyu iptal eder (en az X saat kala)");
         return app;
     }
 

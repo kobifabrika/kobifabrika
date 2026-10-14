@@ -1,4 +1,4 @@
-import type { DocumentLineRequest, PaymentMethod, Product } from "@/lib/api/types";
+import type { DocumentLineRequest, PaymentMethod, Product, ServicePackage } from "@/lib/api/types";
 import { calculate, formatQuantity, round2, type CalcResult, type Discount, type Unit } from "@/lib/sales";
 
 /** Sepet satırı. Fiyat KDV dahil; ürün satırında sunucuya açıkça gönderilir ki önizleme ile kayıt aynı olsun. */
@@ -14,6 +14,10 @@ export type CartLine = {
   trackStock: boolean;
   /** Ürün sepete eklendiğindeki stok (uyarı için). */
   stock: number | null;
+  /** Paket satırı: adet 1, satışla müşteriye paket açılır (müşteri zorunlu). */
+  packageId?: string | null;
+  /** Ürün satırında ad değiştirildi (randevudan "Paket: …" satırı); açıklama sunucuya gönderilir. */
+  customName?: boolean;
 };
 
 export type CartContact = { id: string; name: string; phone?: string | null };
@@ -24,6 +28,8 @@ export const emptyCart: Cart = { lines: [], discount: null, contact: null, note:
 
 export type CartAction =
   | { type: "add"; product: Product }
+  | { type: "addPackage"; pkg: ServicePackage }
+  | { type: "addDraft"; product: Product; name: string; unitPrice: number }
   | { type: "addFree"; name: string; unitPrice: number; vatRate: number }
   | { type: "quantity"; key: string; quantity: number }
   | { type: "step"; key: string; delta: 1 | -1 }
@@ -66,6 +72,34 @@ export function cartReducer(cart: Cart, action: CartAction): Cart {
       if (same) return { ...cart, lines: cart.lines.map((l) => (l === same ? { ...l, quantity: round3(l.quantity + 1) } : l)) };
       return { ...cart, lines: [...cart.lines, lineFromProduct(action.product)] };
     }
+    case "addPackage":
+      return {
+        ...cart,
+        lines: [
+          ...cart.lines,
+          {
+            key: newKey(),
+            productId: null,
+            packageId: action.pkg.id,
+            name: action.pkg.name,
+            unit: "Package",
+            unitPrice: action.pkg.price,
+            vatRate: action.pkg.vatRate,
+            quantity: 1,
+            discount: null,
+            trackStock: false,
+            stock: null,
+          },
+        ],
+      };
+    case "addDraft":
+      return {
+        ...cart,
+        lines: [
+          ...cart.lines,
+          { ...lineFromProduct(action.product), name: action.name, unitPrice: action.unitPrice, customName: action.name !== action.product.name },
+        ],
+      };
     case "addFree":
       return {
         ...cart,
@@ -95,11 +129,15 @@ export function cartReducer(cart: Cart, action: CartAction): Cart {
       };
     case "step": {
       const line = cart.lines.find((l) => l.key === action.key);
-      if (!line) return cart;
+      if (!line || (line.packageId && action.delta > 0)) return cart;
       return cartReducer(cart, { type: "quantity", key: action.key, quantity: round3(line.quantity + action.delta) });
     }
     case "update":
-      return { ...cart, lines: cart.lines.map((l) => (l.key === action.key ? { ...l, ...action.patch } : l)) };
+      // Paket satırının adedi her zaman 1.
+      return {
+        ...cart,
+        lines: cart.lines.map((l) => (l.key === action.key ? { ...l, ...action.patch, ...(l.packageId ? { quantity: 1 } : {}) } : l)),
+      };
     case "remove":
       return { ...cart, lines: cart.lines.filter((l) => l.key !== action.key) };
     case "discount":
@@ -128,12 +166,18 @@ export function cartTotals(cart: Pick<Cart, "lines" | "discount">): CalcResult {
 export function toLineRequests(lines: CartLine[]): DocumentLineRequest[] {
   return lines.map((l) => ({
     productId: l.productId,
-    description: l.productId ? null : l.name,
+    description: l.productId && !l.customName ? null : l.name,
     quantity: l.quantity,
     unitPrice: l.unitPrice,
-    vatRate: l.productId ? null : l.vatRate,
+    vatRate: l.productId || l.packageId ? null : l.vatRate,
     discount: l.discount,
+    servicePackageId: l.packageId ?? null,
   }));
+}
+
+/** Sepette paket varsa müşteri zorunlu (paket müşterinin kartına yazılır). */
+export function packageWithoutContact(cart: Pick<Cart, "lines" | "contact">): boolean {
+  return !cart.contact && cart.lines.some((l) => !!l.packageId);
 }
 
 /** Stok yetersizse satır altındaki uyarı; değilse null. */

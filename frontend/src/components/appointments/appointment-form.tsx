@@ -10,13 +10,14 @@ import { ContactPicker } from "@/components/sales/contact-picker";
 import { useServices } from "@/components/staff/staff-services";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Textarea } from "@/components/ui/textarea";
 import { useDebounced } from "@/components/catalog/product-list";
 import { api, errorMessage, fieldErrors, unwrap } from "@/lib/api/client";
 import type { Appointment, AppointmentSaved, Staff } from "@/lib/api/types";
 import { hhmm, parseHhmm } from "@/lib/calendar";
 import type { CartContact } from "@/lib/cart";
-import { istanbulParts, istanbulToUtcIso } from "@/lib/format";
+import { formatDay, istanbulParts, istanbulToUtcIso } from "@/lib/format";
 
 import { ResponsivePanel, useAppointmentRefresh } from "./appointment-bits";
 
@@ -28,9 +29,25 @@ export function noShowText(name: string | undefined, w: { noShows: number; of: n
   return `${name ?? "Müşteri"} son ${w.of} randevusundan ${w.noShows}'${suffix[w.noShows] ?? "ine"} gelmedi.`;
 }
 
+/** Müşterinin cep telefonu var mı (+905…): SMS bildirimi sadece cep telefonuna gider. */
+export function hasMobile(phone: string | null | undefined): boolean {
+  return !!phone && phone.startsWith("+905") && phone.length === 13;
+}
+
+/** Müşterinin paketleri (randevu formunda "Paketten kullan"). */
+export function useContactPackages(contactId: string | null | undefined, enabled = true) {
+  return useQuery({
+    queryKey: ["contacts", "packages", contactId],
+    queryFn: () => unwrap(api.GET("/api/contacts/{id}/packages", { params: { path: { id: contactId! } } })),
+    enabled: enabled && !!contactId,
+  });
+}
+
 /**
  * Yeni randevu veya taşıma/düzenleme. Bitiş hizmet süresinden gelir ve değiştirilebilir. Kaydetmeden önce sunucudan uyarılar
- * alınır (çakışma, çalışma saati dışı, gelmeyen müşteri); çakışmayı sunucu ayrıca engeller.
+ * alınır (çakışma, çalışma saati dışı, gelmeyen müşteri); çakışmayı sunucu ayrıca engeller. Müşterinin bu hizmete ait kullanılabilir
+ * paketi varsa "Paketten kullan" çıkar (tek paket önceden seçili). Taşımada saat değişirse "Müşteriye SMS ile bildir"
+ * (online randevuda varsayılan işaretli).
  */
 export function AppointmentForm({
   open,
@@ -62,6 +79,9 @@ export function AppointmentForm({
   const [endTime, setEndTime] = useState(end?.time ?? "");
   const [endTouched, setEndTouched] = useState(false);
   const [note, setNote] = useState(appointment?.note ?? "");
+  const [notify, setNotify] = useState(appointment?.source === "Online");
+  // undefined: otomatik (tek uygun paket varsa o); null: paket kullanma.
+  const [packageChoice, setPackageChoice] = useState<string | null | undefined>(appointment ? (appointment.customerPackageId ?? null) : undefined);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [error, setError] = useState<string | null>(null);
 
@@ -94,6 +114,15 @@ export function AppointmentForm({
 
   const startAt = date && time ? istanbulToUtcIso(date, time) : null;
   const endAt = date && endTime ? istanbulToUtcIso(date, endTime) : null;
+  const timeChanged = !!appointment && (startAt !== new Date(appointment.startAt).toISOString() || endAt !== new Date(appointment.endAt).toISOString());
+
+  const packages = useContactPackages(contact?.id, open);
+  const usable = (packages.data?.items ?? []).filter(
+    (p) => p.productId === serviceId && (p.state === "Active" || p.id === appointment?.customerPackageId) && (!date || p.expiresOn >= date),
+  );
+  const packageId =
+    packageChoice === undefined ? (usable.length === 1 ? usable[0]!.id : null) : usable.some((p) => p.id === packageChoice) ? packageChoice : null;
+  const chosenPackage = usable.find((p) => p.id === packageId);
   const checkInput = useDebounced(
     startAt && endAt && staffId && endAt > startAt ? { contactId: contact?.id ?? null, staffMemberId: staffId, startAt, endAt, excludeId: appointment?.id ?? null } : null,
     300,
@@ -110,15 +139,32 @@ export function AppointmentForm({
         appointment
           ? api.PUT("/api/appointments/{id}", {
               params: { path: { id: appointment.id } },
-              body: { staffMemberId: staffId, productId: serviceId, startAt: startAt!, endAt: endAt!, note: note.trim() || null },
+              body: {
+                staffMemberId: staffId,
+                productId: serviceId,
+                startAt: startAt!,
+                endAt: endAt!,
+                note: note.trim() || null,
+                customerPackageId: packageId,
+                notifyCustomer: timeChanged && notify && hasMobile(appointment.contactPhone),
+              },
             })
           : api.POST("/api/appointments", {
-              body: { contactId: contact!.id, staffMemberId: staffId, productId: serviceId, startAt: startAt!, endAt: endAt, note: note.trim() || null },
+              body: {
+                contactId: contact!.id,
+                staffMemberId: staffId,
+                productId: serviceId,
+                startAt: startAt!,
+                endAt: endAt,
+                note: note.trim() || null,
+                customerPackageId: packageId,
+              },
             }),
       ),
     onSuccess: async (saved) => {
       await refresh();
       toast.success(appointment ? "Randevu güncellendi." : "Randevu verildi.");
+      if (appointment && timeChanged && notify && hasMobile(appointment.contactPhone)) toast.success("Müşteriye SMS ile bildirildi.");
       for (const w of saved.warnings) toast.warning(w);
       onSaved?.(saved);
       onOpenChange(false);
@@ -205,9 +251,28 @@ export function AppointmentForm({
             <Input type="time" step={300} value={endTime} onChange={(e) => (setEndTime(e.target.value), setEndTouched(true))} />
           </Field>
         </div>
+        {usable.length > 0 && (
+          <Field label="Paketten kullan" error={errors.customerPackageId}>
+            <select className={selectClass} value={packageId ?? ""} onChange={(e) => setPackageChoice(e.target.value || null)}>
+              <option value="">Paket kullanma</option>
+              {usable.map((p) => (
+                <option key={p.id} value={p.id}>
+                  {p.name} · kalan {p.remaining}/{p.totalSessions} · son gün {formatDay(p.expiresOn)}
+                </option>
+              ))}
+            </select>
+          </Field>
+        )}
+        {chosenPackage && chosenPackage.remaining === 1 && <Notice>Bu paketin son seansı.</Notice>}
         <Field label="Not (isteğe bağlı)">
           <Textarea value={note} onChange={(e) => setNote(e.target.value)} maxLength={500} rows={2} />
         </Field>
+        {editing && timeChanged && hasMobile(appointment.contactPhone) && (
+          <label className="flex min-h-11 items-center gap-3 text-sm text-black">
+            <Checkbox checked={notify} onCheckedChange={(v) => setNotify(v === true)} />
+            Müşteriye SMS ile bildir (yeni saat ve iptal linki)
+          </label>
+        )}
 
         {warnings?.noShow && <Notice>{noShowText(contact?.name, warnings.noShow)}</Notice>}
         {warnings?.outsideHours && <Notice>{warnings.outsideHours} Yine de kaydedebilirsiniz.</Notice>}

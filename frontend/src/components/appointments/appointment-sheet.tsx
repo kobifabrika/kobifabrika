@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import { Field, FormMessage } from "@/components/forms/field";
 import { useSession } from "@/components/providers/session-provider";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Textarea } from "@/components/ui/textarea";
 import { api, errorMessage, unwrap } from "@/lib/api/client";
@@ -21,8 +22,9 @@ import { useIsDesktop } from "@/lib/use-media";
 import { useNow } from "@/lib/use-now";
 
 import { StatusBadge, appointmentsKey, useAppointmentRefresh } from "./appointment-bits";
+import { hasMobile } from "./appointment-form";
 
-type Action = "confirm" | "complete" | "no-show" | "reopen" | "cancel";
+type Action = "confirm" | "complete" | "no-show" | "reopen" | "cancel" | "reject";
 
 /** "14 Ekim Çarşamba · 14:00-14:45" */
 export function appointmentWhen(a: Pick<Appointment, "startAt" | "endAt">): string {
@@ -32,7 +34,8 @@ export function appointmentWhen(a: Pick<Appointment, "startAt" | "endAt">): stri
 
 /**
  * Randevu ayrıntısı (masaüstünde sağdan, telefonda alttan): durum düğmeleri, "Taşı", "Satışa çevir", müşteri kartı.
- * Tamamlandı/Gelmedi başlangıç saatinden sonra işaretlenir; satışa çevrilen randevu geri alınamaz.
+ * Tamamlandı/Gelmedi başlangıç saatinden sonra işaretlenir; satışa çevrilen randevu geri alınamaz. Onay bekleyen online randevu
+ * onaylanınca müşteriye onay, reddedilince "onaylanmadı" SMS'i gider; iptalde "Müşteriye SMS ile bildir" (online randevuda işaretli).
  */
 export function AppointmentSheet({
   appointmentId,
@@ -48,8 +51,9 @@ export function AppointmentSheet({
   const desktop = useIsDesktop();
   const { role } = useSession();
   const refresh = useAppointmentRefresh();
-  const [cancelling, setCancelling] = useState(false);
+  const [cancelling, setCancelling] = useState<"cancel" | "reject" | null>(null);
   const [reason, setReason] = useState("");
+  const [notify, setNotify] = useState<boolean | null>(null);
   const query = useQuery({
     queryKey: [...appointmentsKey, appointmentId],
     queryFn: () => unwrap(api.GET("/api/appointments/{id}", { params: { path: { id: appointmentId! } } })),
@@ -69,22 +73,35 @@ export function AppointmentSheet({
         case "reopen":
           return unwrap(api.POST("/api/appointments/{id}/reopen", path));
         case "cancel":
-          return unwrap(api.POST("/api/appointments/{id}/cancel", { ...path, body: { reason: reason.trim() || null } }));
+          return unwrap(
+            api.POST("/api/appointments/{id}/cancel", { ...path, body: { reason: reason.trim() || null, notifyCustomer: notifyCustomer } }),
+          );
+        case "reject":
+          return unwrap(api.POST("/api/appointments/{id}/reject", { ...path, body: { reason: reason.trim() || null, notifyCustomer: true } }));
       }
     },
     onSuccess: async (_, action) => {
       await refresh();
-      setCancelling(false);
+      setCancelling(null);
+      setReason("");
       toast.success(
-        { confirm: "Randevu onaylandı.", complete: "Randevu tamamlandı.", "no-show": "Gelmedi olarak işaretlendi.", reopen: "Geri alındı.", cancel: "Randevu iptal edildi." }[
-          action
-        ],
+        {
+          confirm: "Randevu onaylandı.",
+          complete: "Randevu tamamlandı.",
+          "no-show": "Gelmedi olarak işaretlendi.",
+          reopen: "Geri alındı.",
+          cancel: "Randevu iptal edildi.",
+          reject: "Randevu reddedildi.",
+        }[action],
       );
     },
     onError: (e) => toast.error(errorMessage(e)),
   });
 
   const a = query.data;
+  const mobile = hasMobile(a?.contactPhone);
+  // İptalde SMS kutusu: kullanıcı değiştirmediyse online randevuda işaretli.
+  const notifyCustomer = mobile && (notify ?? a?.source === "Online");
   const write = can(role, "writeAppointments");
   const now = useNow(30_000);
   const started = a ? Date.parse(a.startAt) <= now : false;
@@ -109,7 +126,14 @@ export function AppointmentSheet({
             <div className="flex flex-wrap items-center gap-2">
               <StatusBadge status={a.status} />
               {a.source === "Online" && <span className="text-xs text-neutral-600">Online randevu</span>}
+              {a.cancelledByCustomer && <span className="text-xs text-neutral-600">Müşteri online iptal etti</span>}
             </div>
+            {a.packageName && (
+              <p className="text-sm text-black">
+                Paket: <span className="font-semibold">{a.packageName}</span>
+                {a.packageSessionUsed && <span className="text-neutral-600"> · seans düştü</span>}
+              </p>
+            )}
             <p className="flex items-center gap-2 text-sm font-semibold text-black tabular-nums">
               <CalendarClock aria-hidden className="size-4" />
               {appointmentWhen(a)}
@@ -143,7 +167,14 @@ export function AppointmentSheet({
 
             {write && (
               <div className="flex flex-col gap-2 border-t border-border pt-4">
-                {a.status === "Pending" && <Button onClick={() => act.mutate("confirm")} disabled={act.isPending}>Onayla</Button>}
+                {a.status === "Pending" && (
+                  <>
+                    <Button onClick={() => act.mutate("confirm")} disabled={act.isPending}>
+                      Onayla
+                    </Button>
+                    {mobile && <p className="text-xs text-neutral-600">Onaylayınca veya reddedince müşteriye SMS ile bilgi verilir.</p>}
+                  </>
+                )}
                 {a.status === "Confirmed" && (
                   <>
                     <Button onClick={() => act.mutate("complete")} disabled={act.isPending || !started}>
@@ -173,22 +204,35 @@ export function AppointmentSheet({
                 {(a.status === "Pending" || a.status === "Confirmed") &&
                   (cancelling ? (
                     <div className="flex flex-col gap-2 border border-border p-3">
-                      <Field label="İptal nedeni (isteğe bağlı)">
+                      <Field label={cancelling === "reject" ? "Ret nedeni (isteğe bağlı)" : "İptal nedeni (isteğe bağlı)"}>
                         <Textarea rows={2} maxLength={500} value={reason} onChange={(e) => setReason(e.target.value)} />
                       </Field>
-                      <div className="flex gap-2">
-                        <Button variant="destructive" onClick={() => act.mutate("cancel")} disabled={act.isPending}>
-                          Randevuyu iptal et
+                      {cancelling === "cancel" && mobile && (
+                        <label className="flex min-h-11 items-center gap-3 text-sm text-black">
+                          <Checkbox checked={notifyCustomer} onCheckedChange={(v) => setNotify(v === true)} />
+                          Müşteriye SMS ile bildir
+                        </label>
+                      )}
+                      <div className="flex flex-wrap gap-2">
+                        <Button variant="destructive" onClick={() => act.mutate(cancelling)} disabled={act.isPending}>
+                          {cancelling === "reject" ? "Randevuyu reddet" : "Randevuyu iptal et"}
                         </Button>
-                        <Button variant="ghost" onClick={() => setCancelling(false)}>
+                        <Button variant="ghost" onClick={() => setCancelling(null)}>
                           Vazgeç
                         </Button>
                       </div>
                     </div>
                   ) : (
-                    <Button variant="ghost" className="text-danger-600" onClick={() => setCancelling(true)}>
-                      İptal et
-                    </Button>
+                    <div className="flex flex-wrap gap-2">
+                      {a.status === "Pending" && (
+                        <Button variant="outline" onClick={() => setCancelling("reject")}>
+                          Reddet
+                        </Button>
+                      )}
+                      <Button variant="ghost" className="text-danger-600" onClick={() => setCancelling("cancel")}>
+                        İptal et
+                      </Button>
+                    </div>
                   ))}
               </div>
             )}

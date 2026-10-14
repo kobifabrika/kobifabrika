@@ -12,6 +12,7 @@ import {
   FileText,
   HandCoins,
   Link2,
+  MessageSquareText,
   Mail,
   MoreHorizontal,
   Pencil,
@@ -28,6 +29,8 @@ import { toast } from "sonner";
 
 import { noShowText } from "@/components/appointments/appointment-form";
 import { ContactAppointmentList, useContactAppointments } from "@/components/appointments/contact-appointments";
+import { useContactPackages } from "@/components/appointments/appointment-form";
+import { ContactPackageList } from "@/components/contacts/contact-packages";
 import { Balance, ContactActions, Notice, TabNav, TagList } from "@/components/contacts/contact-bits";
 import { QuoteList } from "@/components/quotes/quote-list";
 import { SaleList } from "@/components/sales/sale-list";
@@ -51,7 +54,7 @@ import { displayPhone } from "@/lib/contacts";
 import { formatDate, formatDateTime, formatDay, formatMoney } from "@/lib/format";
 import { can } from "@/lib/permissions";
 
-type TabKey = "ozet" | "zaman" | "randevular" | "satislar" | "cari" | "notlar" | "hatirlatmalar";
+type TabKey = "ozet" | "zaman" | "randevular" | "paketler" | "satislar" | "cari" | "notlar" | "hatirlatmalar";
 
 /** Müşteri/tedarikçi kartı. basePath: /panel/musteriler veya /panel/cari-kasa/tedarikciler. */
 export function ContactDetail({ id, basePath }: { id: string; basePath: string }) {
@@ -63,6 +66,7 @@ export function ContactDetail({ id, basePath }: { id: string; basePath: string }
   });
   const appointmentsOn = business.modules.appointments;
   const appointments = useContactAppointments(id, appointmentsOn && !!contact.data?.isCustomer);
+  const packages = useContactPackages(id, appointmentsOn && !!contact.data?.isCustomer);
 
   if (contact.isPending)
     return (
@@ -93,6 +97,7 @@ export function ContactDetail({ id, basePath }: { id: string; basePath: string }
     { key: "ozet", label: "Özet" },
     { key: "zaman", label: "Zaman çizelgesi" },
     ...(c.isCustomer && appointmentsOn ? [{ key: "randevular" as const, label: "Randevular" }] : []),
+    ...(c.isCustomer && appointmentsOn ? [{ key: "paketler" as const, label: "Paketler" }] : []),
     ...(c.isCustomer ? [{ key: "satislar" as const, label: "Satışlar" }] : []),
     ...(finance ? [{ key: "cari" as const, label: "Cari" }] : []),
     { key: "notlar", label: "Notlar" },
@@ -164,6 +169,7 @@ export function ContactDetail({ id, basePath }: { id: string; basePath: string }
           </div>
         )}
         {appointments.data?.noShow && <Notice>{noShowText(c.displayName, appointments.data.noShow)}</Notice>}
+        {packages.data?.notice && <Notice>{packages.data.notice}</Notice>}
         {c.notes && <Notice>{c.notes}</Notice>}
       </header>
 
@@ -172,6 +178,7 @@ export function ContactDetail({ id, basePath }: { id: string; basePath: string }
       {active === "ozet" && <Overview contact={c} />}
       {active === "zaman" && <Timeline id={c.id} />}
       {active === "randevular" && <ContactAppointmentList contactId={c.id} />}
+      {active === "paketler" && <ContactPackageList contactId={c.id} />}
       {active === "satislar" && (
         <div className="flex flex-col gap-6">
           <SaleList contactId={c.id} />
@@ -328,6 +335,7 @@ const timelineIcons: Record<string, typeof StickyNote> = {
   quote: FileText,
   quote_accepted: FileText,
   quote_rejected: FileText,
+  sms: MessageSquareText,
   appointment: CalendarDays,
   appointment_no_show: CalendarX,
   appointment_cancelled: CalendarX,
