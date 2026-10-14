@@ -72,7 +72,7 @@ test("personel: ekleme, öğle aralı saatler, hizmetler, kapalı zaman, tatil v
   await expect(holiday.getByText("Yılbaşı")).toBeVisible();
 
   await visit(page, "/panel/ayarlar/randevu", "Ayarlar · randevu");
-  await page.getByRole("switch").click();
+  await page.getByRole("switch", { name: /Personel sadece kendi randevularını görsün/ }).click();
   await expect(toast(page, "Randevu ayarları kaydedildi.")).toBeVisible();
   expect((await owner.get<{ staffSeesOnlyOwn: boolean }>("/api/business/appointment-settings")).staffSeesOnlyOwn).toBe(true);
 
