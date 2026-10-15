@@ -11,6 +11,8 @@ test.use({ ownerSector: "HairBarber" });
 
 type Slots = { days: { date: string; times: string[] }[] };
 
+const longDay = new Intl.DateTimeFormat("tr-TR", { timeZone: "UTC", weekday: "long", day: "numeric", month: "long" });
+
 /** Online randevuyu API ile açar (4 saat sonrasından itibaren, 30 dk aralık, en az 2 saat kala iptal). */
 async function openBooking(owner: ApiUser) {
   await openAllDay(owner);
@@ -30,13 +32,16 @@ async function openBooking(owner: ApiUser) {
   return { slug: settings.slug, service, ayse, name: business.name };
 }
 
-/** Herkese açık API'den personelin ilk boş saati (arayüz de ilk boş günü ve ilk saati gösterir). */
-async function firstSlot(slug: string, serviceId: string, staffId: string) {
+/**
+ * Herkese açık API'den personelin, en az minFree boş saati olan ilk gündeki ilk boş saati. "Dolu saat" adımında aynı günde başka
+ * saat kalmalı: akşam koşunca (en erken bildirim 4 saat) bugün tek boş saat kalabiliyordu (CI 2026-10-15, 18:00 sonrası).
+ */
+async function firstSlot(slug: string, serviceId: string, staffId: string, minFree = 1) {
   const ctx = await request.newContext({ baseURL: apiUrl });
   try {
     const res = await ctx.get(`/api/public/booking/${slug}/slots?serviceId=${serviceId}&staffId=${staffId}&days=7`);
     const slots = (await res.json()) as Slots;
-    const day = slots.days.find((d) => d.times.length > 0)!;
+    const day = slots.days.find((d) => d.times.length >= minFree)!;
     return { day: day.date, time: day.times[0]! };
   } finally {
     await ctx.dispose();
@@ -126,7 +131,10 @@ test("online randevu: kodla randevu, onay, dolu saat ve iptal linki", async ({ o
   await visit(pageB, `/r/${slug}`, "Online randevu · ikinci müşteri");
   await pageB.getByRole("button", { name: /Saç kesimi/ }).click();
   await pageB.getByRole("button", { name: /Ayşe Usta/ }).click();
-  const slot = await firstSlot(slug, service.id, ayse.id);
+  const slot = await firstSlot(slug, service.id, ayse.id, 2);
+  if (slot.day !== (await firstSlot(slug, service.id, ayse.id)).day) {
+    await pageB.getByRole("radio", { name: new RegExp(`^${longDay.format(new Date(`${slot.day}T00:00:00Z`))}`) }).click();
+  }
   await pageB.getByRole("button", { name: slot.time, exact: true }).first().click();
   const phoneB = uniquePhone();
   await fillPerson(pageB, phoneB, "Ece", "Su");
