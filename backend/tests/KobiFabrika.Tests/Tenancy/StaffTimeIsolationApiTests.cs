@@ -9,7 +9,8 @@ namespace KobiFabrika.Tests.Tenancy;
 /// <summary>
 /// Personel, mesai ve izinde kiracı izolasyonu (CLAUDE.md): A işletmesi B'nin personel kartını, maaşını, ödenen maaşlarını, mesai
 /// kaydını, izin talebini, izin bakiyesini, izin türünü ve raporlarını göremez; Id ile değiştiremez; B'nin personeline mesai/izin/maaş
-/// gideri yazamaz.
+/// gideri yazamaz. 7B: prim kuralı, prim kaydı, prim/personel/kampanya/anket raporları ve Bugün'deki aktif personel; A'nın satış
+/// satırına B'nin personeli, A'nın kuralına B'nin personeli/kategorisi/ürünü yazılamaz.
 /// </summary>
 public sealed class StaffTimeIsolationApiTests(SqlServerFixture db) : StaffTimeTestBase(db)
 {
@@ -105,5 +106,73 @@ public sealed class StaffTimeIsolationApiTests(SqlServerFixture db) : StaffTimeT
         (await GetJsonAsync(b.Owner.Client, $"/api/staff/{b.StaffId}/salary-payments")).GetProperty("total").GetDecimal().ShouldBe(25000m);
         (await GetJsonAsync(b.Owner.Client, "/api/leave-requests")).GetProperty("items")[0].GetProperty("status").GetString().ShouldBe("Approved");
         (await GetJsonAsync(b.Owner.Client, $"/api/staff/{b.StaffId}/leave-balance")).GetProperty("entries").GetArrayLength().ShouldBe(0);
+    }
+
+    private sealed record CommissionTenant(TestUser Owner, Guid StaffId, Guid RuleId, Guid ProductId, Guid CategoryId, Guid SaleId);
+
+    private async Task<CommissionTenant> CreateCommissionTenantAsync(string name)
+    {
+        var owner = await CreateOwnerAsync($"{name} Prim Kuaför");
+        var staffId = await CreateStaffAsync(owner, $"{name} Ustası");
+        var category = await owner.Client.PostAsJsonAsync("/api/product-categories", new { name = $"{name} kategorisi" }, Json, Ct);
+        await EnsureSuccessAsync(category);
+        var categoryId = (await category.Content.ReadFromJsonAsync<JsonElement>(Json, Ct)).GetProperty("id").GetGuid();
+        var productId = await AppointmentTests.CreateServiceAsync(owner.Client, Ct, $"{name} kesim", 30, 120m);
+        var rule = await CommissionTests.AddRuleAsync(owner.Client, CommissionTests.Rule(null, "All", "Percent", 10), Ct);
+        var sale = await SaleTests.CreateSaleAsync(owner.Client,
+            SaleTests.Sale([CommissionTests.StaffLine(productId, staffId)], [SaleTests.Pay("Cash", 120m)]), Ct);
+        (await owner.Client.PostAsJsonAsync("/api/time-clock/clock-in", new { staffMemberId = staffId }, Json, Ct)).StatusCode
+            .ShouldBe(HttpStatusCode.Created);
+        return new CommissionTenant(owner, staffId, rule.GetProperty("id").GetGuid(), productId, categoryId,
+            sale.GetProperty("sale").GetProperty("id").GetGuid());
+    }
+
+    [Fact]
+    public async Task Business_A_cannot_see_or_change_business_B_commissions_and_staff_reports()
+    {
+        var a = await CreateCommissionTenantAsync("A");
+        var b = await CreateCommissionTenantAsync("B");
+        var client = a.Owner.Client;
+        var month = $"{LocalToday:yyyy-MM}";
+        var range = $"from={LocalToday:yyyy-MM-dd}&to={LocalToday:yyyy-MM-dd}";
+
+        // Listeler ve raporlar sadece A.
+        (await GetJsonAsync(client, "/api/commission-rules")).EnumerateArray().Select(r => r.GetProperty("id").GetGuid()).ShouldBe([a.RuleId]);
+        foreach (var url in new[] { $"/api/commissions?month={month}", $"/api/reports/commissions?month={month}" })
+        {
+            var result = await GetJsonAsync(client, url);
+            result.GetProperty("items").EnumerateArray().ShouldAllBe(i => i.GetProperty("saleId").GetGuid() == a.SaleId, url);
+            result.GetProperty("total").GetDecimal().ShouldBe(10m, url);
+        }
+
+        (await GetJsonAsync(client, $"/api/reports/staff?{range}")).GetProperty("rows").EnumerateArray()
+            .Select(r => r.GetProperty("staffMemberId").GetGuid()).ShouldBe([a.StaffId]);
+        (await GetJsonAsync(client, $"/api/reports/campaigns?{range}")).GetProperty("rows").GetArrayLength().ShouldBe(0);
+        (await GetJsonAsync(client, $"/api/reports/surveys?{range}")).GetProperty("sent").GetInt32().ShouldBe(0);
+        (await GetJsonAsync(client, "/api/dashboard/today")).GetProperty("staff").GetProperty("onClock").EnumerateArray()
+            .Select(o => o.GetProperty("staffMemberId").GetGuid()).ShouldBe([a.StaffId]);
+        (await client.GetAsync($"/api/commissions?month={month}&staffId={b.StaffId}", Ct)).StatusCode.ShouldBe(HttpStatusCode.NotFound);
+
+        // B'nin kuralı değiştirilemez; A'nın kuralına ve satış satırına B'nin personeli/kategorisi/ürünü yazılamaz.
+        (await client.PutAsJsonAsync($"/api/commission-rules/{b.RuleId}", CommissionTests.Rule(null, "All", "Percent", 99), Json, Ct))
+            .StatusCode.ShouldBe(HttpStatusCode.NotFound);
+        (await client.DeleteAsync($"/api/commission-rules/{b.RuleId}", Ct)).StatusCode.ShouldBe(HttpStatusCode.NotFound);
+        foreach (var body in new[]
+                 {
+                     CommissionTests.Rule(b.StaffId, "Service", "Percent", 5),
+                     CommissionTests.Rule(null, "Category", "Percent", 5, categoryId: b.CategoryId),
+                     CommissionTests.Rule(null, "Item", "Percent", 5, productId: b.ProductId),
+                 })
+        {
+            (await client.PostAsJsonAsync("/api/commission-rules", body, Json, Ct)).StatusCode.ShouldBe(HttpStatusCode.BadRequest);
+        }
+
+        var stolen = await ProblemAsync(await client.PostAsJsonAsync("/api/sales",
+            SaleTests.Sale([CommissionTests.StaffLine(a.ProductId, b.StaffId)], [SaleTests.Pay("Cash", 120m)]), Json, Ct), HttpStatusCode.BadRequest);
+        stolen.GetProperty("errors").TryGetProperty("lines[0].staffMemberId", out _).ShouldBeTrue();
+
+        // B'nin verisi değişmedi.
+        (await GetJsonAsync(b.Owner.Client, "/api/commission-rules"))[0].GetProperty("value").GetDecimal().ShouldBe(10m);
+        (await GetJsonAsync(b.Owner.Client, $"/api/commissions?month={month}")).GetProperty("total").GetDecimal().ShouldBe(10m);
     }
 }

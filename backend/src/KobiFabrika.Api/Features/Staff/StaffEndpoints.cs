@@ -230,6 +230,7 @@ public static class StaffEndpoints
 
         await using var tx = await db.Database.BeginTransactionAsync(ct);
         await db.StaffServices.Where(x => x.StaffMemberId == id).ExecuteDeleteAsync(ct);
+        await db.CommissionRules.Where(r => r.StaffMemberId == id).ExecuteUpdateAsync(s => s.SetProperty(r => r.IsDeleted, true), ct);
         staff.UserId = null;
         db.StaffMembers.Remove(staff);
         audit.Log(AuditAction.StaffDeleted, nameof(StaffMember), staff.Id, new { staff.FullName });

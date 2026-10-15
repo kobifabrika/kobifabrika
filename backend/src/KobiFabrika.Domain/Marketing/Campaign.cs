@@ -68,6 +68,9 @@ public class Campaign : TenantEntity
 
     /// <summary>Kredi gönderim ortasında bittiyse true (kalanlar "Elendi · kredi yetersiz").</summary>
     public bool RanOutOfCredit { get; set; }
+
+    /// <summary>Çıkışlar bu kampanyaya bağlanabiliyor mu (Sprint 7B'den önceki kampanyalarda false: raporda "—").</summary>
+    public bool OptOutsTracked { get; set; } = true;
 }
 
 public enum RecipientStatus

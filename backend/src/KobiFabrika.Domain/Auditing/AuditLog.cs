@@ -113,6 +113,10 @@ public enum AuditAction
     LeaveBalanceAdjusted,
     LeaveTypeChanged,
     StaffSettingsChanged,
+    CommissionRuleChanged,
+
+    /// <summary>Personel rolü satış satırına varsayılandan farklı personel seçti (prim başkasına yazılır).</summary>
+    SaleLineStaffChanged,
 }
 
 /// <summary>

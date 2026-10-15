@@ -11,6 +11,12 @@ public class ContactConsent : TenantEntity
     public ConsentSource Source { get; set; }
     public DateTime At { get; set; }
 
+    /// <summary>
+    /// Çıkış linkiyle geri alınan iznin bağlandığı pazarlama SMS'i: müşteriye son 7 günde giden en son pazarlama mesajı
+    /// (kampanya raporunda "çıkış yapan"; Sprint 7B'den itibaren).
+    /// </summary>
+    public Guid? MessageLogId { get; set; }
+
     /// <summary>İYS'ye bildirim durumu (<see cref="IysStatuses"/>); SMS izni değişikliklerinde Pending başlar.</summary>
     public string? IysStatus { get; set; }
 

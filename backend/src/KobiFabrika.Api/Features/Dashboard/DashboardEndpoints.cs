@@ -10,6 +10,7 @@ using KobiFabrika.Domain.Catalog;
 using KobiFabrika.Domain.Common;
 using KobiFabrika.Domain.Finance;
 using KobiFabrika.Domain.Sales;
+using KobiFabrika.Domain.Staff;
 using KobiFabrika.Infrastructure.Finance;
 using KobiFabrika.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Http.HttpResults;
@@ -43,15 +44,30 @@ public sealed record DashboardAppointment(
 /// </summary>
 public sealed record DashboardAppointments(int Total, int Pending, bool OnlyOwn, IReadOnlyList<DashboardAppointment> Items);
 
+public sealed record DashboardOnClock(Guid StaffMemberId, string Name, DateTime Since);
+
+public sealed record DashboardOnLeave(Guid StaffMemberId, string Name, string TypeName, HalfDay HalfDay);
+
+/// <summary>
+/// Aktif personel kartı (Sahip, Yönetici, Mali Müşavir): mesaidekiler, bugün izinliler (tür dahil; Personel rolüne dönmez, Soru 7),
+/// çıkışı girilmemiş "çıkış unutuldu" kayıtları ve en yenisinin günü (Mesai ekranına link).
+/// </summary>
+public sealed record DashboardStaff(
+    IReadOnlyList<DashboardOnClock> OnClock, IReadOnlyList<DashboardOnLeave> OnLeave, int ForgottenCount, DateOnly? ForgottenDay);
+
+/// <summary>Personel rolünün "Mesaim" kartı: açık mesainin başlangıcı (yoksa null) ve bugün çalışılan dakika.</summary>
+public sealed record DashboardMyClock(Guid StaffMemberId, DateTime? OpenSince, int TodayMinutes);
+
 /// <summary>
 /// "Bugün" ekranı (Europe/Istanbul günü). Collections (bugünkü tahsilat, ters kayıtlar düşülmüş), Accounts ve Receivables
 /// Personel için null döner ve hiç sorgulanmaz. Satış kartı, son satışlar ve grafik Personel'de sadece kendi satışları.
-/// Appointments: Randevular modülü kapalıysa null.
+/// Appointments: Randevular modülü kapalıysa null. Staff: personel kaydı yoksa ve Personel rolünde null. MyClock: sadece Personel
+/// rolünde, hesabı personele bağlıysa.
 /// </summary>
 public sealed record DashboardResponse(
     DateOnly Today, DashboardSales Sales, decimal? Collections, IReadOnlyList<DashboardAccount>? Accounts, DashboardReceivables? Receivables,
     DashboardStock Stock, IReadOnlyList<DashboardSale> RecentSales, IReadOnlyList<DailyTotal> Last30Days, DashboardAppointments? Appointments,
-    Marketing.DashboardMarketing? Marketing);
+    Marketing.DashboardMarketing? Marketing, DashboardStaff? Staff = null, DashboardMyClock? MyClock = null);
 
 public static class DashboardEndpoints
 {
@@ -144,11 +160,63 @@ public static class DashboardEndpoints
                 await Marketing.MarketingSuggestions.AtRiskAsync(db, clock, ct));
         }
 
+        DashboardStaff? staff = null;
+        DashboardMyClock? myClock = null;
+        if (member.Role == BusinessRole.Staff)
+        {
+            myClock = await MyClockAsync(db, member, today, ct);
+        }
+        else if (await db.StaffMembers.AnyAsync(s => s.IsActive, ct))
+        {
+            staff = await StaffAsync(db, today, ct);
+        }
+
         return TypedResults.Ok(new DashboardResponse(
             today,
             new DashboardSales(todayTotals?.Total ?? 0, todayTotals?.Count ?? 0, byMethod.OrderBy(m => m.Method).ToList(), !member.CanViewAllSales),
             collections, accounts, receivables,
             new DashboardStock(summary.Enabled, summary.Low, summary.Negative, lowItems),
-            recent, last30, appointments, marketing));
+            recent, last30, appointments, marketing, staff, myClock));
+    }
+
+    private static async Task<DashboardStaff> StaffAsync(AppDbContext db, DateOnly today, CancellationToken ct)
+    {
+        var open = await db.TimeEntries.AsNoTracking().Where(t => t.ClockOutAt == null && t.ForgottenAt == null)
+            .OrderBy(t => t.ClockInAt).Select(t => new { t.StaffMemberId, t.ClockInAt }).ToListAsync(ct);
+        var leaves = await db.LeaveRequests.AsNoTracking()
+            .Where(r => r.Status == LeaveStatus.Approved && r.StartDate <= today && r.EndDate >= today)
+            .Select(r => new { r.StaffMemberId, r.LeaveTypeId, r.HalfDay }).ToListAsync(ct);
+        var forgotten = await db.TimeEntries.AsNoTracking().Where(t => t.ForgottenAt != null && t.ClockOutAt == null)
+            .Select(t => t.ClockInAt).ToListAsync(ct);
+
+        var staffIds = open.Select(o => o.StaffMemberId).Concat(leaves.Select(l => l.StaffMemberId)).Distinct().ToList();
+        var staff = await db.StaffMembers.IgnoreQueryFilters([QueryFilters.SoftDelete]).AsNoTracking().Where(s => staffIds.Contains(s.Id))
+            .ToDictionaryAsync(s => s.Id, s => new { s.FullName, s.SortOrder }, ct);
+        var typeIds = leaves.Select(l => l.LeaveTypeId).Distinct().ToList();
+        var types = await db.LeaveTypes.IgnoreQueryFilters([QueryFilters.SoftDelete]).AsNoTracking().Where(t => typeIds.Contains(t.Id))
+            .ToDictionaryAsync(t => t.Id, t => t.Name, ct);
+        string Name(Guid id) => staff.GetValueOrDefault(id)?.FullName ?? "";
+
+        return new DashboardStaff(
+            open.Select(o => new DashboardOnClock(o.StaffMemberId, Name(o.StaffMemberId), o.ClockInAt)).ToList(),
+            leaves.OrderBy(l => staff.GetValueOrDefault(l.StaffMemberId)?.SortOrder).ThenBy(l => Name(l.StaffMemberId))
+                .Select(l => new DashboardOnLeave(l.StaffMemberId, Name(l.StaffMemberId), types.GetValueOrDefault(l.LeaveTypeId) ?? "İzin", l.HalfDay))
+                .ToList(),
+            forgotten.Count, forgotten.Count == 0 ? null : BusinessTime.LocalDay(forgotten.Max()));
+    }
+
+    private static async Task<DashboardMyClock?> MyClockAsync(AppDbContext db, CurrentMember member, DateOnly today, CancellationToken ct)
+    {
+        if (await StaffAccess.MyStaffIdAsync(db, member, ct) is not { } staffId)
+        {
+            return null;
+        }
+
+        var (dayStart, _) = BusinessTime.DayRangeUtc(today);
+        var entries = await db.TimeEntries.AsNoTracking()
+            .Where(t => t.StaffMemberId == staffId && (t.ClockInAt >= dayStart.AddDays(-1) || (t.ClockOutAt == null && t.ForgottenAt == null)))
+            .Select(t => new { t.ClockInAt, t.ClockOutAt, t.ForgottenAt }).ToListAsync(ct);
+        var open = entries.Where(e => e.ClockOutAt == null && e.ForgottenAt == null).Select(e => (DateTime?)e.ClockInAt).FirstOrDefault();
+        return new DashboardMyClock(staffId, open, WorkTimeCalculator.MinutesBetween(entries.Select(e => (e.ClockInAt, e.ClockOutAt)), today, today));
     }
 }

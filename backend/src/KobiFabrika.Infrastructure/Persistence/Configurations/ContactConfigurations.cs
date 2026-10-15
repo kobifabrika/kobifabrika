@@ -1,5 +1,6 @@
 using KobiFabrika.Domain.Businesses;
 using KobiFabrika.Domain.Contacts;
+using KobiFabrika.Domain.Messaging;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
@@ -54,6 +55,8 @@ internal sealed class ContactConsentConfiguration : IEntityTypeConfiguration<Con
         // İYS gönderim işi (işletmeler arası): bekleyen bildirimler.
         b.HasIndex(x => x.CreatedAt).HasDatabaseName("IX_ContactConsents_IysPending").HasFilter("[IysStatus] = 'Pending'");
         b.HasOne<Contact>().WithMany().HasForeignKey(x => x.ContactId).OnDelete(DeleteBehavior.Restrict);
+        b.HasIndex(x => x.MessageLogId).HasFilter("[MessageLogId] IS NOT NULL");
+        b.HasOne<MessageLog>().WithMany().HasForeignKey(x => x.MessageLogId).OnDelete(DeleteBehavior.Restrict);
     }
 }
 

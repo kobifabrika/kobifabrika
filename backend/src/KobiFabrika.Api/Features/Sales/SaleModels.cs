@@ -10,10 +10,12 @@ namespace KobiFabrika.Api.Features.Sales;
 /// Satış/teklif kalemi. ProductId varsa ad, birim, KDV ve (verilmezse) KDV dahil fiyat üründen gelir; yoksa serbest kalem:
 /// Description ve UnitPrice zorunlu, VatRate boşsa %20. UnitPrice her zaman KDV dahil.
 /// ServicePackageId: paket satırı (sadece satışta; adet 1, KDV hizmetinki, fiyat verilmezse paket fiyatı, müşteri zorunlu).
+/// StaffMemberId: satırın personeli (sadece satışta; aktif personel; prim ona yazılır). Boşsa satır personelsiz; randevudan
+/// çevrilen satışta randevunun hizmet satırı randevunun personelini alır. Teklifte yok sayılır.
 /// </summary>
 public sealed record DocumentLineRequest(
     Guid? ProductId, string? Description, decimal? Quantity, decimal? UnitPrice, decimal? VatRate, DiscountSpec? Discount,
-    Guid? ServicePackageId = null);
+    Guid? ServicePackageId = null, Guid? StaffMemberId = null);
 
 public sealed record SalePaymentRequest(PaymentMethod Method, decimal? Amount, Guid? CashAccountId);
 
@@ -28,10 +30,13 @@ public sealed record SaleRequest(
 
 public sealed record CancelSaleRequest(string? Reason);
 
-/// <summary>Discount: satır indirimi girildiği şekliyle (TL veya %); LineDiscount TL karşılığı.</summary>
+/// <summary>
+/// Discount: satır indirimi girildiği şekliyle (TL veya %); LineDiscount TL karşılığı. StaffMemberId/StaffName: satış satırının
+/// personeli (teklifte boş).
+/// </summary>
 public sealed record DocumentLineResponse(
     Guid Id, Guid? ProductId, string Description, ProductUnit Unit, decimal Quantity, decimal UnitPrice, decimal LineDiscount, DiscountSpec? Discount,
-    decimal AllocatedDiscount, decimal VatRate, decimal VatAmount, decimal LineTotal);
+    decimal AllocatedDiscount, decimal VatRate, decimal VatAmount, decimal LineTotal, Guid? StaffMemberId = null, string? StaffName = null);
 
 public sealed record SalePaymentResponse(Guid Id, PaymentMethod Method, decimal Amount, Guid? CashAccountId, string? CashAccountName);
 

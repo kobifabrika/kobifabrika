@@ -4,6 +4,7 @@ using KobiFabrika.Api.Features.Public;
 using KobiFabrika.Domain.Businesses;
 using KobiFabrika.Domain.Contacts;
 using KobiFabrika.Domain.Marketing;
+using KobiFabrika.Domain.Messaging;
 using KobiFabrika.Infrastructure.Notifications;
 using KobiFabrika.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Http.HttpResults;
@@ -19,6 +20,11 @@ namespace KobiFabrika.Api.Features.Marketing;
 public static class OptOutEndpoints
 {
     public const string NotificationType = "contact.opted_out";
+
+    /// <summary>Çıkışın bağlandığı pazarlama SMS'i en fazla bu kadar gün önce gitmiş olmalı.</summary>
+    public const int OptOutAttributionDays = 7;
+
+    private static readonly MessagePurpose[] MarketingPurposes = Enum.GetValues<MessagePurpose>().Where(MessagePurposes.IsMarketing).ToArray();
 
     public static IEndpointRouteBuilder MapOptOutEndpoints(this IEndpointRouteBuilder app)
     {
@@ -77,10 +83,16 @@ public static class OptOutEndpoints
         var business = await tenantDb.Businesses.AsNoTracking().Where(b => b.Id == found.BusinessId).Select(b => b.Name).FirstAsync(ct);
         if (changed == 1)
         {
+            // Kampanya raporu için çıkış, müşteriye son 7 günde giden en son pazarlama SMS'ine bağlanır (karar 6).
+            var since = now.AddDays(-OptOutAttributionDays);
+            var marketing = MarketingPurposes;
+            var lastMessage = await tenantDb.MessageLogs.AsNoTracking()
+                .Where(m => m.ContactId == found.ContactId && m.Status == MessageStatus.Sent && m.CreatedAt >= since && marketing.Contains(m.Purpose))
+                .OrderByDescending(m => m.CreatedAt).Select(m => (Guid?)m.Id).FirstOrDefaultAsync(ct);
             tenantDb.ContactConsents.Add(new ContactConsent
             {
                 ContactId = found.ContactId, Channel = ConsentChannel.Sms, Granted = false, Source = ConsentSource.OptOutLink, At = now,
-                IysStatus = IysStatuses.Pending,
+                IysStatus = IysStatuses.Pending, MessageLogId = lastMessage,
             });
             var contactName = await tenantDb.Contacts.AsNoTracking().Where(c => c.Id == found.ContactId).Select(c => c.DisplayName).FirstAsync(ct);
             var managers = await tenantDb.BusinessMemberships.AsNoTracking()

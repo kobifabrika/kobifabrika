@@ -1201,6 +1201,9 @@ namespace KobiFabrika.Infrastructure.Persistence.Migrations
                         .IsUnicode(false)
                         .HasColumnType("varchar(20)");
 
+                    b.Property<Guid?>("MessageLogId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<string>("Source")
                         .IsRequired()
                         .HasMaxLength(20)
@@ -1218,6 +1221,9 @@ namespace KobiFabrika.Infrastructure.Persistence.Migrations
                     b.HasIndex("CreatedAt")
                         .HasDatabaseName("IX_ContactConsents_IysPending")
                         .HasFilter("[IysStatus] = 'Pending'");
+
+                    b.HasIndex("MessageLogId")
+                        .HasFilter("[MessageLogId] IS NOT NULL");
 
                     b.HasIndex("BusinessId", "ContactId", "At");
 
@@ -2259,6 +2265,9 @@ namespace KobiFabrika.Infrastructure.Persistence.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
+                    b.Property<bool>("OptOutsTracked")
+                        .HasColumnType("bit");
+
                     b.Property<bool>("RanOutOfCredit")
                         .HasColumnType("bit");
 
@@ -3246,6 +3255,187 @@ namespace KobiFabrika.Infrastructure.Persistence.Migrations
                         });
                 });
 
+            modelBuilder.Entity("KobiFabrika.Domain.Staff.Commission", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<decimal>("Amount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("Base")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<Guid>("BusinessId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid?>("CommissionRuleId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("CreatedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Kind")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)");
+
+                    b.Property<DateOnly>("OccurredOn")
+                        .HasColumnType("date");
+
+                    b.Property<string>("Period")
+                        .IsRequired()
+                        .HasMaxLength(7)
+                        .IsUnicode(false)
+                        .HasColumnType("char(7)")
+                        .IsFixedLength();
+
+                    b.Property<decimal>("Quantity")
+                        .HasPrecision(18, 3)
+                        .HasColumnType("decimal(18,3)");
+
+                    b.Property<decimal>("Rate")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<Guid?>("ReversalOfId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("RuleText")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("nvarchar(300)");
+
+                    b.Property<Guid>("SaleId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("SaleLineId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("StaffMemberId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BusinessId");
+
+                    b.HasIndex("CommissionRuleId");
+
+                    b.HasIndex("ReversalOfId");
+
+                    b.HasIndex("SaleId");
+
+                    b.HasIndex("SaleLineId");
+
+                    b.HasIndex("StaffMemberId");
+
+                    b.HasIndex("BusinessId", "OccurredOn");
+
+                    SqlServerIndexBuilderExtensions.IncludeProperties(b.HasIndex("BusinessId", "OccurredOn"), new[] { "StaffMemberId", "Amount" });
+
+                    b.HasIndex("BusinessId", "SaleId");
+
+                    b.HasIndex("BusinessId", "Period", "StaffMemberId");
+
+                    SqlServerIndexBuilderExtensions.IncludeProperties(b.HasIndex("BusinessId", "Period", "StaffMemberId"), new[] { "Amount" });
+
+                    b.HasIndex("BusinessId", "SaleLineId", "Kind")
+                        .IsUnique()
+                        .HasDatabaseName("UX_Commissions_Line");
+
+                    b.ToTable("Commissions", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_Commissions_Sign", "([Kind] = 'Accrual' AND [Amount] > 0) OR ([Kind] = 'Reversal' AND [Amount] < 0 AND [ReversalOfId] IS NOT NULL)");
+                        });
+                });
+
+            modelBuilder.Entity("KobiFabrika.Domain.Staff.CommissionRule", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("BusinessId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid?>("CategoryId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("CreatedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<Guid?>("ProductId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid?>("StaffMemberId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Target")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<decimal>("Value")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BusinessId");
+
+                    b.HasIndex("CategoryId");
+
+                    b.HasIndex("ProductId");
+
+                    b.HasIndex("StaffMemberId");
+
+                    b.HasIndex("BusinessId", "StaffMemberId", "Target", "CategoryId", "ProductId")
+                        .IsUnique()
+                        .HasDatabaseName("UX_CommissionRules_Active")
+                        .HasFilter("[IsActive] = 1 AND [IsDeleted] = 0");
+
+                    b.ToTable("CommissionRules", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_CommissionRules_Target", "([Target] = 'Category' AND [CategoryId] IS NOT NULL AND [ProductId] IS NULL) OR ([Target] = 'Item' AND [ProductId] IS NOT NULL AND [CategoryId] IS NULL) OR ([Target] IN ('All', 'Service', 'Product') AND [CategoryId] IS NULL AND [ProductId] IS NULL)");
+
+                            t.HasCheckConstraint("CK_CommissionRules_Value", "([Type] = 'Percent' AND [Value] >= 0 AND [Value] <= 100) OR ([Type] = 'Fixed' AND [Value] >= 0)");
+                        });
+                });
+
             modelBuilder.Entity("KobiFabrika.Domain.Staff.LeaveBalanceEntry", b =>
                 {
                     b.Property<Guid>("Id")
@@ -4163,6 +4353,11 @@ namespace KobiFabrika.Infrastructure.Persistence.Migrations
                         .HasForeignKey("ContactId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
+
+                    b.HasOne("KobiFabrika.Domain.Messaging.MessageLog", null)
+                        .WithMany()
+                        .HasForeignKey("MessageLogId")
+                        .OnDelete(DeleteBehavior.Restrict);
                 });
 
             modelBuilder.Entity("KobiFabrika.Domain.Contacts.ContactNote", b =>
@@ -4478,6 +4673,55 @@ namespace KobiFabrika.Infrastructure.Persistence.Migrations
                         .HasForeignKey("SaleId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("KobiFabrika.Domain.Staff.Commission", b =>
+                {
+                    b.HasOne("KobiFabrika.Domain.Staff.CommissionRule", null)
+                        .WithMany()
+                        .HasForeignKey("CommissionRuleId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("KobiFabrika.Domain.Staff.Commission", null)
+                        .WithMany()
+                        .HasForeignKey("ReversalOfId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("KobiFabrika.Domain.Sales.Sale", null)
+                        .WithMany()
+                        .HasForeignKey("SaleId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("KobiFabrika.Domain.Sales.SaleLine", null)
+                        .WithMany()
+                        .HasForeignKey("SaleLineId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("KobiFabrika.Domain.Staff.StaffMember", null)
+                        .WithMany()
+                        .HasForeignKey("StaffMemberId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("KobiFabrika.Domain.Staff.CommissionRule", b =>
+                {
+                    b.HasOne("KobiFabrika.Domain.Catalog.ProductCategory", null)
+                        .WithMany()
+                        .HasForeignKey("CategoryId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("KobiFabrika.Domain.Catalog.Product", null)
+                        .WithMany()
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("KobiFabrika.Domain.Staff.StaffMember", null)
+                        .WithMany()
+                        .HasForeignKey("StaffMemberId")
+                        .OnDelete(DeleteBehavior.Restrict);
                 });
 
             modelBuilder.Entity("KobiFabrika.Domain.Staff.LeaveBalanceEntry", b =>

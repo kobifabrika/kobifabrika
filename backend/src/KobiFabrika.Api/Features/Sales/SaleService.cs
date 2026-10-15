@@ -2,6 +2,7 @@ using KobiFabrika.Api.Common;
 using KobiFabrika.Api.Features.Catalog;
 using KobiFabrika.Api.Features.Customers;
 using KobiFabrika.Api.Features.Finance;
+using KobiFabrika.Api.Features.Staff;
 using KobiFabrika.Domain.Appointments;
 using KobiFabrika.Domain.Auditing;
 using KobiFabrika.Domain.Catalog;
@@ -21,20 +22,29 @@ public sealed record ResolvedPayment(PaymentMethod Method, decimal Amount, CashA
 /// <summary>Randevudan çevrilen satış: hizmet satırlarına randevunun personeli yazılır.</summary>
 public sealed record AppointmentLink(Guid AppointmentId, Guid StaffMemberId, Guid ProductId);
 
-/// <summary>DueDate: veresiye kısmının vadesi; boşsa satış günü + işletmenin varsayılan vade günü.</summary>
+/// <summary>Personel rolünün satırda varsayılandan (kendi kaydı ya da randevunun personeli) farklı seçtiği personel (günlüğe yazılır).</summary>
+public sealed record LineStaffOverride(int Index, string? FromName, string ToName);
+
+/// <summary>
+/// DueDate: veresiye kısmının vadesi; boşsa satış günü + işletmenin varsayılan vade günü.
+/// LineStaff: satır personelleri (kalem sırasıyla; boş satır personelsiz, randevudan çevrilen satışta randevunun hizmet satırı
+/// randevunun personelini alır).
+/// </summary>
 public sealed record SaleDraft(
     Guid? ContactId, DateTime DateUtc, ResolvedDocument Document, IReadOnlyList<ResolvedPayment> Payments, string? Note, Guid? QuoteId,
-    DateOnly? DueDate = null, AppointmentLink? Appointment = null);
+    DateOnly? DueDate = null, AppointmentLink? Appointment = null, IReadOnlyList<Guid?>? LineStaff = null,
+    IReadOnlyList<LineStaffOverride>? StaffOverrides = null);
 
 /// <summary>
 /// Satışın tek yazıldığı yer. Tek transaction'da: belge numarası → satış, kalemler, ödemeler → veresiye kısmı cariye borç
 /// (LedgerService) → nakit kasaya, kart/havale bankaya (LedgerService) → stok düşümü (StockService, ürünler Id sırasıyla) →
-/// müşterinin son ziyareti. Kilit sırası her yerde aynı: (randevu →) numara → satış → cari → kasa → stok (kilitlenme olmaz).
+/// müşterinin son ziyareti → prim (CommissionService). Kilit sırası her yerde aynı: (randevu →) numara → satış → cari → kasa → stok (kilitlenme olmaz).
 /// Randevudan çevrilen satışta randevu satırı ilk adımda koşullu UPDATE ile bağlanır: ikinci çevirme 409 alır.
 /// İptal kaydı silmez: koşullu UPDATE ile bir kez iptal edilir, cari/kasa/stok ters kayıtla geri alınır.
 /// </summary>
 public sealed class SaleService(
-    AppDbContext db, LedgerService ledger, StockService stock, DocumentNumbers numbers, ITenantContext tenant, IAuditLogger audit, TimeProvider clock)
+    AppDbContext db, LedgerService ledger, StockService stock, DocumentNumbers numbers, ITenantContext tenant, IAuditLogger audit, TimeProvider clock,
+    CommissionService commissions)
 {
     /// <summary>
     /// Ödemeleri doğrular ve kasa/banka hesabını seçer: nakit → varsayılan Nakit Kasa, kart/havale → Banka (istekte hesap verilebilir).
@@ -143,10 +153,16 @@ public sealed class SaleService(
                 AppointmentId = draft.Appointment?.AppointmentId,
                 Note = string.IsNullOrWhiteSpace(draft.Note) ? null : draft.Note.Trim(),
             };
-            sale.Lines.AddRange(draft.Document.Lines.Select((l, i) => DocumentLines.ToEntity<SaleLine>(l, i)));
+            sale.Lines.AddRange(draft.Document.Lines.Select((l, i) =>
+            {
+                var line = DocumentLines.ToEntity<SaleLine>(l, i);
+                line.StaffMemberId = draft.LineStaff is { } staff && i < staff.Count ? staff[i] : null;
+                return line;
+            }));
             if (draft.Appointment is { } appointment)
             {
-                foreach (var line in sale.Lines.Where(l => l.ProductId == appointment.ProductId))
+                // İstemci personel göndermediyse randevunun hizmet satırına randevunun personeli yazılır.
+                foreach (var line in sale.Lines.Where(l => l.ProductId == appointment.ProductId && l.StaffMemberId is null))
                 {
                     line.StaffMemberId = appointment.StaffMemberId;
                 }
@@ -179,6 +195,14 @@ public sealed class SaleService(
                     SaleId = sale.Id, SaleLineId = line.Id, TotalSessions = package.SessionCount,
                     ExpiresOn = PackageRules.ExpiresOn(day, package.ValidityDays),
                 });
+            }
+
+            // Prim (karar c, d): satır Id'leri ve paket bağlantısı belli, aynı transaction'da.
+            await commissions.AccrueAsync(sale, ct);
+            foreach (var o in draft.StaffOverrides ?? [])
+            {
+                audit.Log(AuditAction.SaleLineStaffChanged, nameof(Sale), sale.Id,
+                    new { no, line = sale.Lines[o.Index].Description, staff = new { from = o.FromName, to = o.ToName } });
             }
 
             var description = $"Satış {no}";
@@ -279,6 +303,9 @@ public sealed class SaleService(
 
             var sale = await db.Sales.AsNoTracking().Include(s => s.Payments).FirstAsync(s => s.Id == saleId, ct);
             var day = BusinessTime.Today(clock);
+
+            // Prim (karar f): iptal gününe (ayına) eksi kayıt; kapanmış ayın tutarı değişmez.
+            await commissions.ReverseAsync(saleId, ct);
             var description = $"Satış iptali {sale.No}";
             foreach (var payment in sale.Payments.Where(p => p.Method == PaymentMethod.Credit))
             {

@@ -7,6 +7,7 @@ using KobiFabrika.Api.Features.Finance;
 using KobiFabrika.Api.Features.Staff;
 using KobiFabrika.Domain.Appointments;
 using KobiFabrika.Domain.Auditing;
+using KobiFabrika.Domain.Businesses;
 using KobiFabrika.Domain.Common;
 using KobiFabrika.Domain.Sales;
 using KobiFabrika.Infrastructure.Auditing;
@@ -73,15 +74,19 @@ public static class SaleEndpoints
         var creditEntryIds = sale.Payments.Select(p => p.LedgerEntryId).OfType<Guid>().ToList();
         var dueDate = creditEntryIds.Count == 0 ? null : await db.LedgerEntries.IgnoreQueryFilters([QueryFilters.SoftDelete])
             .Where(e => creditEntryIds.Contains(e.Id)).Select(e => e.DueDate).FirstOrDefaultAsync(ct);
-        var staffId = sale.Lines.Select(l => l.StaffMemberId).OfType<Guid>().FirstOrDefault();
-        var staffName = staffId == Guid.Empty ? null : await db.StaffMembers.IgnoreQueryFilters([QueryFilters.SoftDelete])
-            .Where(s => s.Id == staffId).Select(s => s.FullName).FirstOrDefaultAsync(ct);
+        var lineStaffIds = sale.Lines.Select(l => l.StaffMemberId).OfType<Guid>().Distinct().ToList();
+        var staffNames = lineStaffIds.Count == 0 ? new Dictionary<Guid, string>() : await db.StaffMembers.IgnoreQueryFilters([QueryFilters.SoftDelete])
+            .Where(s => lineStaffIds.Contains(s.Id)).ToDictionaryAsync(s => s.Id, s => s.FullName, ct);
+        var staffName = sale.Lines.Select(l => l.StaffMemberId).OfType<Guid>().Select(staffNames.GetValueOrDefault).FirstOrDefault();
 
         return new SaleResponse(
             sale.Id, sale.No, sale.Date, sale.ContactId, contact?.DisplayName, contact?.Phone, sale.Status,
             sale.SubTotal, sale.LineDiscountTotal, sale.DiscountTotal, DiscountSpec.From(sale.DiscountType, sale.DiscountValue), sale.VatTotal,
             sale.Total, DocumentLines.Vat(sale.Lines),
-            sale.Lines.Select(DocumentLines.ToResponse).ToList(),
+            sale.Lines.Select(l => DocumentLines.ToResponse(l) with
+            {
+                StaffMemberId = l.StaffMemberId, StaffName = l.StaffMemberId is { } ls ? staffNames.GetValueOrDefault(ls) : null,
+            }).ToList(),
             sale.Payments.OrderBy(p => p.Method).Select(p => new SalePaymentResponse(
                 p.Id, p.Method, p.Amount, p.CashAccountId, p.CashAccountId is { } a ? accounts.GetValueOrDefault(a) : null)).ToList(),
             sale.Note, sale.CreatedBy, sale.CreatedBy is { } c ? users.GetValueOrDefault(c) : null,
@@ -234,6 +239,12 @@ public static class SaleEndpoints
             appointment = new AppointmentLink(appointmentId, row.StaffMemberId, row.ProductId);
         }
 
+        var (lineStaff, overrides, staffField, staffError) = await LineStaffAsync(db, member, request.Lines!, document, appointment, ct);
+        if (staffError is not null)
+        {
+            return Validation.FieldProblem(staffField!, staffError);
+        }
+
         var dateUtc = request.Date is { } d ? DateTime.SpecifyKind(d.ToUniversalTime(), DateTimeKind.Utc) : now;
         if (SaleService.DueDateError(request.DueDate, BusinessTime.LocalDay(dateUtc)) is { } dueError)
         {
@@ -241,8 +252,48 @@ public static class SaleEndpoints
         }
 
         var (sale, warnings) = await sales.CreateAsync(
-            new SaleDraft(request.ContactId, dateUtc, document, payments, request.Note, null, request.DueDate, appointment), ct);
+            new SaleDraft(request.ContactId, dateUtc, document, payments, request.Note, null, request.DueDate, appointment, lineStaff, overrides), ct);
         return TypedResults.Created($"/api/sales/{sale.Id}", new SaleCreatedResponse((await LoadAsync(db, member, sale.Id, ct))!, warnings));
+    }
+
+    /// <summary>
+    /// Satır personelleri: aktif personel olmalı (kiracı filtresi). Personel rolü başkasını da seçebilir (resepsiyon); varsayılandan
+    /// (randevunun hizmet satırında randevunun personeli, diğerlerinde kendi bağlı kaydı) farklı seçim günlüğe yazılır.
+    /// </summary>
+    private static async Task<(List<Guid?> Staff, List<LineStaffOverride> Overrides, string? Field, string? Error)> LineStaffAsync(
+        AppDbContext db, CurrentMember member, IReadOnlyList<DocumentLineRequest> lines, ResolvedDocument document, AppointmentLink? appointment,
+        CancellationToken ct)
+    {
+        var requested = lines.Select(l => l.StaffMemberId).ToList();
+        var ids = requested.OfType<Guid>().Distinct().ToList();
+        var active = ids.Count == 0 ? new Dictionary<Guid, string>() : await db.StaffMembers.AsNoTracking()
+            .Where(s => ids.Contains(s.Id) && s.IsActive).ToDictionaryAsync(s => s.Id, s => s.FullName, ct);
+        for (var i = 0; i < requested.Count; i++)
+        {
+            if (requested[i] is { } id && !active.ContainsKey(id))
+            {
+                return ([], [], $"lines[{i}].staffMemberId", "Personel bulunamadı veya pasif.");
+            }
+        }
+
+        var overrides = new List<LineStaffOverride>();
+        if (member.Role == BusinessRole.Staff && ids.Count > 0)
+        {
+            var mine = await StaffAccess.MyStaffIdAsync(db, member, ct);
+            var defaults = document.Lines.Select(l => appointment is { } a && l.Product?.Id == a.ProductId ? a.StaffMemberId : mine).ToList();
+            var defaultIds = defaults.OfType<Guid>().Distinct().ToList();
+            var names = await db.StaffMembers.IgnoreQueryFilters([QueryFilters.SoftDelete]).AsNoTracking()
+                .Where(s => defaultIds.Contains(s.Id)).ToDictionaryAsync(s => s.Id, s => s.FullName, ct);
+            for (var i = 0; i < requested.Count; i++)
+            {
+                if (requested[i] is { } chosen && chosen != defaults[i])
+                {
+                    overrides.Add(new LineStaffOverride(i, defaults[i] is { } d ? names.GetValueOrDefault(d) : null, active[chosen]));
+                }
+            }
+        }
+
+        return (requested, overrides, null, null);
     }
 
     private static async Task<Results<Ok<SaleResponse>, ProblemHttpResult>> Cancel(
