@@ -2,6 +2,7 @@
 
 import { IdCard, Plus } from "lucide-react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { useState } from "react";
 
 import { EmptyState } from "@/components/contacts/contact-bits";
@@ -9,11 +10,33 @@ import { QueryError } from "@/components/feedback/query-error";
 import { useSession } from "@/components/providers/session-provider";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { TabNav } from "@/components/ui/scroll-row";
 import { Switch } from "@/components/ui/switch";
 import { displayPhone } from "@/lib/contacts";
 import { can } from "@/lib/permissions";
 
+import { CommissionRules } from "./commissions";
 import { StaffSwatch, useStaffList } from "./staff-bits";
+
+/** /panel/personel?sekme=liste|prim: personel listesi ve prim kuralları. */
+export function StaffHome() {
+  const params = useSearchParams();
+  const active = params.get("sekme") === "prim" ? "prim" : "liste";
+  return (
+    <div className="flex flex-col gap-5">
+      <h1 className="text-2xl font-bold tracking-tight text-black">Personel</h1>
+      <TabNav
+        label="Personel sekmeleri"
+        active={active}
+        tabs={[
+          { key: "liste", label: "Personel", href: "/panel/personel" },
+          { key: "prim", label: "Prim kuralları", href: "/panel/personel?sekme=prim" },
+        ]}
+      />
+      {active === "prim" ? <CommissionRules /> : <StaffList />}
+    </div>
+  );
+}
 
 /** Personel listesi: masaüstünde tablo, telefonda kart. Sahip ve Yönetici ekler; Mali Müşavir salt okunur görür. */
 export function StaffList() {
@@ -25,9 +48,7 @@ export function StaffList() {
   return (
     <div className="flex flex-col gap-5">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h1 className="text-2xl font-bold tracking-tight text-black">
-          Personel {staff.data && <span className="text-base font-normal text-neutral-600 tabular-nums">({staff.data.length})</span>}
-        </h1>
+        <p className="text-sm text-neutral-600 tabular-nums">{staff.data && `${staff.data.length} personel`}</p>
         {manage && (
           <Button asChild>
             <Link href="/panel/personel/yeni">
@@ -38,8 +59,8 @@ export function StaffList() {
         )}
       </div>
       <p className="max-w-2xl text-sm text-neutral-600">
-        Takvimdeki kolonlar buradaki personeldir. Çalışma saatlerini, verdiği hizmetleri ve izin/mola gibi kapalı zamanlarını personelin
-        kartından düzenleyin. Maaş, mesai ve izin talepleri ileride eklenecek.
+        Takvimdeki kolonlar buradaki personeldir. Çalışma saatlerini, verdiği hizmetleri, mola gibi kapalı zamanlarını, izin bakiyesini
+        ve (Sahip için) maaşı personelin kartından düzenleyin. Mesai ve izin talepleri Mesai ve İzin ekranında.
       </p>
       <label className="flex min-h-11 items-center gap-3 self-start text-sm text-black">
         <Switch checked={showInactive} onCheckedChange={setShowInactive} />

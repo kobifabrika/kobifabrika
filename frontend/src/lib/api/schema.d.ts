@@ -5108,6 +5108,308 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/reports/commissions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Prim: personel toplamları ve kalemler (month=yyyy-MM; iptaller iptal ayında eksi) */
+        get: {
+            parameters: {
+                query?: {
+                    month?: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["CommissionMonthResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/reports/commissions.xlsx": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Prim raporu Excel */
+        get: {
+            parameters: {
+                query?: {
+                    month?: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/reports/staff": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Personel performansı: satış, hizmet, randevu, gelmedi, anket, prim, çalışılan saat */
+        get: {
+            parameters: {
+                query?: {
+                    from?: string;
+                    to?: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["StaffReportResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/reports/staff.xlsx": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Personel raporu Excel */
+        get: {
+            parameters: {
+                query?: {
+                    from?: string;
+                    to?: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/reports/campaigns": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Kampanyalar: gönderilen, başarısız, nedenine göre elenen, kredi, çıkış yapan */
+        get: {
+            parameters: {
+                query?: {
+                    from?: string;
+                    to?: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["CampaignReportResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/reports/campaigns.xlsx": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Kampanya raporu Excel */
+        get: {
+            parameters: {
+                query?: {
+                    from?: string;
+                    to?: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/reports/surveys": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Memnuniyet anketi: ortalama, dağılım, personel bazında */
+        get: {
+            parameters: {
+                query?: {
+                    from?: string;
+                    to?: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["SurveyReportResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/reports/surveys.xlsx": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Anket raporu Excel */
+        get: {
+            parameters: {
+                query?: {
+                    from?: string;
+                    to?: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/contacts/import/template.xlsx": {
         parameters: {
             query?: never;
@@ -9341,6 +9643,223 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/commission-rules": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Prim kuralları (öncelik sırasıyla) */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["CommissionRuleResponse"][];
+                    };
+                };
+            };
+        };
+        put?: never;
+        /** Prim kuralı ekle */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["CommissionRuleRequest"];
+                };
+            };
+            responses: {
+                /** @description Created */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["CommissionRuleResponse"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/commission-rules/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Prim kuralını düzenle (yazılmış primler değişmez) */
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["CommissionRuleRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["CommissionRuleResponse"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+                    };
+                };
+            };
+        };
+        post?: never;
+        /** Prim kuralını sil */
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/commissions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Ayın primleri (month=yyyy-MM; Personel sadece kendisininkini görür) */
+        get: {
+            parameters: {
+                query?: {
+                    month?: string;
+                    staffId?: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["CommissionMonthResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/commissions/me": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Primim (oturumdaki kullanıcının personel kaydı) */
+        get: {
+            parameters: {
+                query?: {
+                    month?: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["CommissionMonthResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/appointments/{id}": {
         parameters: {
             query?: never;
@@ -11381,7 +11900,7 @@ export interface components {
             items: components["schemas"]["AtRiskItem"][];
         };
         /** @enum {unknown} */
-        AuditAction: "Login" | "InvitationSent" | "InvitationResent" | "InvitationRevoked" | "InvitationAccepted" | "RoleChanged" | "MemberRemoved" | "BusinessUpdated" | "SlugChanged" | "WorkingHoursUpdated" | "LogoChanged" | "ModulesChanged" | "PaymentInfoChanged" | "ReceiptSettingsChanged" | "ContactCreated" | "ContactUpdated" | "ContactArchived" | "ContactRestored" | "ContactDeleted" | "ContactsImported" | "ContactsExported" | "LedgerEntryCreated" | "LedgerEntryDeleted" | "OpeningBalanceSet" | "CollectionRecorded" | "CollectionReverted" | "PaymentRequestCreated" | "PaymentRequestConfirmed" | "PaymentRequestRejected" | "PaymentRequestCancelled" | "PaymentRequestRenewed" | "StatementShared" | "ProductCreated" | "ProductUpdated" | "ProductDeleted" | "ProductsImported" | "ProductsExported" | "StockMovementAdded" | "SaleDiscounted" | "SaleCancelled" | "SalesExported" | "QuoteCreated" | "QuoteUpdated" | "QuoteShared" | "QuoteRenewed" | "QuoteExtended" | "QuoteAccepted" | "QuoteRejected" | "QuoteConverted" | "QuoteDeleted" | "CashAccountCreated" | "CashAccountUpdated" | "CashAccountDeactivated" | "CashAccountActivated" | "DefaultCashAccountChanged" | "CashTransferRecorded" | "CashTransactionReversed" | "SupplierPaymentRecorded" | "ExpenseRecorded" | "IncomeRecorded" | "ExpenseCategoryCreated" | "ExpenseCategoryUpdated" | "ExpenseCategoryDeactivated" | "ExpenseCategoryActivated" | "DueReminderSent" | "FinanceSettingsChanged" | "ReportExported" | "CashTransactionsExported" | "StaffCreated" | "StaffUpdated" | "StaffDeleted" | "StaffWorkingHoursUpdated" | "StaffServicesUpdated" | "HolidayCreated" | "HolidayDeleted" | "AppointmentSettingsChanged" | "BookingSettingsChanged" | "ServicePackageCreated" | "ServicePackageUpdated" | "ServicePackageDeleted" | "CustomerPackageExtended" | "CustomerPackageClosed" | "SmsCreditsAdded" | "SmsCreditsExported" | "SmsSettingsChanged" | "CampaignCreated" | "CampaignCancelled" | "ContactDataExported" | "ContactAnonymized" | "AutomationChanged" | "ReviewSettingsChanged" | "StaffSalaryChanged" | "TimeEntryAdded" | "TimeEntryCorrected" | "TimeEntryDeleted" | "LeaveRequested" | "LeaveApproved" | "LeaveRejected" | "LeaveCancelled" | "LeaveBalanceAdjusted" | "LeaveTypeChanged" | "StaffSettingsChanged";
+        AuditAction: "Login" | "InvitationSent" | "InvitationResent" | "InvitationRevoked" | "InvitationAccepted" | "RoleChanged" | "MemberRemoved" | "BusinessUpdated" | "SlugChanged" | "WorkingHoursUpdated" | "LogoChanged" | "ModulesChanged" | "PaymentInfoChanged" | "ReceiptSettingsChanged" | "ContactCreated" | "ContactUpdated" | "ContactArchived" | "ContactRestored" | "ContactDeleted" | "ContactsImported" | "ContactsExported" | "LedgerEntryCreated" | "LedgerEntryDeleted" | "OpeningBalanceSet" | "CollectionRecorded" | "CollectionReverted" | "PaymentRequestCreated" | "PaymentRequestConfirmed" | "PaymentRequestRejected" | "PaymentRequestCancelled" | "PaymentRequestRenewed" | "StatementShared" | "ProductCreated" | "ProductUpdated" | "ProductDeleted" | "ProductsImported" | "ProductsExported" | "StockMovementAdded" | "SaleDiscounted" | "SaleCancelled" | "SalesExported" | "QuoteCreated" | "QuoteUpdated" | "QuoteShared" | "QuoteRenewed" | "QuoteExtended" | "QuoteAccepted" | "QuoteRejected" | "QuoteConverted" | "QuoteDeleted" | "CashAccountCreated" | "CashAccountUpdated" | "CashAccountDeactivated" | "CashAccountActivated" | "DefaultCashAccountChanged" | "CashTransferRecorded" | "CashTransactionReversed" | "SupplierPaymentRecorded" | "ExpenseRecorded" | "IncomeRecorded" | "ExpenseCategoryCreated" | "ExpenseCategoryUpdated" | "ExpenseCategoryDeactivated" | "ExpenseCategoryActivated" | "DueReminderSent" | "FinanceSettingsChanged" | "ReportExported" | "CashTransactionsExported" | "StaffCreated" | "StaffUpdated" | "StaffDeleted" | "StaffWorkingHoursUpdated" | "StaffServicesUpdated" | "HolidayCreated" | "HolidayDeleted" | "AppointmentSettingsChanged" | "BookingSettingsChanged" | "ServicePackageCreated" | "ServicePackageUpdated" | "ServicePackageDeleted" | "CustomerPackageExtended" | "CustomerPackageClosed" | "SmsCreditsAdded" | "SmsCreditsExported" | "SmsSettingsChanged" | "CampaignCreated" | "CampaignCancelled" | "ContactDataExported" | "ContactAnonymized" | "AutomationChanged" | "ReviewSettingsChanged" | "StaffSalaryChanged" | "TimeEntryAdded" | "TimeEntryCorrected" | "TimeEntryDeleted" | "LeaveRequested" | "LeaveApproved" | "LeaveRejected" | "LeaveCancelled" | "LeaveBalanceAdjusted" | "LeaveTypeChanged" | "StaffSettingsChanged" | "CommissionRuleChanged" | "SaleLineStaffChanged";
         AuditLogListResponse: {
             items: components["schemas"]["AuditLogResponse"][];
             /** Format: int32 */
@@ -11615,6 +12134,45 @@ export interface components {
             /** Format: int32 */
             total: number;
         };
+        CampaignReportResponse: {
+            /** Format: date */
+            from: string;
+            /** Format: date */
+            to: string;
+            rows: components["schemas"]["CampaignReportRow"][];
+        };
+        CampaignReportRow: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+            /** Format: date-time */
+            scheduledAt: string;
+            status: components["schemas"]["CampaignStatus"];
+            /** Format: int32 */
+            recipients: number;
+            /** Format: int32 */
+            sent: number;
+            /** Format: int32 */
+            failed: number;
+            /** Format: int32 */
+            skipped: number;
+            /** Format: int32 */
+            skippedNoConsent: number;
+            /** Format: int32 */
+            skippedOptedOut: number;
+            /** Format: int32 */
+            skippedDailyLimit: number;
+            /** Format: int32 */
+            skippedNoCredit: number;
+            /** Format: int32 */
+            skippedNoPhone: number;
+            /** Format: int32 */
+            skippedOther: number;
+            /** Format: int32 */
+            creditUsed: number;
+            /** Format: int32 */
+            optOuts: null | number;
+        };
         CampaignResponse: {
             /** Format: uuid */
             id: string;
@@ -11810,6 +12368,93 @@ export interface components {
             /** Format: double */
             accountBalance: number;
         };
+        CommissionItem: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            staffMemberId: string;
+            staffName: string;
+            /** Format: uuid */
+            saleId: string;
+            saleNo: string;
+            /** Format: date-time */
+            saleDate: string;
+            /** Format: date */
+            occurredOn: string;
+            lineDescription: string;
+            /** Format: double */
+            quantity: number;
+            /** Format: double */
+            base: number;
+            ruleText: string;
+            /** Format: double */
+            amount: number;
+            kind: components["schemas"]["CommissionKind"];
+            enteredByName: null | string;
+        };
+        /** @enum {unknown} */
+        CommissionKind: "Accrual" | "Reversal";
+        CommissionMonthResponse: {
+            month: string;
+            /** Format: uuid */
+            staffMemberId: null | string;
+            /** Format: double */
+            total: number;
+            staff: components["schemas"]["CommissionStaffTotal"][];
+            items: components["schemas"]["CommissionItem"][];
+        };
+        CommissionRuleRequest: {
+            /** Format: uuid */
+            staffMemberId: null | string;
+            target: components["schemas"]["CommissionTarget"];
+            /** Format: uuid */
+            categoryId: null | string;
+            /** Format: uuid */
+            productId: null | string;
+            type: components["schemas"]["CommissionType"];
+            /** Format: double */
+            value: number;
+            /** @default true */
+            isActive: boolean;
+        };
+        CommissionRuleResponse: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            staffMemberId: null | string;
+            staffName: null | string;
+            target: components["schemas"]["CommissionTarget"];
+            /** Format: uuid */
+            categoryId: null | string;
+            categoryName: null | string;
+            /** Format: uuid */
+            productId: null | string;
+            productName: null | string;
+            type: components["schemas"]["CommissionType"];
+            /** Format: double */
+            value: number;
+            isActive: boolean;
+            /** Format: int32 */
+            rank: number;
+            text: string;
+        };
+        CommissionStaffTotal: {
+            /** Format: uuid */
+            staffMemberId: string;
+            staffName: string;
+            /** Format: double */
+            accrued: number;
+            /** Format: double */
+            reversed: number;
+            /** Format: double */
+            net: number;
+            /** Format: int32 */
+            lineCount: number;
+        };
+        /** @enum {unknown} */
+        CommissionTarget: "All" | "Service" | "Product" | "Category" | "Item";
+        /** @enum {unknown} */
+        CommissionType: "Percent" | "Fixed";
         ConfirmEmailRequest: {
             /** Format: uuid */
             userId: string;
@@ -12055,6 +12700,28 @@ export interface components {
             emptySlots: components["schemas"]["EmptySlotsResponse"];
             atRisk: components["schemas"]["AtRiskSummary"];
         };
+        DashboardMyClock: {
+            /** Format: uuid */
+            staffMemberId: string;
+            /** Format: date-time */
+            openSince: null | string;
+            /** Format: int32 */
+            todayMinutes: number;
+        };
+        DashboardOnClock: {
+            /** Format: uuid */
+            staffMemberId: string;
+            name: string;
+            /** Format: date-time */
+            since: string;
+        };
+        DashboardOnLeave: {
+            /** Format: uuid */
+            staffMemberId: string;
+            name: string;
+            typeName: string;
+            halfDay: components["schemas"]["HalfDay"];
+        };
         DashboardReceivables: {
             /** Format: double */
             overdue: number;
@@ -12078,6 +12745,8 @@ export interface components {
             last30Days: components["schemas"]["DailyTotal"][];
             appointments: null | components["schemas"]["DashboardAppointments"];
             marketing: null | components["schemas"]["DashboardMarketing"];
+            staff?: null | components["schemas"]["DashboardStaff"];
+            myClock?: null | components["schemas"]["DashboardMyClock"];
         };
         DashboardSale: {
             /** Format: uuid */
@@ -12097,6 +12766,14 @@ export interface components {
             count: number;
             byMethod: components["schemas"]["MethodTotal"][];
             onlyOwn: boolean;
+        };
+        DashboardStaff: {
+            onClock: components["schemas"]["DashboardOnClock"][];
+            onLeave: components["schemas"]["DashboardOnLeave"][];
+            /** Format: int32 */
+            forgottenCount: number;
+            /** Format: date */
+            forgottenDay: null | string;
         };
         DashboardStock: {
             enabled: boolean;
@@ -12128,6 +12805,8 @@ export interface components {
             discount: null | components["schemas"]["DiscountSpec"];
             /** Format: uuid */
             servicePackageId?: null | string;
+            /** Format: uuid */
+            staffMemberId?: null | string;
         };
         DocumentLineResponse: {
             /** Format: uuid */
@@ -12151,6 +12830,9 @@ export interface components {
             vatAmount: number;
             /** Format: double */
             lineTotal: number;
+            /** Format: uuid */
+            staffMemberId?: null | string;
+            staffName?: null | string;
         };
         EmptySlotItem: {
             /** Format: uuid */
@@ -13758,6 +14440,37 @@ export interface components {
             day: components["schemas"]["DayOfWeek"];
             ranges: components["schemas"]["TimeRangeDto"][];
         };
+        StaffReportResponse: {
+            /** Format: date */
+            from: string;
+            /** Format: date */
+            to: string;
+            rows: components["schemas"]["StaffReportRow"][];
+        };
+        StaffReportRow: {
+            /** Format: uuid */
+            staffMemberId: string;
+            staffName: string;
+            isActive: boolean;
+            /** Format: double */
+            sales: number;
+            /** Format: double */
+            serviceCount: number;
+            /** Format: int32 */
+            appointments: number;
+            /** Format: int32 */
+            noShows: number;
+            /** Format: double */
+            noShowRate: null | number;
+            /** Format: double */
+            surveyAverage: null | number;
+            /** Format: int32 */
+            surveyCount: number;
+            /** Format: double */
+            commission: number;
+            /** Format: int32 */
+            workedMinutes: number;
+        };
         StaffRequest: {
             fullName: string;
             title: null | string;
@@ -13909,9 +14622,34 @@ export interface components {
             /** Format: int32 */
             total: number;
         };
+        SurveyReportResponse: {
+            /** Format: date */
+            from: string;
+            /** Format: date */
+            to: string;
+            /** Format: int32 */
+            sent: number;
+            /** Format: int32 */
+            answered: number;
+            /** Format: double */
+            average: null | number;
+            distribution: number[];
+            /** Format: int32 */
+            googleClicks: number;
+            staff: components["schemas"]["SurveyStaffRow"][];
+        };
         SurveyScoreRequest: {
             /** Format: int32 */
             score: number;
+        };
+        SurveyStaffRow: {
+            /** Format: uuid */
+            staffMemberId: null | string;
+            staffName: string;
+            /** Format: int32 */
+            answered: number;
+            /** Format: double */
+            average: null | number;
         };
         SurveySummary: {
             /** Format: int32 */

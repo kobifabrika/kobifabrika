@@ -71,8 +71,17 @@ describe("cartReducer", () => {
     cart = cartReducer(cart, { type: "discount", discount: { type: "Amount", value: 12.7 } });
     expect(cartTotals(cart).total).toBe(168.3);
     expect(toLineRequests(cart.lines)).toEqual([
-      { productId: "p1", description: null, quantity: 1, unitPrice: 100, vatRate: null, discount: null, servicePackageId: null },
-      { productId: null, description: "Ütü", quantity: 3, unitPrice: 30, vatRate: 10, discount: { type: "Percent", value: 10 }, servicePackageId: null },
+      { productId: "p1", description: null, quantity: 1, unitPrice: 100, vatRate: null, discount: null, servicePackageId: null, staffMemberId: null },
+      {
+        productId: null,
+        description: "Ütü",
+        quantity: 3,
+        unitPrice: 30,
+        vatRate: 10,
+        discount: { type: "Percent", value: 10 },
+        servicePackageId: null,
+        staffMemberId: null,
+      },
     ]);
   });
 
@@ -155,6 +164,7 @@ describe("paket satırı", () => {
       vatRate: null,
       discount: null,
       servicePackageId: "p1",
+      staffMemberId: null,
     });
   });
 
@@ -164,5 +174,48 @@ describe("paket satırı", () => {
     expect(line).toMatchObject({ description: "Paket: 10 seans lazer (4/10)", unitPrice: 0, servicePackageId: null });
     const plain = cartReducer(emptyCart, { type: "addDraft", product: product({ name: "Lazer" }), name: "Lazer", unitPrice: 500 });
     expect(toLineRequests(plain.lines)[0].description).toBeNull();
+  });
+});
+
+describe("satır personeli (prim)", () => {
+  const ayse = { id: "s-ayse", name: "Ayşe Usta" };
+  const mehmet = { id: "s-mehmet", name: "Mehmet Kalfa" };
+
+  it("yeni satır sepetin varsayılan personelini alır; eski taslaktaki satırlar da doldurulur", () => {
+    let cart = cartReducer(emptyCart, { type: "add", product: product() });
+    expect(cart.lines[0].staffMemberId).toBeNull();
+    // Eski taslak: satırlarda personel alanı hiç yok.
+    const legacy = { ...cart, lines: cart.lines.map((l) => ({ ...l, staffMemberId: undefined, staffName: undefined })) };
+    cart = cartReducer(legacy, { type: "defaultStaff", staff: ayse });
+    expect(cart.lines[0]).toMatchObject({ staffMemberId: "s-ayse", staffName: "Ayşe Usta" });
+    cart = cartReducer(cart, { type: "addFree", name: "Hediye paketi", unitPrice: 60, vatRate: 20 });
+    expect(toLineRequests(cart.lines).map((l) => l.staffMemberId)).toEqual(["s-ayse", "s-ayse"]);
+  });
+
+  it("satırda seçilen personel kalır; aynı ürün başka personelle ayrı satır açar", () => {
+    let cart = cartReducer({ ...emptyCart, staff: ayse }, { type: "add", product: product() });
+    cart = cartReducer(cart, { type: "update", key: cart.lines[0].key, patch: { staffMemberId: mehmet.id, staffName: mehmet.name } });
+    cart = cartReducer(cart, { type: "defaultStaff", staff: ayse });
+    expect(cart.lines[0].staffMemberId).toBe("s-mehmet");
+    cart = cartReducer(cart, { type: "add", product: product() });
+    expect(cart.lines).toHaveLength(2);
+    expect(cart.lines[1].staffMemberId).toBe("s-ayse");
+    cart = cartReducer(cart, { type: "add", product: product() });
+    expect(cart.lines[1].quantity).toBe(2);
+    cart = cartReducer(cart, { type: "update", key: cart.lines[0].key, patch: { staffMemberId: null, staffName: null } });
+    expect(toLineRequests(cart.lines)[0].staffMemberId).toBeNull();
+  });
+
+  it("randevudan gelen satır randevunun personelini alır; sepet temizlenince varsayılan kalır", () => {
+    let cart = cartReducer({ ...emptyCart, staff: ayse }, { type: "addDraft", product: product({ name: "Saç kesimi" }), name: "Saç kesimi", unitPrice: 300, staff: mehmet });
+    expect(cart.lines[0]).toMatchObject({ staffMemberId: "s-mehmet", staffName: "Mehmet Kalfa" });
+    cart = cartReducer(cart, { type: "clear" });
+    expect(cart.staff).toEqual(ayse);
+    expect(cart.lines).toHaveLength(0);
+  });
+
+  it("personeli olmayan kullanıcıda satır personelsiz gider", () => {
+    const cart = cartReducer(cartReducer(emptyCart, { type: "defaultStaff", staff: null }), { type: "add", product: product() });
+    expect(toLineRequests(cart.lines)[0].staffMemberId).toBeNull();
   });
 });

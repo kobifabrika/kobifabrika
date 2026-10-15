@@ -17,6 +17,7 @@ import { todayIstanbul } from "@/lib/format";
 import { can } from "@/lib/permissions";
 import { formatQuantity, parseQuantity, validateQuantity } from "@/lib/sales";
 import { parseMoneyInput } from "@/lib/validation/rules";
+import { useIsDesktop } from "@/lib/use-media";
 
 type Kind = "In" | "Out" | "Adjustment";
 
@@ -35,6 +36,8 @@ export function StockDialog({
   open: boolean;
   onOpenChange: (v: boolean) => void;
 }) {
+  // Telefonda pencere açılınca klavye açılıp düğmeleri örtmesin; masaüstünde ilk alana odaklanılır.
+  const isDesktop = useIsDesktop();
   const { role } = useSession();
   const refresh = useCatalogRefresh();
   const [product, setProduct] = useState<Product | null>(initial ?? null);
@@ -116,7 +119,7 @@ export function StockDialog({
               )}
             </div>
           ) : (
-            <ProductSearch trackedOnly autoFocus onPick={setProduct} placeholder="Ürün adı veya barkod okutun" />
+            <ProductSearch trackedOnly autoFocus={isDesktop} onPick={setProduct} placeholder="Ürün adı veya barkod okutun" />
           )}
 
           <ChoiceField

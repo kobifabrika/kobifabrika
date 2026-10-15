@@ -108,8 +108,10 @@ kopar, sahipsiz Next dev sunucusu `write EPIPE` ile bozulur (sayfalar dakikalarc
 
 ## Güncel durum
 
-- Sprint: **7A (personel kartı, mesai, izin)** bitti (2026-10-15; Actions #19 yeşil). Sıradaki: **7B** (prim, kampanya/anket/personel raporları, Bugün'de aktif personel). Kararlar `docs/karar-gunlugu.md` 2026-10-15 (Sprint 7 planı).
+- Sprint: **7 (personel, mesai, izin, prim)** bitti (2026-10-15). Sıradaki: **Sprint 8** (abonelik, destek, canlı ortam, pilot). Kararlar `docs/karar-gunlugu.md` 2026-10-15 (Sprint 7 planı, 7A, 7B).
 - Mesai sadece `TimeClock`, izin sadece `LeaveService` ile yazılır (personel satırı kilidi; açık mesai `UX_TimeEntries_Open`). Maaş personel yanıtında yok: `/api/staff/{id}/salary` (Sahip yazar, Sahip + Mali Müşavir görür). Onaylı izin = `StaffTimeOff` (Leave, LeaveRequestId); yıllık izin bakiyesi `LeaveBalanceEntries` toplamı. Slogan `content/site.ts` → `siteSlogan`.
+- Prim sadece `CommissionService` ile ve sadece `SaleService` içinden (satışta tahakkuk, iptalde iptal ayına eksi kayıt; `Commissions` yalnızca eklenir). Kural seçimi Domain `CommissionRuleResolver`, tutar `CommissionCalculator` (taban `NetAmount`). Satır personeli `DocumentLineRequest.staffMemberId` (boş = personelsiz; varsayılanı istemci gönderir). Personel sadece kendi primini görür (`/api/commissions/me`).
+- Pencere/alt sayfa telefonda ilk alana odaklanmaz (`lib/focus.ts`, `DialogContent`/`SheetContent`); pencere içinde `autoFocus` gerekiyorsa `autoFocus={useIsDesktop()}`.
 - Otomasyonlar `AutomationRunner`/`AutomationDispatcher` (anahtar başına bir gönderim: `AutomationSends`); pazarlama otomasyonları `MarketingSms` ile. Anket `/a/[kod]` (`SurveyEndpoints`). Ziyaret istatistiği sadece `ContactVisits.RecomputeAsync` ile (aynı gün tek ziyaret); risk `ContactQueries.AtRisk` (Domain `RiskRule` ile aynı).
 - SMS kredisi sadece `SmsCredits` ile (atomik, eksiye düşmez); her SMS `ISmsSender`'dan (ücretli mesajda kredi düşer, hata iade). Pazarlama SMS'i: izin + çıkış eki + 09:00-21:00 + `MarketingDailySends` (günde 1). Kampanya gönderimi `CampaignSender`/`CampaignDispatcher` (alıcıya en fazla bir SMS; testte dağıtıcı `RunAsync(businessId)` ile sınırlanır).
 - Çip/sekme satırları `components/ui/scroll-row.tsx` (`ScrollRow`, `Chip`, `TabNav`); telefonda Menü sağ üstte (`mobile-menu.tsx`).

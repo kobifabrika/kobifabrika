@@ -56,6 +56,10 @@ const matrix = {
   manageStaffTime: ["Owner", "Manager"],
   /** Kendi mesaisine giriş/çıkış ve kendine izin talebi (bağlı personel kaydı gerekir). */
   clockInOut: ["Owner", "Manager", "Staff"],
+  /** Prim kuralları yazma (Mali Müşavir salt okunur görür; Personel görmez). */
+  manageCommissions: ["Owner", "Manager"],
+  /** Herkesin prim tutarları; Personel sadece kendi primini ("Primim") görür (karar b). */
+  viewAllCommissions: ["Owner", "Manager", "Accountant"],
 } as const satisfies Record<string, readonly Role[]>;
 
 export type Permission = keyof typeof matrix;

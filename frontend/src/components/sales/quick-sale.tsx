@@ -17,6 +17,7 @@ import { CartEditor, DiscountInput, parseDiscount } from "@/components/sales/car
 import { ContactPicker } from "@/components/sales/contact-picker";
 import { PaymentForm, initialPayment, paymentDrafts, type PaymentState } from "@/components/sales/payment-form";
 import { SaleExtras, initialSaleExtras, type SaleExtrasState } from "@/components/sales/sale-extras";
+import { useMyStaff, useStaffList } from "@/components/staff/staff-bits";
 import { TotalsSummary } from "@/components/sales/totals";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -43,6 +44,7 @@ import { formatMoney, todayIstanbul } from "@/lib/format";
 import type { AppointmentSaleDraft } from "@/lib/api/types";
 import type { DiscountType } from "@/lib/sales";
 import { parseMoneyInput } from "@/lib/validation/rules";
+import { useIsDesktop } from "@/lib/use-media";
 
 export const salesKey = ["sales"] as const;
 
@@ -71,6 +73,16 @@ export function QuickSale() {
   const searchRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => saveDraft(draftKey, cart), [cart, draftKey]);
+
+  // Satır personeli (prim): varsayılan, satışı yapanın bağlı (aktif) personel kaydı; satır penceresinden değişir.
+  const staffList = useStaffList();
+  const myStaff = useMyStaff();
+  const staffOptions = staffList.data?.length ? staffList.data.map((s) => ({ id: s.id, fullName: s.fullName })) : undefined;
+  useEffect(() => {
+    if (!staffList.data || !myStaff.data) return;
+    const mine = staffList.data.find((s) => s.id === myStaff.data.staffMemberId);
+    dispatch({ type: "defaultStaff", staff: mine ? { id: mine.id, name: mine.fullName } : null });
+  }, [staffList.data, myStaff.data]);
 
   // Müşteri kartından "Satış yap": ?musteri={id}
   const searchParams = useSearchParams();
@@ -110,7 +122,13 @@ export function QuickSale() {
     dispatch({ type: "clear" });
     dispatch({ type: "contact", contact: { id: d.contactId, name: d.contactName } });
     // Paketten kullanılan randevu: satır 0,00 TL, açıklama "Paket: 10 seans lazer (4/10)".
-    dispatch({ type: "addDraft", product: draftProduct.data, name: d.description, unitPrice: d.unitPrice });
+    dispatch({
+      type: "addDraft",
+      product: draftProduct.data,
+      name: d.description,
+      unitPrice: d.unitPrice,
+      staff: { id: d.staffMemberId, name: d.staffName },
+    });
     setAppointment(d);
   }, [saleDraft.data, draftProduct.data]);
 
@@ -304,7 +322,7 @@ export function QuickSale() {
             </p>
           </div>
         ) : (
-          <CartEditor lines={cart.lines} calc={totals.lines} dispatch={dispatch} />
+          <CartEditor lines={cart.lines} calc={totals.lines} dispatch={dispatch} staff={staffOptions} />
         )}
 
         <Button variant="outline" className="self-start" onClick={() => setFreeOpen(true)}>
@@ -412,6 +430,8 @@ function Checkout({
 }
 
 function FreeLineDialog({ onClose, onAdd }: { onClose: () => void; onAdd: (l: { name: string; unitPrice: number; vatRate: number }) => void }) {
+  // Telefonda pencere açılınca klavye açılıp düğmeleri örtmesin; masaüstünde ilk alana odaklanılır.
+  const isDesktop = useIsDesktop();
   const vatRates = useVatRates();
   const [name, setName] = useState("");
   const [price, setPrice] = useState("");
@@ -440,7 +460,7 @@ function FreeLineDialog({ onClose, onAdd }: { onClose: () => void; onAdd: (l: { 
           }}
         >
           <Field label="Ad" error={errors.name}>
-            <Input value={name} onChange={(e) => setName(e.target.value)} maxLength={200} autoFocus />
+            <Input value={name} onChange={(e) => setName(e.target.value)} maxLength={200} autoFocus={isDesktop} />
           </Field>
           <Field label="Fiyat (TL)" error={errors.price}>
             <Input inputMode="decimal" value={price} onChange={(e) => setPrice(e.target.value)} />

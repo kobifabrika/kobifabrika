@@ -104,6 +104,8 @@ export const auditActionLabels: Record<AuditAction, string> = {
   LeaveBalanceAdjusted: "İzin bakiyesini düzeltti",
   LeaveTypeChanged: "İzin türünü değiştirdi",
   StaffSettingsChanged: "Fazla mesai eşiğini değiştirdi",
+  CommissionRuleChanged: "Prim kuralını değiştirdi",
+  SaleLineStaffChanged: "Satış satırına başka personel seçti",
 };
 
 const fieldLabels: Record<string, string> = {
@@ -148,6 +150,11 @@ const reportNames: Record<string, string> = {
   "en-cok-satan": "En çok satan",
   alacaklar: "Alacaklar",
   "gelir-gider": "Gelir-gider",
+  mesai: "Mesai",
+  prim: "Prim",
+  personel: "Personel",
+  kampanyalar: "Kampanyalar",
+  anket: "Anket",
 };
 const role = (value: unknown) => roleNames[value as Role] ?? String(value ?? "");
 const text = (value: unknown) => (typeof value === "string" ? value : "");
@@ -209,6 +216,17 @@ export function auditDetail(item: Pick<AuditLogItem, "action" | "changes">): str
       return `${text(c.staff)} · ${typeof c.days === "number" && c.days > 0 ? "+" : ""}${String(c.days ?? "")} gün · ${text(c.note)}`;
     case "StaffSalaryChanged":
       return text(c.fullName);
+    case "CommissionRuleChanged": {
+      const change = (c.before ?? {}) as Changes;
+      const after = (c.after ?? {}) as Changes;
+      if (c.created) return `Eklendi: ${text(c.created)}`;
+      if (c.deleted) return `Silindi: ${text(c.deleted)}`;
+      return `${text(change.text)} → ${text(after.text)}${change.isActive !== after.isActive ? (after.isActive ? " (aktif)" : " (pasif)") : ""}`;
+    }
+    case "SaleLineStaffChanged": {
+      const staff = (c.staff ?? {}) as Changes;
+      return `${text(c.no)} · ${text(c.line)} · ${text(staff.from) || "personel yok"} → ${text(staff.to)}`;
+    }
     case "ExpenseRecorded":
     case "IncomeRecorded":
       return `${text(c.category)} · ${money(c.amount)} · ${text(c.account)}`;

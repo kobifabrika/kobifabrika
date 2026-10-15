@@ -26,6 +26,7 @@ import type { Reminder } from "@/lib/api/types";
 import { formatDateTime, istanbulParts, istanbulToUtcIso, todayIstanbul } from "@/lib/format";
 import { can } from "@/lib/permissions";
 import { Chip, ScrollRow } from "@/components/ui/scroll-row";
+import { useIsDesktop } from "@/lib/use-media";
 
 const remindersKey = ["reminders"] as const;
 
@@ -211,6 +212,8 @@ function ReminderDialog({
   contactName?: string;
   onClose: () => void;
 }) {
+  // Telefonda pencere açılınca klavye açılıp düğmeleri örtmesin; masaüstünde ilk alana odaklanılır.
+  const isDesktop = useIsDesktop();
   const { me } = useSession();
   const queryClient = useQueryClient();
   const initial = reminder ? istanbulParts(reminder.dueAt) : { date: todayIstanbul(), time: "10:00" };
@@ -266,7 +269,7 @@ function ReminderDialog({
               onChange={(e) => setTitle(e.target.value)}
               maxLength={200}
               placeholder="ör. Boya için ara"
-              autoFocus
+              autoFocus={isDesktop}
             />
           </Field>
           <div className="grid grid-cols-2 gap-3">

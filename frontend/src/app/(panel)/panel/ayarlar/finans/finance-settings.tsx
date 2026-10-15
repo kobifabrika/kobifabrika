@@ -19,6 +19,7 @@ import { Switch } from "@/components/ui/switch";
 import { api, errorMessage, fieldErrors, unwrap } from "@/lib/api/client";
 import type { CashAccountType, ExpenseCategory, ExpenseCategoryKind } from "@/lib/api/types";
 import { can } from "@/lib/permissions";
+import { useIsDesktop } from "@/lib/use-media";
 
 function SettingsCard({ title, description, children }: { title: string; description?: string; children: ReactNode }) {
   return (
@@ -263,6 +264,8 @@ function CategoryRow({ category, readOnly }: { category: ExpenseCategory; readOn
 }
 
 function CategoryEditor({ kind, category, onDone }: { kind: ExpenseCategoryKind; category?: ExpenseCategory; onDone: () => void }) {
+  // Telefonda pencere açılınca klavye açılıp düğmeleri örtmesin; masaüstünde ilk alana odaklanılır.
+  const isDesktop = useIsDesktop();
   const refresh = useCategoryRefresh();
   const [name, setName] = useState(category?.name ?? "");
   const [error, setError] = useState<string | null>(null);
@@ -284,7 +287,7 @@ function CategoryEditor({ kind, category, onDone }: { kind: ExpenseCategoryKind;
   return (
     <div className="flex flex-col gap-2">
       <Field label={category ? "Kategori adı" : "Yeni kategori adı"} error={error ?? undefined}>
-        <Input value={name} onChange={(e) => setName(e.target.value)} maxLength={100} autoFocus />
+        <Input value={name} onChange={(e) => setName(e.target.value)} maxLength={100} autoFocus={isDesktop} />
       </Field>
       <div className="flex gap-2">
         <Button onClick={() => (name.trim() ? save.mutate() : setError("Kategori adı girin."))} disabled={save.isPending}>

@@ -11,11 +11,22 @@ import { QueryError } from "@/components/feedback/query-error";
 import { RangePicker, type RangeValue, resolveRange } from "@/components/finance/range-picker";
 import { RequirePermission } from "@/components/panel/settings-nav";
 import { useSession } from "@/components/providers/session-provider";
+import { CommissionItems, MonthStepper, useMonthParam } from "@/components/staff/commissions";
 import { Button } from "@/components/ui/button";
 import { API_URL, api, unwrap } from "@/lib/api/client";
-import type { IncomeExpenseReport, ReceivablesReport, ReportGroupBy, SalesReport, TimeReport, TopProductsReport } from "@/lib/api/types";
+import type {
+  CampaignReport,
+  IncomeExpenseReport,
+  ReceivablesReport,
+  ReportGroupBy,
+  SalesReport,
+  StaffReport,
+  SurveyReport,
+  TimeReport,
+  TopProductsReport,
+} from "@/lib/api/types";
 import { isPreset } from "@/lib/date-ranges";
-import { formatDayShort, formatMoney } from "@/lib/format";
+import { formatDateTime, formatDayShort, formatMoney } from "@/lib/format";
 import { can } from "@/lib/permissions";
 import { hoursText } from "@/lib/time-clock";
 import { Chip, ScrollRow } from "@/components/ui/scroll-row";
@@ -26,13 +37,20 @@ const reports = [
   { key: "alacaklar", label: "Alacaklar" },
   { key: "gelir-gider", label: "Gelir-gider" },
   { key: "mesai", label: "Mesai" },
+  { key: "prim", label: "Prim" },
+  { key: "personel", label: "Personel" },
+  { key: "kampanyalar", label: "Kampanyalar" },
+  { key: "anket", label: "Anket" },
 ] as const;
 
 type ReportKey = (typeof reports)[number]["key"];
 
 const groupKeys: Record<string, ReportGroupBy> = { gun: "Day", hafta: "Week", ay: "Month" };
 
-/** URL'deki seçimler: ?rapor=…&aralik=bu-ay&from=…&to=…&kirilim=gun&siralama=adet (paylaşılabilir, geri tuşu çalışır). */
+/**
+ * URL'deki seçimler: ?rapor=…&aralik=bu-ay&from=…&to=…&kirilim=gun&siralama=adet (prim raporunda &ay=yyyy-MM; paylaşılabilir,
+ * geri tuşu çalışır).
+ */
 function useReportParams() {
   const params = useSearchParams();
   const router = useRouter();
@@ -72,9 +90,20 @@ function ReportsBody() {
   const { from, to } = resolveRange(range);
   const groupBy = groupKeys[params.get("kirilim") ?? "gun"] ?? "Day";
   const sort = params.get("siralama") === "tutar" ? "Amount" : "Quantity";
-  const query = key === "alacaklar" ? "" : `from=${from}&to=${to}`;
+  const { month, go } = useMonthParam();
+  const query = key === "alacaklar" ? "" : key === "prim" ? `month=${month}` : `from=${from}&to=${to}`;
   const extra = key === "satislar" ? `&groupBy=${groupBy}` : key === "urunler" ? `&sort=${sort}` : "";
-  const excelPath = { satislar: "sales", urunler: "top-products", alacaklar: "receivables", "gelir-gider": "income-expense", mesai: "time" }[key];
+  const excelPath = {
+    satislar: "sales",
+    urunler: "top-products",
+    alacaklar: "receivables",
+    "gelir-gider": "income-expense",
+    mesai: "time",
+    prim: "commissions",
+    personel: "staff",
+    kampanyalar: "campaigns",
+    anket: "surveys",
+  }[key];
 
   return (
     <div className="flex flex-col gap-5">
@@ -90,6 +119,8 @@ function ReportsBody() {
       <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
         {key === "alacaklar" ? (
           <p className="text-sm text-neutral-600">Bugün itibarıyla açık alacaklar; vadeden bu yana geçen güne göre.</p>
+        ) : key === "prim" ? (
+          <MonthStepper month={month} onChange={go} />
         ) : (
           <RangePicker
             value={range}
@@ -110,6 +141,10 @@ function ReportsBody() {
       {key === "alacaklar" && <ReceivablesView />}
       {key === "gelir-gider" && <IncomeExpenseView from={from} to={to} />}
       {key === "mesai" && <TimeReportView from={from} to={to} />}
+      {key === "prim" && <CommissionReportView month={month} />}
+      {key === "personel" && <StaffReportView from={from} to={to} />}
+      {key === "kampanyalar" && <CampaignReportView from={from} to={to} />}
+      {key === "anket" && <SurveyReportView from={from} to={to} />}
     </div>
   );
 }
@@ -438,6 +473,206 @@ function TimeReportView({ from, to }: { from: string; to: string }) {
         </>
       )}
       <p className="text-xs text-neutral-600">{r.legalNote}</p>
+    </section>
+  );
+}
+
+/** Prim: ay seçici (iptaller iptal ayında eksi), personel toplamları ve kalemler ("Satışı giren" dahil). */
+function CommissionReportView({ month }: { month: string }) {
+  const data = useQuery({
+    queryKey: ["reports", "commissions", month],
+    queryFn: () => unwrap(api.GET("/api/reports/commissions", { params: { query: { month } } })),
+  });
+  if (data.isPending) return <Loading />;
+  if (data.isError) return <QueryError error={data.error} onRetry={data.refetch} />;
+  const r = data.data;
+  type Total = (typeof r.staff)[number];
+  const total: Total = {
+    staffMemberId: "toplam",
+    staffName: "Toplam",
+    accrued: r.staff.reduce((a, s) => a + s.accrued, 0),
+    reversed: r.staff.reduce((a, s) => a + s.reversed, 0),
+    net: r.total,
+    lineCount: r.staff.reduce((a, s) => a + s.lineCount, 0),
+  };
+  return (
+    <section aria-label="Prim raporu" className="flex flex-col gap-5">
+      {r.items.length === 0 ? (
+        <p className="text-sm text-neutral-600">Bu ay prim yok.</p>
+      ) : (
+        <>
+          <ResponsiveTable<Total>
+            rows={r.staff}
+            total={total}
+            rowKey={(x) => x.staffMemberId}
+            title={(x) => x.staffName}
+            columns={[
+              { label: "Personel", value: (x) => x.staffName },
+              { label: "Tahakkuk", value: (x) => formatMoney(x.accrued), numeric: true },
+              { label: "İptal", value: (x) => (x.reversed ? formatMoney(x.reversed) : "—"), numeric: true },
+              { label: "Net prim", value: (x) => formatMoney(x.net), numeric: true },
+              { label: "Kalem", value: (x) => x.lineCount, numeric: true },
+            ]}
+          />
+          <h2 className="text-base font-semibold text-black">Kalemler</h2>
+          <CommissionItems items={r.items} showStaff showEnteredBy />
+        </>
+      )}
+      <p className="text-xs text-neutral-600">
+        Taban satırın KDV hariç, indirim sonrası tutarıdır. İptal edilen satışın primi iptal edildiği ayda eksi yazılır; kapanmış ayın
+        tutarı değişmez.
+      </p>
+    </section>
+  );
+}
+
+const percent = (v: number) => `%${(v * 100).toLocaleString("tr-TR", { maximumFractionDigits: 1 })}`;
+const score = (v: number | null) => (v === null ? "—" : v.toLocaleString("tr-TR", { minimumFractionDigits: 1, maximumFractionDigits: 1 }));
+
+/** Personel performansı: satış (satır personeli, KDV hariç), hizmet, randevu, gelmedi oranı, anket, prim, çalışılan saat. */
+function StaffReportView({ from, to }: { from: string; to: string }) {
+  const data = useQuery({
+    queryKey: ["reports", "staff", from, to],
+    queryFn: () => unwrap(api.GET("/api/reports/staff", { params: { query: { from, to } } })),
+  });
+  type Row = StaffReport["rows"][number];
+  if (data.isPending) return <Loading />;
+  if (data.isError) return <QueryError error={data.error} onRetry={data.refetch} />;
+  const name = (x: Row) => (x.isActive ? x.staffName : `${x.staffName} (pasif)`);
+  return (
+    <section aria-label="Personel raporu" className="flex flex-col gap-4">
+      {data.data.rows.length === 0 ? (
+        <p className="text-sm text-neutral-600">Personel yok.</p>
+      ) : (
+        <ResponsiveTable<Row>
+          rows={data.data.rows}
+          rowKey={(x) => x.staffMemberId}
+          title={name}
+          columns={[
+            { label: "Personel", value: name },
+            { label: "Satış (KDV hariç)", value: (x) => formatMoney(x.sales), numeric: true },
+            { label: "Hizmet", value: (x) => x.serviceCount.toLocaleString("tr-TR"), numeric: true },
+            { label: "Randevu", value: (x) => x.appointments, numeric: true },
+            { label: "Gelmedi", value: (x) => (x.noShowRate === null ? "—" : `${x.noShows} · ${percent(x.noShowRate)}`), numeric: true },
+            { label: "Anket", value: (x) => (x.surveyCount ? `${score(x.surveyAverage)} (${x.surveyCount})` : "—"), numeric: true },
+            { label: "Prim", value: (x) => formatMoney(x.commission), numeric: true },
+            { label: "Çalışılan (saat)", value: (x) => hoursText(x.workedMinutes), numeric: true },
+          ]}
+        />
+      )}
+      <p className="text-xs text-neutral-600">
+        Satış ve hizmet, satış satırındaki personele göre (tamamlanan satışlar). Gelmedi oranı = gelmedi / (tamamlandı + gelmedi). Prim
+        tahakkuk eksi iptal; çalışılan saat çıkışı girilmiş mesailerden.
+      </p>
+    </section>
+  );
+}
+
+/** Kampanyalar: gönderilen, başarısız, nedenine göre elenen, kredi ve sonradan çıkış yapan (7 gün içinde). */
+function CampaignReportView({ from, to }: { from: string; to: string }) {
+  const data = useQuery({
+    queryKey: ["reports", "campaigns", from, to],
+    queryFn: () => unwrap(api.GET("/api/reports/campaigns", { params: { query: { from, to } } })),
+  });
+  type Row = CampaignReport["rows"][number];
+  if (data.isPending) return <Loading />;
+  if (data.isError) return <QueryError error={data.error} onRetry={data.refetch} />;
+  const skips = (x: Row) =>
+    [
+      [x.skippedNoConsent, "izni yok"],
+      [x.skippedOptedOut, "çıkış yapmış"],
+      [x.skippedDailyLimit, "bugün SMS almış"],
+      [x.skippedNoCredit, "kredi yetersiz"],
+      [x.skippedNoPhone, "cep telefonu yok"],
+      [x.skippedOther, "diğer"],
+    ]
+      .filter(([n]) => (n as number) > 0)
+      .map(([n, label]) => `${n} ${label}`)
+      .join(", ") || "—";
+  return (
+    <section aria-label="Kampanya raporu" className="flex flex-col gap-4">
+      {data.data.rows.length === 0 ? (
+        <p className="text-sm text-neutral-600">Bu aralıkta kampanya yok.</p>
+      ) : (
+        <ResponsiveTable<Row>
+          rows={data.data.rows}
+          rowKey={(x) => x.id}
+          title={(x) => x.name}
+          columns={[
+            { label: "Kampanya", value: (x) => x.name },
+            { label: "Zaman", value: (x) => formatDateTime(x.scheduledAt), numeric: true },
+            { label: "Gönderildi", value: (x) => `${x.sent} / ${x.recipients}`, numeric: true },
+            { label: "Başarısız", value: (x) => x.failed || "—", numeric: true },
+            { label: "Elendi", value: skips },
+            { label: "Kredi", value: (x) => x.creditUsed, numeric: true },
+            { label: "Çıkış yapan", value: (x) => (x.optOuts === null ? "—" : x.optOuts), numeric: true },
+          ]}
+        />
+      )}
+      <p className="text-xs text-neutral-600">
+        Çıkış yapan: kampanya SMS&apos;inden sonraki 7 gün içinde çıkış linkini kullananlar (Ekim 2026&apos;dan önceki kampanyalarda —).
+      </p>
+    </section>
+  );
+}
+
+/** Memnuniyet anketi: gönderilen, cevaplanan, ortalama, 1-5 dağılımı, personel bazında ortalama. */
+function SurveyReportView({ from, to }: { from: string; to: string }) {
+  const data = useQuery({
+    queryKey: ["reports", "surveys", from, to],
+    queryFn: () => unwrap(api.GET("/api/reports/surveys", { params: { query: { from, to } } })),
+  });
+  type Row = SurveyReport["staff"][number];
+  if (data.isPending) return <Loading />;
+  if (data.isError) return <QueryError error={data.error} onRetry={data.refetch} />;
+  const r = data.data;
+  const max = Math.max(1, ...r.distribution);
+  return (
+    <section aria-label="Anket raporu" className="flex flex-col gap-5">
+      <dl className="grid grid-cols-3 gap-3 border-y border-border py-3 text-sm">
+        {[
+          ["Ortalama", score(r.average)],
+          ["Cevaplanan", `${r.answered} / ${r.sent}`],
+          ["Google'a giden", String(r.googleClicks)],
+        ].map(([label, value]) => (
+          <div key={label} className="flex flex-col">
+            <dt className="text-neutral-600">{label}</dt>
+            <dd className="text-base font-bold text-black tabular-nums">{value}</dd>
+          </div>
+        ))}
+      </dl>
+      {r.answered > 0 && (
+        <ul aria-label="Puan dağılımı" className="flex max-w-md flex-col gap-1">
+          {[5, 4, 3, 2, 1].map((n) => {
+            const count = r.distribution[n - 1] ?? 0;
+            return (
+              <li key={n} className="flex items-center gap-2 text-sm">
+                <span className="w-4 text-black tabular-nums">{n}</span>
+                <span className="h-3 flex-1 bg-neutral-100">
+                  <span className={cn("block h-3", n >= 4 ? "bg-brand" : "bg-black")} style={{ width: `${(count / max) * 100}%` }} />
+                </span>
+                <span className="w-8 text-right text-black tabular-nums">{count}</span>
+              </li>
+            );
+          })}
+        </ul>
+      )}
+      {r.staff.length > 0 && (
+        <>
+          <h2 className="text-base font-semibold text-black">Personel</h2>
+          <ResponsiveTable<Row>
+            rows={r.staff}
+            rowKey={(x) => x.staffMemberId ?? "yok"}
+            title={(x) => x.staffName}
+            columns={[
+              { label: "Personel", value: (x) => x.staffName },
+              { label: "Ortalama", value: (x) => score(x.average), numeric: true },
+              { label: "Cevaplanan", value: (x) => x.answered, numeric: true },
+            ]}
+          />
+        </>
+      )}
+      {r.sent === 0 && <p className="text-sm text-neutral-600">Bu aralıkta anket gönderilmedi.</p>}
     </section>
   );
 }

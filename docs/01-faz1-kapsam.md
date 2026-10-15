@@ -10,7 +10,7 @@ Parantez içindeki rakip adı, fikrin nereden alındığını gösterir.
 - **Ekip ve roller:** E-posta ile davet. 4 sabit rol:
   - Owner (Sahip): her şey, maaş ve abonelik dahil.
   - Manager (Yönetici): maaş ve abonelik hariç her şey (maaş giderini "Personel gideri" olarak tutarla görür; personel kartında maaş yok).
-  - Staff (Personel): takvimi görür, herkes için randevu açar ve taşır (Ayarlar'dan "sadece kendi randevularını görsün" seçilebilir; karar 2026-10-13), satış girme, müşteri görme; finans raporlarını göremez.
+  - Staff (Personel): takvimi görür, herkes için randevu açar ve taşır (Ayarlar'dan "sadece kendi randevularını görsün" seçilebilir; karar 2026-10-13), satış girme (satır personelini başkası seçebilir; varsayılandan farklı seçim aktivite günlüğüne yazılır), müşteri görme; finans raporlarını ve başkalarının primini göremez, sadece kendi primini "Primim"de görür (karar 2026-10-15 b).
   - Accountant (Mali Müşavir): ücretsiz, salt okunur; raporları ve hareketleri Excel olarak indirir (KolayBi, Paraşüt); bordro için personel maaşını salt okunur görür (karar 2026-10-15 a).
   - Kullanıcı sayısı pakete göre sınırlı; mali müşavir sınıra sayılmaz.
 - **Ortak araçlar:** uygulama içi bildirimler, Ctrl+K genel arama (müşteri, ürün, satış), aktivite günlüğü, Excel'den müşteri ve ürün içe aktarma (şablon indirilebilir).
@@ -64,16 +64,16 @@ Parantez içindeki rakip adı, fikrin nereden alındığını gösterir.
 
 ## H. Dashboard ve Raporlar
 
-- Bugün ekranı: bugünkü satış ve tahsilat, bugünün randevuları, vadesi gelen alacaklar, kritik stok, aktif personel.
-- Raporlar: satışlar, en çok satan ürün/hizmet, alacaklar, gelir-gider, kampanya sonuçları, personel performansı. Hepsi Excel'e aktarılabilir.
+- Bugün ekranı: bugünkü satış ve tahsilat, bugünün randevuları, vadesi gelen alacaklar, kritik stok, aktif personel (mesaidekiler, bugün izinliler, unutulan çıkış; Personel rolünde "Mesaim" kartı ve tek düğme) (Sprint 7B).
+- Raporlar: satışlar, en çok satan ürün/hizmet, alacaklar, gelir-gider, mesai, prim (ay), personel performansı (satış, hizmet, randevu, gelmedi oranı, anket ortalaması, prim, çalışılan saat), kampanya sonuçları (gönderilen, nedenine göre elenen, kredi, sonradan çıkış yapan), memnuniyet anketi. Hepsi Excel'e aktarılabilir; maaş hiçbir raporda yok (Sprint 7B).
 
 ## J. Personel, Mesai ve İzin
 
 - Personel kartı: ad, görev, telefon, işe başlama, isteğe bağlı doğum tarihi (izin hakkı için), not, maaş (aylık, brüt/net; Sahip düzenler, Mali Müşavir salt okunur görür, Yönetici ve Personel göremez; API alanı hiç döndürmez), bağlı kullanıcı hesabı (isteğe bağlı). TC kimlik no saklanmaz. Maaş giderine isteğe bağlı personel; kartta "Ödenen maaşlar" (Sprint 7A).
 - Mesai: personel kendi telefonundan tek düğmeyle giriş-çıkış; yönetici başkası adına ekler ve düzeltir (eski/yeni saat aktivite günlüğünde); açık mesaiye ikinci giriş olmaz. Çıkışı unutulan mesai işletme kapanışından 2 saat sonra (kapalı günde girişten 12 saat sonra) "çıkış unutuldu" işaretlenir, süresi sayılmaz, yönetici çıkışı girer. Çalışılan saat ve fazla mesai raporu: haftalık eşiği (varsayılan 45, Ayarlar → Personel) aşan süre; gün ve hafta İstanbul saatiyle, gece yarısını aşan mesai bölünür. Konum doğrulaması Faz 2 (Sprint 7A).
 - İzin: türler (Yıllık izin, Mazeret izni, Ücretsiz izin, Hastalık/rapor; eklenir/düzenlenir; sağlık bilgisi tutulmaz), talep → onay/ret (bildirim iki yönlü), yarım gün (tek günlük izinde), gün sayımında kapalı gün, tatil ve personelin çalışmadığı gün sayılmaz. Yıllık izin bakiyesi: İş Kanunu 53'e göre öneri (1-5 yıl 14, 5-15 yıl 20, 15+ yıl 26 gün; 18 ve altı, 50 ve üstü en az 20), yıl dönümünde otomatik eklenir, açılış/düzeltme elle; eksi bakiye (avans izin) engellenmez; "yasal bilgi amaçlıdır" notu. İzin takvimi (ay görünümü; Personel başkalarının türünü görmez). Onaylı izin takvimde kapalı, online randevuda o gün çıkmaz; aralıktaki randevular onay ekranında listelenir, otomatik iptal edilmez (Sprint 7A).
-- **Prim hesabı (Salon Randevu):** hizmet ve ürün satışından yüzde veya sabit prim kuralı; ay sonu prim raporu.
-- Dashboard'da "aktif personel" kartı.
+- **Prim hesabı (Salon Randevu):** kural kime (herkes veya personel) ve neye (bütün satışlar, hizmetler, ürünler, kategori, tek ürün/hizmet), yüzde veya adet başına sabit TL; en özel kural kazanır, toplanmaz. Taban satırın KDV hariç, indirim sonrası tutarı; prim satış satırının personeline (varsayılan satışı yapanın bağlı personel kaydı, randevudan gelen satırda randevunun personeli) satış anında yazılır. Paket primi paket satılırken; seans kullanımından ve 0 TL satırdan prim yok. Satış iptalinde iptal ayına eksi prim; kapanmış ay değişmez. Ay sonu prim raporu ("Satışı giren" sütunuyla) ve Excel (Sprint 7B).
+- Dashboard'da "aktif personel" kartı (Sprint 7B).
 
 ## I. Abonelik ve Yönetim
 

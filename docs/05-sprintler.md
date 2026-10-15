@@ -91,9 +91,9 @@ Tahmini, yarı zamanlı. Toplam yaklaşık 15-18 hafta. Her sprint sonunda: buil
 - [x] Mesai giriş-çıkış (tek düğme, yönetici düzeltmesi, unutulan çıkış), fazla mesai raporu (7A)
 - [x] İzin türleri, talep/onay, bakiye (İş Kanunu 53, yıl dönümü), izin takvimi; izinli personel takvimde ve online randevuda kapalı (7A)
 - [x] Slogan "KOBİ'nin dijital fabrikası" ve sosyal medya hesapları sitede (7A ile)
-- [ ] Prim kuralları ve ay sonu prim raporu
-- [ ] Kampanya ve personel raporları + Excel dışa aktarma (satış, ürün, alacak, gelir-gider raporları Sprint 4'te geldi)
-- [ ] Bugün ekranına aktif personel kartı (randevu kartı Sprint 5A'da geldi)
+- [x] Prim kuralları (kime, neye, yüzde/adet başına; en özel kazanır), satır personeli, ay sonu prim raporu, iptalde eksi prim, Primim (7B)
+- [x] Kampanya, anket ve personel raporları + Excel dışa aktarma (satış, ürün, alacak, gelir-gider raporları Sprint 4'te geldi) (7B)
+- [x] Bugün ekranına aktif personel kartı ve Personel rolünde "Mesaim" kartı (randevu kartı Sprint 5A'da geldi) (7B)
 
 ## Sprint 8 — Abonelik, destek ve pilot (1-2 hafta)
 

@@ -3,6 +3,7 @@
 import { useSearchParams } from "next/navigation";
 
 import { useSession } from "@/components/providers/session-provider";
+import { MyCommissions } from "@/components/staff/commissions";
 import { useMyStaff } from "@/components/staff/staff-bits";
 import { LeaveBalanceCard } from "@/components/staff/staff-leave-balance";
 import { TabNav } from "@/components/ui/scroll-row";
@@ -14,8 +15,9 @@ import { MyClock } from "./my-clock";
 import { TimeEntriesDay } from "./time-entries";
 
 /**
- * /panel/mesai-izin?sekme=mesaim|mesai|izinler|takvim. Personel: Mesaim (tek düğme), İzinlerim (talepler + bakiye), İzin takvimi.
- * Sahip/Yönetici: Mesai (gün görünümü), İzinler (onay), İzin takvimi; hesabı bir personele bağlıysa Mesaim de. Mali Müşavir salt okunur.
+ * /panel/mesai-izin?sekme=mesaim|mesai|izinler|takvim|prim. Personel: Mesaim (tek düğme), İzinlerim (talepler + bakiye), İzin takvimi,
+ * Primim (sadece kendi primi; &ay=yyyy-MM). Sahip/Yönetici: Mesai (gün görünümü), İzinler (onay), İzin takvimi; hesabı bir personele
+ * bağlıysa Mesaim de (herkesin primi Raporlar → Prim'de). Mali Müşavir salt okunur.
  */
 export function AttendanceHome() {
   const { role } = useSession();
@@ -29,6 +31,7 @@ export function AttendanceHome() {
     ...(seeAll ? [{ key: "mesai", label: "Mesai" }] : []),
     { key: "izinler", label: seeAll ? "İzinler" : "İzinlerim" },
     { key: "takvim", label: "İzin takvimi" },
+    ...(!seeAll ? [{ key: "prim", label: "Primim" }] : []),
   ];
   const fallback = seeAll ? "mesai" : "mesaim";
   const active = tabs.find((t) => t.key === params.get("sekme"))?.key ?? fallback;
@@ -51,6 +54,7 @@ export function AttendanceHome() {
         </div>
       )}
       {active === "takvim" && <LeaveCalendarView />}
+      {active === "prim" && <MyCommissions />}
     </div>
   );
 }

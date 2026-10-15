@@ -16,6 +16,7 @@ import type { CashAccount, CashAccountType, CashTransactionItem } from "@/lib/ap
 import type { CartContact } from "@/lib/cart";
 import { formatDayShort, formatMoney, todayIstanbul } from "@/lib/format";
 import { IBAN_MESSAGE, formatIban, moneyToInput, normalizeIban, parseMoneyInput, validateMoney } from "@/lib/validation/rules";
+import { useIsDesktop } from "@/lib/use-media";
 
 /** Satış ekranı gibi her rolün gördüğü hesap seçenekleri (bakiyesiz). */
 export function useCashAccountOptions(enabled = true) {
@@ -162,6 +163,8 @@ export function AccountDialog({
 
 /** Hesaplar arası transfer: tek işlemde çıkış ve giriş. */
 export function TransferDialog({ open, onOpenChange, fromId }: { open: boolean; onOpenChange: (v: boolean) => void; fromId?: string }) {
+  // Telefonda pencere açılınca klavye açılıp düğmeleri örtmesin; masaüstünde ilk alana odaklanılır.
+  const isDesktop = useIsDesktop();
   const refresh = useFinanceRefresh();
   const accounts = useCashAccounts(open);
   const list = accounts.data ?? [];
@@ -225,7 +228,7 @@ export function TransferDialog({ open, onOpenChange, fromId }: { open: boolean; 
             </select>
           </Field>
         </div>
-        <MoneyField label="Tutar (TL)" value={amount} onChange={setAmount} error={errors.amount} autoFocus />
+        <MoneyField label="Tutar (TL)" value={amount} onChange={setAmount} error={errors.amount} autoFocus={isDesktop} />
         <NegativeBalanceWarning account={fromAccount} amountText={amount} />
         <div className="grid grid-cols-2 gap-3">
           <Field label="Tarih">

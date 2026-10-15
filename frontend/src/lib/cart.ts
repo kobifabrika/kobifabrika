@@ -18,27 +18,34 @@ export type CartLine = {
   packageId?: string | null;
   /** Ürün satırında ad değiştirildi (randevudan "Paket: …" satırı); açıklama sunucuya gönderilir. */
   customName?: boolean;
+  /** Satırın personeli (prim ona yazılır); null = personel yok. Tanımsızsa sepetin varsayılan personeli atanır. */
+  staffMemberId?: string | null;
+  staffName?: string | null;
 };
 
 export type CartContact = { id: string; name: string; phone?: string | null };
 
-export type Cart = { lines: CartLine[]; discount: Discount | null; contact: CartContact | null; note: string };
+/** Yeni satırların personeli: satışı yapanın bağlı personel kaydı (yoksa null). */
+export type CartStaff = { id: string; name: string };
+
+export type Cart = { lines: CartLine[]; discount: Discount | null; contact: CartContact | null; note: string; staff?: CartStaff | null };
 
 export const emptyCart: Cart = { lines: [], discount: null, contact: null, note: "" };
 
 export type CartAction =
   | { type: "add"; product: Product }
   | { type: "addPackage"; pkg: ServicePackage }
-  | { type: "addDraft"; product: Product; name: string; unitPrice: number }
+  | { type: "addDraft"; product: Product; name: string; unitPrice: number; staff?: CartStaff | null }
   | { type: "addFree"; name: string; unitPrice: number; vatRate: number }
   | { type: "quantity"; key: string; quantity: number }
   | { type: "step"; key: string; delta: 1 | -1 }
-  | { type: "update"; key: string; patch: Partial<Pick<CartLine, "quantity" | "unitPrice" | "discount">> }
+  | { type: "update"; key: string; patch: Partial<Pick<CartLine, "quantity" | "unitPrice" | "discount" | "staffMemberId" | "staffName">> }
   | { type: "remove"; key: string }
   | { type: "discount"; discount: Discount | null }
   | { type: "contact"; contact: CartContact | null }
   | { type: "note"; note: string }
   | { type: "load"; cart: Cart }
+  | { type: "defaultStaff"; staff: CartStaff | null }
   | { type: "clear" };
 
 let counter = 0;
@@ -59,18 +66,26 @@ export function lineFromProduct(product: Product): CartLine {
   };
 }
 
+const staffOf = (staff: CartStaff | null | undefined) => ({ staffMemberId: staff?.id ?? null, staffName: staff?.name ?? null });
+
 /**
  * Sepet işlemleri. Aynı ürün tekrar eklenirse (barkod iki kez okutulursa) yeni satır açılmaz, adet 1 artar
- * (fiyatı değiştirilmiş veya indirimli satır hariç). Adet 0'a inerse satır silinir.
+ * (fiyatı değiştirilmiş, indirimli veya personeli değiştirilmiş satır hariç). Adet 0'a inerse satır silinir.
+ * Yeni satır sepetin varsayılan personelini alır.
  */
 export function cartReducer(cart: Cart, action: CartAction): Cart {
   switch (action.type) {
     case "add": {
+      const staffId = cart.staff?.id ?? null;
       const same = cart.lines.find(
-        (l) => l.productId === action.product.id && l.unitPrice === action.product.grossSalePrice && !l.discount,
+        (l) =>
+          l.productId === action.product.id &&
+          l.unitPrice === action.product.grossSalePrice &&
+          !l.discount &&
+          (l.staffMemberId ?? null) === staffId,
       );
       if (same) return { ...cart, lines: cart.lines.map((l) => (l === same ? { ...l, quantity: round3(l.quantity + 1) } : l)) };
-      return { ...cart, lines: [...cart.lines, lineFromProduct(action.product)] };
+      return { ...cart, lines: [...cart.lines, { ...lineFromProduct(action.product), ...staffOf(cart.staff) }] };
     }
     case "addPackage":
       return {
@@ -89,6 +104,7 @@ export function cartReducer(cart: Cart, action: CartAction): Cart {
             discount: null,
             trackStock: false,
             stock: null,
+            ...staffOf(cart.staff),
           },
         ],
       };
@@ -97,7 +113,13 @@ export function cartReducer(cart: Cart, action: CartAction): Cart {
         ...cart,
         lines: [
           ...cart.lines,
-          { ...lineFromProduct(action.product), name: action.name, unitPrice: action.unitPrice, customName: action.name !== action.product.name },
+          {
+            ...lineFromProduct(action.product),
+            name: action.name,
+            unitPrice: action.unitPrice,
+            customName: action.name !== action.product.name,
+            ...staffOf(action.staff === undefined ? cart.staff : action.staff),
+          },
         ],
       };
     case "addFree":
@@ -116,6 +138,7 @@ export function cartReducer(cart: Cart, action: CartAction): Cart {
             discount: null,
             trackStock: false,
             stock: null,
+            ...staffOf(cart.staff),
           },
         ],
       };
@@ -148,8 +171,15 @@ export function cartReducer(cart: Cart, action: CartAction): Cart {
       return { ...cart, note: action.note };
     case "load":
       return action.cart;
+    case "defaultStaff":
+      // Personeli hiç atanmamış satırlar (eski taslak) varsayılanı alır; seçilmiş olanlar değişmez.
+      return {
+        ...cart,
+        staff: action.staff,
+        lines: cart.lines.map((l) => (l.staffMemberId === undefined ? { ...l, ...staffOf(action.staff) } : l)),
+      };
     case "clear":
-      return emptyCart;
+      return { ...emptyCart, staff: cart.staff };
   }
 }
 
@@ -172,6 +202,7 @@ export function toLineRequests(lines: CartLine[]): DocumentLineRequest[] {
     vatRate: l.productId || l.packageId ? null : l.vatRate,
     discount: l.discount,
     servicePackageId: l.packageId ?? null,
+    staffMemberId: l.staffMemberId ?? null,
   }));
 }
 

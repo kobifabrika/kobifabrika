@@ -4,7 +4,7 @@ import { Minus, Plus, Trash2 } from "lucide-react";
 import { useState, type Dispatch } from "react";
 
 import { ChoiceGroup } from "@/components/catalog/catalog-bits";
-import { Notice } from "@/components/contacts/contact-bits";
+import { Notice, selectClass } from "@/components/contacts/contact-bits";
 import { Field } from "@/components/forms/field";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -13,6 +13,7 @@ import { stockWarning, type CartAction, type CartLine } from "@/lib/cart";
 import { formatMoney } from "@/lib/format";
 import { allowsFraction, formatQuantity, parseQuantity, validateQuantity, type CalcLine, type Discount, type DiscountType } from "@/lib/sales";
 import { moneyToInput, parseMoneyInput } from "@/lib/validation/rules";
+import { useIsDesktop } from "@/lib/use-media";
 
 /** İndirim girişi: TL veya %; boş = indirim yok. Hata mesajı veya değer döner (validate). */
 export function parseDiscount(type: DiscountType, text: string): { discount: Discount | null; error?: string } {
@@ -71,21 +72,27 @@ export function DiscountInput({
   );
 }
 
+/** Satır personeli seçeneği (aktif personel). */
+export type StaffOption = { id: string; fullName: string };
+
 /**
- * Sepet satırları: ad, birim fiyat, − adet + (44px), satır tutarı. Satıra dokununca adet, fiyat ve satır indirimi
- * düzenlenir. Stok yetersizse satır altında uyarı (satışı engellemez).
+ * Sepet satırları: ad, birim fiyat, − adet + (44px), satır tutarı. Satıra dokununca adet, fiyat, satır indirimi ve (satışta)
+ * satır personeli düzenlenir; personel satırda küçük gri yazar. Stok yetersizse satır altında uyarı (satışı engellemez).
  */
 export function CartEditor({
   lines,
   calc,
   dispatch,
   showStock = true,
+  staff,
 }: {
   lines: CartLine[];
   calc: CalcLine[];
   dispatch: Dispatch<CartAction>;
   /** Teklifte stok uyarısı gösterilmez (stok satışta düşer). */
   showStock?: boolean;
+  /** Satışta satır personeli seçilir (prim); teklifte yok. */
+  staff?: StaffOption[];
 }) {
   const [editing, setEditing] = useState<CartLine | null>(null);
   return (
@@ -104,6 +111,7 @@ export function CartEditor({
                     {line.unit !== "Piece" && ` / ${formatQuantity(1, line.unit).replace(/^1 /, "")}`}
                     {line.discount && ` · indirim ${line.discount.type === "Percent" ? `%${line.discount.value}` : formatMoney(line.discount.value)}`}
                   </span>
+                  {staff && line.staffName && <span className="w-full truncate text-xs text-neutral-700">{line.staffName}</span>}
                 </button>
                 <div className="flex shrink-0 items-center">
                   <Button
@@ -148,6 +156,7 @@ export function CartEditor({
         <LineDialog
           key={editing.key}
           line={editing}
+          staff={staff}
           onClose={() => setEditing(null)}
           onSave={(patch) => {
             dispatch({ type: "update", key: editing.key, patch });
@@ -165,20 +174,30 @@ export function CartEditor({
 
 function LineDialog({
   line,
+  staff,
   onClose,
   onSave,
   onRemove,
 }: {
   line: CartLine;
+  staff?: StaffOption[];
   onClose: () => void;
-  onSave: (patch: Partial<Pick<CartLine, "quantity" | "unitPrice" | "discount">>) => void;
+  onSave: (patch: Partial<Pick<CartLine, "quantity" | "unitPrice" | "discount" | "staffMemberId" | "staffName">>) => void;
   onRemove: () => void;
 }) {
+  // Telefonda pencere açılınca klavye açılıp düğmeleri örtmesin; masaüstünde ilk alana odaklanılır.
+  const isDesktop = useIsDesktop();
   const [quantity, setQuantity] = useState(String(line.quantity).replace(".", ","));
   const [price, setPrice] = useState(moneyToInput(line.unitPrice));
   const [discountType, setDiscountType] = useState<DiscountType>(line.discount?.type ?? "Percent");
   const [discountText, setDiscountText] = useState(line.discount ? String(line.discount.value).replace(".", ",") : "");
+  const [staffId, setStaffId] = useState(line.staffMemberId ?? "");
   const [errors, setErrors] = useState<Record<string, string>>({});
+  // Pasife alınmış personel satırda kalmışsa seçenek olarak gösterilir.
+  const staffOptions =
+    staff && line.staffMemberId && !staff.some((s) => s.id === line.staffMemberId)
+      ? [...staff, { id: line.staffMemberId, fullName: line.staffName ?? "Personel" }]
+      : staff;
 
   const save = () => {
     const q = parseQuantity(quantity);
@@ -191,7 +210,10 @@ function LineDialog({
     if (d.error) next.discount = d.error;
     setErrors(next);
     if (Object.keys(next).length) return;
-    onSave({ quantity: q!, unitPrice: p!.value, discount: d.discount });
+    const staffPatch = staffOptions
+      ? { staffMemberId: staffId || null, staffName: staffOptions.find((s) => s.id === staffId)?.fullName ?? null }
+      : {};
+    onSave({ quantity: q!, unitPrice: p!.value, discount: d.discount, ...staffPatch });
   };
 
   return (
@@ -210,7 +232,7 @@ function LineDialog({
           noValidate
         >
           <Field label={`Miktar (${formatQuantity(1, line.unit).replace(/^1 /, "")})`} error={errors.quantity}>
-            <Input inputMode="decimal" value={quantity} onChange={(e) => setQuantity(e.target.value)} autoFocus />
+            <Input inputMode="decimal" value={quantity} onChange={(e) => setQuantity(e.target.value)} autoFocus={isDesktop} />
           </Field>
           <Field label="Birim fiyat (TL)" error={errors.price}>
             <Input inputMode="decimal" value={price} onChange={(e) => setPrice(e.target.value)} />
@@ -223,6 +245,18 @@ function LineDialog({
             onText={setDiscountText}
             error={errors.discount}
           />
+          {staffOptions && staffOptions.length > 0 && (
+            <Field label="Personel" hint="Prim bu personele yazılır.">
+              <select className={selectClass} value={staffId} onChange={(e) => setStaffId(e.target.value)}>
+                <option value="">Personel yok</option>
+                {staffOptions.map((s) => (
+                  <option key={s.id} value={s.id}>
+                    {s.fullName}
+                  </option>
+                ))}
+              </select>
+            </Field>
+          )}
           <DialogFooter className="flex-row justify-between gap-2 sm:justify-between">
             <Button type="button" variant="destructive" onClick={onRemove}>
               <Trash2 aria-hidden />

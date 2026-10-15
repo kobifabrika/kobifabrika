@@ -29,7 +29,7 @@ export function useSale(id: string) {
   });
 }
 
-/** Kalem listesi (satış ve teklif): ad, miktar × birim fiyat, indirim, tutar. */
+/** Kalem listesi (satış ve teklif): ad, miktar × birim fiyat, indirim, satır personeli (satışta), tutar. */
 export function LineList({ lines }: { lines: DocumentLine[] }) {
   return (
     <ul className="flex flex-col divide-y divide-border border-y border-border">
@@ -41,6 +41,7 @@ export function LineList({ lines }: { lines: DocumentLine[] }) {
               {formatQuantity(l.quantity, l.unit)} × {formatMoney(l.unitPrice)} · KDV %{l.vatRate}
               {l.lineDiscount > 0 && ` · indirim ${formatMoney(l.lineDiscount)}`}
             </span>
+            {l.staffName && <span className="text-xs text-neutral-700">Personel: {l.staffName}</span>}
           </span>
           <span className="shrink-0 text-sm font-semibold text-black tabular-nums">{formatMoney(l.lineTotal + l.allocatedDiscount)}</span>
         </li>

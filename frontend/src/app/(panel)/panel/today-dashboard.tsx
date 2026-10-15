@@ -7,6 +7,7 @@ import { useState, type ReactNode } from "react";
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from "recharts";
 
 import { TodayAppointments } from "@/components/appointments/today-appointments";
+import { TodayMyClock, TodayStaff } from "@/components/attendance/today-staff";
 import { QueryError } from "@/components/feedback/query-error";
 import { AccountBalance, accountHref } from "@/components/finance/cash-accounts";
 import { CollectionDialog } from "@/components/finance/finance-dialogs";
@@ -52,7 +53,7 @@ function StatCard({ label, icon: Icon, value, children, href }: { label: string;
 /**
  * Bugün ekranı (Europe/Istanbul günü; tek uç: /api/dashboard/today). Personel kendi satışlarını ve kritik stoğu görür;
  * tahsilat, bakiye ve alacak kartları ona gelmez (API null döner). Randevular modülü açıksa "Bugünün randevuları" en üstte
- * (Personel kendi randevularını görür). Aktif personel kartı Sprint 7'de.
+ * (Personel kendi randevularını görür); ardından "Aktif personel" (yöneticiler ve Mali Müşavir) veya Personel rolünde "Mesaim".
  */
 export function TodayDashboard() {
   const { role } = useSession();
@@ -126,6 +127,8 @@ function DashboardBody({ data }: { data: Dashboard }) {
   return (
     <>
       {data.appointments && <TodayAppointments data={data.appointments} canWrite={can(role, "writeAppointments")} />}
+      {data.myClock && <TodayMyClock />}
+      {data.staff && <TodayStaff data={data.staff} />}
       {data.marketing && <MarketingCards data={data.marketing} />}
       <section aria-label="Özet" className="grid grid-cols-2 gap-3 lg:grid-cols-4 lg:gap-4">
         <StatCard label={sales.onlyOwn ? "Bugünkü satışlarım" : "Bugünkü satış"} icon={ReceiptText} value={formatMoney(sales.total)} href="/panel/satislar">

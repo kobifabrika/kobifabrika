@@ -102,4 +102,32 @@ describe("Bugün ekranı", () => {
     expect(await screen.findByText("Bugünkü randevularım")).toBeInTheDocument();
     expect(screen.getByText("Bugün randevu yok.")).toBeInTheDocument();
   });
+
+  it("Aktif personel kartı: mesaidekiler, izinliler (tür dahil) ve unutulan çıkış linki", async () => {
+    response = {
+      ...full,
+      staff: {
+        onClock: [{ staffMemberId: "s1", name: "Ayşe Usta", since: "2026-10-30T06:02:00Z" }],
+        onLeave: [{ staffMemberId: "s2", name: "Mehmet Kalfa", typeName: "Yıllık izin", halfDay: "Afternoon" }],
+        forgottenCount: 2,
+        forgottenDay: "2026-10-29",
+      },
+    };
+    renderWithSession(<TodayDashboard />);
+
+    expect(await screen.findByText("Aktif personel")).toBeInTheDocument();
+    expect(screen.getByText("Ayşe Usta")).toBeInTheDocument();
+    expect(screen.getByText("09:02'den beri")).toBeInTheDocument();
+    expect(screen.getByText("Yıllık izin · öğleden sonra")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "2 çıkış unutuldu" })).toHaveAttribute("href", "/panel/mesai-izin?sekme=mesai&tarih=2026-10-29");
+  });
+
+  it("Personel kaydı yoksa aktif personel kartı yok", async () => {
+    response = { ...full, staff: null };
+    renderWithSession(<TodayDashboard />);
+
+    expect(await screen.findByText("Bugünkü tahsilat")).toBeInTheDocument();
+    expect(screen.queryByText("Aktif personel")).not.toBeInTheDocument();
+  });
 });
+

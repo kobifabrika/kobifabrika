@@ -378,3 +378,25 @@ export const leaveBalanceKindNames: Record<LeaveBalanceKind, string> = {
 
 /** API'deki LeaveTexts.LegalNote ile aynı. */
 export const LEGAL_NOTE = "Yasal bilgi amaçlıdır; kesin uygulama için mali müşavirinize danışın.";
+
+// Sprint 7B: prim, raporlar, Bugün'de aktif personel
+export type CommissionTarget = Schemas["CommissionTarget"];
+export type CommissionType = Schemas["CommissionType"];
+export type CommissionKind = Schemas["CommissionKind"];
+export type CommissionRule = Schemas["CommissionRuleResponse"];
+export type CommissionRuleRequest = Schemas["CommissionRuleRequest"];
+export type CommissionMonth = Schemas["CommissionMonthResponse"];
+export type CommissionItem = Schemas["CommissionItem"];
+export type StaffReport = Schemas["StaffReportResponse"];
+export type CampaignReport = Schemas["CampaignReportResponse"];
+export type SurveyReport = Schemas["SurveyReportResponse"];
+export type DashboardStaff = Schemas["DashboardStaff"];
+export type DashboardMyClock = Schemas["DashboardMyClock"];
+
+export const commissionTargetNames: Record<CommissionTarget, string> = {
+  All: "Bütün satışlar",
+  Service: "Hizmetler",
+  Product: "Ürünler",
+  Category: "Kategori",
+  Item: "Tek ürün/hizmet",
+};

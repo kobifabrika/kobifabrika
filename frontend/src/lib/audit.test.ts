@@ -43,4 +43,23 @@ describe("aktivite günlüğü metinleri", () => {
     ).toBe("Ayşe Usta · Yıllık izin · 03.11.2026 – 05.11.2026");
     expect(auditDetail({ action: "Login", changes: null })).toBe("");
   });
+
+  it("prim kuralı ve satır personeli değişikliklerini yazar (7B)", () => {
+    expect(auditDetail({ action: "CommissionRuleChanged", changes: { created: "Herkes · Hizmetler · %10" } })).toBe(
+      "Eklendi: Herkes · Hizmetler · %10",
+    );
+    expect(
+      auditDetail({
+        action: "CommissionRuleChanged",
+        changes: { before: { text: "Herkes · Hizmetler · %10", isActive: true }, after: { text: "Herkes · Hizmetler · %12", isActive: false } },
+      }),
+    ).toBe("Herkes · Hizmetler · %10 → Herkes · Hizmetler · %12 (pasif)");
+    expect(
+      auditDetail({
+        action: "SaleLineStaffChanged",
+        changes: { no: "SAT-2026-000012", line: "Saç kesimi", staff: { from: "Ayşe Usta", to: "Mehmet Kalfa" } },
+      }),
+    ).toBe("SAT-2026-000012 · Saç kesimi · Ayşe Usta → Mehmet Kalfa");
+    expect(auditDetail({ action: "ReportExported", changes: { report: "prim" } })).toBe("Prim");
+  });
 });

@@ -99,6 +99,11 @@ test("panel ekranları (Sahip, dolu veri)", async ({ owner, ownerPage: page, vis
     ["/panel/mesai-izin/izin-talebi", "İzin gir"],
     ["/panel/raporlar?rapor=mesai", "Rapor · mesai"],
     ["/panel/ayarlar/personel", "Personel ayarları"],
+    ["/panel/personel?sekme=prim", "Personel · prim kuralları"],
+    ["/panel/raporlar?rapor=prim", "Rapor · prim"],
+    ["/panel/raporlar?rapor=personel", "Rapor · personel"],
+    ["/panel/raporlar?rapor=kampanyalar", "Rapor · kampanyalar"],
+    ["/panel/raporlar?rapor=anket", "Rapor · anket"],
   ];
   for (const [url, name] of screens) await visit(page, url, name);
 });
