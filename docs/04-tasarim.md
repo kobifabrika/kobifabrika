@@ -3,6 +3,7 @@
 Referans taslaklar: `docs/tasarim-referans/index.html` (giriş ekranı) ve `admin.html` (panel).
 Bu dosyalar sadece görsel referanstır; içlerindeki "KOBIOS" adı eski çalışma adıdır, her yerde **KobiFabrika** yazılacak.
 Logo henüz yok: logo gelene kadar "KobiFabrika" yazısı (wordmark) kullanılır.
+Slogan: **"KOBİ'nin dijital fabrikası"** (sayfa başlığı, meta açıklama, tanıtım sitesi, giriş ekranı marka paneli; tek kaynak `frontend/src/content/site.ts` → `siteSlogan`). Eski "işletim sistemi" ifadesi kullanılmaz (taslaklarda geçer). Sosyal medya hesapları (`siteSocial`: Instagram, Facebook, YouTube, TikTok) site alt bilgisinde tek renk çizgi ikonlarla (`components/site/social-icons.tsx`; lucide 1.x marka ikonu içermez), 44 px dokunma alanı, yeni sekmede.
 
 ## Renkler (site geneli, kesin — 2026-10-10)
 

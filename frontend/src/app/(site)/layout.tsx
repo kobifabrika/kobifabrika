@@ -2,7 +2,8 @@ import Link from "next/link";
 
 import { Wordmark } from "@/components/brand/wordmark";
 import { SiteHeader } from "@/components/site/site-header";
-import { siteContact, siteNav } from "@/content/site";
+import { SocialIcon } from "@/components/site/social-icons";
+import { siteContact, siteNav, siteSlogan, siteSocial } from "@/content/site";
 
 const footerLink =
   "flex min-h-11 items-center text-sm text-neutral-600 underline-offset-4 hover:text-black hover:underline";
@@ -20,8 +21,23 @@ export default function SiteLayout({ children }: LayoutProps<"/">) {
           <div className="lg:col-span-2">
             <Wordmark className="text-2xl" />
             <p className="mt-3 max-w-sm text-sm text-neutral-600">
-              Esnafın kasası, veresiyesi, randevusu ve personeli tek uygulamada.
+              {siteSlogan}. Esnafın kasası, veresiyesi, randevusu ve personeli tek uygulamada.
             </p>
+            <ul aria-label="Sosyal medya" className="mt-4 flex gap-1">
+              {siteSocial.map((s) => (
+                <li key={s.key}>
+                  <a
+                    href={s.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label={`KobiFabrika ${s.label} hesabı (yeni sekmede açılır)`}
+                    className="flex size-11 items-center justify-center rounded-md text-black hover:bg-neutral-100"
+                  >
+                    <SocialIcon name={s.key} className="size-5" />
+                  </a>
+                </li>
+              ))}
+            </ul>
           </div>
           <nav aria-label="Alt menü">
             <p className="text-sm font-semibold">Site</p>

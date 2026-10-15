@@ -15,6 +15,7 @@ import {
 } from "@/components/site/product-shots";
 import { Button } from "@/components/ui/button";
 import { allPlansInclude, formatPlanPrice, planFootnote, plans } from "@/content/plans";
+import { siteSlogan } from "@/content/site";
 
 // Metinler taslak; kesin metinler Sprint 8'de (docs/05-sprintler.md). Fiyatlar: src/content/plans.ts.
 // Tasarım ilkeleri: docs/04-tasarim.md → "Tanıtım sitesi". Her bölümde en fazla bir mavi öğe.
@@ -192,7 +193,7 @@ export default function HomePage() {
       {/* a) Giriş: başlık, çağrı, ürün ekranı */}
       <section aria-labelledby="baslik" className="border-b border-neutral-200">
         <div className={cn(container, "kf-fade pt-12 pb-16 sm:pt-20 lg:pb-24")}>
-          <p className="text-sm font-semibold text-neutral-600">Esnaf ve küçük işletme için</p>
+          <p className="text-sm font-semibold text-neutral-600">{siteSlogan} · Esnaf ve küçük işletme için</p>
           <h1
             id="baslik"
             className="mt-4 max-w-4xl text-[2.6rem] leading-[1.02] font-bold tracking-[-0.035em] sm:text-6xl lg:text-[5.25rem]"

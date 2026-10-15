@@ -15,11 +15,11 @@ const display = Schibsted_Grotesk({
 
 export const metadata: Metadata = {
   title: {
-    default: "KobiFabrika — Paranı takip eden, müşteri getiren tek uygulama",
+    default: "KobiFabrika — KOBİ'nin dijital fabrikası",
     template: "%s · KobiFabrika",
   },
   description:
-    "KOBİ ve esnafın parasını takip eden, müşteri getiren ve personelini yöneten tek uygulama. Cari, kasa, stok, satış, randevu, SMS kampanyası, mesai ve izin.",
+    "KOBİ'nin dijital fabrikası: esnafın parasını takip eden, müşteri getiren ve personelini yöneten tek uygulama. Cari, kasa, stok, satış, randevu, SMS kampanyası, mesai ve izin.",
   applicationName: "KobiFabrika",
 };
 

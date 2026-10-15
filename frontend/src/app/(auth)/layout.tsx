@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import { Wordmark } from "@/components/brand/wordmark";
+import { siteSlogan } from "@/content/site";
 
 /**
  * Giriş/kayıt düzeni (docs/04-tasarim.md): masaüstünde solda koyu marka paneli, sağda form.
@@ -14,7 +15,8 @@ export default function AuthLayout({ children }: LayoutProps<"/">) {
           <Wordmark onDark className="text-2xl md:text-6xl" />
         </Link>
         <p className="hidden max-w-sm text-center text-base text-sidebar-foreground md:mt-5 md:block">
-          Paranı takip eden, müşteri getiren, personelini yöneten tek uygulama.
+          <span className="block text-xl font-semibold text-white">{siteSlogan}</span>
+          <span className="mt-2 block">Paranı takip eden, müşteri getiren, personelini yöneten tek uygulama.</span>
         </p>
         <div className="hidden text-center text-xs text-sidebar-foreground/80 md:absolute md:inset-x-12 md:bottom-8 md:block">
           <p className="font-semibold tracking-wider uppercase">KobiFabrika Yazılım A.Ş.</p>
