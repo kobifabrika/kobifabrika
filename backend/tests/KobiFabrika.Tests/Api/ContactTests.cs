@@ -189,7 +189,7 @@ public sealed class ContactTests(SqlServerFixture db) : ApiTestBase(db)
 
         var segments = await GetJsonAsync(owner.Client, "/api/segments");
         segments.EnumerateArray().Select(s => s.GetProperty("name").GetString()).ShouldBe(
-            ["60 gündür gelmeyenler", "Borcu olanlar", "Bu ay doğum günü olanlar", "Son 30 günde eklenenler", "Instagram VIP"]);
+            ["60 gündür gelmeyenler", "Borcu olanlar", "Bu ay doğum günü olanlar", "Son 30 günde eklenenler", "Kaybedilme riski", "Instagram VIP"]);
     }
 
     [Fact]

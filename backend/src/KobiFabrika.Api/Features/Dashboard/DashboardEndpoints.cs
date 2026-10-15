@@ -50,7 +50,8 @@ public sealed record DashboardAppointments(int Total, int Pending, bool OnlyOwn,
 /// </summary>
 public sealed record DashboardResponse(
     DateOnly Today, DashboardSales Sales, decimal? Collections, IReadOnlyList<DashboardAccount>? Accounts, DashboardReceivables? Receivables,
-    DashboardStock Stock, IReadOnlyList<DashboardSale> RecentSales, IReadOnlyList<DailyTotal> Last30Days, DashboardAppointments? Appointments);
+    DashboardStock Stock, IReadOnlyList<DashboardSale> RecentSales, IReadOnlyList<DailyTotal> Last30Days, DashboardAppointments? Appointments,
+    Marketing.DashboardMarketing? Marketing);
 
 public static class DashboardEndpoints
 {
@@ -134,11 +135,20 @@ public static class DashboardEndpoints
             appointments = new DashboardAppointments(counts?.Total ?? 0, counts?.Pending ?? 0, onlyOwn, list);
         }
 
+        // Pazarlama önerileri (Sprint 6B): yarının boş saatleri ve kaybedilme riski; kampanya başlatabilenlere.
+        Marketing.DashboardMarketing? marketing = null;
+        if (member.IsManager)
+        {
+            marketing = new Marketing.DashboardMarketing(
+                await Marketing.MarketingSuggestions.EmptySlotsAsync(db, member.RequiredBusinessId, today.AddDays(1), clock, ct),
+                await Marketing.MarketingSuggestions.AtRiskAsync(db, clock, ct));
+        }
+
         return TypedResults.Ok(new DashboardResponse(
             today,
             new DashboardSales(todayTotals?.Total ?? 0, todayTotals?.Count ?? 0, byMethod.OrderBy(m => m.Method).ToList(), !member.CanViewAllSales),
             collections, accounts, receivables,
             new DashboardStock(summary.Enabled, summary.Low, summary.Negative, lowItems),
-            recent, last30, appointments));
+            recent, last30, appointments, marketing));
     }
 }

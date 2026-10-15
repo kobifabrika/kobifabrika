@@ -212,11 +212,11 @@ public sealed class CampaignSender(
     }
 
     /// <summary>Günlük pazarlama payını alır (benzersiz indeks; yarışta biri kazanır). Otomasyonlar da bunu kullanır (6B).</summary>
-    public async Task<bool> TryTakeDailySlotAsync(Guid contactId, DateOnly day, CancellationToken ct)
+    public async Task<bool> TryTakeDailySlotAsync(Guid contactId, DateOnly day, CancellationToken ct, MessagePurpose purpose = MessagePurpose.Campaign)
     {
         db.MarketingDailySends.Add(new MarketingDailySend
         {
-            ContactId = contactId, LocalDate = day, Purpose = MessagePurpose.Campaign, CreatedAt = clock.GetUtcNow().UtcDateTime,
+            ContactId = contactId, LocalDate = day, Purpose = purpose, CreatedAt = clock.GetUtcNow().UtcDateTime,
         });
         try
         {
@@ -230,7 +230,7 @@ public sealed class CampaignSender(
         }
     }
 
-    private Task ReleaseDailySlotAsync(Guid contactId, DateOnly day, CancellationToken ct) =>
+    public Task ReleaseDailySlotAsync(Guid contactId, DateOnly day, CancellationToken ct) =>
         db.MarketingDailySends.Where(d => d.ContactId == contactId && d.LocalDate == day).ExecuteDeleteAsync(ct);
 
     /// <summary>Müşterinin çıkış kodu (yoksa üretilir; bütün işletmelerde benzersiz, çakışmada yeniden denenir).</summary>

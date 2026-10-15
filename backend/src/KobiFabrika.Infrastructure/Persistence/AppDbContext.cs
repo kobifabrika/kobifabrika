@@ -88,6 +88,9 @@ public class AppDbContext : IdentityDbContext<AppUser, AppRole, Guid>
     public DbSet<Campaign> Campaigns => Set<Campaign>();
     public DbSet<CampaignRecipient> CampaignRecipients => Set<CampaignRecipient>();
     public DbSet<MarketingDailySend> MarketingDailySends => Set<MarketingDailySend>();
+    public DbSet<Automation> Automations => Set<Automation>();
+    public DbSet<AutomationSend> AutomationSends => Set<AutomationSend>();
+    public DbSet<Survey> Surveys => Set<Survey>();
 
     /// <summary>
     /// Query filter'lar bu özelliğe başvurur; EF her sorguda bu context örneğinin

@@ -31,6 +31,9 @@ internal sealed class ContactConfiguration : IEntityTypeConfiguration<Contact>
         b.HasIndex(x => new { x.BusinessId, x.Phone }).IsUnique().HasFilter("[Phone] IS NOT NULL AND [IsDeleted] = 0");
         b.HasIndex(x => new { x.BusinessId, x.DisplayName });
         b.HasIndex(x => new { x.BusinessId, x.Email });
+        b.Property(x => x.AvgVisitIntervalDays).HasPrecision(7, 2);
+        // Kaybedilme riski segmenti (Sprint 6B).
+        b.HasIndex(x => new { x.BusinessId, x.VisitCount, x.LastVisitAt }).IncludeProperties(x => x.AvgVisitIntervalDays);
         b.Property(x => x.OptOutCode).HasMaxLength(8).IsUnicode(false).UseCollation("Latin1_General_100_BIN2");
         // Çıkış linki /c/{kod} işletme içermez: kod bütün işletmelerde benzersiz (büyük/küçük harf duyarlı).
         b.HasIndex(x => x.OptOutCode).IsUnique().HasFilter("[OptOutCode] IS NOT NULL");

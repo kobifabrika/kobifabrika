@@ -98,6 +98,9 @@ builder.Services.Configure<MarketingOptions>(builder.Configuration.GetSection(Ma
 builder.Services.Configure<PublicLinkOptions>(builder.Configuration.GetSection(PublicLinkOptions.Section));
 builder.Services.AddScoped<CampaignSender>();
 builder.Services.AddScoped<CampaignDispatcher>();
+builder.Services.AddScoped<MarketingSms>();
+builder.Services.AddScoped<AutomationRunner>();
+builder.Services.AddScoped<AutomationDispatcher>();
 builder.Services.AddScoped<ISearchProvider, ContactSearchProvider>();
 builder.Services.AddScoped<ISearchProvider, ProductSearchProvider>();
 builder.Services.AddScoped<ISearchProvider, SaleSearchProvider>();
@@ -234,12 +237,16 @@ app.MapContactPrivacyEndpoints();
 app.MapSmsCreditEndpoints();
 app.MapCampaignEndpoints();
 app.MapOptOutEndpoints();
+app.MapAutomationEndpoints();
+app.MapSurveyEndpoints();
+app.MapMarketingSuggestionEndpoints();
 
 if (BackgroundJobs.IsEnabled(app.Configuration))
 {
     var recurring = app.Services.GetRequiredService<IRecurringJobManager>();
     BackgroundJobs.RegisterRecurringJobs(recurring);
     recurring.AddOrUpdate<CampaignDispatcher>(CampaignDispatcher.JobId, j => j.RunAsync(CancellationToken.None), Cron.Minutely);
+    recurring.AddOrUpdate<AutomationDispatcher>(AutomationDispatcher.JobId, j => j.RunAsync(CancellationToken.None), "*/5 * * * *");
 }
 
 app.Run();

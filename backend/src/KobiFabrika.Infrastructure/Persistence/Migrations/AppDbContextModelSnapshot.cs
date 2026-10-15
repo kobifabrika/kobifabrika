@@ -1016,6 +1016,10 @@ namespace KobiFabrika.Infrastructure.Persistence.Migrations
                     b.Property<DateTime?>("ArchivedAt")
                         .HasColumnType("datetime2");
 
+                    b.Property<decimal?>("AvgVisitIntervalDays")
+                        .HasPrecision(7, 2)
+                        .HasColumnType("decimal(7,2)");
+
                     b.Property<decimal>("Balance")
                         .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
@@ -1062,6 +1066,9 @@ namespace KobiFabrika.Infrastructure.Persistence.Migrations
                     b.Property<string>("FirstName")
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
+
+                    b.Property<DateOnly?>("FirstVisitOn")
+                        .HasColumnType("date");
 
                     b.Property<bool>("IsAnonymized")
                         .HasColumnType("bit");
@@ -1118,6 +1125,9 @@ namespace KobiFabrika.Infrastructure.Persistence.Migrations
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("datetime2");
 
+                    b.Property<int>("VisitCount")
+                        .HasColumnType("int");
+
                     b.HasKey("Id");
 
                     b.HasIndex("BusinessId");
@@ -1133,6 +1143,10 @@ namespace KobiFabrika.Infrastructure.Persistence.Migrations
                     b.HasIndex("BusinessId", "Phone")
                         .IsUnique()
                         .HasFilter("[Phone] IS NOT NULL AND [IsDeleted] = 0");
+
+                    b.HasIndex("BusinessId", "VisitCount", "LastVisitAt");
+
+                    SqlServerIndexBuilderExtensions.IncludeProperties(b.HasIndex("BusinessId", "VisitCount", "LastVisitAt"), new[] { "AvgVisitIntervalDays" });
 
                     b.ToTable("Contacts", (string)null);
                 });
@@ -2056,6 +2070,130 @@ namespace KobiFabrika.Infrastructure.Persistence.Migrations
                     b.ToTable("ImportJobs", (string)null);
                 });
 
+            modelBuilder.Entity("KobiFabrika.Domain.Marketing.Automation", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Body")
+                        .IsRequired()
+                        .HasMaxLength(400)
+                        .HasColumnType("nvarchar(400)");
+
+                    b.Property<Guid>("BusinessId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("CreatedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int?>("DelayMinutes")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("EnabledAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("InactiveDays")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsEnabled")
+                        .HasColumnType("bit");
+
+                    b.Property<DateOnly?>("LastRunOn")
+                        .HasColumnType("date");
+
+                    b.Property<int?>("RepeatDays")
+                        .HasColumnType("int");
+
+                    b.Property<TimeOnly>("SendAtLocal")
+                        .HasColumnType("time");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BusinessId");
+
+                    b.HasIndex("Type")
+                        .HasDatabaseName("IX_Automations_Enabled")
+                        .HasFilter("[IsEnabled] = 1 AND [IsDeleted] = 0");
+
+                    b.HasIndex("BusinessId", "Type")
+                        .IsUnique()
+                        .HasFilter("[IsDeleted] = 0");
+
+                    b.ToTable("Automations", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_Automations_DelayMinutes", "[DelayMinutes] IS NULL OR [DelayMinutes] BETWEEN 0 AND 4320");
+
+                            t.HasCheckConstraint("CK_Automations_InactiveDays", "[InactiveDays] IS NULL OR [InactiveDays] BETWEEN 7 AND 730");
+
+                            t.HasCheckConstraint("CK_Automations_RepeatDays", "[RepeatDays] IS NULL OR [RepeatDays] BETWEEN 7 AND 730");
+                        });
+                });
+
+            modelBuilder.Entity("KobiFabrika.Domain.Marketing.AutomationSend", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("BusinessId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("ContactId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Key")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(40)");
+
+                    b.Property<Guid?>("MessageLogId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("SkipReason")
+                        .HasMaxLength(20)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(20)");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BusinessId");
+
+                    b.HasIndex("ContactId");
+
+                    b.HasIndex("MessageLogId");
+
+                    b.HasIndex("BusinessId", "Type", "CreatedAt");
+
+                    b.HasIndex("BusinessId", "Type", "ContactId", "Key")
+                        .IsUnique();
+
+                    b.ToTable("AutomationSends", (string)null);
+                });
+
             modelBuilder.Entity("KobiFabrika.Domain.Marketing.Campaign", b =>
                 {
                     b.Property<Guid>("Id")
@@ -2336,6 +2474,86 @@ namespace KobiFabrika.Infrastructure.Persistence.Migrations
                             t.HasCheckConstraint("CK_SmsCreditTransactions_Amount", "[Amount] <> 0");
 
                             t.HasCheckConstraint("CK_SmsCreditTransactions_BalanceAfter", "[BalanceAfter] >= 0");
+                        });
+                });
+
+            modelBuilder.Entity("KobiFabrika.Domain.Marketing.Survey", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("AnsweredAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("AppointmentId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("BusinessId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<byte[]>("CodeHash")
+                        .IsRequired()
+                        .HasColumnType("binary(32)");
+
+                    b.Property<string>("Comment")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<DateTime?>("CommentedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("ContactId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("CreatedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("ExpiresAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("GoogleClickedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("ProtectedCode")
+                        .HasMaxLength(500)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(500)");
+
+                    b.Property<int?>("Score")
+                        .HasColumnType("int");
+
+                    b.Property<Guid?>("StaffMemberId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AppointmentId");
+
+                    b.HasIndex("BusinessId");
+
+                    b.HasIndex("CodeHash")
+                        .IsUnique();
+
+                    b.HasIndex("ContactId");
+
+                    b.HasIndex("BusinessId", "AnsweredAt");
+
+                    b.HasIndex("BusinessId", "AppointmentId")
+                        .IsUnique();
+
+                    b.ToTable("Surveys", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_Surveys_Score", "[Score] IS NULL OR [Score] BETWEEN 1 AND 5");
                         });
                 });
 
@@ -3755,6 +3973,20 @@ namespace KobiFabrika.Infrastructure.Persistence.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("KobiFabrika.Domain.Marketing.AutomationSend", b =>
+                {
+                    b.HasOne("KobiFabrika.Domain.Contacts.Contact", null)
+                        .WithMany()
+                        .HasForeignKey("ContactId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("KobiFabrika.Domain.Messaging.MessageLog", null)
+                        .WithMany()
+                        .HasForeignKey("MessageLogId")
+                        .OnDelete(DeleteBehavior.Restrict);
+                });
+
             modelBuilder.Entity("KobiFabrika.Domain.Marketing.Campaign", b =>
                 {
                     b.HasOne("KobiFabrika.Domain.Contacts.Segment", null)
@@ -3798,6 +4030,21 @@ namespace KobiFabrika.Infrastructure.Persistence.Migrations
                         .WithMany()
                         .HasForeignKey("MessageLogId")
                         .OnDelete(DeleteBehavior.Restrict);
+                });
+
+            modelBuilder.Entity("KobiFabrika.Domain.Marketing.Survey", b =>
+                {
+                    b.HasOne("KobiFabrika.Domain.Appointments.Appointment", null)
+                        .WithMany()
+                        .HasForeignKey("AppointmentId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("KobiFabrika.Domain.Contacts.Contact", null)
+                        .WithMany()
+                        .HasForeignKey("ContactId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("KobiFabrika.Domain.Messaging.MessageLog", b =>

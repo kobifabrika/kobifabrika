@@ -40,6 +40,15 @@ public class Contact : TenantEntity
     /// <summary>Son ziyaret (satış/randevu ile Sprint 3/5'te dolar).</summary>
     public DateTime? LastVisitAt { get; set; }
 
+    /// <summary>Ziyaret sayısı: tamamlanan satış veya randevu olan farklı İstanbul günleri (aynı gün satış + randevu = 1; Sprint 6B).</summary>
+    public int VisitCount { get; set; }
+
+    /// <summary>İlk ziyaret günü (İstanbul).</summary>
+    public DateOnly? FirstVisitOn { get; set; }
+
+    /// <summary>Ortalama ziyaret aralığı (gün); en az 2 ziyarette. Kaybedilme riski için.</summary>
+    public decimal? AvgVisitIntervalDays { get; set; }
+
     public bool IsArchived { get; set; }
     public DateTime? ArchivedAt { get; set; }
 

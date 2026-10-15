@@ -98,6 +98,8 @@ public enum AuditAction
 
     /// <summary>KVKK: müşterinin kişisel verileri silindi (anonimleştirildi). Kayıtta kişisel veri tutulmaz.</summary>
     ContactAnonymized,
+    AutomationChanged,
+    ReviewSettingsChanged,
 }
 
 /// <summary>

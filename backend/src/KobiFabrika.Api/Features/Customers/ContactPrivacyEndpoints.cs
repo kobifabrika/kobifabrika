@@ -271,6 +271,8 @@ public static class ContactPrivacyEndpoints
             .ExecuteUpdateAsync(s => s.SetProperty(p => p.ClaimNote, (string?)null).SetProperty(p => p.Note, (string?)null), ct);
         await db.MessageLogs.IgnoreQueryFilters([QueryFilters.SoftDelete]).Where(m => m.ContactId == id)
             .ExecuteUpdateAsync(s => s.SetProperty(m => m.To, masked).SetProperty(m => m.Body, "[silindi]"), ct);
+        await db.Surveys.IgnoreQueryFilters([QueryFilters.SoftDelete]).Where(s => s.ContactId == id)
+            .ExecuteUpdateAsync(s => s.SetProperty(x => x.Comment, (string?)null), ct);
         await db.CampaignRecipients.IgnoreQueryFilters([QueryFilters.SoftDelete]).Where(r => r.ContactId == id)
             .ExecuteUpdateAsync(s => s.SetProperty(r => r.Phone, (string?)null), ct);
         if (oldPhone is not null)

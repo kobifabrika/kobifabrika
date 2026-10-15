@@ -71,6 +71,30 @@ public abstract partial class MarketingTestBase(SqlServerFixture db) : ApiTestBa
         return await scope.ServiceProvider.GetRequiredService<CampaignDispatcher>().RunAsync(businessId, Ct);
     }
 
+    /// <summary>Otomasyon dağıtıcısı sadece bu işletme için.</summary>
+    protected async Task<int> RunAutomationsAsync(Guid businessId)
+    {
+        await using var scope = Factory.Services.CreateAsyncScope();
+        return await scope.ServiceProvider.GetRequiredService<AutomationDispatcher>().RunAsync(businessId, Ct);
+    }
+
+    protected async Task<JsonElement> SetAutomationAsync(TestUser owner, string type, object body)
+    {
+        var response = await owner.Client.PutAsJsonAsync($"/api/automations/{type}", body, Json, Ct);
+        await EnsureSuccessAsync(response);
+        return await response.Content.ReadFromJsonAsync<JsonElement>(Json, Ct);
+    }
+
+    /// <summary>Saati İstanbul'a göre ileri alır (sadece ileri; FakeTimeProvider geri gitmez).</summary>
+    protected void SetIstanbul(DateOnly day, int hour, int minute = 0) =>
+        Factory.Clock.SetUtcNow(new DateTimeOffset(day.ToDateTime(new TimeOnly(hour, minute)).AddHours(-3), TimeSpan.Zero));
+
+    /// <summary>SMS'teki anket kodu (…/a/XXXXXXXXXX).</summary>
+    protected static string SurveyCode(string body) => SurveyPattern().Match(body).Groups[1].Value;
+
+    [GeneratedRegex(@"/a/([A-Za-z0-9]{10})")]
+    private static partial Regex SurveyPattern();
+
     /// <summary>İşletmenin kiracı scope'unda bir işlem (servisleri doğrudan çağırmak için).</summary>
     protected async Task<T> InTenantAsync<T>(Guid businessId, Func<IServiceProvider, Task<T>> action)
     {

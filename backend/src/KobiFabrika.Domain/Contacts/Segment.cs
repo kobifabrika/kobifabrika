@@ -19,11 +19,15 @@ public static class SystemSegments
     public const string BirthdayThisMonth = "birthday-this-month";
     public const string New30 = "new-30";
 
+    /// <summary>Kaybedilme riski: en az 3 ziyaret, son ziyaretten bu yana max(2 × ortalama aralık, 14 gün)'den fazla (Sprint 6B).</summary>
+    public const string AtRisk = "at-risk";
+
     public static readonly IReadOnlyList<(string Code, string Name)> All =
     [
         (Inactive60, "60 gündür gelmeyenler"),
         (Debtors, "Borcu olanlar"),
         (BirthdayThisMonth, "Bu ay doğum günü olanlar"),
         (New30, "Son 30 günde eklenenler"),
+        (AtRisk, "Kaybedilme riski"),
     ];
 }

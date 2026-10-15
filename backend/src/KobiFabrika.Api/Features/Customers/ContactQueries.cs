@@ -1,6 +1,7 @@
 using System.Text.Json;
 using KobiFabrika.Domain.Common;
 using KobiFabrika.Domain.Contacts;
+using KobiFabrika.Domain.Marketing;
 using KobiFabrika.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 
@@ -92,9 +93,23 @@ public static class ContactQueries
             case SystemSegments.New30:
                 var since = now.AddDays(-30);
                 return query.Where(c => c.CreatedAt >= since);
+            case SystemSegments.AtRisk:
+                return query.AtRisk(clock);
             default:
                 return query;
         }
+    }
+
+    /// <summary>
+    /// Kaybedilme riski (Domain RiskRule ile aynı): en az 3 ziyaret ve son ziyaret günü ile bugün (İstanbul) arası
+    /// max(2 × ortalama aralık, 14 gün)'den fazla. LastVisitAt UTC; İstanbul günü için +3 saat (yıl boyu UTC+3).
+    /// </summary>
+    public static IQueryable<Contact> AtRisk(this IQueryable<Contact> query, TimeProvider clock)
+    {
+        var today = BusinessTime.Today(clock).ToDateTime(TimeOnly.MinValue);
+        return query.Where(c => c.VisitCount >= RiskRule.MinVisits && c.AvgVisitIntervalDays != null && c.LastVisitAt != null
+            && EF.Functions.DateDiffDay(c.LastVisitAt.Value.AddHours(3).Date, today)
+                > (c.AvgVisitIntervalDays * 2 > RiskRule.MinThresholdDays ? c.AvgVisitIntervalDays * 2 : RiskRule.MinThresholdDays));
     }
 
     /// <summary>

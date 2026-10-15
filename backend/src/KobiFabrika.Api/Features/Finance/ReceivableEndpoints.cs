@@ -187,49 +187,55 @@ public static class ReceivableEndpoints
         DateOnly? dueDate = dueNow.Count > 0 ? dueNow.Min(i => i.DueDate) : items.Min(i => i.DueDate);
         var business = await db.Businesses.AsNoTracking().FirstAsync(b => b.Id == member.BusinessId, ct);
 
-        string? url = null;
-        var created = false;
-        if (business.Iban is not null)
-        {
-            (url, created) = await ledger.InTransactionAsync(async () =>
-            {
-                // Cari satırı kilitlenir: aynı müşteri için aynı anda açılan iki pencere iki link oluşturmaz.
-                await db.Contacts.Where(c => c.Id == contactId).ExecuteUpdateAsync(s => s.SetProperty(c => c.UpdatedAt, c => c.UpdatedAt), ct);
-                var now = clock.GetUtcNow().UtcDateTime;
-                var open = await db.PaymentRequests
-                    .Where(p => p.ContactId == contactId && (p.Status == PaymentRequestStatus.Open || p.Status == PaymentRequestStatus.ClaimedPaid)
-                        && p.ExpiresAt > now)
-                    .OrderByDescending(p => p.CreatedAt).ToListAsync(ct);
-                foreach (var request in open)
-                {
-                    if (protector.TryUnprotect(request.ProtectedToken, request.TokenHash) is { } existing)
-                    {
-                        return (options.Value.Link($"/odeme/{existing}"), false);
-                    }
-                }
-
-                var (token, hash) = SecureTokens.Create();
-                var paymentRequest = new PaymentRequest
-                {
-                    ContactId = contactId,
-                    Amount = amount,
-                    Note = "Vade hatırlatması",
-                    TokenHash = hash,
-                    ProtectedToken = protector.Protect(token),
-                    ExpiresAt = now + PaymentRequest.Lifetime,
-                    Status = PaymentRequestStatus.Open,
-                };
-                db.PaymentRequests.Add(paymentRequest);
-                audit.Log(AuditAction.PaymentRequestCreated, nameof(PaymentRequest), paymentRequest.Id, new { contactId, amount, reason = "due_reminder" });
-                await db.SaveChangesAsync(ct);
-                return (options.Value.Link($"/odeme/{token}"), true);
-            }, ct);
-        }
+        var (url, created) = business.Iban is null
+            ? (null, false)
+            : await EnsurePaymentLinkAsync(db, ledger, protector, options.Value, audit, clock, contactId, amount, ct);
 
         var text = ReminderText(contact.DisplayName, business.Name, amount, dueDate, today, url);
         return TypedResults.Ok(new ReminderMessageResponse(contactId, contact.DisplayName, contact.Phone, amount, dueDate, text,
             ShareLinks.WhatsApp(contact.Phone, text), Sms(contact.Phone, text), url, created));
     }
+
+    /// <summary>
+    /// Vade hatırlatmasının tahsilat linki: müşterinin açık (süresi dolmamış) linki varsa o, yoksa tutarla bir kez oluşturulur
+    /// (cari satırı kilitlenir: eşzamanlı iki istek iki link üretmez). Panel hatırlatması ve vade otomasyonu (Sprint 6B) kullanır.
+    /// </summary>
+    internal static async Task<(string? Url, bool Created)> EnsurePaymentLinkAsync(
+        AppDbContext db, LedgerService ledger, LinkTokenProtector protector, AppOptions options, IAuditLogger audit, TimeProvider clock,
+        Guid contactId, decimal amount, CancellationToken ct) =>
+        await ledger.InTransactionAsync<(string?, bool)>(async () =>
+        {
+            // Cari satırı kilitlenir: aynı müşteri için aynı anda açılan iki pencere iki link oluşturmaz.
+            await db.Contacts.Where(c => c.Id == contactId).ExecuteUpdateAsync(s => s.SetProperty(c => c.UpdatedAt, c => c.UpdatedAt), ct);
+            var now = clock.GetUtcNow().UtcDateTime;
+            var open = await db.PaymentRequests
+                .Where(p => p.ContactId == contactId && (p.Status == PaymentRequestStatus.Open || p.Status == PaymentRequestStatus.ClaimedPaid)
+                    && p.ExpiresAt > now)
+                .OrderByDescending(p => p.CreatedAt).ToListAsync(ct);
+            foreach (var request in open)
+            {
+                if (protector.TryUnprotect(request.ProtectedToken, request.TokenHash) is { } existing)
+                {
+                    return (options.Link($"/odeme/{existing}"), false);
+                }
+            }
+
+            var (token, hash) = SecureTokens.Create();
+            var paymentRequest = new PaymentRequest
+            {
+                ContactId = contactId,
+                Amount = amount,
+                Note = "Vade hatırlatması",
+                TokenHash = hash,
+                ProtectedToken = protector.Protect(token),
+                ExpiresAt = now + PaymentRequest.Lifetime,
+                Status = PaymentRequestStatus.Open,
+            };
+            db.PaymentRequests.Add(paymentRequest);
+            audit.Log(AuditAction.PaymentRequestCreated, nameof(PaymentRequest), paymentRequest.Id, new { contactId, amount, reason = "due_reminder" });
+            await db.SaveChangesAsync(ct);
+            return (options.Link($"/odeme/{token}"), true);
+        }, ct);
 
     private static async Task<IResult> LogReminder(
         Guid contactId, ReminderLogRequest request, AppDbContext db, IAuditLogger audit, TimeProvider clock, CancellationToken ct)

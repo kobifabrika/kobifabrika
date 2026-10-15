@@ -76,3 +76,55 @@ internal sealed class MarketingDailySendConfiguration : IEntityTypeConfiguration
         b.HasOne<Contact>().WithMany().HasForeignKey(x => x.ContactId).OnDelete(DeleteBehavior.Restrict);
     }
 }
+
+internal sealed class AutomationConfiguration : IEntityTypeConfiguration<Automation>
+{
+    public void Configure(EntityTypeBuilder<Automation> b)
+    {
+        b.ToTable("Automations", t =>
+        {
+            t.HasCheckConstraint("CK_Automations_InactiveDays", "[InactiveDays] IS NULL OR [InactiveDays] BETWEEN 7 AND 730");
+            t.HasCheckConstraint("CK_Automations_RepeatDays", "[RepeatDays] IS NULL OR [RepeatDays] BETWEEN 7 AND 730");
+            t.HasCheckConstraint("CK_Automations_DelayMinutes", "[DelayMinutes] IS NULL OR [DelayMinutes] BETWEEN 0 AND 4320");
+        });
+        b.Property(x => x.Type).HasConversion<string>().HasMaxLength(20);
+        b.Property(x => x.Body).HasMaxLength(Automation.MaxBodyLength);
+        b.Ignore(x => x.IsDaily);
+        b.Ignore(x => x.IsAfterVisit);
+        b.Ignore(x => x.Purpose);
+        b.HasIndex(x => new { x.BusinessId, x.Type }).IsUnique().HasFilter("[IsDeleted] = 0");
+        // Dağıtıcı (işletmeler arası): açık otomasyonlar.
+        b.HasIndex(x => x.Type).HasDatabaseName("IX_Automations_Enabled").HasFilter("[IsEnabled] = 1 AND [IsDeleted] = 0");
+    }
+}
+
+internal sealed class AutomationSendConfiguration : IEntityTypeConfiguration<AutomationSend>
+{
+    public void Configure(EntityTypeBuilder<AutomationSend> b)
+    {
+        b.ToTable("AutomationSends");
+        b.Property(x => x.Type).HasConversion<string>().HasMaxLength(20);
+        b.Property(x => x.Key).HasMaxLength(40).IsUnicode(false);
+        b.Property(x => x.SkipReason).HasMaxLength(20).IsUnicode(false);
+        b.HasIndex(x => new { x.BusinessId, x.Type, x.ContactId, x.Key }).IsUnique();
+        b.HasIndex(x => new { x.BusinessId, x.Type, x.CreatedAt });
+        b.HasOne<Contact>().WithMany().HasForeignKey(x => x.ContactId).OnDelete(DeleteBehavior.Restrict);
+        b.HasOne<MessageLog>().WithMany().HasForeignKey(x => x.MessageLogId).OnDelete(DeleteBehavior.Restrict);
+    }
+}
+
+internal sealed class SurveyConfiguration : IEntityTypeConfiguration<Survey>
+{
+    public void Configure(EntityTypeBuilder<Survey> b)
+    {
+        b.ToTable("Surveys", t => t.HasCheckConstraint("CK_Surveys_Score", "[Score] IS NULL OR [Score] BETWEEN 1 AND 5"));
+        b.Property(x => x.CodeHash).HasColumnType("binary(32)");
+        b.Property(x => x.ProtectedCode).HasMaxLength(500).IsUnicode(false);
+        b.Property(x => x.Comment).HasMaxLength(Survey.MaxCommentLength);
+        b.HasIndex(x => x.CodeHash).IsUnique();
+        b.HasIndex(x => new { x.BusinessId, x.AppointmentId }).IsUnique();
+        b.HasIndex(x => new { x.BusinessId, x.AnsweredAt });
+        b.HasOne<Contact>().WithMany().HasForeignKey(x => x.ContactId).OnDelete(DeleteBehavior.Restrict);
+        b.HasOne<KobiFabrika.Domain.Appointments.Appointment>().WithMany().HasForeignKey(x => x.AppointmentId).OnDelete(DeleteBehavior.Restrict);
+    }
+}
