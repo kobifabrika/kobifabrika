@@ -108,7 +108,8 @@ kopar, sahipsiz Next dev sunucusu `write EPIPE` ile bozulur (sayfalar dakikalarc
 
 ## Güncel durum
 
-- Sprint: **6A (SMS kredisi, kampanya, İYS çıkışı, KVKK)** bitti (2026-10-15, Actions #13 yeşil). Sıradaki: **6B** (otomasyonlar, anket, boş saat, risk listesi); 6B'ye geçmeden kullanıcı onayı beklenir. Kararlar `docs/karar-gunlugu.md` 2026-10-15.
+- Sprint: **6 (pazarlama ve İYS)** bitti (2026-10-15; 6A Actions #13, 6B Actions #15 yeşil). Sıradaki: **Sprint 7** (personel, mesai, izin, prim). Kararlar `docs/karar-gunlugu.md` 2026-10-15.
+- Otomasyonlar `AutomationRunner`/`AutomationDispatcher` (anahtar başına bir gönderim: `AutomationSends`); pazarlama otomasyonları `MarketingSms` ile. Anket `/a/[kod]` (`SurveyEndpoints`). Ziyaret istatistiği sadece `ContactVisits.RecomputeAsync` ile (aynı gün tek ziyaret); risk `ContactQueries.AtRisk` (Domain `RiskRule` ile aynı).
 - SMS kredisi sadece `SmsCredits` ile (atomik, eksiye düşmez); her SMS `ISmsSender`'dan (ücretli mesajda kredi düşer, hata iade). Pazarlama SMS'i: izin + çıkış eki + 09:00-21:00 + `MarketingDailySends` (günde 1). Kampanya gönderimi `CampaignSender`/`CampaignDispatcher` (alıcıya en fazla bir SMS; testte dağıtıcı `RunAsync(businessId)` ile sınırlanır).
 - Çip/sekme satırları `components/ui/scroll-row.tsx` (`ScrollRow`, `Chip`, `TabNav`); telefonda Menü sağ üstte (`mobile-menu.tsx`).
 - Randevu saati sadece `AppointmentBooking` ile yazılır (personel satırı kilidi + çakışma sorgusu); boş saat hesabı `Domain/Appointments/Availability`. Kilit sırası: personel → randevu → paket → numara → satış → cari → kasa → stok. Paket seansı sadece atomik UPDATE ile.

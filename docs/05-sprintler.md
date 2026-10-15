@@ -2,7 +2,7 @@
 
 Tahmini, yarı zamanlı. Toplam yaklaşık 15-18 hafta. Her sprint sonunda: build ve testler geçer, ekranlar 375px'te kontrol edilir, bu dosyada maddeler işaretlenir, `docs/karar-gunlugu.md` güncellenir, commit atılır.
 
-**Durum:** Sprint 6A (SMS kredisi, kampanya, İYS çıkışı, KVKK, mobil kabuk) bitti, Actions #13 yeşil (2026-10-15; commit `22ccbd3`): yerel aşamalar yeşil (backend 511, frontend lint + Vitest 238 + build, yeni/değişen E2E), Actions tam koşusu yeşil (E2E 110 geçti). Sıradaki: Sprint 6B (otomasyonlar, anket, boş saat, risk listesi). Sprint 5B (online randevu, SMS altyapısı, hatırlatma, paketler) bitti, Actions #11 yeşil (2026-10-14; commit `3daba9e`): yerel aşamalar yeşil (backend, frontend lint + Vitest + build, yeni/değişen E2E), Actions tam koşusu yeşil (E2E 100 geçti, 2 eski WebKit senaryosu tekrar denemede geçti). Sprint 5A bitti, Actions #7 yeşil (son commit `3c26021`). Sıradaki: Sprint 6 (pazarlama ve İYS). Sprint 4 tamamlandı (2026-10-12). Hangfire Sprint 5'ten öne çekildi (Sprint 2); Raporlar'ın ilk dördü Sprint 7'den öne çekildi (Sprint 4); MessageLog ve sahte SMS Sprint 6'dan 5B'ye alındı.
+**Durum:** Sprint 6 bitti: 6B (otomasyonlar, memnuniyet anketi, boş saat, kaybedilme riski) Actions #15 yeşil (2026-10-15; commit `0871fdf`; E2E 116 geçti, tekrar denemesiz): yerel aşamalar yeşil (backend 548, frontend lint + Vitest 242 + build, yeni/değişen E2E). Sıradaki: Sprint 7 (personel, mesai, izin, prim). 6A Actions #13 yeşil (commit `22ccbd3`). Sprint 5B Actions #11 (`3daba9e`), 5A Actions #7 (`3c26021`). Sprint 4 tamamlandı (2026-10-12). Hangfire Sprint 5'ten öne çekildi (Sprint 2); Raporlar'ın ilk dördü Sprint 7'den öne çekildi (Sprint 4); MessageLog ve sahte SMS Sprint 6'dan 5B'ye alındı.
 
 ---
 
@@ -78,10 +78,10 @@ Tahmini, yarı zamanlı. Toplam yaklaşık 15-18 hafta. Her sprint sonunda: buil
 - [x] İYS izin süzmesi, çıkış seçeneği (kısa link /c/[kod] + RET), IIysClient + sahte istemci (6A)
 - [x] KVKK: müşteri verisini dışa aktarma (Excel/JSON) ve kişisel verileri silme (anonimleştirme) (Faz 1 A'dan) (6A)
 - [x] Devredenler: sürükle-bırakta "Müşteriye SMS ile bildirilsin mi? [Gönder]", mobil alt çubuk (5 düğme, Menü sağ üstte), ortak çip/sekme satırı (6A)
-- [ ] Otomasyonlar: doğum günü, geri kazanma, randevu sonrası teşekkür, vade günü hatırlatması (6B)
-- [ ] Memnuniyet anketi → Google yorum yönlendirmesi (6B)
-- [ ] Boş saat kampanyası önerisi (6B)
-- [ ] Risk listesi (6B)
+- [x] Otomasyonlar: doğum günü, geri kazanma, randevu sonrası teşekkür, vade günü hatırlatması (6B)
+- [x] Memnuniyet anketi → Google yorum yönlendirmesi (6B)
+- [x] Boş saat kampanyası önerisi (6B)
+- [x] Risk listesi (6B)
 
 ## Sprint 7 — Personel, mesai, izin, prim (2 hafta)
 
