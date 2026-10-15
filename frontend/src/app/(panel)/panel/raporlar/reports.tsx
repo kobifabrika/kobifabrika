@@ -13,10 +13,11 @@ import { RequirePermission } from "@/components/panel/settings-nav";
 import { useSession } from "@/components/providers/session-provider";
 import { Button } from "@/components/ui/button";
 import { API_URL, api, unwrap } from "@/lib/api/client";
-import type { IncomeExpenseReport, ReceivablesReport, ReportGroupBy, SalesReport, TopProductsReport } from "@/lib/api/types";
+import type { IncomeExpenseReport, ReceivablesReport, ReportGroupBy, SalesReport, TimeReport, TopProductsReport } from "@/lib/api/types";
 import { isPreset } from "@/lib/date-ranges";
 import { formatDayShort, formatMoney } from "@/lib/format";
 import { can } from "@/lib/permissions";
+import { hoursText } from "@/lib/time-clock";
 import { Chip, ScrollRow } from "@/components/ui/scroll-row";
 
 const reports = [
@@ -24,6 +25,7 @@ const reports = [
   { key: "urunler", label: "En çok satan" },
   { key: "alacaklar", label: "Alacaklar" },
   { key: "gelir-gider", label: "Gelir-gider" },
+  { key: "mesai", label: "Mesai" },
 ] as const;
 
 type ReportKey = (typeof reports)[number]["key"];
@@ -72,7 +74,7 @@ function ReportsBody() {
   const sort = params.get("siralama") === "tutar" ? "Amount" : "Quantity";
   const query = key === "alacaklar" ? "" : `from=${from}&to=${to}`;
   const extra = key === "satislar" ? `&groupBy=${groupBy}` : key === "urunler" ? `&sort=${sort}` : "";
-  const excelPath = { satislar: "sales", urunler: "top-products", alacaklar: "receivables", "gelir-gider": "income-expense" }[key];
+  const excelPath = { satislar: "sales", urunler: "top-products", alacaklar: "receivables", "gelir-gider": "income-expense", mesai: "time" }[key];
 
   return (
     <div className="flex flex-col gap-5">
@@ -107,6 +109,7 @@ function ReportsBody() {
       {key === "urunler" && <TopProductsView from={from} to={to} sort={sort} onSort={(s) => set({ siralama: s })} />}
       {key === "alacaklar" && <ReceivablesView />}
       {key === "gelir-gider" && <IncomeExpenseView from={from} to={to} />}
+      {key === "mesai" && <TimeReportView from={from} to={to} />}
     </div>
   );
 }
@@ -383,6 +386,58 @@ function IncomeExpenseView({ from, to }: { from: string; to: string }) {
         {"Satışlar KDV dahil, satış tarihine göre (veresiye dahil, iptaller hariç). Ters kayıtlar yapıldığı ayda düşülür; transfer ve " +
           "tedarikçiye ödeme gelir-gidere girmez. Excel'de satışların KDV hariç ve KDV tutarları ayrıca yer alır."}
       </p>
+    </section>
+  );
+}
+
+/** Çalışılan saat ve fazla mesai: personel toplamları ve haftalar; aralık tam haftalara (Pazartesi–Pazar) yuvarlanır. */
+function TimeReportView({ from, to }: { from: string; to: string }) {
+  const data = useQuery({
+    queryKey: ["reports", "time", from, to],
+    queryFn: () => unwrap(api.GET("/api/reports/time", { params: { query: { from, to } } })),
+  });
+  type Total = TimeReport["staff"][number];
+  type Row = TimeReport["rows"][number];
+  if (data.isPending) return <Loading />;
+  if (data.isError) return <QueryError error={data.error} onRetry={data.refetch} />;
+  const r = data.data;
+  const threshold = r.overtimeWeeklyHours.toLocaleString("tr-TR");
+  return (
+    <section aria-label="Mesai raporu" className="flex flex-col gap-5">
+      <p className="text-sm text-neutral-600">
+        Haftalık {threshold} saati aşan süre fazla mesaidir; aralık tam haftalara yuvarlandı: {formatDayShort(r.from)} – {formatDayShort(r.to)}. Saatler
+        ondalık (45,5 = 45 saat 30 dakika). Çıkışı unutulan mesai süreye girmez.
+      </p>
+      {r.staff.length === 0 ? (
+        <p className="text-sm text-neutral-600">Bu aralıkta mesai kaydı yok.</p>
+      ) : (
+        <>
+          <ResponsiveTable<Total>
+            rows={r.staff}
+            rowKey={(x) => x.staffMemberId}
+            title={(x) => x.staffName}
+            columns={[
+              { label: "Personel", value: (x) => x.staffName },
+              { label: "Çalışılan (saat)", value: (x) => hoursText(x.workedMinutes), numeric: true },
+              { label: "Fazla mesai (saat)", value: (x) => hoursText(x.overtimeMinutes), numeric: true },
+              { label: "Unutulan çıkış", value: (x) => x.forgottenCount, numeric: true },
+            ]}
+          />
+          <h2 className="text-base font-semibold text-black">Haftalar</h2>
+          <ResponsiveTable<Row>
+            rows={r.rows}
+            rowKey={(x) => `${x.staffMemberId}-${x.weekStart}`}
+            title={(x) => `${x.staffName} · ${x.weekLabel}`}
+            columns={[
+              { label: "Personel · hafta", value: (x) => `${x.staffName} · ${x.weekLabel}` },
+              { label: "Çalışılan (saat)", value: (x) => hoursText(x.workedMinutes), numeric: true },
+              { label: "Fazla mesai (saat)", value: (x) => hoursText(x.overtimeMinutes), numeric: true },
+              { label: "Unutulan çıkış", value: (x) => x.forgottenCount, numeric: true },
+            ]}
+          />
+        </>
+      )}
+      <p className="text-xs text-neutral-600">{r.legalNote}</p>
     </section>
   );
 }

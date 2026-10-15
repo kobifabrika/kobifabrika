@@ -334,3 +334,47 @@ export const automationSlugs: Record<AutomationType, string> = {
   Survey: "anket",
   DueReminder: "vade",
 };
+
+// Personel kartı, mesai ve izin (Sprint 7A)
+export type StaffSalary = Schemas["StaffSalaryDto"];
+export type SalaryBasis = Schemas["SalaryBasis"];
+export type SalaryPayments = Schemas["SalaryPaymentsResponse"];
+export type SalaryPayment = Schemas["SalaryPaymentItem"];
+export type TimeEntry = Schemas["TimeEntryResponse"];
+export type MyClock = Schemas["MyClockResponse"];
+export type LeaveType = Schemas["LeaveTypeResponse"];
+export type LeaveRequest = Schemas["LeaveRequestResponse"];
+export type LeaveRequestList = Schemas["LeaveRequestListResponse"];
+export type LeaveStatus = Schemas["LeaveStatus"];
+export type HalfDay = Schemas["HalfDay"];
+export type LeavePreview = Schemas["LeavePreviewResponse"];
+export type LeaveConflict = Schemas["LeaveConflict"];
+export type LeaveCalendar = Schemas["LeaveCalendarResponse"];
+export type LeaveCalendarItem = Schemas["LeaveCalendarItem"];
+export type LeaveBalance = Schemas["LeaveBalanceResponse"];
+export type LeaveBalanceEntry = Schemas["LeaveBalanceEntryResponse"];
+export type LeaveBalanceKind = Schemas["LeaveBalanceKind"];
+export type TimeReport = Schemas["TimeReportResponse"];
+export type StaffSettings = Schemas["StaffSettingsDto"];
+
+export const salaryBasisNames: Record<SalaryBasis, string> = { Gross: "Brüt", Net: "Net" };
+
+export const leaveStatusNames: Record<LeaveStatus, string> = {
+  Pending: "Bekliyor",
+  Approved: "Onaylandı",
+  Rejected: "Reddedildi",
+  Cancelled: "İptal edildi",
+};
+
+export const halfDayNames: Record<HalfDay, string> = { None: "Tam gün", Morning: "Öğleden önce", Afternoon: "Öğleden sonra" };
+
+export const leaveBalanceKindNames: Record<LeaveBalanceKind, string> = {
+  Opening: "Açılış bakiyesi",
+  Accrual: "Yıl dönümü hakkı",
+  Adjustment: "Düzeltme",
+  Usage: "Kullanılan izin",
+  UsageReversal: "İptal edilen izin",
+};
+
+/** API'deki LeaveTexts.LegalNote ile aynı. */
+export const LEGAL_NOTE = "Yasal bilgi amaçlıdır; kesin uygulama için mali müşavirinize danışın.";

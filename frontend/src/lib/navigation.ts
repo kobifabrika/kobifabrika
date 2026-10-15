@@ -112,6 +112,8 @@ export const quickActions: readonly QuickAction[] = [
   { label: "Yeni müşteri", href: "/panel/musteriler/yeni", icon: UserPlus, permission: "writeContacts", keywords: "müşteri ekle" },
   { label: "Tahsilat", href: "/panel/cari-kasa?sekme=bakiyeler", icon: Banknote, permission: "manageFinance", keywords: "tahsilat ödeme" },
   { label: "Gider ekle", href: "/panel/cari-kasa/gelir-gider/yeni?tur=gider", icon: ReceiptText, permission: "manageFinance", keywords: "gider masraf fatura kira" },
+  { label: "Mesai (giriş/çıkış)", href: "/panel/mesai-izin?sekme=mesaim", icon: Clock, permission: "clockInOut", keywords: "mesai giriş çıkış başla bitir" },
+  { label: "İzin talebi", href: "/panel/mesai-izin/izin-talebi", icon: CalendarDays, permission: "clockInOut", keywords: "izin tatil rapor" },
 ];
 
 export function visibleQuickActions(role: Role | null | undefined, modules: Modules | null | undefined): QuickAction[] {

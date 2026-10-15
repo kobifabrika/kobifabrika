@@ -295,7 +295,7 @@ public static class StaffEndpoints
     }
 
     private static async Task<Results<Ok<StaffSalaryDto>, ProblemHttpResult>> GetSalary(Guid id, AppDbContext db, CancellationToken ct) =>
-        await db.StaffMembers.Where(s => s.Id == id).Select(s => new StaffSalaryDto(s.Salary, s.SalaryBasis)).FirstOrDefaultAsync(ct) is { } dto
+        await db.StaffMembers.Where(s => s.Id == id).Select(s => new StaffSalaryDto(s.Salary, s.SalaryBasis ?? SalaryBasis.Net)).FirstOrDefaultAsync(ct) is { } dto
             ? TypedResults.Ok(dto)
             : StaffNotFound();
 
@@ -309,16 +309,17 @@ public static class StaffEndpoints
             return StaffNotFound();
         }
 
-        var changed = staff.Salary != request.Salary || staff.SalaryBasis != request.Basis;
+        var basis = request.Salary is null ? (SalaryBasis?)null : request.Basis;
+        var changed = staff.Salary != request.Salary || staff.SalaryBasis != basis;
         staff.Salary = request.Salary;
-        staff.SalaryBasis = request.Salary is null ? null : request.Basis;
+        staff.SalaryBasis = basis;
         if (changed)
         {
             audit.Log(AuditAction.StaffSalaryChanged, nameof(StaffMember), staff.Id, new { staff.FullName });
         }
 
         await db.SaveChangesAsync(ct);
-        return TypedResults.Ok(new StaffSalaryDto(staff.Salary, staff.SalaryBasis));
+        return TypedResults.Ok(new StaffSalaryDto(staff.Salary, staff.SalaryBasis ?? SalaryBasis.Net));
     }
 
     private static async Task<Results<Ok<SalaryPaymentsResponse>, ProblemHttpResult>> SalaryPayments(Guid id, AppDbContext db, CancellationToken ct)

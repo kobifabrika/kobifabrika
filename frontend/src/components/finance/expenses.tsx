@@ -15,6 +15,7 @@ import { NegativeBalanceWarning, ReverseDialog } from "@/components/finance/cash
 import { MoneyField, amountOf, useCashAccounts, useFinanceRefresh } from "@/components/finance/finance-dialogs";
 import { RangePicker, type RangeValue, resolveRange } from "@/components/finance/range-picker";
 import { useSession } from "@/components/providers/session-provider";
+import { useStaffList } from "@/components/staff/staff-bits";
 import { ContactPicker } from "@/components/sales/contact-picker";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -166,9 +167,10 @@ export function ExpenseList() {
 
 /**
  * Gider/gelir ekle (telefonda hızlı işlem): tutar, büyük kategori düğmeleri, hesap, tarih; açıklama, belge no ve tedarikçi
- * isteğe bağlı. Tedarikçi sadece bilgidir, cariye işlenmez (borç ödemesi "Ödeme yap" ile).
+ * isteğe bağlı. Tedarikçi sadece bilgidir, cariye işlenmez (borç ödemesi "Ödeme yap" ile). Maaş kategorisinde (sadece Sahip)
+ * isteğe bağlı personel seçilir; personel kartındaki "Maaş öde" formu personel ve maaş kategorisi seçili açar (staffId).
  */
-export function ExpenseForm({ kind }: { kind: ExpenseCategoryKind }) {
+export function ExpenseForm({ kind, staffId: initialStaffId }: { kind: ExpenseCategoryKind; staffId?: string | null }) {
   const router = useRouter();
   const { role } = useSession();
   const refresh = useFinanceRefresh();
@@ -181,10 +183,15 @@ export function ExpenseForm({ kind }: { kind: ExpenseCategoryKind }) {
   const [description, setDescription] = useState("");
   const [documentNo, setDocumentNo] = useState("");
   const [supplier, setSupplier] = useState<CartContact | null>(null);
+  const [staffId, setStaffId] = useState(initialStaffId ?? "");
+  const staff = useStaffList();
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [saved, setSaved] = useState<{ amount: number; balance: number; account: string } | null>(null);
   const isExpense = kind === "Expense";
   const options = (categories.data ?? []).filter((c) => c.kind === kind && (!c.isSalary || role === "Owner"));
+  const salaryCategory = options.find((c) => c.isSalary);
+  const selectedCategoryId = categoryId || (initialStaffId && salaryCategory ? salaryCategory.id : "");
+  const isSalary = options.find((c) => c.id === selectedCategoryId)?.isSalary ?? false;
   const account =
     accounts.data?.find((a) => a.id === accountId) ?? accounts.data?.find((a) => a.isDefault && a.type === "Cash") ?? accounts.data?.[0];
 
@@ -195,12 +202,13 @@ export function ExpenseForm({ kind }: { kind: ExpenseCategoryKind }) {
           body: {
             kind,
             date,
-            categoryId,
+            categoryId: selectedCategoryId,
             amount: amountOf(amount),
             cashAccountId: account!.id,
             description: description.trim() || null,
             documentNo: documentNo.trim() || null,
             contactId: supplier?.id ?? null,
+            staffMemberId: isSalary && staffId ? staffId : null,
           },
         }),
       ),
@@ -248,7 +256,7 @@ export function ExpenseForm({ kind }: { kind: ExpenseCategoryKind }) {
     const next: Record<string, string> = {};
     const moneyError = validateMoney(amount);
     if (moneyError) next.amount = moneyError;
-    if (!categoryId) next.categoryId = "Kategori seçin.";
+    if (!selectedCategoryId) next.categoryId = "Kategori seçin.";
     if (!account) next.cashAccountId = "Kasa veya banka hesabı seçin.";
     setErrors(next);
     if (Object.keys(next).length === 0) save.mutate();
@@ -270,10 +278,17 @@ export function ExpenseForm({ kind }: { kind: ExpenseCategoryKind }) {
                 key={c.id}
                 className={cn(
                   "flex min-h-12 cursor-pointer items-center border px-3 text-sm font-semibold",
-                  categoryId === c.id ? "border-black bg-black text-white" : "border-border text-black hover:border-black",
+                  selectedCategoryId === c.id ? "border-black bg-black text-white" : "border-border text-black hover:border-black",
                 )}
               >
-                <input type="radio" name="category" value={c.id} checked={categoryId === c.id} onChange={() => setCategoryId(c.id)} className="sr-only" />
+                <input
+                  type="radio"
+                  name="category"
+                  value={c.id}
+                  checked={selectedCategoryId === c.id}
+                  onChange={() => setCategoryId(c.id)}
+                  className="sr-only"
+                />
                 {c.name}
               </label>
             ))}
@@ -285,6 +300,18 @@ export function ExpenseForm({ kind }: { kind: ExpenseCategoryKind }) {
           </p>
         )}
       </fieldset>
+      {isSalary && (
+        <Field label="Personel (isteğe bağlı)" error={errors.staffMemberId} hint="Seçilirse personel kartında Ödenen maaşlar listesinde görünür.">
+          <select className={selectClass} value={staffId} onChange={(e) => setStaffId(e.target.value)}>
+            <option value="">Seçilmedi</option>
+            {staff.data?.map((s) => (
+              <option key={s.id} value={s.id}>
+                {s.fullName}
+              </option>
+            ))}
+          </select>
+        </Field>
+      )}
       <div className="grid grid-cols-2 gap-3">
         <Field label={isExpense ? "Nereden ödendi?" : "Nereye girdi?"} error={errors.cashAccountId}>
           <select className={selectClass} value={account?.id ?? ""} onChange={(e) => setAccountId(e.target.value)}>

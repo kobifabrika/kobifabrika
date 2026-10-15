@@ -9,7 +9,9 @@ import { RequirePermission } from "@/components/panel/settings-nav";
 
 /** /panel/cari-kasa/gelir-gider/yeni?tur=gider|gelir — telefonda (+) → "Gider ekle". */
 export function ExpenseFormPage() {
-  const kind = useSearchParams().get("tur") === "gelir" ? "Income" : "Expense";
+  const params = useSearchParams();
+  const kind = params.get("tur") === "gelir" ? "Income" : "Expense";
+  const staffId = kind === "Expense" ? params.get("personel") : null;
   return (
     <div className="mx-auto flex w-full max-w-xl flex-col gap-4">
       <Link
@@ -21,7 +23,7 @@ export function ExpenseFormPage() {
       </Link>
       <h1 className="text-2xl font-bold tracking-tight text-black">{kind === "Income" ? "Gelir ekle" : "Gider ekle"}</h1>
       <RequirePermission permission="manageFinance">
-        <ExpenseForm key={kind} kind={kind} />
+        <ExpenseForm key={kind} kind={kind} staffId={staffId} />
       </RequirePermission>
     </div>
   );

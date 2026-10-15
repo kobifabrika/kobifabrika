@@ -2,6 +2,7 @@
 
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { Trash2 } from "lucide-react";
+import Link from "next/link";
 import { useState, type FormEvent } from "react";
 import { toast } from "sonner";
 
@@ -32,8 +33,8 @@ export function timeOffLabel(t: Pick<TimeOff, "startAt" | "endAt">): string {
 }
 
 /**
- * Personelin kapalı zamanları (mola, izin). Takvimde gri görünür, o saatlere online randevu verilmez.
- * Sahip/Yönetici her türü ekler; Personel sadece kendine mola ekler (ownBreakOnly).
+ * Personelin kapalı zamanları (mola, diğer; onaylı izinler izin ekranından gelir). Takvimde gri görünür, o saatlere online randevu
+ * verilmez. Sahip/Yönetici mola ve diğer ekler; Personel sadece kendine mola ekler (ownBreakOnly). İzinden gelen satır burada silinmez.
  */
 export function StaffTimeOffs({ staffId, readOnly, ownBreakOnly = false }: { staffId: string; readOnly: boolean; ownBreakOnly?: boolean }) {
   const refresh = useStaffRefresh();
@@ -73,8 +74,13 @@ export function StaffTimeOffs({ staffId, readOnly, ownBreakOnly = false }: { sta
                     {t.note ? ` · ${t.note}` : ""}
                   </span>
                   <span className="text-sm text-neutral-600 tabular-nums">{timeOffLabel(t)}</span>
+                  {t.leaveRequestId && (
+                    <Link href="/panel/mesai-izin?sekme=izinler" className="text-sm text-black underline decoration-brand underline-offset-4">
+                      İzin talebinden · iptal için İzinler
+                    </Link>
+                  )}
                 </span>
-                {!readOnly && (!ownBreakOnly || t.kind === "Break") && (
+                {!readOnly && !t.leaveRequestId && (!ownBreakOnly || t.kind === "Break") && (
                   <Button variant="ghost" size="icon" aria-label={`${timeOffLabel(t)} kapalı zamanını sil`} onClick={() => remove.mutate(t.id)}>
                     <Trash2 aria-hidden />
                   </Button>
@@ -126,13 +132,16 @@ function TimeOffForm({ staffId, ownBreakOnly }: { staffId: string; ownBreakOnly:
       {!ownBreakOnly && (
         <ChoiceGroup
           label="Tür"
-          options={(Object.keys(timeOffKindNames) as TimeOffKind[]).map((k) => ({ value: k, label: timeOffKindNames[k] }))}
+          options={(["Break", "Other"] as TimeOffKind[]).map((k) => ({ value: k, label: timeOffKindNames[k] }))}
           value={kind}
-          onChange={(k) => {
-            setKind(k);
-            setAllDay(k === "Leave");
-          }}
+          onChange={setKind}
         />
+      )}
+      {!ownBreakOnly && (
+        <p className="text-sm text-neutral-600">
+          İzin, <Link href="/panel/mesai-izin/izin-talebi" className="text-black underline decoration-brand underline-offset-4">izin talebiyle</Link>{" "}
+          girilir; onaylanınca burada ve takvimde kapalı görünür.
+        </p>
       )}
       <label className="flex min-h-11 items-center gap-3 text-sm text-black">
         <Switch checked={allDay} onCheckedChange={setAllDay} />
@@ -158,7 +167,7 @@ function TimeOffForm({ staffId, ownBreakOnly }: { staffId: string; ownBreakOnly:
         )}
       </div>
       <Field label="Not (isteğe bağlı)">
-        <Input value={note} onChange={(e) => setNote(e.target.value)} maxLength={200} placeholder="Ör. Öğle arası, yıllık izin" />
+        <Input value={note} onChange={(e) => setNote(e.target.value)} maxLength={200} placeholder="Ör. Öğle arası, eğitim" />
       </Field>
       {error && <FormMessage>{error}</FormMessage>}
       <Button type="submit" variant="outline" className="self-start" disabled={save.isPending}>

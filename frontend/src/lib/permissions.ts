@@ -46,6 +46,16 @@ const matrix = {
   exportContactData: ["Owner", "Manager"],
   /** KVKK: müşterinin kişisel verilerini silme (anonimleştirme; geri alınamaz). */
   anonymizeContacts: ["Owner"],
+  /** Personel maaşı ve ödenen maaşlar (Mali Müşavir salt okunur; Yönetici ve Personel göremez, API alanı hiç döndürmez). */
+  viewSalary: ["Owner", "Accountant"],
+  /** Maaşı düzenleme ve maaş gideri girme. */
+  manageSalary: ["Owner"],
+  /** Herkesin mesai kayıtları, izin talepleri ve bakiyeleri (Personel sadece kendisininkini görür). */
+  viewStaffTime: ["Owner", "Manager", "Accountant"],
+  /** Başkası adına mesai, mesai düzeltme, izin onay/ret, bakiye düzeltme, izin türleri ve fazla mesai eşiği. */
+  manageStaffTime: ["Owner", "Manager"],
+  /** Kendi mesaisine giriş/çıkış ve kendine izin talebi (bağlı personel kaydı gerekir). */
+  clockInOut: ["Owner", "Manager", "Staff"],
 } as const satisfies Record<string, readonly Role[]>;
 
 export type Permission = keyof typeof matrix;

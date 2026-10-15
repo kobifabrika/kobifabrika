@@ -85,9 +85,12 @@ Tahmini, yarı zamanlı. Toplam yaklaşık 15-18 hafta. Her sprint sonunda: buil
 
 ## Sprint 7 — Personel, mesai, izin, prim (2 hafta)
 
-- [ ] Personel kartı (maaş sadece Owner)
-- [ ] Mesai giriş-çıkış, fazla mesai raporu
-- [ ] İzin türleri, talep/onay, bakiye, izin takvimi; izinli personel takvimde kapalı
+İki parça: **7A** personel kartı, mesai, izin; **7B** prim, raporlar, Bugün.
+
+- [x] Personel kartı (iş başı, doğum tarihi, not; maaş Sahip ve Mali Müşavir; ödenen maaşlar) (7A)
+- [x] Mesai giriş-çıkış (tek düğme, yönetici düzeltmesi, unutulan çıkış), fazla mesai raporu (7A)
+- [x] İzin türleri, talep/onay, bakiye (İş Kanunu 53, yıl dönümü), izin takvimi; izinli personel takvimde ve online randevuda kapalı (7A)
+- [x] Slogan "KOBİ'nin dijital fabrikası" ve sosyal medya hesapları sitede (7A ile)
 - [ ] Prim kuralları ve ay sonu prim raporu
 - [ ] Kampanya ve personel raporları + Excel dışa aktarma (satış, ürün, alacak, gelir-gider raporları Sprint 4'te geldi)
 - [ ] Bugün ekranına aktif personel kartı (randevu kartı Sprint 5A'da geldi)

@@ -507,6 +507,113 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/leave-calendar": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** İzin takvimi (month=yyyy-MM) */
+        get: {
+            parameters: {
+                query?: {
+                    month?: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["LeaveCalendarResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/business/staff-settings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Personel ayarları (fazla mesai eşiği) */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["StaffSettingsDto"];
+                    };
+                };
+            };
+        };
+        /** Personel ayarlarını güncelle */
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["StaffSettingsDto"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["StaffSettingsDto"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/calendar": {
         parameters: {
             query?: never;
@@ -4925,6 +5032,82 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/reports/time": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Çalışılan saat ve fazla mesai (aralık tam haftalara yuvarlanır) */
+        get: {
+            parameters: {
+                query?: {
+                    from?: string;
+                    to?: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["TimeReportResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/reports/time.xlsx": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Mesai raporu Excel */
+        get: {
+            parameters: {
+                query?: {
+                    from?: string;
+                    to?: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/contacts/import/template.xlsx": {
         parameters: {
             query?: never;
@@ -8255,6 +8438,909 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/staff/{id}/salary": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Personelin maaşı (Sahip, Mali Müşavir) */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["StaffSalaryDto"];
+                    };
+                };
+            };
+        };
+        /** Maaşı güncelle (sadece Sahip) */
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["StaffSalaryDto"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["StaffSalaryDto"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/staff/{id}/salary-payments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Personele bağlı maaş giderleri (Sahip, Mali Müşavir) */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["SalaryPaymentsResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/time-clock/me": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Mesaim: açık mesai, bugünkü kayıtlar, bu hafta */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["MyClockResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/time-clock/clock-in": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Mesaiye başla */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["ClockRequest"];
+                };
+            };
+            responses: {
+                /** @description Created */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["TimeEntryResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/time-clock/clock-out": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Mesaiyi bitir */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["ClockRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["TimeEntryResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/time-entries": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Mesai kayıtları (from/to yerel gün; Personel sadece kendisininkini görür) */
+        get: {
+            parameters: {
+                query?: {
+                    from?: string;
+                    to?: string;
+                    staffId?: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["TimeEntryResponse"][];
+                    };
+                };
+            };
+        };
+        put?: never;
+        /** Başkası adına mesai ekle (Sahip, Yönetici) */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["TimeEntryRequest"];
+                };
+            };
+            responses: {
+                /** @description Created */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["TimeEntryResponse"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/time-entries/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Mesaiyi düzelt; unutulan çıkışı gir (Sahip, Yönetici) */
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["TimeEntryUpdateRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["TimeEntryResponse"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+                    };
+                };
+            };
+        };
+        post?: never;
+        /** Mesai kaydını sil */
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description No Content */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/leave-types": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** İzin türleri (includeInactive ile pasifler de) */
+        get: {
+            parameters: {
+                query?: {
+                    includeInactive?: boolean;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["LeaveTypeResponse"][];
+                    };
+                };
+            };
+        };
+        put?: never;
+        /** İzin türü ekle */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["LeaveTypeRequest"];
+                };
+            };
+            responses: {
+                /** @description Created */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["LeaveTypeResponse"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/leave-types/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** İzin türünü düzenle */
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["LeaveTypeRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["LeaveTypeResponse"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+                    };
+                };
+            };
+        };
+        post?: never;
+        /** İzin türünü sil (kullanılmış tür pasife alınır) */
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/leave-requests": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** İzin talepleri (Personel sadece kendisininkini görür) */
+        get: {
+            parameters: {
+                query?: {
+                    status?: components["schemas"]["LeaveStatus"];
+                    staffId?: string;
+                    from?: string;
+                    to?: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["LeaveRequestListResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        /** İzin talebi (yöneticinin girdiği talep onaylı başlar) */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["LeaveCreateRequest"];
+                };
+            };
+            responses: {
+                /** @description Created */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["LeaveRequestResponse"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/leave-requests/preview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Gün sayısı, bakiye ve aralıktaki randevular */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["LeavePreviewRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["LeavePreviewResponse"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/leave-requests/{id}/preview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Onay penceresi: gün, bakiye, çakışan randevular */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["LeavePreviewResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/leave-requests/{id}/approve": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Onayla (randevular otomatik iptal edilmez) */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["LeaveDecisionRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["LeaveRequestResponse"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/leave-requests/{id}/reject": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Reddet */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["LeaveDecisionRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["LeaveRequestResponse"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/leave-requests/{id}/cancel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** İptal (bekleyeni sahibi, onaylıyı yönetici) */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["LeaveRequestResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/staff/{id}/leave-balance": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Yıllık izin bakiyesi ve hareketleri (Personel sadece kendisininkini) */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["LeaveBalanceResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/staff/{id}/leave-balance/adjustments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Açılış bakiyesi veya düzeltme */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["LeaveAdjustmentRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["LeaveBalanceResponse"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/appointments/{id}": {
         parameters: {
             query?: never;
@@ -10295,7 +11381,7 @@ export interface components {
             items: components["schemas"]["AtRiskItem"][];
         };
         /** @enum {unknown} */
-        AuditAction: "Login" | "InvitationSent" | "InvitationResent" | "InvitationRevoked" | "InvitationAccepted" | "RoleChanged" | "MemberRemoved" | "BusinessUpdated" | "SlugChanged" | "WorkingHoursUpdated" | "LogoChanged" | "ModulesChanged" | "PaymentInfoChanged" | "ReceiptSettingsChanged" | "ContactCreated" | "ContactUpdated" | "ContactArchived" | "ContactRestored" | "ContactDeleted" | "ContactsImported" | "ContactsExported" | "LedgerEntryCreated" | "LedgerEntryDeleted" | "OpeningBalanceSet" | "CollectionRecorded" | "CollectionReverted" | "PaymentRequestCreated" | "PaymentRequestConfirmed" | "PaymentRequestRejected" | "PaymentRequestCancelled" | "PaymentRequestRenewed" | "StatementShared" | "ProductCreated" | "ProductUpdated" | "ProductDeleted" | "ProductsImported" | "ProductsExported" | "StockMovementAdded" | "SaleDiscounted" | "SaleCancelled" | "SalesExported" | "QuoteCreated" | "QuoteUpdated" | "QuoteShared" | "QuoteRenewed" | "QuoteExtended" | "QuoteAccepted" | "QuoteRejected" | "QuoteConverted" | "QuoteDeleted" | "CashAccountCreated" | "CashAccountUpdated" | "CashAccountDeactivated" | "CashAccountActivated" | "DefaultCashAccountChanged" | "CashTransferRecorded" | "CashTransactionReversed" | "SupplierPaymentRecorded" | "ExpenseRecorded" | "IncomeRecorded" | "ExpenseCategoryCreated" | "ExpenseCategoryUpdated" | "ExpenseCategoryDeactivated" | "ExpenseCategoryActivated" | "DueReminderSent" | "FinanceSettingsChanged" | "ReportExported" | "CashTransactionsExported" | "StaffCreated" | "StaffUpdated" | "StaffDeleted" | "StaffWorkingHoursUpdated" | "StaffServicesUpdated" | "HolidayCreated" | "HolidayDeleted" | "AppointmentSettingsChanged" | "BookingSettingsChanged" | "ServicePackageCreated" | "ServicePackageUpdated" | "ServicePackageDeleted" | "CustomerPackageExtended" | "CustomerPackageClosed" | "SmsCreditsAdded" | "SmsCreditsExported" | "SmsSettingsChanged" | "CampaignCreated" | "CampaignCancelled" | "ContactDataExported" | "ContactAnonymized" | "AutomationChanged" | "ReviewSettingsChanged";
+        AuditAction: "Login" | "InvitationSent" | "InvitationResent" | "InvitationRevoked" | "InvitationAccepted" | "RoleChanged" | "MemberRemoved" | "BusinessUpdated" | "SlugChanged" | "WorkingHoursUpdated" | "LogoChanged" | "ModulesChanged" | "PaymentInfoChanged" | "ReceiptSettingsChanged" | "ContactCreated" | "ContactUpdated" | "ContactArchived" | "ContactRestored" | "ContactDeleted" | "ContactsImported" | "ContactsExported" | "LedgerEntryCreated" | "LedgerEntryDeleted" | "OpeningBalanceSet" | "CollectionRecorded" | "CollectionReverted" | "PaymentRequestCreated" | "PaymentRequestConfirmed" | "PaymentRequestRejected" | "PaymentRequestCancelled" | "PaymentRequestRenewed" | "StatementShared" | "ProductCreated" | "ProductUpdated" | "ProductDeleted" | "ProductsImported" | "ProductsExported" | "StockMovementAdded" | "SaleDiscounted" | "SaleCancelled" | "SalesExported" | "QuoteCreated" | "QuoteUpdated" | "QuoteShared" | "QuoteRenewed" | "QuoteExtended" | "QuoteAccepted" | "QuoteRejected" | "QuoteConverted" | "QuoteDeleted" | "CashAccountCreated" | "CashAccountUpdated" | "CashAccountDeactivated" | "CashAccountActivated" | "DefaultCashAccountChanged" | "CashTransferRecorded" | "CashTransactionReversed" | "SupplierPaymentRecorded" | "ExpenseRecorded" | "IncomeRecorded" | "ExpenseCategoryCreated" | "ExpenseCategoryUpdated" | "ExpenseCategoryDeactivated" | "ExpenseCategoryActivated" | "DueReminderSent" | "FinanceSettingsChanged" | "ReportExported" | "CashTransactionsExported" | "StaffCreated" | "StaffUpdated" | "StaffDeleted" | "StaffWorkingHoursUpdated" | "StaffServicesUpdated" | "HolidayCreated" | "HolidayDeleted" | "AppointmentSettingsChanged" | "BookingSettingsChanged" | "ServicePackageCreated" | "ServicePackageUpdated" | "ServicePackageDeleted" | "CustomerPackageExtended" | "CustomerPackageClosed" | "SmsCreditsAdded" | "SmsCreditsExported" | "SmsSettingsChanged" | "CampaignCreated" | "CampaignCancelled" | "ContactDataExported" | "ContactAnonymized" | "AutomationChanged" | "ReviewSettingsChanged" | "StaffSalaryChanged" | "TimeEntryAdded" | "TimeEntryCorrected" | "TimeEntryDeleted" | "LeaveRequested" | "LeaveApproved" | "LeaveRejected" | "LeaveCancelled" | "LeaveBalanceAdjusted" | "LeaveTypeChanged" | "StaffSettingsChanged";
         AuditLogListResponse: {
             items: components["schemas"]["AuditLogResponse"][];
             /** Format: int32 */
@@ -10697,6 +11783,10 @@ export interface components {
         };
         ClaimPaymentRequest: {
             note: null | string;
+        };
+        ClockRequest: {
+            /** Format: uuid */
+            staffMemberId: null | string;
         };
         ClosePackageRequest: {
             note: null | string;
@@ -11146,6 +12236,8 @@ export interface components {
             documentNo: null | string;
             /** Format: uuid */
             contactId: null | string;
+            /** Format: uuid */
+            staffMemberId?: null | string;
         };
         ExtendPackageRequest: {
             /** Format: date */
@@ -11159,6 +12251,8 @@ export interface components {
         ForgotPasswordRequest: {
             email: string;
         };
+        /** @enum {unknown} */
+        HalfDay: "None" | "Morning" | "Afternoon";
         HolidayRequest: {
             /** Format: date */
             date: string;
@@ -11283,6 +12377,183 @@ export interface components {
             role: components["schemas"]["BusinessRole"];
         };
         JsonElement: unknown;
+        LeaveAdjustmentRequest: {
+            kind: components["schemas"]["LeaveBalanceKind"];
+            /** Format: double */
+            days: number;
+            note: string;
+        };
+        LeaveBalanceEntryResponse: {
+            /** Format: uuid */
+            id: string;
+            /** Format: date-time */
+            createdAt: string;
+            kind: components["schemas"]["LeaveBalanceKind"];
+            /** Format: double */
+            days: number;
+            /** Format: int32 */
+            serviceYear: null | number;
+            note: null | string;
+            /** Format: date */
+            startDate: null | string;
+            /** Format: date */
+            endDate: null | string;
+        };
+        /** @enum {unknown} */
+        LeaveBalanceKind: "Opening" | "Accrual" | "Adjustment" | "Usage" | "UsageReversal";
+        LeaveBalanceResponse: {
+            /** Format: uuid */
+            staffMemberId: string;
+            /** Format: double */
+            balance: number;
+            /** Format: date */
+            startDate: null | string;
+            /** Format: date */
+            accrualFrom: null | string;
+            entitlement: null | components["schemas"]["LeaveEntitlementInfo"];
+            entries: components["schemas"]["LeaveBalanceEntryResponse"][];
+            legalNote: string;
+        };
+        LeaveCalendarDay: {
+            /** Format: date */
+            date: string;
+            closed: boolean;
+            holidayName: null | string;
+        };
+        LeaveCalendarItem: {
+            /** Format: uuid */
+            requestId: string;
+            /** Format: uuid */
+            staffMemberId: string;
+            /** Format: date */
+            startDate: string;
+            /** Format: date */
+            endDate: string;
+            halfDay: components["schemas"]["HalfDay"];
+            typeName: null | string;
+            status: components["schemas"]["LeaveStatus"];
+        };
+        LeaveCalendarResponse: {
+            month: string;
+            days: components["schemas"]["LeaveCalendarDay"][];
+            staff: components["schemas"]["LeaveCalendarStaff"][];
+            items: components["schemas"]["LeaveCalendarItem"][];
+        };
+        LeaveCalendarStaff: {
+            /** Format: uuid */
+            id: string;
+            fullName: string;
+        };
+        LeaveConflict: {
+            /** Format: uuid */
+            appointmentId: string;
+            /** Format: date-time */
+            startAt: string;
+            /** Format: date-time */
+            endAt: string;
+            contactName: string;
+            serviceName: null | string;
+            status: components["schemas"]["AppointmentStatus"];
+        };
+        LeaveCreateRequest: {
+            /** Format: uuid */
+            staffMemberId: null | string;
+            /** Format: uuid */
+            leaveTypeId: string;
+            /** Format: date */
+            startDate: string;
+            /** Format: date */
+            endDate: string;
+            halfDay: components["schemas"]["HalfDay"];
+            note: null | string;
+        };
+        LeaveDecisionRequest: {
+            note: null | string;
+        };
+        LeaveEntitlementInfo: {
+            /** Format: int32 */
+            completedYears: number;
+            /** Format: int32 */
+            currentYearDays: number;
+            /** Format: date */
+            nextAnniversary: string;
+            /** Format: int32 */
+            nextYearDays: number;
+        };
+        LeavePreviewRequest: {
+            /** Format: uuid */
+            staffMemberId: null | string;
+            /** Format: uuid */
+            leaveTypeId: string;
+            /** Format: date */
+            startDate: string;
+            /** Format: date */
+            endDate: string;
+            halfDay: components["schemas"]["HalfDay"];
+        };
+        LeavePreviewResponse: {
+            /** Format: double */
+            days: number;
+            isAnnual: boolean;
+            /** Format: double */
+            balanceBefore: null | number;
+            /** Format: double */
+            balanceAfter: null | number;
+            appointments: components["schemas"]["LeaveConflict"][];
+            overlap: null | string;
+        };
+        LeaveRequestListResponse: {
+            items: components["schemas"]["LeaveRequestResponse"][];
+            /** Format: int32 */
+            pendingCount: number;
+        };
+        LeaveRequestResponse: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            staffMemberId: string;
+            staffName: string;
+            /** Format: uuid */
+            leaveTypeId: string;
+            typeName: string;
+            isAnnual: boolean;
+            /** Format: date */
+            startDate: string;
+            /** Format: date */
+            endDate: string;
+            halfDay: components["schemas"]["HalfDay"];
+            /** Format: double */
+            days: number;
+            status: components["schemas"]["LeaveStatus"];
+            note: null | string;
+            requestedByName: null | string;
+            /** Format: date-time */
+            createdAt: string;
+            decidedByName: null | string;
+            /** Format: date-time */
+            decidedAt: null | string;
+            decisionNote: null | string;
+            canCancel: boolean;
+            canDecide: boolean;
+        };
+        /** @enum {unknown} */
+        LeaveStatus: "Pending" | "Approved" | "Rejected" | "Cancelled";
+        LeaveTypeRequest: {
+            name: string;
+            isPaid: boolean;
+            /** @default true */
+            isActive: boolean;
+        };
+        LeaveTypeResponse: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+            isPaid: boolean;
+            isAnnual: boolean;
+            isActive: boolean;
+            /** Format: int32 */
+            sortOrder: number;
+        };
         LedgerEntryRequest: {
             kind: components["schemas"]["LedgerKind"];
             /** Format: double */
@@ -11439,6 +12710,19 @@ export interface components {
         ModulesDto: {
             appointments: boolean;
             stock: boolean;
+        };
+        MyClockResponse: {
+            /** Format: uuid */
+            staffMemberId: null | string;
+            staffName: null | string;
+            open: null | components["schemas"]["TimeEntryResponse"];
+            today: components["schemas"]["TimeEntryResponse"][];
+            /** Format: int32 */
+            todayMinutes: number;
+            /** Format: int32 */
+            weekMinutes: number;
+            /** Format: double */
+            overtimeWeeklyHours: number;
         };
         MyStaffResponse: {
             /** Format: uuid */
@@ -12158,6 +13442,28 @@ export interface components {
         ReviewSettingsRequest: {
             googleReviewUrl: null | string;
         };
+        /** @enum {unknown} */
+        SalaryBasis: "Gross" | "Net";
+        SalaryPaymentItem: {
+            /** Format: uuid */
+            id: string;
+            /** Format: date */
+            date: string;
+            /** Format: double */
+            amount: number;
+            /** Format: double */
+            netAmount: number;
+            description: string;
+            documentNo: null | string;
+            cashAccountName: string;
+            isReversal: boolean;
+            isReversed: boolean;
+        };
+        SalaryPaymentsResponse: {
+            items: components["schemas"]["SalaryPaymentItem"][];
+            /** Format: double */
+            total: number;
+        };
         SaleCreatedResponse: {
             sale: components["schemas"]["SaleResponse"];
             warnings: string[];
@@ -12461,6 +13767,11 @@ export interface components {
             /** Format: uuid */
             userId: null | string;
             isActive: boolean;
+            /** Format: date */
+            startDate?: null | string;
+            /** Format: date */
+            birthDate?: null | string;
+            notes?: null | string;
         };
         StaffResponse: {
             /** Format: uuid */
@@ -12478,9 +13789,23 @@ export interface components {
             sortOrder: number;
             allServices: boolean;
             serviceIds: string[];
+            /** Format: date */
+            startDate: null | string;
+            /** Format: date */
+            birthDate: null | string;
+            notes: null | string;
+        };
+        StaffSalaryDto: {
+            /** Format: double */
+            salary: null | number;
+            basis: components["schemas"]["SalaryBasis"];
         };
         StaffServicesRequest: {
             productIds: string[];
+        };
+        StaffSettingsDto: {
+            /** Format: double */
+            overtimeWeeklyHours: number;
         };
         StaffWorkingHoursDto: {
             days: components["schemas"]["StaffDayDto"][];
@@ -12631,6 +13956,41 @@ export interface components {
             name: string;
             color: components["schemas"]["TagColor"];
         };
+        TimeEntryRequest: {
+            /** Format: uuid */
+            staffMemberId: string;
+            /** Format: date-time */
+            clockInAt: string;
+            /** Format: date-time */
+            clockOutAt: null | string;
+            note: null | string;
+        };
+        TimeEntryResponse: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            staffMemberId: string;
+            staffName: string;
+            /** Format: date-time */
+            clockInAt: string;
+            /** Format: date-time */
+            clockOutAt: null | string;
+            inSource: components["schemas"]["TimeEntrySource"];
+            outSource: null | string;
+            forgotten: boolean;
+            /** Format: int32 */
+            minutes: null | number;
+            note: null | string;
+        };
+        /** @enum {unknown} */
+        TimeEntrySource: "Self" | "Manager";
+        TimeEntryUpdateRequest: {
+            /** Format: date-time */
+            clockInAt: string;
+            /** Format: date-time */
+            clockOutAt: null | string;
+            note: null | string;
+        };
         TimelineItem: {
             kind: string;
             /** Format: date-time */
@@ -12668,10 +14028,48 @@ export interface components {
             endAt: string;
             kind: components["schemas"]["TimeOffKind"];
             note: null | string;
+            /** Format: uuid */
+            leaveRequestId: null | string;
         };
         TimeRangeDto: {
             start: string;
             end: string;
+        };
+        TimeReportResponse: {
+            /** Format: date */
+            from: string;
+            /** Format: date */
+            to: string;
+            /** Format: double */
+            overtimeWeeklyHours: number;
+            rows: components["schemas"]["TimeReportRow"][];
+            staff: components["schemas"]["TimeReportStaffTotal"][];
+            legalNote: string;
+        };
+        TimeReportRow: {
+            /** Format: uuid */
+            staffMemberId: string;
+            staffName: string;
+            /** Format: date */
+            weekStart: string;
+            weekLabel: string;
+            /** Format: int32 */
+            workedMinutes: number;
+            /** Format: int32 */
+            overtimeMinutes: number;
+            /** Format: int32 */
+            forgottenCount: number;
+        };
+        TimeReportStaffTotal: {
+            /** Format: uuid */
+            staffMemberId: string;
+            staffName: string;
+            /** Format: int32 */
+            workedMinutes: number;
+            /** Format: int32 */
+            overtimeMinutes: number;
+            /** Format: int32 */
+            forgottenCount: number;
         };
         /** @enum {unknown} */
         TopProductKind: "Product" | "Service" | "Free";

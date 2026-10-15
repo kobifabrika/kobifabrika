@@ -53,7 +53,7 @@ test("personel: ekleme, öğle aralı saatler, hizmetler, kapalı zaman, tatil v
 
   // Kapalı zaman: mola.
   await page.getByRole("link", { name: "Kapalı zamanlar", exact: true }).click();
-  await page.getByLabel("Not (isteğe bağlı)").fill("Öğle arası");
+  await page.getByRole("textbox", { name: "Not (isteğe bağlı)" }).fill("Öğle arası");
   await page.getByRole("button", { name: "Ekle", exact: true }).click();
   await expect(toast(page, "Kapalı zaman eklendi.")).toBeVisible();
   await expect(page.getByText("Mola · Öğle arası")).toBeVisible();

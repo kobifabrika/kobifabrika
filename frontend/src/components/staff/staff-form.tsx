@@ -10,6 +10,7 @@ import { Field, FormMessage } from "@/components/forms/field";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
+import { Textarea } from "@/components/ui/textarea";
 import { api, errorMessage, fieldErrors, unwrap } from "@/lib/api/client";
 import { staffColorNames, type Staff, type StaffColor, type StaffRequest } from "@/lib/api/types";
 import { displayPhone } from "@/lib/contacts";
@@ -31,6 +32,9 @@ export function StaffForm({ staff, readOnly = false }: { staff?: Staff; readOnly
     showInBooking: staff?.showInBooking ?? true,
     userId: staff?.userId ?? null,
     isActive: staff?.isActive ?? true,
+    startDate: staff?.startDate ?? null,
+    birthDate: staff?.birthDate ?? null,
+    notes: staff?.notes ?? "",
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [error, setError] = useState<string | null>(null);
@@ -68,7 +72,15 @@ export function StaffForm({ staff, readOnly = false }: { staff?: Staff; readOnly
     if (form.phone?.trim() && !phone) next.phone = PHONE_MESSAGE;
     setErrors(next);
     if (Object.keys(next).length) return;
-    save.mutate({ ...form, fullName: form.fullName.trim(), title: form.title?.trim() || null, phone });
+    save.mutate({
+      ...form,
+      fullName: form.fullName.trim(),
+      title: form.title?.trim() || null,
+      phone,
+      startDate: form.startDate || null,
+      birthDate: form.birthDate || null,
+      notes: form.notes?.trim() || null,
+    });
   };
 
   return (
@@ -84,6 +96,18 @@ export function StaffForm({ staff, readOnly = false }: { staff?: Staff; readOnly
           <Input value={form.phone ?? ""} onChange={(e) => set("phone", e.target.value)} disabled={readOnly} inputMode="tel" autoComplete="off" />
         </Field>
       </div>
+
+      <div className="grid gap-5 sm:grid-cols-2">
+        <Field label="İşe başlama (isteğe bağlı)" error={errors.startDate} hint="Yıllık izin hakkı kıdemden hesaplanır.">
+          <Input type="date" value={form.startDate ?? ""} onChange={(e) => set("startDate", e.target.value || null)} disabled={readOnly} />
+        </Field>
+        <Field label="Doğum tarihi (isteğe bağlı)" error={errors.birthDate} hint="Sadece izin hakkı hesabı için (18 yaş ve altı, 50 yaş ve üstü).">
+          <Input type="date" value={form.birthDate ?? ""} onChange={(e) => set("birthDate", e.target.value || null)} disabled={readOnly} />
+        </Field>
+      </div>
+      <Field label="Not (isteğe bağlı)" error={errors.notes} hint="Sağlık bilgisi ve kimlik numarası yazmayın.">
+        <Textarea value={form.notes ?? ""} onChange={(e) => set("notes", e.target.value)} disabled={readOnly} maxLength={1000} rows={3} />
+      </Field>
 
       <fieldset className="flex flex-col gap-2">
         <legend className="mb-2 text-sm font-semibold text-black">Takvim rengi</legend>
@@ -107,7 +131,7 @@ export function StaffForm({ staff, readOnly = false }: { staff?: Staff; readOnly
         </div>
       </fieldset>
 
-      <Field label="Bağlı kullanıcı hesabı (isteğe bağlı)" hint="Bağlanan kullanıcı Personel rolündeyse Bugün ekranında kendi randevularını görür.">
+      <Field label="Bağlı kullanıcı hesabı (isteğe bağlı)" hint="Bağlanan kullanıcı kendi telefonundan mesaiye başlar, izin talep eder; Personel rolündeyse Bugün ekranında kendi randevularını görür.">
         <select
           className={selectClass}
           value={form.userId ?? ""}

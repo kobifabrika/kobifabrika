@@ -14,6 +14,7 @@ const tabs: { href: string; label: string; permission: Permission; module?: "app
   { href: "/panel/ayarlar/calisma-saatleri", label: "Çalışma saatleri", permission: "viewSettings" },
   { href: "/panel/ayarlar/randevu", label: "Randevu", permission: "viewSettings", module: "appointments" },
   { href: "/panel/ayarlar/finans", label: "Finans", permission: "viewFinance" },
+  { href: "/panel/ayarlar/personel", label: "Personel", permission: "viewSettings" },
   { href: "/panel/ayarlar/sms", label: "SMS", permission: "viewMarketing" },
   { href: "/panel/ayarlar/ekip", label: "Ekip", permission: "manageTeam" },
   { href: "/panel/ayarlar/aktivite", label: "Aktivite günlüğü", permission: "viewAuditLog" },

@@ -1,4 +1,5 @@
 import { roleNames, type AuditAction, type AuditLogItem, type Role } from "@/lib/api/types";
+import { formatDateTime } from "@/lib/format";
 
 export const auditActionLabels: Record<AuditAction, string> = {
   Login: "Giriş yaptı",
@@ -92,6 +93,17 @@ export const auditActionLabels: Record<AuditAction, string> = {
   ContactAnonymized: "Müşterinin kişisel verilerini sildi",
   AutomationChanged: "Otomasyonu değiştirdi",
   ReviewSettingsChanged: "Google yorum linkini değiştirdi",
+  StaffSalaryChanged: "Personel maaşını değiştirdi",
+  TimeEntryAdded: "Mesai kaydı ekledi",
+  TimeEntryCorrected: "Mesai kaydını düzeltti",
+  TimeEntryDeleted: "Mesai kaydını sildi",
+  LeaveRequested: "İzin talebi girdi",
+  LeaveApproved: "İzni onayladı",
+  LeaveRejected: "İzin talebini reddetti",
+  LeaveCancelled: "İzni iptal etti",
+  LeaveBalanceAdjusted: "İzin bakiyesini düzeltti",
+  LeaveTypeChanged: "İzin türünü değiştirdi",
+  StaffSettingsChanged: "Fazla mesai eşiğini değiştirdi",
 };
 
 const fieldLabels: Record<string, string> = {
@@ -180,6 +192,23 @@ export function auditDetail(item: Pick<AuditLogItem, "action" | "changes">): str
       return `${text(c.from)} → ${text(c.to)} · ${money(c.amount)}`;
     case "CashTransactionReversed":
       return `${transactionTypes[text(c.type)] ?? ""} ${money(c.amount)} · ${day(c.date)}${c.reason ? ` · ${text(c.reason)}` : ""}`;
+    case "TimeEntryCorrected": {
+      const clock = (v: unknown) => (typeof v === "string" ? formatDateTime(v) : "boş");
+      const part = (label: string, x: unknown) => {
+        const p = (x ?? {}) as { from?: unknown; to?: unknown };
+        return x && p.from !== p.to ? `${label} ${clock(p.from)} → ${clock(p.to)}` : "";
+      };
+      return [part("Giriş", c.clockIn), part("Çıkış", c.clockOut)].filter(Boolean).join(" · ");
+    }
+    case "LeaveRequested":
+    case "LeaveApproved":
+    case "LeaveRejected":
+    case "LeaveCancelled":
+      return `${text(c.staff)} · ${text(c.type)}${c.start ? ` · ${day(c.start)}${c.end && c.end !== c.start ? ` – ${day(c.end)}` : ""}` : ""}`;
+    case "LeaveBalanceAdjusted":
+      return `${text(c.staff)} · ${typeof c.days === "number" && c.days > 0 ? "+" : ""}${String(c.days ?? "")} gün · ${text(c.note)}`;
+    case "StaffSalaryChanged":
+      return text(c.fullName);
     case "ExpenseRecorded":
     case "IncomeRecorded":
       return `${text(c.category)} · ${money(c.amount)} · ${text(c.account)}`;

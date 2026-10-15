@@ -72,8 +72,17 @@ describe("hızlı işlemler", () => {
     visibleQuickActions(role, modules).map((a) => a.label);
 
   it("Satış, teklif ve randevu herkese (Mali Müşavir hariç) görünür", () => {
-    expect(labels("Owner")).toEqual(["Yeni satış", "Yeni teklif", "Yeni randevu", "Yeni müşteri", "Tahsilat", "Gider ekle"]);
-    expect(labels("Staff")).toEqual(["Yeni satış", "Yeni teklif", "Yeni randevu", "Yeni müşteri"]);
+    expect(labels("Owner")).toEqual([
+      "Yeni satış",
+      "Yeni teklif",
+      "Yeni randevu",
+      "Yeni müşteri",
+      "Tahsilat",
+      "Gider ekle",
+      "Mesai (giriş/çıkış)",
+      "İzin talebi",
+    ]);
+    expect(labels("Staff")).toEqual(["Yeni satış", "Yeni teklif", "Yeni randevu", "Yeni müşteri", "Mesai (giriş/çıkış)", "İzin talebi"]);
     expect(labels("Accountant")).toEqual([]);
   });
 

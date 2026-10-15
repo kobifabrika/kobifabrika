@@ -9,9 +9,9 @@ Parantez içindeki rakip adı, fikrin nereden alındığını gösterir.
 - **Kurulum sihirbazı (10 dakikada kurulum):** işletme adı, logo, telefon, adres, çalışma saatleri, sektör şablonu (Hizmet / Perakende / Genel). Şablon; menüyü, örnek hizmet/ürün kategorilerini ve varsayılan ayarları belirler.
 - **Ekip ve roller:** E-posta ile davet. 4 sabit rol:
   - Owner (Sahip): her şey, maaş ve abonelik dahil.
-  - Manager (Yönetici): maaş ve abonelik hariç her şey.
+  - Manager (Yönetici): maaş ve abonelik hariç her şey (maaş giderini "Personel gideri" olarak tutarla görür; personel kartında maaş yok).
   - Staff (Personel): takvimi görür, herkes için randevu açar ve taşır (Ayarlar'dan "sadece kendi randevularını görsün" seçilebilir; karar 2026-10-13), satış girme, müşteri görme; finans raporlarını göremez.
-  - Accountant (Mali Müşavir): ücretsiz, salt okunur; raporları ve hareketleri Excel olarak indirir (KolayBi, Paraşüt).
+  - Accountant (Mali Müşavir): ücretsiz, salt okunur; raporları ve hareketleri Excel olarak indirir (KolayBi, Paraşüt); bordro için personel maaşını salt okunur görür (karar 2026-10-15 a).
   - Kullanıcı sayısı pakete göre sınırlı; mali müşavir sınıra sayılmaz.
 - **Ortak araçlar:** uygulama içi bildirimler, Ctrl+K genel arama (müşteri, ürün, satış), aktivite günlüğü, Excel'den müşteri ve ürün içe aktarma (şablon indirilebilir).
 - **KVKK:** aydınlatma metni, müşteri bazında SMS/e-posta/arama izin kaydı (tarih ve kaynakla), müşteri verisini dışa aktarma (Excel/JSON; Sahip, Yönetici) ve silme (anonimleştirme; sadece Sahip, geri alınamaz; satış ve cari tutarlar kalır, kart "Silinmiş müşteri #N"; tüzel kişi kaydı anonimleştirilmez) (Sprint 6A).
@@ -69,9 +69,9 @@ Parantez içindeki rakip adı, fikrin nereden alındığını gösterir.
 
 ## J. Personel, Mesai ve İzin
 
-- Personel kartı: ad, görev, telefon, işe başlama, maaş (sadece Owner görür), bağlı kullanıcı hesabı (isteğe bağlı).
-- Mesai: giriş-çıkış kaydı (personel kendi telefonundan veya yönetici), çalışılan saat, fazla mesai raporu.
-- İzin: izin talebi → onay/ret, yıllık izin bakiyesi, izin takvimi. İzinli personel randevu takviminde kapalı görünür.
+- Personel kartı: ad, görev, telefon, işe başlama, isteğe bağlı doğum tarihi (izin hakkı için), not, maaş (aylık, brüt/net; Sahip düzenler, Mali Müşavir salt okunur görür, Yönetici ve Personel göremez; API alanı hiç döndürmez), bağlı kullanıcı hesabı (isteğe bağlı). TC kimlik no saklanmaz. Maaş giderine isteğe bağlı personel; kartta "Ödenen maaşlar" (Sprint 7A).
+- Mesai: personel kendi telefonundan tek düğmeyle giriş-çıkış; yönetici başkası adına ekler ve düzeltir (eski/yeni saat aktivite günlüğünde); açık mesaiye ikinci giriş olmaz. Çıkışı unutulan mesai işletme kapanışından 2 saat sonra (kapalı günde girişten 12 saat sonra) "çıkış unutuldu" işaretlenir, süresi sayılmaz, yönetici çıkışı girer. Çalışılan saat ve fazla mesai raporu: haftalık eşiği (varsayılan 45, Ayarlar → Personel) aşan süre; gün ve hafta İstanbul saatiyle, gece yarısını aşan mesai bölünür. Konum doğrulaması Faz 2 (Sprint 7A).
+- İzin: türler (Yıllık izin, Mazeret izni, Ücretsiz izin, Hastalık/rapor; eklenir/düzenlenir; sağlık bilgisi tutulmaz), talep → onay/ret (bildirim iki yönlü), yarım gün (tek günlük izinde), gün sayımında kapalı gün, tatil ve personelin çalışmadığı gün sayılmaz. Yıllık izin bakiyesi: İş Kanunu 53'e göre öneri (1-5 yıl 14, 5-15 yıl 20, 15+ yıl 26 gün; 18 ve altı, 50 ve üstü en az 20), yıl dönümünde otomatik eklenir, açılış/düzeltme elle; eksi bakiye (avans izin) engellenmez; "yasal bilgi amaçlıdır" notu. İzin takvimi (ay görünümü; Personel başkalarının türünü görmez). Onaylı izin takvimde kapalı, online randevuda o gün çıkmaz; aralıktaki randevular onay ekranında listelenir, otomatik iptal edilmez (Sprint 7A).
 - **Prim hesabı (Salon Randevu):** hizmet ve ürün satışından yüzde veya sabit prim kuralı; ay sonu prim raporu.
 - Dashboard'da "aktif personel" kartı.
 

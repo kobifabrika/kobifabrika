@@ -108,7 +108,8 @@ kopar, sahipsiz Next dev sunucusu `write EPIPE` ile bozulur (sayfalar dakikalarc
 
 ## Güncel durum
 
-- Sprint: **6 (pazarlama ve İYS)** bitti (2026-10-15; 6A Actions #13, 6B Actions #15 yeşil). Sıradaki: **Sprint 7** (personel, mesai, izin, prim). Kararlar `docs/karar-gunlugu.md` 2026-10-15.
+- Sprint: **7A (personel kartı, mesai, izin)** bitti (2026-10-15). Sıradaki: **7B** (prim, kampanya/anket/personel raporları, Bugün'de aktif personel). Kararlar `docs/karar-gunlugu.md` 2026-10-15 (Sprint 7 planı).
+- Mesai sadece `TimeClock`, izin sadece `LeaveService` ile yazılır (personel satırı kilidi; açık mesai `UX_TimeEntries_Open`). Maaş personel yanıtında yok: `/api/staff/{id}/salary` (Sahip yazar, Sahip + Mali Müşavir görür). Onaylı izin = `StaffTimeOff` (Leave, LeaveRequestId); yıllık izin bakiyesi `LeaveBalanceEntries` toplamı. Slogan `content/site.ts` → `siteSlogan`.
 - Otomasyonlar `AutomationRunner`/`AutomationDispatcher` (anahtar başına bir gönderim: `AutomationSends`); pazarlama otomasyonları `MarketingSms` ile. Anket `/a/[kod]` (`SurveyEndpoints`). Ziyaret istatistiği sadece `ContactVisits.RecomputeAsync` ile (aynı gün tek ziyaret); risk `ContactQueries.AtRisk` (Domain `RiskRule` ile aynı).
 - SMS kredisi sadece `SmsCredits` ile (atomik, eksiye düşmez); her SMS `ISmsSender`'dan (ücretli mesajda kredi düşer, hata iade). Pazarlama SMS'i: izin + çıkış eki + 09:00-21:00 + `MarketingDailySends` (günde 1). Kampanya gönderimi `CampaignSender`/`CampaignDispatcher` (alıcıya en fazla bir SMS; testte dağıtıcı `RunAsync(businessId)` ile sınırlanır).
 - Çip/sekme satırları `components/ui/scroll-row.tsx` (`ScrollRow`, `Chip`, `TabNav`); telefonda Menü sağ üstte (`mobile-menu.tsx`).

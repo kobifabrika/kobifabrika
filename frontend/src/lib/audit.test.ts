@@ -29,6 +29,18 @@ describe("aktivite günlüğü metinleri", () => {
         changes: { no: "TKL-2026-0001", from: "2026-10-01", validUntil: "2026-10-26" },
       }),
     ).toBe("TKL-2026-0001 · 01.10.2026 → 26.10.2026");
+    expect(
+      auditDetail({
+        action: "TimeEntryCorrected",
+        changes: {
+          clockIn: { from: "2026-10-14T06:00:00Z", to: "2026-10-14T06:30:00Z" },
+          clockOut: { from: "2026-10-14T15:00:00Z", to: "2026-10-14T15:00:00Z" },
+        },
+      }),
+    ).toBe("Giriş 14 Ekim 2026 09:00 → 14 Ekim 2026 09:30");
+    expect(
+      auditDetail({ action: "LeaveApproved", changes: { staff: "Ayşe Usta", type: "Yıllık izin", start: "2026-11-03", end: "2026-11-05" } }),
+    ).toBe("Ayşe Usta · Yıllık izin · 03.11.2026 – 05.11.2026");
     expect(auditDetail({ action: "Login", changes: null })).toBe("");
   });
 });

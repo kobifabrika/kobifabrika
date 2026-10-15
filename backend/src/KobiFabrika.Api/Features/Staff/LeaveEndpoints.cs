@@ -92,10 +92,11 @@ public static class LeaveEndpoints
             .Produces<LeaveRequestResponse>().WithSummary("İptal (bekleyeni sahibi, onaylıyı yönetici)");
 
         app.MapGet("/api/leave-calendar", Calendar).WithTags("Leave").RequireAuthorization(Policies.Panel)
-            .WithSummary("İzin takvimi (month=yyyy-MM)");
+            .Produces<LeaveCalendarResponse>().WithSummary("İzin takvimi (month=yyyy-MM)");
 
         var staff = app.MapGroup("/api/staff/{id:guid}/leave-balance").WithTags("Leave").RequireAuthorization(Policies.Panel);
-        staff.MapGet("/", Balance).WithSummary("Yıllık izin bakiyesi ve hareketleri (Personel sadece kendisininkini)");
+        staff.MapGet("/", Balance).Produces<LeaveBalanceResponse>()
+            .WithSummary("Yıllık izin bakiyesi ve hareketleri (Personel sadece kendisininkini)");
         staff.MapPost("/adjustments", Adjust).RequireAuthorization(Policies.ManageBusiness).Validate<LeaveAdjustmentRequest>()
             .Produces<LeaveBalanceResponse>().WithSummary("Açılış bakiyesi veya düzeltme");
 

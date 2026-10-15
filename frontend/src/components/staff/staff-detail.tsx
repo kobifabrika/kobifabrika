@@ -17,23 +17,28 @@ import { can } from "@/lib/permissions";
 import { StaffSwatch, staffKey, useStaffRefresh } from "./staff-bits";
 import { StaffForm } from "./staff-form";
 import { StaffHours } from "./staff-hours";
+import { LeaveBalanceCard } from "./staff-leave-balance";
+import { StaffSalaryTab } from "./staff-salary";
 import { StaffServices } from "./staff-services";
 import { StaffTimeOffs } from "./staff-time-offs";
 
-const tabs = [
+const allTabs = [
   { key: "bilgiler", label: "Bilgiler" },
   { key: "saatler", label: "Çalışma saatleri" },
   { key: "hizmetler", label: "Hizmetler" },
   { key: "kapali", label: "Kapalı zamanlar" },
+  { key: "izin", label: "İzin" },
+  { key: "maas", label: "Maaş" },
 ] as const;
 
-/** Personel kartı: bilgiler, haftalık saatler (öğle arası dahil), hizmetler, mola/izin. */
+/** Personel kartı: bilgiler, haftalık saatler (öğle arası dahil), hizmetler, mola, izin bakiyesi, maaş (Sahip ve Mali Müşavir). */
 export function StaffDetail({ id }: { id: string }) {
   const { role } = useSession();
   const router = useRouter();
   const params = useSearchParams();
   const refresh = useStaffRefresh();
   const manage = can(role, "manageStaff");
+  const tabs = allTabs.filter((t) => t.key !== "maas" || can(role, "viewSalary"));
   const tab = tabs.find((t) => t.key === params.get("sekme"))?.key ?? "bilgiler";
   const staff = useQuery({
     queryKey: [...staffKey, id],
@@ -88,6 +93,8 @@ export function StaffDetail({ id }: { id: string }) {
       {tab === "saatler" && <StaffHours staffId={id} readOnly={!manage} />}
       {tab === "hizmetler" && <StaffServices staff={s} readOnly={!manage} />}
       {tab === "kapali" && <StaffTimeOffs staffId={id} readOnly={!manage} />}
+      {tab === "izin" && <LeaveBalanceCard staffId={id} manage={can(role, "manageStaffTime")} />}
+      {tab === "maas" && <StaffSalaryTab staffId={id} staffName={s.fullName} />}
     </div>
   );
 }

@@ -18,8 +18,11 @@ public sealed record StaffRequest(
     string FullName, string? Title, string? Phone, StaffColor Color, bool ShowInBooking, Guid? UserId, bool IsActive,
     DateOnly? StartDate = null, DateOnly? BirthDate = null, string? Notes = null);
 
-/// <summary>Aylık maaş (bilgi amaçlı; bordro hesabı yok). Salary null: girilmemiş.</summary>
-public sealed record StaffSalaryDto(decimal? Salary, SalaryBasis? Basis);
+/// <summary>
+/// Aylık maaş (bilgi amaçlı; bordro hesabı yok). Salary null: girilmemiş (Basis o zaman anlamsız, Net döner).
+/// Basis null değil: OpenAPI'de nullable enum ortak şemayı bozar (CLAUDE.md).
+/// </summary>
+public sealed record StaffSalaryDto(decimal? Salary, SalaryBasis Basis);
 
 /// <summary>Personele bağlı maaş gideri (ters kayıtlar dahil; NetAmount ters kayıtta eksi).</summary>
 public sealed record SalaryPaymentItem(
@@ -82,7 +85,6 @@ public sealed class StaffSalaryDtoValidator : AbstractValidator<StaffSalaryDto>
     {
         RuleFor(x => x.Salary).ValidMoney().When(x => x.Salary is not null);
         RuleFor(x => x.Basis).IsInEnum().WithMessage("Brüt veya net seçin.");
-        RuleFor(x => x.Basis).NotNull().When(x => x.Salary is not null).WithMessage("Brüt veya net seçin.");
     }
 }
 
