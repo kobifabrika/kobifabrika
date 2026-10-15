@@ -842,6 +842,93 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/business/review-settings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Google yorum linki */
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["ReviewSettingsRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["SurveySummary"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/marketing/empty-slots": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Boş saat önerisi (varsayılan yarın) */
+        get: {
+            parameters: {
+                query?: {
+                    date?: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["EmptySlotsResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/system/info": {
         parameters: {
             query?: never;
@@ -9650,6 +9737,387 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/automations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Otomasyonlar ve son 30 gün sayıları */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["AutomationResponse"][];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/automations/{type}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Aç/kapa, şablon, saat, gün/gecikme ayarları */
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    type: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["AutomationRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["AutomationResponse"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/automations/{type}/preview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Örnek metin ve bugün kaç kişiye gideceği */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    type: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["AutomationRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["AutomationPreview"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/surveys": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Anketler (cevaplananlar önce; score ile süzülür) */
+        get: {
+            parameters: {
+                query?: {
+                    score?: number;
+                    page?: number;
+                    pageSize?: number;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["SurveyListResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/surveys/summary": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Son 90 gün özeti ve Google linki */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["SurveySummary"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/public/surveys/{code}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Anket sayfası */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    code: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PublicSurveyResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/public/surveys/{code}/score": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Puan ver (1-5, tek kez) */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    code: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["SurveyScoreRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PublicSurveyResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/public/surveys/{code}/comment": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** 1-3 puanda yorum (sadece işletmeye) */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    code: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["SurveyCommentRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PublicSurveyResponse"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/public/surveys/{code}/google-click": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Google'da yorum yaz linkine tıklandı */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    code: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description No Content */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -9808,8 +10276,26 @@ export interface components {
             userId: string;
             fullName: string;
         };
+        AtRiskItem: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+            /** Format: date-time */
+            lastVisitAt: string;
+            /** Format: int32 */
+            daysSince: number;
+            /** Format: double */
+            avgIntervalDays: number;
+            /** Format: int32 */
+            visitCount: number;
+        };
+        AtRiskSummary: {
+            /** Format: int32 */
+            count: number;
+            items: components["schemas"]["AtRiskItem"][];
+        };
         /** @enum {unknown} */
-        AuditAction: "Login" | "InvitationSent" | "InvitationResent" | "InvitationRevoked" | "InvitationAccepted" | "RoleChanged" | "MemberRemoved" | "BusinessUpdated" | "SlugChanged" | "WorkingHoursUpdated" | "LogoChanged" | "ModulesChanged" | "PaymentInfoChanged" | "ReceiptSettingsChanged" | "ContactCreated" | "ContactUpdated" | "ContactArchived" | "ContactRestored" | "ContactDeleted" | "ContactsImported" | "ContactsExported" | "LedgerEntryCreated" | "LedgerEntryDeleted" | "OpeningBalanceSet" | "CollectionRecorded" | "CollectionReverted" | "PaymentRequestCreated" | "PaymentRequestConfirmed" | "PaymentRequestRejected" | "PaymentRequestCancelled" | "PaymentRequestRenewed" | "StatementShared" | "ProductCreated" | "ProductUpdated" | "ProductDeleted" | "ProductsImported" | "ProductsExported" | "StockMovementAdded" | "SaleDiscounted" | "SaleCancelled" | "SalesExported" | "QuoteCreated" | "QuoteUpdated" | "QuoteShared" | "QuoteRenewed" | "QuoteExtended" | "QuoteAccepted" | "QuoteRejected" | "QuoteConverted" | "QuoteDeleted" | "CashAccountCreated" | "CashAccountUpdated" | "CashAccountDeactivated" | "CashAccountActivated" | "DefaultCashAccountChanged" | "CashTransferRecorded" | "CashTransactionReversed" | "SupplierPaymentRecorded" | "ExpenseRecorded" | "IncomeRecorded" | "ExpenseCategoryCreated" | "ExpenseCategoryUpdated" | "ExpenseCategoryDeactivated" | "ExpenseCategoryActivated" | "DueReminderSent" | "FinanceSettingsChanged" | "ReportExported" | "CashTransactionsExported" | "StaffCreated" | "StaffUpdated" | "StaffDeleted" | "StaffWorkingHoursUpdated" | "StaffServicesUpdated" | "HolidayCreated" | "HolidayDeleted" | "AppointmentSettingsChanged" | "BookingSettingsChanged" | "ServicePackageCreated" | "ServicePackageUpdated" | "ServicePackageDeleted" | "CustomerPackageExtended" | "CustomerPackageClosed" | "SmsCreditsAdded" | "SmsCreditsExported" | "SmsSettingsChanged" | "CampaignCreated" | "CampaignCancelled" | "ContactDataExported" | "ContactAnonymized";
+        AuditAction: "Login" | "InvitationSent" | "InvitationResent" | "InvitationRevoked" | "InvitationAccepted" | "RoleChanged" | "MemberRemoved" | "BusinessUpdated" | "SlugChanged" | "WorkingHoursUpdated" | "LogoChanged" | "ModulesChanged" | "PaymentInfoChanged" | "ReceiptSettingsChanged" | "ContactCreated" | "ContactUpdated" | "ContactArchived" | "ContactRestored" | "ContactDeleted" | "ContactsImported" | "ContactsExported" | "LedgerEntryCreated" | "LedgerEntryDeleted" | "OpeningBalanceSet" | "CollectionRecorded" | "CollectionReverted" | "PaymentRequestCreated" | "PaymentRequestConfirmed" | "PaymentRequestRejected" | "PaymentRequestCancelled" | "PaymentRequestRenewed" | "StatementShared" | "ProductCreated" | "ProductUpdated" | "ProductDeleted" | "ProductsImported" | "ProductsExported" | "StockMovementAdded" | "SaleDiscounted" | "SaleCancelled" | "SalesExported" | "QuoteCreated" | "QuoteUpdated" | "QuoteShared" | "QuoteRenewed" | "QuoteExtended" | "QuoteAccepted" | "QuoteRejected" | "QuoteConverted" | "QuoteDeleted" | "CashAccountCreated" | "CashAccountUpdated" | "CashAccountDeactivated" | "CashAccountActivated" | "DefaultCashAccountChanged" | "CashTransferRecorded" | "CashTransactionReversed" | "SupplierPaymentRecorded" | "ExpenseRecorded" | "IncomeRecorded" | "ExpenseCategoryCreated" | "ExpenseCategoryUpdated" | "ExpenseCategoryDeactivated" | "ExpenseCategoryActivated" | "DueReminderSent" | "FinanceSettingsChanged" | "ReportExported" | "CashTransactionsExported" | "StaffCreated" | "StaffUpdated" | "StaffDeleted" | "StaffWorkingHoursUpdated" | "StaffServicesUpdated" | "HolidayCreated" | "HolidayDeleted" | "AppointmentSettingsChanged" | "BookingSettingsChanged" | "ServicePackageCreated" | "ServicePackageUpdated" | "ServicePackageDeleted" | "CustomerPackageExtended" | "CustomerPackageClosed" | "SmsCreditsAdded" | "SmsCreditsExported" | "SmsSettingsChanged" | "CampaignCreated" | "CampaignCancelled" | "ContactDataExported" | "ContactAnonymized" | "AutomationChanged" | "ReviewSettingsChanged";
         AuditLogListResponse: {
             items: components["schemas"]["AuditLogResponse"][];
             /** Format: int32 */
@@ -9829,6 +10315,44 @@ export interface components {
             entityId: null | string;
             changes: null | components["schemas"]["JsonElement"];
         };
+        AutomationPreview: {
+            text: string;
+            /** Format: int32 */
+            segments: number;
+            /** Format: int32 */
+            today: null | number;
+        };
+        AutomationRequest: {
+            isEnabled: boolean;
+            body: string;
+            sendAt: null | string;
+            /** Format: int32 */
+            inactiveDays: null | number;
+            /** Format: int32 */
+            repeatDays: null | number;
+            /** Format: int32 */
+            delayMinutes: null | number;
+        };
+        AutomationResponse: {
+            type: components["schemas"]["AutomationType"];
+            isEnabled: boolean;
+            body: string;
+            sendAt: null | string;
+            /** Format: int32 */
+            inactiveDays: null | number;
+            /** Format: int32 */
+            repeatDays: null | number;
+            /** Format: int32 */
+            delayMinutes: null | number;
+            variables: string[];
+            /** Format: int32 */
+            sentLast30Days: number;
+            /** Format: int32 */
+            creditsLast30Days: number;
+            isMarketing: boolean;
+        };
+        /** @enum {unknown} */
+        AutomationType: "Birthday" | "WinBack" | "VisitThanks" | "Survey" | "DueReminder";
         /** @enum {unknown} */
         BalanceDirection: "Receivable" | "Payable";
         BookingSettingsRequest: {
@@ -10437,6 +10961,10 @@ export interface components {
             onlyOwn: boolean;
             items: components["schemas"]["DashboardAppointment"][];
         };
+        DashboardMarketing: {
+            emptySlots: components["schemas"]["EmptySlotsResponse"];
+            atRisk: components["schemas"]["AtRiskSummary"];
+        };
         DashboardReceivables: {
             /** Format: double */
             overdue: number;
@@ -10459,6 +10987,7 @@ export interface components {
             recentSales: components["schemas"]["DashboardSale"][];
             last30Days: components["schemas"]["DailyTotal"][];
             appointments: null | components["schemas"]["DashboardAppointments"];
+            marketing: null | components["schemas"]["DashboardMarketing"];
         };
         DashboardSale: {
             /** Format: uuid */
@@ -10532,6 +11061,20 @@ export interface components {
             vatAmount: number;
             /** Format: double */
             lineTotal: number;
+        };
+        EmptySlotItem: {
+            /** Format: uuid */
+            staffId: string;
+            staffName: string;
+            start: string;
+            end: string;
+            /** Format: int32 */
+            minutes: number;
+        };
+        EmptySlotsResponse: {
+            /** Format: date */
+            date: string;
+            items: components["schemas"]["EmptySlotItem"][];
         };
         /** @enum {unknown} */
         ExpenseCategoryKind: "Expense" | "Income";
@@ -11354,6 +11897,19 @@ export interface components {
             /** Format: double */
             balance: number;
         };
+        PublicSurveyResponse: {
+            businessName: string;
+            logoUrl: null | string;
+            serviceName: null | string;
+            /** Format: date-time */
+            appointmentAt: string;
+            /** Format: int32 */
+            score: null | number;
+            canComment: boolean;
+            commented: boolean;
+            googleReviewUrl: null | string;
+            emphasis: null | string;
+        };
         QuoteLinkResponse: {
             quote: components["schemas"]["QuoteResponse"];
             url: string;
@@ -11598,6 +12154,9 @@ export interface components {
         ReverseResponse: {
             reversalIds: string[];
             balances: components["schemas"]["AccountBalance"][];
+        };
+        ReviewSettingsRequest: {
+            googleReviewUrl: null | string;
         };
         SaleCreatedResponse: {
             sale: components["schemas"]["SaleResponse"];
@@ -12000,6 +12559,46 @@ export interface components {
             low: number;
             /** Format: int32 */
             negative: number;
+        };
+        SurveyCommentRequest: {
+            comment: string;
+        };
+        SurveyItem: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            contactId: string;
+            contactName: string;
+            staffName: null | string;
+            /** Format: date-time */
+            sentAt: string;
+            /** Format: int32 */
+            score: null | number;
+            comment: null | string;
+            /** Format: date-time */
+            answeredAt: null | string;
+            googleClicked: boolean;
+        };
+        SurveyListResponse: {
+            items: components["schemas"]["SurveyItem"][];
+            /** Format: int32 */
+            total: number;
+        };
+        SurveyScoreRequest: {
+            /** Format: int32 */
+            score: number;
+        };
+        SurveySummary: {
+            /** Format: int32 */
+            sent: number;
+            /** Format: int32 */
+            answered: number;
+            /** Format: double */
+            average: null | number;
+            distribution: number[];
+            /** Format: int32 */
+            googleClicks: number;
+            googleReviewUrl: null | string;
         };
         SwitchBusinessRequest: {
             /** Format: uuid */

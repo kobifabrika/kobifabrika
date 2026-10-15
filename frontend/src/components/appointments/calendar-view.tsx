@@ -14,6 +14,7 @@ import { useSession } from "@/components/providers/session-provider";
 import { StaffSwatch, staffKey, useStaffList } from "@/components/staff/staff-bits";
 import { Button } from "@/components/ui/button";
 import { ScrollRow } from "@/components/ui/scroll-row";
+import { emptySlotCampaignHref } from "@/components/marketing/suggestions";
 import { Switch } from "@/components/ui/switch";
 import { api, errorMessage, unwrap } from "@/lib/api/client";
 import type { Appointment, Calendar, StaffColor } from "@/lib/api/types";
@@ -284,6 +285,7 @@ export function CalendarView() {
       <p className="text-base font-semibold text-black" aria-live="polite">
         {title}
       </p>
+      {view !== "hafta" && date === addDays(now.today, 1) && can(role, "manageMarketing") && <EmptySlotStrip date={date} />}
 
       {columnsStaff.length > 1 && (!desktop || view === "hafta") && (
         <ScrollRow role="radiogroup" aria-label="Personel">
@@ -437,5 +439,33 @@ function WeekAgenda({
         );
       })}
     </ul>
+  );
+}
+
+/** Yarının gün görünümünde boş saat önerisi: "Yarın 14:00-16:00 Ayşe Usta boş · Kampanya" (Sahip, Yönetici). */
+function EmptySlotStrip({ date }: { date: string }) {
+  const slots = useQuery({
+    queryKey: ["marketing", "empty-slots", date],
+    queryFn: () => unwrap(api.GET("/api/marketing/empty-slots", { params: { query: { date } } })),
+    staleTime: 60_000,
+  });
+  const items = slots.data?.items ?? [];
+  if (items.length === 0) return null;
+  return (
+    <section aria-label="Boş saat önerisi" className="flex flex-col gap-2 border-l-2 border-brand bg-neutral-50 px-3 py-2">
+      {items.map((s) => (
+        <div key={`${s.staffId}-${s.start}`} className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
+          <span className="text-sm text-black">
+            Yarın <span className="font-semibold tabular-nums">{s.start}-{s.end}</span> {s.staffName} boş
+          </span>
+          <Link
+            href={emptySlotCampaignHref(date, s)}
+            className="inline-flex min-h-11 items-center gap-1 text-sm font-semibold text-black underline decoration-brand underline-offset-4"
+          >
+            Kampanya başlat
+          </Link>
+        </div>
+      ))}
+    </section>
   );
 }

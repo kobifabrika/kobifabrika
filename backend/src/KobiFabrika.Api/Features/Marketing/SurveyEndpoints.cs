@@ -17,11 +17,12 @@ namespace KobiFabrika.Api.Features.Marketing;
 
 /// <summary>
 /// Herkese açık anket sayfası (/a/{kod}). Score: verilen puan (yoksa null); CanComment: 1-3 verdi, yorum yazmadı, süre dolmadı.
-/// Emphasis: puana göre öne çıkan (FeedbackFirst / GoogleFirst); GoogleReviewUrl herkese (varsa) gösterilir.
+/// Emphasis: puana göre öne çıkan ("FeedbackFirst" / "GoogleFirst"; puan yoksa null; metin, çünkü yanıtta nullable enum ortak
+/// şemayı bozar); GoogleReviewUrl herkese (varsa) gösterilir.
 /// </summary>
 public sealed record PublicSurveyResponse(
     string BusinessName, string? LogoUrl, string? ServiceName, DateTime AppointmentAt, int? Score, bool CanComment, bool Commented,
-    string? GoogleReviewUrl, SurveyEmphasis? Emphasis);
+    string? GoogleReviewUrl, string? Emphasis);
 
 public sealed record SurveyScoreRequest(int Score);
 
@@ -102,7 +103,7 @@ public static class SurveyEndpoints
         var service = await db.Products.IgnoreQueryFilters().AsNoTracking().Where(p => p.Id == appointment.ProductId).Select(p => p.Name).FirstOrDefaultAsync(ct);
         var canComment = SurveyRules.CanComment(s.Score) && s.Comment is null && s.AnsweredAt + SurveyRules.CommentWindow > now;
         return new PublicSurveyResponse(business.Name, business.LogoUrl, service, appointment.StartAt, s.Score, canComment, s.Comment is not null,
-            business.GoogleReviewUrl, s.Score is { } score ? SurveyRules.Emphasis(score) : null);
+            business.GoogleReviewUrl, s.Score is { } score ? SurveyRules.Emphasis(score).ToString() : null);
     }
 
     private static async Task<Results<Ok<PublicSurveyResponse>, ProblemHttpResult>> Get(string code, AppDbContext db, TimeProvider clock, CancellationToken ct)

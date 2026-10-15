@@ -10,6 +10,7 @@ import { TodayAppointments } from "@/components/appointments/today-appointments"
 import { QueryError } from "@/components/feedback/query-error";
 import { AccountBalance, accountHref } from "@/components/finance/cash-accounts";
 import { CollectionDialog } from "@/components/finance/finance-dialogs";
+import { MarketingCards } from "@/components/marketing/suggestions";
 import { useSession } from "@/components/providers/session-provider";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -125,6 +126,7 @@ function DashboardBody({ data }: { data: Dashboard }) {
   return (
     <>
       {data.appointments && <TodayAppointments data={data.appointments} canWrite={can(role, "writeAppointments")} />}
+      {data.marketing && <MarketingCards data={data.marketing} />}
       <section aria-label="Özet" className="grid grid-cols-2 gap-3 lg:grid-cols-4 lg:gap-4">
         <StatCard label={sales.onlyOwn ? "Bugünkü satışlarım" : "Bugünkü satış"} icon={ReceiptText} value={formatMoney(sales.total)} href="/panel/satislar">
           <span className="text-xs text-neutral-600">{sales.count} satış</span>

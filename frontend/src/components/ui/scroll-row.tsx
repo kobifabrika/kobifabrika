@@ -2,7 +2,7 @@
 
 import { cn } from "cn";
 import Link from "next/link";
-import { useEffect, useRef, type ComponentProps, type ReactNode, type Ref } from "react";
+import { useEffect, useRef, type ComponentProps, type ReactNode } from "react";
 
 /**
  * Telefonda yatay kaydırılan satır (filtre çipleri ve sekmeler). Uygulamadaki bütün çip ve sekme satırları bunu kullanır.
@@ -10,23 +10,37 @@ import { useEffect, useRef, type ComponentProps, type ReactNode, type Ref } from
  * - Kenara kadar uzanır (-mx-4) ama ilk ve son öğe sayfa boşluğu kadar içeride durur: son öğenin sağındaki boşluk içteki
  *   satırın kendi dolgusu (`pr-4`); kaydırılan kapsayıcının sağ dolgusu bazı tarayıcılarda (WebKit) yutulduğu için.
  * - Kenarda solma yok (gradyan yasak, docs/04-tasarim.md); kesik görünen öğe sadece kaydırma sürerken olur.
+ * - Seçili öğe (çip, sekme, personel) ilk açılışta ve activeKey değişince görünür alana kaydırılır.
  */
+/** Seçili öğe (aria-pressed / aria-checked / aria-current) satırın dışında kalıyorsa görünür alana kaydırılır; sayfa dikey kaymaz. */
+function revealActive(row: HTMLElement | null) {
+  const current = row?.querySelector<HTMLElement>("[aria-pressed=true], [aria-checked=true], [aria-current=page], [aria-current=true]");
+  if (!row || !current) return;
+  const left = current.offsetLeft - row.offsetLeft;
+  if (left < row.scrollLeft || left + current.offsetWidth > row.scrollLeft + row.clientWidth) {
+    row.scrollLeft = Math.max(0, left - (row.clientWidth - current.offsetWidth) / 2);
+  }
+}
+
 export function ScrollRow({
   children,
   className,
   innerClassName,
   as: Tag = "div",
-  ref,
+  activeKey,
   ...props
 }: {
   children: ReactNode;
   className?: string;
   innerClassName?: string;
   as?: "div" | "nav";
-  ref?: Ref<HTMLDivElement>;
+  /** Değişince seçili öğe yeniden görünür alana kaydırılır (verilmezse sadece ilk açılışta). */
+  activeKey?: string | number | null;
 } & Omit<ComponentProps<"div">, "children" | "className" | "ref">) {
+  const row = useRef<HTMLDivElement>(null);
+  useEffect(() => revealActive(row.current), [activeKey]);
   return (
-    <Tag {...props} ref={ref} className={cn("no-scrollbar -mx-4 overflow-x-auto pl-4 lg:mx-0 lg:pl-0", className)}>
+    <Tag {...props} ref={row} className={cn("no-scrollbar -mx-4 overflow-x-auto pl-4 lg:mx-0 lg:pl-0", className)}>
       <div className={cn("flex w-max min-w-full gap-2 pr-4 lg:pr-0", innerClassName)}>{children}</div>
     </Tag>
   );
@@ -74,19 +88,8 @@ export type TabItem = { key: string; label: string; href: string };
 
 /** Sekme satırı: alt çizgi mavi, telefonda yatay kaydırma (Ayarlar, müşteri kartı, Cari ve Kasa, Raporlar…). */
 export function TabNav({ tabs, active, label }: { tabs: TabItem[]; active: string; label: string }) {
-  // Aktif sekme satırın dışında kalıyorsa (telefonda sağdaki sekmeler) görünür alana kaydırılır; sayfa dikey kaymaz.
-  const row = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    const el = row.current;
-    const current = el?.querySelector<HTMLElement>("[aria-current=page]");
-    if (!el || !current) return;
-    const left = current.offsetLeft - el.offsetLeft;
-    if (left < el.scrollLeft || left + current.offsetWidth > el.scrollLeft + el.clientWidth) {
-      el.scrollLeft = Math.max(0, left - (el.clientWidth - current.offsetWidth) / 2);
-    }
-  }, [active]);
   return (
-    <ScrollRow ref={row} as="nav" aria-label={label} innerClassName="gap-1 border-b border-border">
+    <ScrollRow as="nav" aria-label={label} activeKey={active} innerClassName="gap-1 border-b border-border">
       {tabs.map((t) => (
         <Link
           key={t.key}

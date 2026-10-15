@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 
-import { CampaignList } from "@/components/marketing/campaigns";
+import { MarketingHome } from "@/components/marketing/marketing-home";
 import { RequirePermission } from "@/components/panel/settings-nav";
 
 // Panel layout'u gibi: içerik istemcide oturum doğrulanınca render edilir.
@@ -11,7 +12,9 @@ export const metadata: Metadata = { title: "Kampanyalar" };
 export default function CampaignsPage() {
   return (
     <RequirePermission permission="viewMarketing">
-      <CampaignList />
+      <Suspense>
+        <MarketingHome />
+      </Suspense>
     </RequirePermission>
   );
 }

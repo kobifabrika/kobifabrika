@@ -17,7 +17,7 @@ import { Input } from "@/components/ui/input";
 import { Chip, ScrollRow } from "@/components/ui/scroll-row";
 import { Textarea } from "@/components/ui/textarea";
 import { api, errorMessage, fieldErrors, problemCode, unwrap } from "@/lib/api/client";
-import type { CampaignPreview, CampaignTarget } from "@/lib/api/types";
+import type { CampaignKind, CampaignPreview, CampaignTarget } from "@/lib/api/types";
 import { formatDateTime, istanbulToUtcIso, todayIstanbul } from "@/lib/format";
 import { can } from "@/lib/permissions";
 import { BUSINESS_VARIABLE, composeCounter, FIRST_NAME_VARIABLE, unknownVariables } from "@/lib/sms";
@@ -30,6 +30,26 @@ const steps: { key: Step; label: string }[] = [
 ];
 
 const ALL = "__all";
+
+/** Bugün ekranındaki önerilerden gelen hazır kampanya (ad, mesaj, tür). */
+export function presetFrom(params: URLSearchParams): { name: string; body: string; kind: "EmptySlot" | "RiskList" } | null {
+  const tur = params.get("tur");
+  if (tur === "bos-saat") {
+    const date = params.get("tarih");
+    const start = params.get("saat") ?? "";
+    const end = params.get("bitis") ?? "";
+    const day = date ? new Intl.DateTimeFormat("tr-TR", { day: "numeric", month: "long", timeZone: "UTC" }).format(new Date(`${date}T00:00:00Z`)) : "Yarın";
+    return {
+      name: `Boş saat ${day} ${start}`.trim(),
+      body: `Merhaba {ad}, yarın ${start}${end ? `-${end}` : ""} arası {isletme}'de yerimiz var. Randevu için bize yazın.`,
+      kind: "EmptySlot",
+    };
+  }
+  if (tur === "risk") {
+    return { name: "Sizi özledik", body: "Merhaba {ad}, sizi özledik! {isletme}'de bir sonraki ziyaretinizde size özel indirimimiz var.", kind: "RiskList" };
+  }
+  return null;
+}
 const number = (n: number) => n.toLocaleString("tr-TR");
 
 /** Seçim anahtarı → API hedefi: "__all" tüm müşteriler, hazır segment kodu veya kayıtlı segment Id'si. */
@@ -50,9 +70,12 @@ export function CampaignWizard() {
   const { role } = useSession();
   const queryClient = useQueryClient();
   const step = (steps.find((s) => s.key === params.get("adim"))?.key ?? "hedef") as Step;
+  // Bugün ekranından: boş saat (?tur=bos-saat&tarih&saat&bitis&personel) veya kaybedilme riski (?tur=risk&segment=at-risk).
+  const preset = presetFrom(params);
   const [targetKey, setTargetKey] = useState(params.get("segment") ?? ALL);
-  const [name, setName] = useState(`Kampanya ${new Intl.DateTimeFormat("tr-TR", { day: "numeric", month: "long" }).format(new Date())}`);
-  const [body, setBody] = useState("Merhaba {ad}, ");
+  const [name, setName] = useState(preset?.name ?? `Kampanya ${new Intl.DateTimeFormat("tr-TR", { day: "numeric", month: "long" }).format(new Date())}`);
+  const [body, setBody] = useState(preset?.body ?? "Merhaba {ad}, ");
+  const [kind] = useState<CampaignKind>(preset?.kind ?? "Manual");
   const [schedule, setSchedule] = useState<"now" | "later">("now");
   const [date, setDate] = useState(todayIstanbul());
   const [time, setTime] = useState("10:00");
@@ -80,7 +103,7 @@ export function CampaignWizard() {
   });
 
   const send = useMutation({
-    mutationFn: () => unwrap(api.POST("/api/campaigns", { body: { name, target, body, scheduledAt, kind: "Manual" } })),
+    mutationFn: () => unwrap(api.POST("/api/campaigns", { body: { name, target, body, scheduledAt, kind } })),
     onSuccess: async (c) => {
       await queryClient.invalidateQueries({ queryKey: campaignsKey });
       await queryClient.invalidateQueries({ queryKey: smsCreditKey });

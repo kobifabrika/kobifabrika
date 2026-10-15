@@ -3,6 +3,7 @@
 import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Download, FileSpreadsheet, Filter, Megaphone, Plus, Search, Users, X } from "lucide-react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 
@@ -64,7 +65,9 @@ export function contactHref(c: Pick<ContactListItem, "id" | "isCustomer">) {
 export function ContactList({ mode = "customer" }: { mode?: Mode }) {
   const { role } = useSession();
   const [search, setSearch] = useState("");
-  const [segment, setSegment] = useState<string>("");
+  // Bugün kartından (Kaybedilme riski → Listeyi gör) ?segment= ile gelinir.
+  const params = useSearchParams();
+  const [segment, setSegment] = useState<string>(() => (mode === "customer" ? (params?.get("segment") ?? "") : ""));
   const [filters, setFilters] = useState<Filters>(emptyFilters);
   const [filterOpen, setFilterOpen] = useState(false);
   const debounced = useDebounced(search.trim(), 300);
@@ -179,7 +182,7 @@ export function ContactList({ mode = "customer" }: { mode?: Mode }) {
       )}
       {mode === "customer" && segment && can(role, "manageMarketing") && (
         <Button asChild variant="outline" className="self-start">
-          <Link href={`/panel/kampanyalar/yeni?segment=${encodeURIComponent(segment)}`}>
+          <Link href={`/panel/kampanyalar/yeni?segment=${encodeURIComponent(segment)}${segment === "at-risk" ? "&tur=risk" : ""}`}>
             <Megaphone aria-hidden /> Bu segmente kampanya
           </Link>
         </Button>

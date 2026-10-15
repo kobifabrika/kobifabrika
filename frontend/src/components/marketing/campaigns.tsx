@@ -1,7 +1,7 @@
 "use client";
 
 import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { ArrowLeft, Megaphone, Plus } from "lucide-react";
+import { ArrowLeft, Megaphone } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useState } from "react";
@@ -9,7 +9,7 @@ import { toast } from "sonner";
 
 import { EmptyState } from "@/components/contacts/contact-bits";
 import { QueryError } from "@/components/feedback/query-error";
-import { CreditStrip, smsCreditKey } from "@/components/marketing/sms-credit";
+import { smsCreditKey } from "@/components/marketing/sms-credit";
 import { useSession } from "@/components/providers/session-provider";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -41,9 +41,8 @@ function when(c: Campaign) {
   return formatDateTime(c.startedAt ?? c.scheduledAt);
 }
 
-/** /panel/kampanyalar: kredi şeridi, "Yeni kampanya", kampanya listesi (masaüstü tablo, telefonda kart). */
+/** Kampanyalar sekmesi: kampanya listesi (masaüstü tablo, telefonda kart). */
 export function CampaignList() {
-  const { role } = useSession();
   const list = useInfiniteQuery({
     queryKey: [...campaignsKey, "list"],
     initialPageParam: 1,
@@ -57,18 +56,6 @@ export function CampaignList() {
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <h1 className="text-2xl font-bold tracking-tight text-black">Kampanyalar</h1>
-        {can(role, "manageMarketing") && (
-          <Button asChild className="max-sm:w-full">
-            <Link href="/panel/kampanyalar/yeni">
-              <Plus aria-hidden /> Yeni kampanya
-            </Link>
-          </Button>
-        )}
-      </div>
-      <CreditStrip />
-
       {list.isPending ? (
         <p role="status" className="text-sm text-neutral-600">
           Yükleniyor…

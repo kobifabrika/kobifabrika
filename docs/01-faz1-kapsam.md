@@ -55,10 +55,10 @@ Parantez içindeki rakip adı, fikrin nereden alındığını gösterir.
 ## G. Pazarlama (fark yaratan modül)
 
 - Kampanya akışı: segment seç → mesaj yaz (değişkenler: {ad}, {isletme}) → önizle ve maliyet tahminini (SMS kredisi) gör → hemen gönder veya zamanla. Sadece SMS (e-posta kampanyası Faz 1'de yok); pazarlama SMS'i 09:00-21:00 arası, aynı müşteriye günde en fazla 1 (Sprint 6A).
-- Hazır otomasyonlar (aç/kapa): doğum günü mesajı; "X gündür gelmedi" geri kazanma; randevu sonrası teşekkür.
-- **Memnuniyet → Google yorum:** randevudan sonra 1-5 puan sorusu linki gider. 4-5 verene işletmenin Google yorum linki gösterilir; 1-3 verenin yorumu sadece işletmeye düşer ve bildirim oluşur.
-- **Boş saat kampanyası:** yarının takviminde boş aralık varsa panel öneri gösterir; tek tıkla seçilen segmente "yarın 14:00'te yer var" mesajı gider.
-- **Risk listesi (Salon Randevu):** ortalama ziyaret aralığının 2 katından uzun süredir gelmeyen düzenli müşteriler otomatik listelenir.
+- Hazır otomasyonlar (aç/kapa, varsayılan kapalı; şablon, saat/gecikme düzenlenir; son 30 gün SMS ve kredi): doğum günü mesajı (29 Şubat doğumlular artık olmayan yılda 28 Şubat'ta); "X gündür gelmedi" geri kazanma (aynı kişiye en fazla Y günde bir); randevu sonrası teşekkür; vade günü hatırlatması (bilgilendirme, bir kez) (Sprint 6B).
+- **Memnuniyet → Google yorum:** randevudan sonra (gecikme ayarlanabilir) 1-5 puan linki gider (`/a/kod`, 10 karakter, 7 gün, tek kullanım; sadece SMS izni olana; teşekkürle birlikte açıksa tek SMS). Google yorum linki herkese gösterilir (Google "review gating"i yasaklar): 1-3'te "Bize iletin" yorum kutusu önde (yorum sadece işletmeye, bildirim), 4-5'te Google düğmesi önde (Sprint 6B).
+- **Boş saat kampanyası:** yarının takviminde boş aralık varsa (en kısa hizmet süresinden uzun; personel başına en fazla 2, toplam 3) Bugün ekranında ve takvimin yarın görünümünde öneri; tek tıkla hazır mesajla kampanya sihirbazı (Sprint 6B).
+- **Risk listesi (Salon Randevu):** en az 3 ziyareti olan ve son ziyaretten bu yana max(2 × ortalama aralık, 14 gün)'den fazla geçen müşteriler; Müşteriler'de "Kaybedilme riski" segmenti, Bugün'de kart, listeden kampanya. Ziyaret = tamamlanan satış veya randevu; aynı gün ikisi tek ziyaret (Sprint 6B).
 - İYS uyumu: izni olmayan ve çıkış yapmış alıcılar otomatik elenir; her pazarlama mesajında kısa çıkış linki (tek ekranda "SMS'leri durdur") ve RET. Gerçek İYS bildirimi gerçek SMS sağlayıcısıyla pilot öncesi (Sprint 6A'da arayüz ve sahte istemci).
 - SMS kredisi: her ücretli SMS (bilgilendirme dahil; doğrulama kodu hariç) segment kadar düşer, eksiye düşmez; kredi bitince SMS gitmez ve işletmeye bildirim; bakiye azalınca uyarı (eşik Ayarlar → SMS). Yeni işletmeye bir kez 50 kredi. Kredi yüklemeyi Sprint 8'e (iyzico) kadar platform yapar; işletme destekten ister (Sprint 6A).
 

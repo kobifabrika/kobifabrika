@@ -31,6 +31,8 @@ const env = {
   // Kampanya SMS'leri her saatte gider (CI gece de koşar; 09:00-21:00 kuralı birim/entegrasyon testlerinde).
   Marketing__SendWindowStart: "00:00",
   Marketing__SendWindowEnd: "24:00",
+  // Otomasyonlar dakikada bir (canlıda 5 dakikada bir); E2E teşekkür/anket SMS'ini beklerken.
+  Marketing__AutomationsCron: "* * * * *",
   // Çıkış linki E2E frontend'ine işaret etsin (canlıda kobifabrika.com).
   PublicLinks__ShortBaseUrl: webUrl,
   // Kredi yükleme ekranı için platform yöneticisi (E2E'de bu adresle kayıt olan kullanıcı).

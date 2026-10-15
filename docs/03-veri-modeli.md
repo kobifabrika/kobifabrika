@@ -116,7 +116,13 @@ Tutarlar KDV dahil; KDV satır tutarının içinden ayrılır. Hesap: `Domain/Sa
 - **MarketingDailySends:** (BusinessId, ContactId, LocalDate) benzersiz; günde en fazla 1 pazarlama SMS'i (kampanya + otomasyon). Gönderimden önce eklenir, gönderilemezse silinir.
 - **Contacts:** `OptOutCode` (8 karakter, bütün işletmelerde benzersiz, büyük/küçük harf duyarlı; /c/{kod}), `IsAnonymized`, `AnonymizedAt`, `AnonymizedBy` (KVKK). **ContactConsents:** Source'a `OptOutLink`, `OptOutSms`, `Iys`, `Anonymization`; `IysStatus` (Pending/Accepted/Rejected/NotRequired; SMS izni değişince Pending), `IysSentAt`, `IysError`; bekleyenler için filtreli indeks.
 - **DocumentSequences:** Kind `Anonymous` (yıl 0): "Silinmiş müşteri #N".
-- 6B'de: Automations, AutomationSends, Surveys; Contacts ziyaret istatistiği (VisitCount, AvgVisitIntervalDays).
+
+## Otomasyon, anket, ziyaret (Sprint 6B, migration `Sprint6bAutomations`)
+
+- **Automations:** Type (Birthday/WinBack/VisitThanks/Survey/DueReminder; işletme başına bir, filtreli benzersiz), IsEnabled (varsayılan kapalı; satır yokken varsayılanlar gösterilir), Body (400; `{ad}`, `{isletme}`, ankette `{link}`, vadede `{tutar}` ve `{link}`), SendAtLocal (`time`, günlük türler; 09:00-21:00), InactiveDays (X, 7-730), RepeatDays (Y, 7-730), DelayMinutes (teşekkür/anket, 0-4320), EnabledAt (açılmadan önceki ziyaretlere gitmez), LastRunOn (günlük tur bir kez, koşullu UPDATE).
+- **AutomationSends:** Type, ContactId, Key (doğum günü: yıl; geri kazanma/vade: gün; teşekkür/anket: randevu Id), MessageLogId, SkipReason; benzersiz (BusinessId, Type, ContactId, Key) → aynı kişiye aynı anahtarla bir kez.
+- **Surveys:** AppointmentId (işletmede benzersiz), ContactId, StaffMemberId, CodeHash (`binary(32)`, global benzersiz; kod 10 karakter), ProtectedCode, ExpiresAt (+7 gün), Score (CHECK 1-5; tek kez, koşullu UPDATE), AnsweredAt, Comment (1000; 1-3 puanda, 24 saat içinde, bir kez), CommentedAt, GoogleClickedAt. Gitmeyen anket satırı silinir.
+- **Contacts:** VisitCount, FirstVisitOn (`date`), AvgVisitIntervalDays (`decimal(7,2)`); farklı İstanbul günleri (aynı gün satış + randevu = 1). `ContactVisits.RecomputeAsync` ve veri adımı `BackfillVisitStatsSql` (testli). Risk indeksi (BusinessId, VisitCount, LastVisitAt) INCLUDE AvgVisitIntervalDays. Hazır segment `at-risk` (Kaybedilme riski).
 
 ## Personel
 

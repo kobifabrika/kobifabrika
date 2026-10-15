@@ -297,3 +297,40 @@ export const skipReasonNames: Record<RecipientSkipReason, string> = {
   Unavailable: "kayıt silindi/arşivde",
   Interrupted: "sonuç belirsiz",
 };
+
+// Otomasyon, anket, öneriler (Sprint 6B)
+export type Automation = Schemas["AutomationResponse"];
+export type AutomationType = Schemas["AutomationType"];
+export type AutomationPreview = Schemas["AutomationPreview"];
+export type SurveyItem = Schemas["SurveyItem"];
+export type SurveySummary = Schemas["SurveySummary"];
+export type PublicSurvey = Schemas["PublicSurveyResponse"];
+export type EmptySlots = Schemas["EmptySlotsResponse"];
+export type EmptySlot = Schemas["EmptySlotItem"];
+export type AtRiskSummary = Schemas["AtRiskSummary"];
+export type DashboardMarketing = Schemas["DashboardMarketing"];
+
+export const automationNames: Record<AutomationType, string> = {
+  Birthday: "Doğum günü",
+  WinBack: "Geri kazanma",
+  VisitThanks: "Randevu sonrası teşekkür",
+  Survey: "Memnuniyet anketi",
+  DueReminder: "Vade günü hatırlatması",
+};
+
+export const automationDescriptions: Record<AutomationType, string> = {
+  Birthday: "Doğum günü olan müşteriye, seçtiğiniz saatte.",
+  WinBack: "Uzun süredir gelmeyen müşteriye; aynı kişiye en fazla belirli günde bir.",
+  VisitThanks: "Randevu tamamlandıktan sonra teşekkür.",
+  Survey: "Randevu tamamlandıktan sonra 1-5 puan linki; düşük puanda yorum size gelir.",
+  DueReminder: "Vadesi bugün gelen alacağı olan müşteriye ödeme hatırlatması (bilgilendirme).",
+};
+
+/** Adres parçası ↔ tür (/panel/kampanyalar/otomasyonlar/[tur]). */
+export const automationSlugs: Record<AutomationType, string> = {
+  Birthday: "dogum-gunu",
+  WinBack: "geri-kazanma",
+  VisitThanks: "tesekkur",
+  Survey: "anket",
+  DueReminder: "vade",
+};

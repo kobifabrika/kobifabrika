@@ -90,6 +90,8 @@ export const auditActionLabels: Record<AuditAction, string> = {
   CampaignCancelled: "Kampanyayı iptal etti",
   ContactDataExported: "Müşterinin verilerini dışa aktardı",
   ContactAnonymized: "Müşterinin kişisel verilerini sildi",
+  AutomationChanged: "Otomasyonu değiştirdi",
+  ReviewSettingsChanged: "Google yorum linkini değiştirdi",
 };
 
 const fieldLabels: Record<string, string> = {

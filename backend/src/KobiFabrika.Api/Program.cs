@@ -246,7 +246,9 @@ if (BackgroundJobs.IsEnabled(app.Configuration))
     var recurring = app.Services.GetRequiredService<IRecurringJobManager>();
     BackgroundJobs.RegisterRecurringJobs(recurring);
     recurring.AddOrUpdate<CampaignDispatcher>(CampaignDispatcher.JobId, j => j.RunAsync(CancellationToken.None), Cron.Minutely);
-    recurring.AddOrUpdate<AutomationDispatcher>(AutomationDispatcher.JobId, j => j.RunAsync(CancellationToken.None), "*/5 * * * *");
+    // Varsayılan 5 dakikada bir; E2E'de dakikalık (Marketing:AutomationsCron).
+    recurring.AddOrUpdate<AutomationDispatcher>(AutomationDispatcher.JobId, j => j.RunAsync(CancellationToken.None),
+        app.Configuration["Marketing:AutomationsCron"] ?? "*/5 * * * *");
 }
 
 app.Run();
