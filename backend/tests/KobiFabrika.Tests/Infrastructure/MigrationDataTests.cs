@@ -1,5 +1,6 @@
 using KobiFabrika.Domain.Businesses;
 using KobiFabrika.Domain.Finance;
+using KobiFabrika.Domain.Staff;
 using KobiFabrika.Infrastructure.Persistence;
 using KobiFabrika.Infrastructure.Persistence.Migrations;
 using KobiFabrika.Infrastructure.Tenancy;
@@ -62,5 +63,26 @@ public sealed class MigrationDataTests(SqlServerFixture db)
 
         var accounts = await ctx.CashAccounts.IgnoreQueryFilters().Where(a => a.BusinessId == business.Id).ToListAsync(ct);
         accounts.ShouldAllBe(a => a.IsDefault);
+    }
+
+    [Fact]
+    public async Task Sprint7a_backfill_adds_default_leave_types_once()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        await using var ctx = Context();
+        var business = new Business { Name = "Eski İşletme 7", Slug = "eski7-" + Guid.NewGuid().ToString("N")[..8] };
+        ctx.Businesses.Add(business);
+        await ctx.SaveChangesAsync(ct);
+
+        for (var i = 0; i < 2; i++)
+        {
+            await ctx.Database.ExecuteSqlRawAsync(Sprint7aStaffTime.BackfillLeaveTypesSql, ct);
+        }
+
+        var types = await ctx.LeaveTypes.IgnoreQueryFilters().Where(t => t.BusinessId == business.Id).OrderBy(t => t.SortOrder).ToListAsync(ct);
+        types.Select(t => (t.Name, t.IsPaid, t.SystemKey)).ShouldBe(LeaveType.DefaultList);
+        types.ShouldAllBe(t => t.IsActive);
+        var stored = await ctx.Businesses.IgnoreQueryFilters().SingleAsync(b => b.Id == business.Id, ct);
+        stored.OvertimeWeeklyHours.ShouldBe(45m);
     }
 }

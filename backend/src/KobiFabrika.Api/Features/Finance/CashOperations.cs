@@ -111,6 +111,7 @@ public sealed class CashOperations(AppDbContext db, LedgerService ledger, ITenan
             Amount = r.Amount,
             Date = today,
             ContactId = r.ContactId,
+            StaffMemberId = r.StaffMemberId,
             Description = note is null ? ReversalDescription(r) : $"{ReversalDescription(r)} ({note})",
             ExpenseCategoryId = r.ExpenseCategoryId,
             DocumentNo = r.DocumentNo,

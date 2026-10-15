@@ -20,6 +20,28 @@ internal sealed class ApiExceptionHandler(IProblemDetailsService problemDetails,
             });
         }
 
+        // Transaction içinde kaydın bulunamadığı anlaşıldı (ör. kilitlenecek personel yok): 404.
+        if (exception is NotFoundException notFound)
+        {
+            context.Response.StatusCode = StatusCodes.Status404NotFound;
+            return await problemDetails.TryWriteAsync(new ProblemDetailsContext
+            {
+                HttpContext = context,
+                ProblemDetails = { Status = StatusCodes.Status404NotFound, Detail = notFound.Message },
+            });
+        }
+
+        // Transaction içinde fark edilen yetki kuralı (ör. onaylı izni sadece yönetici iptal eder): 403 + code.
+        if (exception is ForbiddenException forbidden)
+        {
+            context.Response.StatusCode = StatusCodes.Status403Forbidden;
+            return await problemDetails.TryWriteAsync(new ProblemDetailsContext
+            {
+                HttpContext = context,
+                ProblemDetails = { Status = StatusCodes.Status403Forbidden, Detail = forbidden.Message, Extensions = { ["code"] = forbidden.Code } },
+            });
+        }
+
         var (status, detail) = exception switch
         {
             TenantViolationException => (StatusCodes.Status403Forbidden, "Bu kayda erişim yetkiniz yok."),
@@ -53,6 +75,15 @@ internal sealed class ApiExceptionHandler(IProblemDetailsService problemDetails,
 
 /// <summary>Transaction içinde fark edilen iş kuralı çakışması; işlem geri alınır, yanıt 409 + <see cref="Code"/>.</summary>
 public sealed class ConflictException(string code, string message) : Exception(message)
+{
+    public string Code { get; } = code;
+}
+
+/// <summary>Transaction içinde fark edilen eksik kayıt; işlem geri alınır, yanıt 404.</summary>
+public sealed class NotFoundException(string message) : Exception(message);
+
+/// <summary>Transaction içinde fark edilen yetki kuralı; işlem geri alınır, yanıt 403 + <see cref="Code"/>.</summary>
+public sealed class ForbiddenException(string code, string message) : Exception(message)
 {
     public string Code { get; } = code;
 }

@@ -3,6 +3,7 @@ using KobiFabrika.Domain.Contacts;
 using KobiFabrika.Domain.Finance;
 using KobiFabrika.Domain.Imports;
 using KobiFabrika.Domain.Sales;
+using KobiFabrika.Domain.Staff;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
@@ -69,6 +70,8 @@ internal sealed class CashTransactionConfiguration : IEntityTypeConfiguration<Ca
         b.HasOne<Sale>().WithMany().HasForeignKey(x => x.SaleId).OnDelete(DeleteBehavior.Restrict);
         b.HasOne<CashAccount>().WithMany().HasForeignKey(x => x.CashAccountId).OnDelete(DeleteBehavior.Restrict);
         b.HasOne<Contact>().WithMany().HasForeignKey(x => x.ContactId).OnDelete(DeleteBehavior.Restrict);
+        b.HasIndex(x => new { x.BusinessId, x.StaffMemberId, x.Date }).HasFilter("[StaffMemberId] IS NOT NULL");
+        b.HasOne<StaffMember>().WithMany().HasForeignKey(x => x.StaffMemberId).OnDelete(DeleteBehavior.Restrict);
     }
 }
 

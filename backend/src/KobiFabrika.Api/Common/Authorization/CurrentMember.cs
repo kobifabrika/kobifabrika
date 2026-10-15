@@ -31,6 +31,12 @@ public sealed class CurrentMember
     /// <summary>İşletmenin tüm satış ve tekliflerini görebilir mi; Staff sadece kendi girdiklerini görür.</summary>
     public bool CanViewAllSales => CanViewFinance;
 
+    /// <summary>Personel maaşını görebilir mi (Sahip, Mali Müşavir).</summary>
+    public bool CanViewSalary => Role is { } r && RoleSets.SalaryViewers.Contains(r);
+
+    /// <summary>Herkesin personel kartını (iş başı, doğum tarihi, not), mesaisini ve iznini görebilir mi; Personel sadece kendisininkini.</summary>
+    public bool CanViewStaffDetails => CanViewFinance;
+
     /// <summary>Ürün, kategori ve stok yazabilir mi (Owner, Manager).</summary>
     public bool CanManageCatalog => IsManager;
 

@@ -45,8 +45,14 @@ public static class Policies
     /// <summary>Raporlar: Sahip, Yönetici, Mali Müşavir (Personel göremez).</summary>
     public const string ViewReports = nameof(ViewReports);
 
-    /// <summary>Sadece Owner (KVKK anonimleştirme; ileride maaş, abonelik).</summary>
+    /// <summary>Sadece Owner (KVKK anonimleştirme, maaş yazma; ileride abonelik).</summary>
     public const string OwnerOnly = nameof(OwnerOnly);
+
+    /// <summary>Personel maaşı ve ödenen maaşlar: Sahip, Mali Müşavir (salt okunur). Yönetici ve Personel göremez (karar 2026-10-15 a).</summary>
+    public const string ViewSalary = nameof(ViewSalary);
+
+    /// <summary>Herkesin mesai kayıtları, izin bakiyeleri: Sahip, Yönetici, Mali Müşavir. Personel kendi kaydını handler'da görür.</summary>
+    public const string ViewStaffTime = nameof(ViewStaffTime);
 
     /// <summary>Kampanya sonuçları, SMS kredisi ve hareketleri: Sahip, Yönetici, Mali Müşavir (salt okunur).</summary>
     public const string ViewMarketing = nameof(ViewMarketing);
@@ -77,6 +83,8 @@ public static class Policies
         .AddPolicy(Export, p => p.AddRequirements(new MemberRequirement(RoleSets.FinanceViewers)))
         .AddPolicy(ViewReports, p => p.AddRequirements(new MemberRequirement(RoleSets.FinanceViewers)))
         .AddPolicy(OwnerOnly, p => p.AddRequirements(new MemberRequirement(BusinessRole.Owner)))
+        .AddPolicy(ViewSalary, p => p.AddRequirements(new MemberRequirement(RoleSets.SalaryViewers)))
+        .AddPolicy(ViewStaffTime, p => p.AddRequirements(new MemberRequirement(RoleSets.FinanceViewers)))
         .AddPolicy(ViewMarketing, p => p.AddRequirements(new MemberRequirement(RoleSets.FinanceViewers)))
         .AddPolicy(ManageMarketing, p => p.AddRequirements(new MemberRequirement(RoleSets.Managers)))
         .AddPolicy(PlatformAdmin, p => p.AddRequirements(new PlatformAdminRequirement()))
@@ -89,6 +97,7 @@ public static class RoleSets
 {
     public static readonly BusinessRole[] Managers = [BusinessRole.Owner, BusinessRole.Manager];
     public static readonly BusinessRole[] FinanceViewers = [BusinessRole.Owner, BusinessRole.Manager, BusinessRole.Accountant];
+    public static readonly BusinessRole[] SalaryViewers = [BusinessRole.Owner, BusinessRole.Accountant];
 }
 
 /// <summary>Aktif üyelik + kurulum tamam + (varsa) izin verilen roller.</summary>

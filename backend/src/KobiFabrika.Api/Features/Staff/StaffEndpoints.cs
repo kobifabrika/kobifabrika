@@ -5,6 +5,7 @@ using KobiFabrika.Domain.Auditing;
 using KobiFabrika.Domain.Businesses;
 using KobiFabrika.Domain.Catalog;
 using KobiFabrika.Domain.Common;
+using KobiFabrika.Domain.Finance;
 using KobiFabrika.Domain.Staff;
 using KobiFabrika.Infrastructure.Auditing;
 using KobiFabrika.Infrastructure.Persistence;
@@ -66,6 +67,13 @@ public static class StaffEndpoints
             .Produces<TimeOffResponse>(StatusCodes.Status201Created)
             .WithSummary("Kapalı zaman ekle (mola, izin). Personel sadece kendine mola ekler");
 
+        group.MapGet("/{id:guid}/salary", GetSalary).RequireAuthorization(Policies.ViewSalary)
+            .WithSummary("Personelin maaşı (Sahip, Mali Müşavir)");
+        group.MapPut("/{id:guid}/salary", UpdateSalary).RequireAuthorization(Policies.OwnerOnly).Validate<StaffSalaryDto>()
+            .Produces<StaffSalaryDto>().WithSummary("Maaşı güncelle (sadece Sahip)");
+        group.MapGet("/{id:guid}/salary-payments", SalaryPayments).RequireAuthorization(Policies.ViewSalary)
+            .WithSummary("Personele bağlı maaş giderleri (Sahip, Mali Müşavir)");
+
         app.MapDelete("/api/time-offs/{id:guid}", DeleteTimeOff).WithTags("Staff").RequireAuthorization(Policies.CanWrite)
             .WithSummary("Kapalı zamanı sil. Personel sadece kendi molasını siler");
 
@@ -74,7 +82,8 @@ public static class StaffEndpoints
 
     private static ProblemHttpResult StaffNotFound() => Problems.NotFound("Personel bulunamadı.");
 
-    internal static async Task<List<StaffResponse>> LoadAsync(AppDbContext db, IQueryable<StaffMember> query, CancellationToken ct)
+    internal static async Task<List<StaffResponse>> LoadAsync(
+        AppDbContext db, IQueryable<StaffMember> query, CancellationToken ct, bool details = false)
     {
         var staff = await query.AsNoTracking().OrderBy(s => s.SortOrder).ThenBy(s => s.FullName).ToListAsync(ct);
         var ids = staff.Select(s => s.Id).ToList();
@@ -84,20 +93,21 @@ public static class StaffEndpoints
         var users = await db.Users.Where(u => userIds.Contains(u.Id)).ToDictionaryAsync(u => u.Id, u => u.FullName, ct);
         return staff.Select(s => new StaffResponse(
             s.Id, s.FullName, s.Title, s.Phone, s.Color, s.ShowInBooking, s.UserId, s.UserId is { } u ? users.GetValueOrDefault(u) : null,
-            s.IsActive, s.SortOrder, !services[s.Id].Any(), services[s.Id].ToList())).ToList();
+            s.IsActive, s.SortOrder, !services[s.Id].Any(), services[s.Id].ToList(),
+            details ? s.StartDate : null, details ? s.BirthDate : null, details ? s.Notes : null)).ToList();
     }
 
-    private static async Task<StaffResponse?> LoadOneAsync(AppDbContext db, Guid id, CancellationToken ct) =>
-        (await LoadAsync(db, db.StaffMembers.Where(s => s.Id == id), ct)).FirstOrDefault();
+    private static async Task<StaffResponse?> LoadOneAsync(AppDbContext db, CurrentMember member, Guid id, CancellationToken ct) =>
+        (await LoadAsync(db, db.StaffMembers.Where(s => s.Id == id), ct, member.CanViewStaffDetails)).FirstOrDefault();
 
-    private static async Task<Ok<List<StaffResponse>>> List(AppDbContext db, CancellationToken ct, bool includeInactive = false) =>
-        TypedResults.Ok(await LoadAsync(db, db.StaffMembers.Where(s => includeInactive || s.IsActive), ct));
+    private static async Task<Ok<List<StaffResponse>>> List(AppDbContext db, CurrentMember member, CancellationToken ct, bool includeInactive = false) =>
+        TypedResults.Ok(await LoadAsync(db, db.StaffMembers.Where(s => includeInactive || s.IsActive), ct, member.CanViewStaffDetails));
 
     private static async Task<Ok<MyStaffResponse>> Me(AppDbContext db, CurrentMember member, CancellationToken ct) =>
         TypedResults.Ok(new MyStaffResponse(await StaffAccess.MyStaffIdAsync(db, member, ct)));
 
-    private static async Task<Results<Ok<StaffResponse>, ProblemHttpResult>> Get(Guid id, AppDbContext db, CancellationToken ct) =>
-        await LoadOneAsync(db, id, ct) is { } staff ? TypedResults.Ok(staff) : StaffNotFound();
+    private static async Task<Results<Ok<StaffResponse>, ProblemHttpResult>> Get(Guid id, AppDbContext db, CurrentMember member, CancellationToken ct) =>
+        await LoadOneAsync(db, member, id, ct) is { } staff ? TypedResults.Ok(staff) : StaffNotFound();
 
     /// <summary>Bağlanacak kullanıcı işletmenin aktif üyesi olmalı ve başka personele bağlı olmamalı.</summary>
     private static async Task<IResult?> CheckUserAsync(AppDbContext db, CurrentMember member, Guid? userId, Guid? staffId, CancellationToken ct)
@@ -120,8 +130,17 @@ public static class StaffEndpoints
         return null;
     }
 
-    private static void Apply(StaffMember staff, StaffRequest request)
+    private static void Apply(StaffMember staff, StaffRequest request, DateOnly today)
     {
+        // İşe başlama tarihi girildiği (veya değiştiği) günden sonraki yıl dönümleri otomatik hak yazar; öncesi açılış bakiyesiyle.
+        if (request.StartDate != staff.StartDate)
+        {
+            staff.LeaveAccrualFrom = request.StartDate is null ? null : today;
+        }
+
+        staff.StartDate = request.StartDate;
+        staff.BirthDate = request.BirthDate;
+        staff.Notes = string.IsNullOrWhiteSpace(request.Notes) ? null : request.Notes.Trim();
         staff.FullName = request.FullName.Trim();
         staff.Title = string.IsNullOrWhiteSpace(request.Title) ? null : request.Title.Trim();
         staff.Phone = string.IsNullOrWhiteSpace(request.Phone) ? null : Validation.NormalizePhone(request.Phone);
@@ -132,7 +151,7 @@ public static class StaffEndpoints
     }
 
     private static async Task<IResult> Create(
-        StaffRequest request, CurrentMember member, AppDbContext db, IAuditLogger audit, CancellationToken ct)
+        StaffRequest request, CurrentMember member, AppDbContext db, IAuditLogger audit, TimeProvider clock, CancellationToken ct)
     {
         if (await CheckUserAsync(db, member, request.UserId, null, ct) is { } problem)
         {
@@ -140,7 +159,7 @@ public static class StaffEndpoints
         }
 
         var staff = new StaffMember { FullName = request.FullName };
-        Apply(staff, request);
+        Apply(staff, request, BusinessTime.Today(clock));
         staff.SortOrder = (await db.StaffMembers.MaxAsync(s => (int?)s.SortOrder, ct) ?? 0) + 1;
         db.StaffMembers.Add(staff);
 
@@ -150,7 +169,7 @@ public static class StaffEndpoints
             .Select(d => new StaffWorkingHour { StaffMemberId = staff.Id, Day = d.Day, StartsAt = d.OpensAt, EndsAt = d.ClosesAt }));
         audit.Log(AuditAction.StaffCreated, nameof(StaffMember), staff.Id, new { staff.FullName });
         await db.SaveChangesAsync(ct);
-        return TypedResults.Created($"/api/staff/{staff.Id}", await LoadOneAsync(db, staff.Id, ct));
+        return TypedResults.Created($"/api/staff/{staff.Id}", await LoadOneAsync(db, member, staff.Id, ct));
     }
 
     private static async Task<IResult> Update(
@@ -179,15 +198,15 @@ public static class StaffEndpoints
             }
         }
 
-        var before = new { staff.FullName, staff.Title, staff.Phone, staff.Color, staff.ShowInBooking, staff.UserId, staff.IsActive };
-        Apply(staff, request);
+        var before = new { staff.FullName, staff.Title, staff.Phone, staff.Color, staff.ShowInBooking, staff.UserId, staff.IsActive, staff.StartDate };
+        Apply(staff, request, BusinessTime.Today(clock));
         audit.Log(AuditAction.StaffUpdated, nameof(StaffMember), staff.Id, new
         {
             before,
-            after = new { staff.FullName, staff.Title, staff.Phone, staff.Color, staff.ShowInBooking, staff.UserId, staff.IsActive },
+            after = new { staff.FullName, staff.Title, staff.Phone, staff.Color, staff.ShowInBooking, staff.UserId, staff.IsActive, staff.StartDate },
         });
         await db.SaveChangesAsync(ct);
-        return TypedResults.Ok(await LoadOneAsync(db, id, ct));
+        return TypedResults.Ok(await LoadOneAsync(db, member, id, ct));
     }
 
     private static async Task<Results<NoContent, ProblemHttpResult>> Delete(Guid id, AppDbContext db, IAuditLogger audit, CancellationToken ct)
@@ -199,9 +218,14 @@ public static class StaffEndpoints
         }
 
         if (await db.Appointments.IgnoreQueryFilters([QueryFilters.SoftDelete]).AnyAsync(a => a.StaffMemberId == id, ct)
-            || await db.SaleLines.AnyAsync(l => l.StaffMemberId == id, ct))
+            || await db.SaleLines.AnyAsync(l => l.StaffMemberId == id, ct)
+            || await db.CashTransactions.AnyAsync(t => t.StaffMemberId == id, ct)
+            || await db.TimeEntries.IgnoreQueryFilters([QueryFilters.SoftDelete]).AnyAsync(t => t.StaffMemberId == id, ct)
+            || await db.LeaveRequests.AnyAsync(r => r.StaffMemberId == id, ct)
+            || await db.LeaveBalanceEntries.AnyAsync(e => e.StaffMemberId == id, ct))
         {
-            return Problems.Conflict("staff_has_history", "Randevusu veya satışı olan personel silinmez; pasife alabilirsiniz.");
+            return Problems.Conflict("staff_has_history",
+                "Randevusu, satışı, maaş ödemesi, mesaisi veya izni olan personel silinmez; pasife alabilirsiniz.");
         }
 
         await using var tx = await db.Database.BeginTransactionAsync(ct);
@@ -247,7 +271,7 @@ public static class StaffEndpoints
     }
 
     private static async Task<IResult> UpdateServices(
-        Guid id, StaffServicesRequest request, AppDbContext db, IAuditLogger audit, CancellationToken ct)
+        Guid id, StaffServicesRequest request, CurrentMember member, AppDbContext db, IAuditLogger audit, CancellationToken ct)
     {
         if (!await db.StaffMembers.AnyAsync(s => s.Id == id, ct))
         {
@@ -267,10 +291,58 @@ public static class StaffEndpoints
         audit.Log(AuditAction.StaffServicesUpdated, nameof(StaffMember), id, new { productIds = services });
         await db.SaveChangesAsync(ct);
         await tx.CommitAsync(ct);
-        return TypedResults.Ok(await LoadOneAsync(db, id, ct));
+        return TypedResults.Ok(await LoadOneAsync(db, member, id, ct));
     }
 
-    private static TimeOffResponse ToResponse(StaffTimeOff t) => new(t.Id, t.StaffMemberId, t.StartAt, t.EndAt, t.Kind, t.Note);
+    private static async Task<Results<Ok<StaffSalaryDto>, ProblemHttpResult>> GetSalary(Guid id, AppDbContext db, CancellationToken ct) =>
+        await db.StaffMembers.Where(s => s.Id == id).Select(s => new StaffSalaryDto(s.Salary, s.SalaryBasis)).FirstOrDefaultAsync(ct) is { } dto
+            ? TypedResults.Ok(dto)
+            : StaffNotFound();
+
+    /// <summary>Günlükte tutar yazılmaz: Yönetici de aktivite günlüğünü görür.</summary>
+    private static async Task<Results<Ok<StaffSalaryDto>, ProblemHttpResult>> UpdateSalary(
+        Guid id, StaffSalaryDto request, AppDbContext db, IAuditLogger audit, CancellationToken ct)
+    {
+        var staff = await db.StaffMembers.FirstOrDefaultAsync(s => s.Id == id, ct);
+        if (staff is null)
+        {
+            return StaffNotFound();
+        }
+
+        var changed = staff.Salary != request.Salary || staff.SalaryBasis != request.Basis;
+        staff.Salary = request.Salary;
+        staff.SalaryBasis = request.Salary is null ? null : request.Basis;
+        if (changed)
+        {
+            audit.Log(AuditAction.StaffSalaryChanged, nameof(StaffMember), staff.Id, new { staff.FullName });
+        }
+
+        await db.SaveChangesAsync(ct);
+        return TypedResults.Ok(new StaffSalaryDto(staff.Salary, staff.SalaryBasis));
+    }
+
+    private static async Task<Results<Ok<SalaryPaymentsResponse>, ProblemHttpResult>> SalaryPayments(Guid id, AppDbContext db, CancellationToken ct)
+    {
+        if (!await db.StaffMembers.AnyAsync(s => s.Id == id, ct))
+        {
+            return StaffNotFound();
+        }
+
+        var rows = await db.CashTransactions.AsNoTracking()
+            .Where(t => t.StaffMemberId == id && t.Type == CashTransactionType.Expense)
+            .OrderByDescending(t => t.Date).ThenByDescending(t => t.CreatedAt)
+            .Take(200)
+            .ToListAsync(ct);
+        var accountIds = rows.Select(r => r.CashAccountId).Distinct().ToList();
+        var accounts = await db.CashAccounts.IgnoreQueryFilters([QueryFilters.SoftDelete]).AsNoTracking()
+            .Where(a => accountIds.Contains(a.Id)).ToDictionaryAsync(a => a.Id, a => a.Name, ct);
+        var items = rows.Select(t => new SalaryPaymentItem(
+            t.Id, t.Date, t.Amount, t.NetAmount, t.Description, t.DocumentNo, accounts.GetValueOrDefault(t.CashAccountId) ?? "",
+            t.IsReversal, t.ReversedAt is not null)).ToList();
+        return TypedResults.Ok(new SalaryPaymentsResponse(items, items.Sum(i => i.NetAmount)));
+    }
+
+    private static TimeOffResponse ToResponse(StaffTimeOff t) => new(t.Id, t.StaffMemberId, t.StartAt, t.EndAt, t.Kind, t.Note, t.LeaveRequestId);
 
     private static async Task<Results<Ok<List<TimeOffResponse>>, ProblemHttpResult>> ListTimeOffs(
         Guid id, AppDbContext db, TimeProvider clock, CancellationToken ct, DateOnly? from = null, DateOnly? to = null)
@@ -302,6 +374,11 @@ public static class StaffEndpoints
             return Problems.Forbidden("own_break_only", "Personel sadece kendine mola ekleyebilir.");
         }
 
+        if (request.Kind == TimeOffKind.Leave)
+        {
+            return Validation.FieldProblem("kind", "İzin, Mesai ve İzin ekranından izin talebiyle girilir.");
+        }
+
         var timeOff = new StaffTimeOff
         {
             StaffMemberId = id,
@@ -327,6 +404,11 @@ public static class StaffEndpoints
         if (!member.IsManager && (timeOff.Kind != TimeOffKind.Break || await StaffAccess.MyStaffIdAsync(db, member, ct) != timeOff.StaffMemberId))
         {
             return Problems.Forbidden("own_break_only", "Personel sadece kendi molasını silebilir.");
+        }
+
+        if (timeOff.LeaveRequestId is not null)
+        {
+            return Problems.Conflict("leave_managed", "Bu kapalı zaman bir izinden geliyor; Mesai ve İzin ekranından izni iptal edin.");
         }
 
         db.StaffTimeOffs.Remove(timeOff);

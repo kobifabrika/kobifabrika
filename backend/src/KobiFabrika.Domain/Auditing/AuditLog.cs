@@ -100,6 +100,19 @@ public enum AuditAction
     ContactAnonymized,
     AutomationChanged,
     ReviewSettingsChanged,
+
+    /// <summary>Maaş değişti (tutar yazılmaz; Yönetici günlüğü görür).</summary>
+    StaffSalaryChanged,
+    TimeEntryAdded,
+    TimeEntryCorrected,
+    TimeEntryDeleted,
+    LeaveRequested,
+    LeaveApproved,
+    LeaveRejected,
+    LeaveCancelled,
+    LeaveBalanceAdjusted,
+    LeaveTypeChanged,
+    StaffSettingsChanged,
 }
 
 /// <summary>

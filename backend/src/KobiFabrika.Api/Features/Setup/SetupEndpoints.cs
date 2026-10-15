@@ -6,6 +6,7 @@ using KobiFabrika.Api.Features.Businesses;
 using KobiFabrika.Domain.Businesses;
 using KobiFabrika.Domain.Catalog;
 using KobiFabrika.Domain.Finance;
+using KobiFabrika.Domain.Staff;
 using KobiFabrika.Infrastructure.Businesses;
 using KobiFabrika.Infrastructure.Identity;
 using KobiFabrika.Infrastructure.Locations;
@@ -95,6 +96,7 @@ public static class SetupEndpoints
             db.WorkingHours.AddRange(WorkingHour.DefaultWeek());
             db.CashAccounts.AddRange(CashAccount.DefaultAccounts());
             db.ExpenseCategories.AddRange(ExpenseCategory.Defaults());
+            db.LeaveTypes.AddRange(LeaveType.Defaults());
             db.ProductCategories.AddRange(SectorCatalog.SampleCategories(request.Sector).Select(n => new ProductCategory { Name = n }));
         }
 

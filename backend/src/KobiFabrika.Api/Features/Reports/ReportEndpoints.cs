@@ -432,7 +432,7 @@ public static class ReportEndpoints
 
     // ---- Ortak ----
 
-    private static IXLWorksheet Sheet(XLWorkbook book, string name, string title, DateOnly? from, DateOnly to, TimeProvider clock)
+    internal static IXLWorksheet Sheet(XLWorkbook book, string name, string title, DateOnly? from, DateOnly to, TimeProvider clock)
     {
         var sheet = book.AddWorksheet(name);
         sheet.Cell(1, 1).Value = title;
@@ -442,7 +442,7 @@ public static class ReportEndpoints
         return sheet;
     }
 
-    private static async Task<FileContentHttpResult> FileAsync(
+    internal static async Task<FileContentHttpResult> FileAsync(
         AppDbContext db, IAuditLogger audit, XLWorkbook book, string name, DateOnly? from, DateOnly to, CancellationToken ct)
     {
         audit.Log(AuditAction.ReportExported, "Report", null, new { report = name, from, to });

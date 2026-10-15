@@ -627,7 +627,7 @@ public static class AppointmentEndpoints
         var timeOffs = await db.StaffTimeOffs.AsNoTracking()
             .Where(t => staffIds.Contains(t.StaffMemberId) && t.StartAt < endUtc && t.EndAt > startUtc)
             .OrderBy(t => t.StartAt)
-            .Select(t => new TimeOffResponse(t.Id, t.StaffMemberId, t.StartAt, t.EndAt, t.Kind, t.Note))
+            .Select(t => new TimeOffResponse(t.Id, t.StaffMemberId, t.StartAt, t.EndAt, t.Kind, t.Note, t.LeaveRequestId))
             .ToListAsync(ct);
 
         var days = new List<CalendarDay>();

@@ -77,6 +77,10 @@ public class CashTransaction : TenantEntity
 
     public DateOnly Date { get; set; }
     public Guid? ContactId { get; set; }
+
+    /// <summary>Maaş gideri hangi personele ödendi (sadece maaş kategorisinde; isteğe bağlı, Sprint 7).</summary>
+    public Guid? StaffMemberId { get; set; }
+
     public required string Description { get; set; }
     public Guid? PaymentRequestId { get; set; }
     public Guid? SaleId { get; set; }

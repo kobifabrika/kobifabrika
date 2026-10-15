@@ -79,6 +79,10 @@ public class AppDbContext : IdentityDbContext<AppUser, AppRole, Guid>
     public DbSet<StaffMemberService> StaffServices => Set<StaffMemberService>();
     public DbSet<StaffTimeOff> StaffTimeOffs => Set<StaffTimeOff>();
     public DbSet<Holiday> Holidays => Set<Holiday>();
+    public DbSet<TimeEntry> TimeEntries => Set<TimeEntry>();
+    public DbSet<LeaveType> LeaveTypes => Set<LeaveType>();
+    public DbSet<LeaveRequest> LeaveRequests => Set<LeaveRequest>();
+    public DbSet<LeaveBalanceEntry> LeaveBalanceEntries => Set<LeaveBalanceEntry>();
     public DbSet<Appointment> Appointments => Set<Appointment>();
     public DbSet<PhoneVerification> PhoneVerifications => Set<PhoneVerification>();
     public DbSet<MessageLog> MessageLogs => Set<MessageLog>();

@@ -19,6 +19,7 @@ internal sealed class BusinessConfiguration : IEntityTypeConfiguration<Business>
             t.HasCheckConstraint("CK_Businesses_CustomerCancelHours", "[CustomerCancelHours] BETWEEN 0 AND 72");
             t.HasCheckConstraint("CK_Businesses_SmsBalance", "[SmsBalance] >= 0");
             t.HasCheckConstraint("CK_Businesses_SmsLowBalanceThreshold", "[SmsLowBalanceThreshold] BETWEEN 0 AND 100000");
+            t.HasCheckConstraint("CK_Businesses_OvertimeWeeklyHours", "[OvertimeWeeklyHours] BETWEEN 1 AND 80");
         });
         b.Property(x => x.Name).HasMaxLength(200);
         b.Property(x => x.Slug).HasMaxLength(100);
@@ -39,6 +40,7 @@ internal sealed class BusinessConfiguration : IEntityTypeConfiguration<Business>
         b.Property(x => x.IbanHolderName).HasMaxLength(200);
         b.Property(x => x.ReceiptWidth).HasDefaultValue(Business.DefaultReceiptWidth);
         b.Property(x => x.IysBrandCode).HasMaxLength(20).IsUnicode(false);
+        b.Property(x => x.OvertimeWeeklyHours).HasPrecision(4, 1);
 
         // Kredi sadece SmsCredits'teki atomik UPDATE ile değişir; entity üzerinden yazılmaz (eşzamanlı gönderim).
         b.Property(x => x.SmsBalance).Metadata.SetAfterSaveBehavior(Microsoft.EntityFrameworkCore.Metadata.PropertySaveBehavior.Ignore);

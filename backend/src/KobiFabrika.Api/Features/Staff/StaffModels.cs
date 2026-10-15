@@ -6,12 +6,27 @@ using KobiFabrika.Domain.Staff;
 
 namespace KobiFabrika.Api.Features.Staff;
 
-/// <summary>ServiceIds boşsa personel bütün hizmetleri verir (AllServices = true).</summary>
+/// <summary>
+/// ServiceIds boşsa personel bütün hizmetleri verir (AllServices = true). StartDate, BirthDate ve Notes Personel rolüne null döner
+/// (takvim için liste herkese açık; kişisel bilgiler değil). Maaş bu yanıtta hiç yoktur: <c>/api/staff/{id}/salary</c>.
+/// </summary>
 public sealed record StaffResponse(
     Guid Id, string FullName, string? Title, string? Phone, StaffColor Color, bool ShowInBooking, Guid? UserId, string? UserName,
-    bool IsActive, int SortOrder, bool AllServices, IReadOnlyList<Guid> ServiceIds);
+    bool IsActive, int SortOrder, bool AllServices, IReadOnlyList<Guid> ServiceIds, DateOnly? StartDate, DateOnly? BirthDate, string? Notes);
 
-public sealed record StaffRequest(string FullName, string? Title, string? Phone, StaffColor Color, bool ShowInBooking, Guid? UserId, bool IsActive);
+public sealed record StaffRequest(
+    string FullName, string? Title, string? Phone, StaffColor Color, bool ShowInBooking, Guid? UserId, bool IsActive,
+    DateOnly? StartDate = null, DateOnly? BirthDate = null, string? Notes = null);
+
+/// <summary>Aylık maaş (bilgi amaçlı; bordro hesabı yok). Salary null: girilmemiş.</summary>
+public sealed record StaffSalaryDto(decimal? Salary, SalaryBasis? Basis);
+
+/// <summary>Personele bağlı maaş gideri (ters kayıtlar dahil; NetAmount ters kayıtta eksi).</summary>
+public sealed record SalaryPaymentItem(
+    Guid Id, DateOnly Date, decimal Amount, decimal NetAmount, string Description, string? DocumentNo, string CashAccountName,
+    bool IsReversal, bool IsReversed);
+
+public sealed record SalaryPaymentsResponse(IReadOnlyList<SalaryPaymentItem> Items, decimal Total);
 
 /// <summary>Saat aralığı "HH:mm" (yerel saat), Start &lt; End.</summary>
 public sealed record TimeRangeDto(string Start, string End);
@@ -26,7 +41,8 @@ public sealed record StaffServicesRequest(IReadOnlyList<Guid> ProductIds);
 
 public sealed record TimeOffRequest(DateTime StartAt, DateTime EndAt, TimeOffKind Kind, string? Note);
 
-public sealed record TimeOffResponse(Guid Id, Guid StaffMemberId, DateTime StartAt, DateTime EndAt, TimeOffKind Kind, string? Note);
+/// <summary>LeaveRequestId dolu: onaylı izin talebinden; sadece izin iptaliyle kalkar.</summary>
+public sealed record TimeOffResponse(Guid Id, Guid StaffMemberId, DateTime StartAt, DateTime EndAt, TimeOffKind Kind, string? Note, Guid? LeaveRequestId);
 
 /// <summary>Personel rolündeki kullanıcıya bağlı personel kaydı ("Ben").</summary>
 public sealed record MyStaffResponse(Guid? StaffMemberId);
@@ -50,6 +66,23 @@ public sealed class StaffRequestValidator : AbstractValidator<StaffRequest>
         RuleFor(x => x.Title).MaximumLength(100).WithMessage("Unvan en fazla 100 karakter olabilir.");
         RuleFor(x => x.Phone).ValidPhone().When(x => !string.IsNullOrWhiteSpace(x.Phone));
         RuleFor(x => x.Color).IsInEnum().WithMessage("Takvim rengini seçin.");
+        RuleFor(x => x.StartDate).Must(d => d is null || (d.Value.Year >= 1950 && d.Value <= DateOnly.FromDateTime(DateTime.UtcNow).AddYears(1)))
+            .WithMessage("İşe başlama tarihini kontrol edin.");
+        RuleFor(x => x.BirthDate).Must(d => d is null || (d.Value.Year >= 1900 && d.Value < DateOnly.FromDateTime(DateTime.UtcNow)))
+            .WithMessage("Doğum tarihini kontrol edin.");
+        RuleFor(x => x).Must(x => x.StartDate is null || x.BirthDate is null || x.BirthDate < x.StartDate).WithName("birthDate")
+            .WithMessage("Doğum tarihi işe başlama tarihinden önce olmalı.");
+        RuleFor(x => x.Notes).MaximumLength(StaffMember.MaxNotesLength).WithMessage("Not en fazla 1000 karakter olabilir.");
+    }
+}
+
+public sealed class StaffSalaryDtoValidator : AbstractValidator<StaffSalaryDto>
+{
+    public StaffSalaryDtoValidator()
+    {
+        RuleFor(x => x.Salary).ValidMoney().When(x => x.Salary is not null);
+        RuleFor(x => x.Basis).IsInEnum().WithMessage("Brüt veya net seçin.");
+        RuleFor(x => x.Basis).NotNull().When(x => x.Salary is not null).WithMessage("Brüt veya net seçin.");
     }
 }
 

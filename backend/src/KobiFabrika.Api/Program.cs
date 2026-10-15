@@ -27,6 +27,7 @@ using KobiFabrika.Api.Features.Staff;
 using KobiFabrika.Api.Features.SystemInfo;
 using KobiFabrika.Api.Features.Team;
 using Hangfire;
+using KobiFabrika.Domain.Common;
 using KobiFabrika.Infrastructure;
 using KobiFabrika.Infrastructure.Jobs;
 using KobiFabrika.Infrastructure.Persistence;
@@ -101,6 +102,10 @@ builder.Services.AddScoped<CampaignDispatcher>();
 builder.Services.AddScoped<MarketingSms>();
 builder.Services.AddScoped<AutomationRunner>();
 builder.Services.AddScoped<AutomationDispatcher>();
+builder.Services.AddScoped<TimeClock>();
+builder.Services.AddScoped<LeaveService>();
+builder.Services.AddScoped<ForgottenClockOutJob>();
+builder.Services.AddScoped<LeaveAccrualJob>();
 builder.Services.AddScoped<ISearchProvider, ContactSearchProvider>();
 builder.Services.AddScoped<ISearchProvider, ProductSearchProvider>();
 builder.Services.AddScoped<ISearchProvider, SaleSearchProvider>();
@@ -216,6 +221,7 @@ app.MapExpenseEndpoints();
 app.MapReceivableEndpoints();
 app.MapDashboardEndpoints();
 app.MapReportEndpoints();
+app.MapStaffReportEndpoints();
 app.MapImportEndpoints();
 app.MapReminderEndpoints();
 app.MapStatementShareEndpoints();
@@ -229,6 +235,8 @@ app.MapStockEndpoints();
 app.MapSaleEndpoints();
 app.MapQuoteEndpoints();
 app.MapStaffEndpoints();
+app.MapTimeClockEndpoints();
+app.MapLeaveEndpoints();
 app.MapAppointmentEndpoints();
 app.MapBookingSettingsEndpoints();
 app.MapServicePackageEndpoints();
@@ -249,6 +257,9 @@ if (BackgroundJobs.IsEnabled(app.Configuration))
     // Varsayılan 5 dakikada bir; E2E'de dakikalık (Marketing:AutomationsCron).
     recurring.AddOrUpdate<AutomationDispatcher>(AutomationDispatcher.JobId, j => j.RunAsync(CancellationToken.None),
         app.Configuration["Marketing:AutomationsCron"] ?? "*/5 * * * *");
+    recurring.AddOrUpdate<ForgottenClockOutJob>(ForgottenClockOutJob.JobId, j => j.RunAsync(CancellationToken.None), "*/15 * * * *");
+    recurring.AddOrUpdate<LeaveAccrualJob>(LeaveAccrualJob.JobId, j => j.RunAsync(CancellationToken.None), "0 3 * * *",
+        new RecurringJobOptions { TimeZone = BusinessTime.Zone });
 }
 
 app.Run();

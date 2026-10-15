@@ -72,6 +72,9 @@ public class Business : Entity, ISoftDeletable, IAuditable
     /// <summary>Vade bildiriminin son üretildiği yerel gün (aynı gün ikinci bildirim olmaz).</summary>
     public DateOnly? LastDueDigestOn { get; set; }
 
+    /// <summary>Haftalık fazla mesai eşiği (saat); bunu aşan süre fazla mesaidir (varsayılan 45, İş Kanunu 63).</summary>
+    public decimal OvertimeWeeklyHours { get; set; } = Staff.WorkTimeCalculator.DefaultWeeklyThresholdHours;
+
     /// <summary>Personel rolü takvimde sadece kendi (bağlı olduğu personelin) randevularını görür ve yazar.</summary>
     public bool StaffSeesOnlyOwnAppointments { get; set; }
 

@@ -16,9 +16,13 @@ public sealed record ExpenseCategoryResponse(Guid Id, string Name, ExpenseCatego
 
 public sealed record ExpenseCategoryRequest(string? Name, ExpenseCategoryKind? Kind);
 
-/// <summary>Gelir veya gider kaydı. ContactId: isteğe bağlı tedarikçi/müşteri (sadece bilgi; cariye işlenmez).</summary>
+/// <summary>
+/// Gelir veya gider kaydı. ContactId: isteğe bağlı tedarikçi/müşteri (sadece bilgi; cariye işlenmez).
+/// StaffMemberId: maaş giderinde isteğe bağlı personel (personel kartında "Ödenen maaşlar").
+/// </summary>
 public sealed record ExpenseRequest(
-    ExpenseCategoryKind? Kind, DateOnly? Date, Guid CategoryId, decimal? Amount, Guid CashAccountId, string? Description, string? DocumentNo, Guid? ContactId);
+    ExpenseCategoryKind? Kind, DateOnly? Date, Guid CategoryId, decimal? Amount, Guid CashAccountId, string? Description, string? DocumentNo, Guid? ContactId,
+    Guid? StaffMemberId = null);
 
 public sealed record ExpenseCreatedResponse(Guid Id, decimal AccountBalance);
 
@@ -214,6 +218,19 @@ public static class ExpenseEndpoints
             return Validation.FieldProblem("contactId", "Cari bulunamadı.");
         }
 
+        if (request.StaffMemberId is { } staffId)
+        {
+            if (!category.IsSalary)
+            {
+                return Validation.FieldProblem("staffMemberId", "Personel sadece maaş giderinde seçilir.");
+            }
+
+            if (!await db.StaffMembers.AnyAsync(s => s.Id == staffId, ct))
+            {
+                return Validation.FieldProblem("staffMemberId", "Personel bulunamadı.");
+            }
+        }
+
         var amount = request.Amount!.Value;
         var row = new CashTransaction
         {
@@ -225,6 +242,7 @@ public static class ExpenseEndpoints
             Description = string.IsNullOrWhiteSpace(request.Description) ? category.Name : request.Description.Trim(),
             DocumentNo = string.IsNullOrWhiteSpace(request.DocumentNo) ? null : request.DocumentNo.Trim(),
             ContactId = request.ContactId,
+            StaffMemberId = request.StaffMemberId,
         };
 
         await ledger.InTransactionAsync(async () =>

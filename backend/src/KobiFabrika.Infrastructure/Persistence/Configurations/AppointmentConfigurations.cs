@@ -12,11 +12,14 @@ internal sealed class StaffMemberConfiguration : IEntityTypeConfiguration<StaffM
 {
     public void Configure(EntityTypeBuilder<StaffMember> b)
     {
-        b.ToTable("StaffMembers");
+        b.ToTable("StaffMembers", t => t.HasCheckConstraint("CK_StaffMembers_Salary", "[Salary] IS NULL OR [Salary] >= 0"));
         b.Property(x => x.FullName).HasMaxLength(StaffMember.MaxNameLength);
         b.Property(x => x.Title).HasMaxLength(100);
         b.Property(x => x.Phone).HasMaxLength(20).IsUnicode(false);
         b.Property(x => x.Color).HasConversion<string>().HasMaxLength(10);
+        b.Property(x => x.Notes).HasMaxLength(StaffMember.MaxNotesLength);
+        b.Property(x => x.Salary).HasPrecision(18, 2);
+        b.Property(x => x.SalaryBasis).HasConversion<string>().HasMaxLength(5);
         b.HasIndex(x => new { x.BusinessId, x.UserId }).IsUnique().HasFilter("[UserId] IS NOT NULL AND [IsDeleted] = 0");
         b.HasIndex(x => new { x.BusinessId, x.IsActive, x.SortOrder });
     }
@@ -53,7 +56,9 @@ internal sealed class StaffTimeOffConfiguration : IEntityTypeConfiguration<Staff
         b.Property(x => x.Kind).HasConversion<string>().HasMaxLength(10);
         b.Property(x => x.Note).HasMaxLength(200);
         b.HasIndex(x => new { x.BusinessId, x.StaffMemberId, x.StartAt }).IncludeProperties(x => x.EndAt);
+        b.HasIndex(x => x.LeaveRequestId).HasFilter("[LeaveRequestId] IS NOT NULL");
         b.HasOne<StaffMember>().WithMany().HasForeignKey(x => x.StaffMemberId).OnDelete(DeleteBehavior.Restrict);
+        b.HasOne<LeaveRequest>().WithMany().HasForeignKey(x => x.LeaveRequestId).OnDelete(DeleteBehavior.Restrict);
     }
 }
 
