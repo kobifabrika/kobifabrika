@@ -68,12 +68,23 @@ export async function book(
   return result.appointment;
 }
 
+const istanbulHour = (d: Date) =>
+  Number(new Intl.DateTimeFormat("en-GB", { timeZone: "Europe/Istanbul", hour: "2-digit", hourCycle: "h23" }).format(d));
+
 /**
  * Şimdiden en az minutesAgo önceki, 5 dakikaya yuvarlanmış bir an (İstanbul günü ve saati) — "Tamamlandı" işaretlenebilsin.
- * Randevu gece yarısını aşmasın diye saat 23:00'ten önceye çekilir.
+ * Randevu gece yarısını aşmasın diye saat 23:00'ten önce kalır. Gece (22:00-06:00) koşuda taban son 21:00 alınır: aksi halde
+ * farklı minutesAgo değerleri 23:xx'ten geri çekilince aynı saate düşüp çakışıyordu (Actions #21, 00:05'te 60 ve 120 dk → 22:05).
  */
 export function pastSlot(minutesAgo: number): { day: string; time: string; iso: string } {
-  let d = new Date(Date.now() - minutesAgo * 60_000);
+  let base = new Date();
+  const hour = istanbulHour(base);
+  if (hour >= 22 || hour < 6) {
+    // Son 21:00'e (İstanbul) in: saat başına yuvarla ve 21 olana kadar geri git.
+    base.setUTCMinutes(0, 0, 0);
+    while (istanbulHour(base) !== 21) base = new Date(base.getTime() - 60 * 60_000);
+  }
+  let d = new Date(base.getTime() - minutesAgo * 60_000);
   while (new Intl.DateTimeFormat("en-GB", { timeZone: "Europe/Istanbul", hour: "2-digit", hourCycle: "h23" }).format(d) >= "23") {
     d = new Date(d.getTime() - 60 * 60_000);
   }

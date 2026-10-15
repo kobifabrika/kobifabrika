@@ -14,24 +14,24 @@ test("mesai: personel telefondan başlar ve bitirir, yönetici düzeltir ve ekle
   const ece = await createStaff(owner, "Ece Kalfa", user.id);
   await createStaff(owner, "Mehmet Usta");
 
-  // Personel: menüden Mesai ve İzin → Mesaim.
+  // Personel: menüden Mesai ve İzin → Mesaim. Next önceki sayfayı (Bugün'deki Mesaim kartı) gizli tutar; rol seçicisi gizlileri saymaz.
   const staffPage = await pageAs(staffUser);
   await staffPage.goto("/panel");
   const menu = await mainMenu(staffPage, info);
   await menu.getByRole("link", { name: "Mesai ve İzin" }).click();
   await expect(staffPage).toHaveURL(/\/panel\/mesai-izin$/);
-  await expect(staffPage.getByText("Mesaide değilsiniz")).toBeVisible();
+  await expect(staffPage.getByRole("region", { name: "Mesaim" }).getByText("Mesaide değilsiniz")).toBeVisible();
   await check(staffPage, "Mesaim · mesaide değil");
 
   await staffPage.getByRole("button", { name: "Mesaiye başla" }).click();
   await expect(toast(staffPage, /Mesai başladı/)).toBeVisible();
-  await expect(staffPage.getByText("Mesaidesiniz")).toBeVisible();
+  await expect(staffPage.getByRole("region", { name: "Mesaim" }).getByText("Mesaidesiniz")).toBeVisible();
   await expect(staffPage.getByText(/^Giriş \d{2}:\d{2}/)).toBeVisible();
   await check(staffPage, "Mesaim · mesaide");
 
   await staffPage.getByRole("button", { name: "Mesaiyi bitir" }).click();
   await expect(toast(staffPage, /Mesai bitti/)).toBeVisible();
-  await expect(staffPage.getByText("Mesaide değilsiniz")).toBeVisible();
+  await expect(staffPage.getByRole("region", { name: "Mesaim" }).getByText("Mesaide değilsiniz")).toBeVisible();
   await expect(staffPage.getByRole("region", { name: "Mesaim" }).getByRole("listitem")).toHaveCount(1);
   const mine = await staffUser.get<{ staffMemberId: string }[]>("/api/time-entries");
   expect(mine.map((e) => e.staffMemberId)).toEqual([ece.id]);
@@ -65,7 +65,7 @@ test("mesai: personel telefondan başlar ve bitirir, yönetici düzeltir ve ekle
 
   // Personel başkasının mesaisini görmez, Mesai sekmesi yok.
   await staffPage.goto("/panel/mesai-izin?sekme=mesai");
-  await expect(staffPage.getByText("Mesaide değilsiniz")).toBeVisible();
+  await expect(staffPage.getByRole("region", { name: "Mesaim" }).getByText("Mesaide değilsiniz")).toBeVisible();
   await expect(staffPage.getByRole("link", { name: "Mesai", exact: true })).toHaveCount(0);
   await expect(staffPage.getByText("Mehmet Usta")).toHaveCount(0);
 });
