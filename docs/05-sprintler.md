@@ -2,7 +2,7 @@
 
 Tahmini, yarı zamanlı. Toplam yaklaşık 15-18 hafta. Her sprint sonunda: build ve testler geçer, ekranlar 375px'te kontrol edilir, bu dosyada maddeler işaretlenir, `docs/karar-gunlugu.md` güncellenir, commit atılır.
 
-**Durum:** Sprint 7 bitti: 7B (prim kuralları, satır personeli, Primim, prim/personel/kampanya/anket raporları, Bugün'de aktif personel) Actions #22 yeşil (2026-10-15; commit `8e0a5f8`; backend, Vitest 262, E2E 133 geçti; 1 flaky: `sprint1-hesap` telefon-chromium ilk denemede çıkış sonrası prefetch 404'ü, uygulamada düzeltildi: `proxy.ts`). Sıradaki: Sprint 8 (abonelik, destek, canlı ortam, pilot). Sprint 7A bitti (personel kartı, mesai, izin; slogan ve sosyal medya): Actions #19 yeşil (2026-10-15; commit `b70420b`; backend, Vitest 251, E2E 125, tekrar denemesiz); yerel aşamalar yeşil (backend 595, lint, Vitest, build, yeni/değişen E2E). Sıradaki: 7B (prim, raporlar, Bugün). Sprint 6 bitti: 6B (otomasyonlar, memnuniyet anketi, boş saat, kaybedilme riski) Actions #15 yeşil (2026-10-15; commit `0871fdf`; E2E 116 geçti, tekrar denemesiz): yerel aşamalar yeşil (backend 548, frontend lint + Vitest 242 + build, yeni/değişen E2E). Sıradaki: Sprint 7 (personel, mesai, izin, prim). 6A Actions #13 yeşil (commit `22ccbd3`). Sprint 5B Actions #11 (`3daba9e`), 5A Actions #7 (`3c26021`). Sprint 4 tamamlandı (2026-10-12). Hangfire Sprint 5'ten öne çekildi (Sprint 2); Raporlar'ın ilk dördü Sprint 7'den öne çekildi (Sprint 4); MessageLog ve sahte SMS Sprint 6'dan 5B'ye alındı.
+**Durum:** Sprint 8 (pilot yayını) başladı (2026-10-17): 8A yayın öncesi kesiti sürüyor; 8B sunucu alınınca. Sprint 7 bitti (Actions #22 ve #23 yeşil): 7B (prim kuralları, satır personeli, Primim, prim/personel/kampanya/anket raporları, Bugün'de aktif personel) Actions #22 yeşil (2026-10-15; commit `8e0a5f8`; backend, Vitest 262, E2E 133 geçti; 1 flaky: `sprint1-hesap` telefon-chromium ilk denemede çıkış sonrası prefetch 404'ü, uygulamada düzeltildi: `proxy.ts`). Sıradaki: Sprint 8 (abonelik, destek, canlı ortam, pilot). Sprint 7A bitti (personel kartı, mesai, izin; slogan ve sosyal medya): Actions #19 yeşil (2026-10-15; commit `b70420b`; backend, Vitest 251, E2E 125, tekrar denemesiz); yerel aşamalar yeşil (backend 595, lint, Vitest, build, yeni/değişen E2E). Sıradaki: 7B (prim, raporlar, Bugün). Sprint 6 bitti: 6B (otomasyonlar, memnuniyet anketi, boş saat, kaybedilme riski) Actions #15 yeşil (2026-10-15; commit `0871fdf`; E2E 116 geçti, tekrar denemesiz): yerel aşamalar yeşil (backend 548, frontend lint + Vitest 242 + build, yeni/değişen E2E). Sıradaki: Sprint 7 (personel, mesai, izin, prim). 6A Actions #13 yeşil (commit `22ccbd3`). Sprint 5B Actions #11 (`3daba9e`), 5A Actions #7 (`3c26021`). Sprint 4 tamamlandı (2026-10-12). Hangfire Sprint 5'ten öne çekildi (Sprint 2); Raporlar'ın ilk dördü Sprint 7'den öne çekildi (Sprint 4); MessageLog ve sahte SMS Sprint 6'dan 5B'ye alındı.
 
 ---
 
@@ -95,12 +95,47 @@ Tahmini, yarı zamanlı. Toplam yaklaşık 15-18 hafta. Her sprint sonunda: buil
 - [x] Kampanya, anket ve personel raporları + Excel dışa aktarma (satış, ürün, alacak, gelir-gider raporları Sprint 4'te geldi) (7B)
 - [x] Bugün ekranına aktif personel kartı ve Personel rolünde "Mesaim" kartı (randevu kartı Sprint 5A'da geldi) (7B)
 
-## Sprint 8 — Abonelik, destek ve pilot (1-2 hafta)
+## Sprint 8 — Pilot yayını (1-2 hafta)
 
-- [ ] Plan limitleri, deneme süresi, iyzico abonelik (sandbox)
-- [ ] Şeffaf abonelik: 7 gün önce hatırlatma, tek tıkla iptal, süresi dolunca salt okunur mod
-- [ ] WhatsApp destek butonu, yardım makaleleri iskeleti
-- [ ] Süper admin paneli
-- [ ] Canlı ortam: VPS, Docker Compose, Caddy, GitHub Actions, yedekleme; forwarded headers (IP hız sınırları Caddy arkasında gerçek istemci IP'siyle çalışsın; Sprint 5B notu)
-- [ ] Tanıtım sitesi metinleri ("Bizi farklı kılan" maddeleri), KVKK metinleri
+Şirket henüz kurulmadı: ödeme alma (iyzico), gerçek SMS sağlayıcısı ve İYS bağlantısı ertelendi (aşağıda "Faz 1 sonu / şirket kurulunca"); altyapıları kodda kalır, kapalıdır. 5-10 gerçek işletmeyle (pilates stüdyosu, kafe-restoran, küçük yemek restoranı, iki kuaför) ücretsiz pilot. İki parça: **8A** kod (şimdi), **8B** canlı ortam (sunucu alınınca). Plan ve kararlar: karar günlüğü 2026-10-17.
+
+### 8A — Yayın öncesi
+
+- [ ] Paketler ve abonelik (ödemesiz): Plans tablosu (Çırak 0 TL · 1 kullanıcı, 100 müşteri, ayda 50 randevu; Kalfa 699 TL/ay, 6.990 TL/yıl · 3, 1.000, 500 · kampanya, otomasyon, online randevu; Usta 1.299 TL/ay, 12.990 TL/yıl · 10, sınırsız · hepsi; KDV hariç, Mali Müşavir sayılmaz), 14 gün deneme (bütün özellikler, Usta limitleri), deneme bitince Çırak (veri silinmez, kapalı özellikler salt okunur), limit aşımında anlaşılır mesaj, Pilot (süresiz, limitsiz, etiketli), salt okunur mod, `?paket=` kaydı
+- [ ] Süper admin paneli `/platform` (çekirdek): işletmeler (arama, filtre, sayılar, son giriş), ayrıntı (paket, pilot, deneme uzatma/bitirme, salt okunur, kullanıcılar, kredi, destek notları, platform günlüğü), geri bildirimler; müşteri verisi görünmez
+- [ ] SMS'siz çalışma: `Messaging:SmsEnabled=false`; randevu bildirimleri e-postayla, WhatsApp düğmeleri, "Yarının randevuları" + "Hatırlatıldı", anket linki WhatsApp'tan, vade hatırlatma e-postası; online randevu kodsuz (işletme onaylar, e-posta isteğe bağlı, bot tuzağı ve hız sınırları)
+- [ ] E-posta altyapısı: Brevo (SMTP), `bildirim@kobifabrika.com`, Reply-To işletme, Hangfire kuyruğu (OutboundEmails), logolu sade şablonlar
+- [ ] Destek ve yardım: Yardım menüsü (WhatsApp +90 535 977 93 82, destek@kobifabrika.com, makaleler), geri bildirim (metin + isteğe bağlı ekran görüntüsü), 4 temel yardım makalesi
+- [ ] Hukuki metin taslakları (son güncelleme tarihli): KVKK aydınlatma, gizlilik, çerez, kullanım koşulları, veri işleme sözleşmesi, işletmenin müşterileri için aydınlatma şablonu; şirket bilgisi tek ayardan ("KobiFabrika (kuruluş aşamasında)")
+- [ ] Tanıtım sitesi yeniden tasarımı (5 marka rengi), "Işıltı Kuaför" demo ekran görüntüleri, fiyat/SSS/hakkımızda/iletişim/yardım/hukuki sayfalar, SEO (başlık, açıklama, OG görseli, sitemap, robots)
+- [ ] Panel ve giriş ekranları renk yenilemesi (#000a1d koyu yüzeyler, #006ea6 link/seçili, #00b0ff ana düğme; Bugün kartlarında renkli ikon ve şerit, boş durum çizimleri)
+- [ ] Baştan sona tur: her rol ve ekran masaüstü + 375 px, `docs/pilot-test-raporu.md`; online randevu sayfası ve müşteri e-postalarına ayrı özen
+- [ ] E2E "yeni esnaf" senaryosu (`sprint8a-yeni-esnaf`): kayıt → doğrulama → kurulum → personel → hizmet → online randevu → onay → tamamlandı → satış → kasa → Bugün
+
+### 8A — Yayından sonra
+
+- [ ] Abonelik ekranı cilası, deneme bitişi bildirimleri (`trial-notices`: 3 gün önce ve bitince uygulama içi + e-posta)
+- [ ] Kampanya ve otomasyonlarda e-posta ve WhatsApp kanalı (WhatsApp'ta "Sıradaki" ile tek tek)
+- [ ] Yardım merkezinin kalan makaleleri (personel ve randevu, satış ve veresiye, kasa ve gider, kampanya, raporlar, ekip, mali müşavir, dışa aktarma, paketler)
+- [ ] Süper admin: sistem ekranı (son hatalar, Hangfire, e-posta kuyruğu), Plans düzenleme ekranı
+
+### 8B — Canlı ortam (sunucu alınınca)
+
+- [x] Alan adları: kobifabrika.com ve kobifabrika.com.tr alındı, nameserver'lar Cloudflare'e taşındı (2026-10-17)
+- [ ] Türkiye lokasyonlu VDS (Ubuntu 24.04, 8 GB): SSH anahtarı, ufw (22/80/443), fail2ban, otomatik güvenlik güncellemeleri
+- [ ] Docker Compose: API, Next.js, SQL Server (Express), Caddy (otomatik HTTPS); app./api. alt alan adları, çerez `.kobifabrika.com`, kobifabrika.com.tr → kobifabrika.com
+- [ ] Forwarded headers (Cloudflare/Caddy arkasında gerçek IP; Sprint 5B notu)
+- [ ] E-posta DNS: Brevo SPF/DKIM/DMARC; Cloudflare Email Routing (destek@, bildirim@ → kobifabrika@gmail.com)
+- [ ] GitHub Actions: testler yeşilse otomatik dağıtım, migration, önceki imaja geri alma
+- [ ] Yedekleme: gece yedeği, 7 gün yerel, Cloudflare R2'ye şifreli kopya, geri yükleme denemesi
+- [ ] İzleme: Sentry, UptimeRobot
+- [ ] `docs/canli-ortam.md` (kurulum, dağıtım, yedekten dönme, sorun giderme, benden istenecekler)
 - [ ] Pilot: 5-10 gerçek esnaf
+
+## Faz 1 sonu / şirket kurulunca
+
+- [ ] iyzico abonelik (sandbox → canlı; `IPaymentProvider` ve sahte uygulama 8A'da kapalı duruyor), Payments tablosu, "Paket seç" ile online ödeme
+- [ ] Şeffaf abonelik: yenilemeden 7 gün önce SMS + e-posta hatırlatma, tek tıkla iptal
+- [ ] Mesafeli satış sözleşmesi, şirket unvanı/adres/vergi bilgisinin ayara girilmesi, e-Arşiv fatura
+- [ ] Gerçek SMS sağlayıcısı (Netgsm / İleti Merkezi), `Messaging:SmsEnabled=true`, SMS kredisi satışı
+- [ ] Gerçek İYS bağlantısı (`IIysClient`)

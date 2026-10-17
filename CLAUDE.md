@@ -8,7 +8,7 @@ KobiFabrika, Türkiye'deki küçük ve orta ölçekli işletmeler ve esnaf için
 Tek uygulamada hem parayı takip eder (cari, kasa, veresiye, stok, satış, teklif) hem müşteri getirir
 (randevu, SMS kampanyası, Google yorum, geri kazanma) hem de personeli yönetir (mesai, izin, prim).
 
-- Şirket: KobiFabrika Yazılım A.Ş. · Ürün adı her yerde **KobiFabrika** (eski çalışma adı KOBIOS; kodda, arayüzde, metinlerde KOBIOS geçmeyecek).
+- Şirket: kuruluş aşamasında; unvan, adres ve vergi bilgisi tek ayardan (`frontend/src/content/company.ts`, backend `Company:*`), şimdilik "KobiFabrika (kuruluş aşamasında)" · Ürün adı her yerde **KobiFabrika** (eski çalışma adı KOBIOS; kodda, arayüzde, metinlerde KOBIOS geçmeyecek).
 - Mobil uygulama yok. Arayüz responsive ve **mobil öncelikli**; esnaf çoğunlukla telefondan kullanır.
 - Arayüz dili Türkçe. Para birimi TL. Saat dilimi Europe/Istanbul.
 
@@ -107,7 +107,7 @@ kopar, sahipsiz Next dev sunucusu `write EPIPE` ile bozulur (sayfalar dakikalarc
 
 ## Güncel durum
 
-- Sprint: **7 (personel, mesai, izin, prim)** bitti: Actions #22 yeşil (2026-10-15). Sıradaki: **Sprint 8** (abonelik, destek, canlı ortam, pilot). Kararlar `docs/karar-gunlugu.md` 2026-10-15 (Sprint 7 planı, 7A, 7B).
+- Sprint: **8 (pilot yayını)** sürüyor: 8A yayın öncesi kesiti (paket/pilot, SMS'siz çalışma, e-posta kuyruğu, süper admin, hukuki, site ve panel tasarımı, tur), 8B canlı ortam sunucu alınınca. Kararlar `docs/karar-gunlugu.md` 2026-10-17 (Sprint 8 planı). Sprint 7 bitti (Actions #22/#23 yeşil).
 - Mesai sadece `TimeClock`, izin sadece `LeaveService` ile yazılır (personel satırı kilidi; açık mesai `UX_TimeEntries_Open`). Maaş personel yanıtında yok: `/api/staff/{id}/salary` (Sahip yazar, Sahip + Mali Müşavir görür). Onaylı izin = `StaffTimeOff` (Leave, LeaveRequestId); yıllık izin bakiyesi `LeaveBalanceEntries` toplamı. Slogan `content/site.ts` → `siteSlogan`.
 - Prim sadece `CommissionService` ile ve sadece `SaleService` içinden (satışta tahakkuk, iptalde iptal ayına eksi kayıt; `Commissions` yalnızca eklenir). Kural seçimi Domain `CommissionRuleResolver`, tutar `CommissionCalculator` (taban `NetAmount`). Satır personeli `DocumentLineRequest.staffMemberId` (boş = personelsiz; varsayılanı istemci gönderir). Personel sadece kendi primini görür (`/api/commissions/me`).
 - Pencere/alt sayfa telefonda ilk alana odaklanmaz (`lib/focus.ts`, `DialogContent`/`SheetContent`); pencere içinde `autoFocus` gerekiyorsa `autoFocus={useIsDesktop()}`.
