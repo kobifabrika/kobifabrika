@@ -4,10 +4,12 @@ using KobiFabrika.Api.Features.Appointments;
 using KobiFabrika.Api.Features.Auth;
 using KobiFabrika.Api.Features.Finance;
 using KobiFabrika.Domain.Appointments;
+using KobiFabrika.Domain.Billing;
 using KobiFabrika.Domain.Businesses;
 using KobiFabrika.Domain.Common;
 using KobiFabrika.Domain.Contacts;
 using KobiFabrika.Domain.Messaging;
+using KobiFabrika.Infrastructure.Billing;
 using KobiFabrika.Infrastructure.Messaging;
 using KobiFabrika.Infrastructure.Notifications;
 using KobiFabrika.Infrastructure.Persistence;
@@ -24,11 +26,15 @@ public sealed record PublicBookingService(Guid Id, string Name, int DurationMinu
 
 public sealed record PublicBookingStaff(Guid Id, string FullName, string? Title, IReadOnlyList<Guid> ServiceIds);
 
-/// <summary>Online randevu sayfası. Phone gösterim biçiminde (0212 555 44 33), PhoneE164 tel: linki için. Today: İstanbul günü.</summary>
+/// <summary>
+/// Online randevu sayfası. Phone gösterim biçiminde (0212 555 44 33), PhoneE164 tel: linki için. Today: İstanbul günü.
+/// Available false: sayfa açık ama paket kapsamıyor veya hesap salt okunur ("şu an online randevu alınmıyor" + telefon; hizmet listesi boş).
+/// VerificationRequired: SMS koduyla telefon doğrulaması (SMS kapalıyken false: kod adımı yok, işletme onaylar).
+/// </summary>
 public sealed record PublicBookingResponse(
     string Slug, string Name, string? LogoUrl, string? Address, string? City, string? District, string? Phone, string? PhoneE164,
     IReadOnlyList<PublicBookingService> Services, IReadOnlyList<PublicBookingStaff> Staff, DateOnly Today, DateOnly LastDay, int SlotMinutes,
-    bool AutoConfirm, int CustomerCancelHours, string KvkkVersion);
+    bool AutoConfirm, int CustomerCancelHours, string KvkkVersion, bool Available, bool VerificationRequired);
 
 /// <summary>Gün → boş başlangıç saatleri ("HH:mm", İstanbul).</summary>
 public sealed record PublicSlotDay(DateOnly Date, IReadOnlyList<string> Times);
@@ -40,10 +46,14 @@ public sealed record VerificationRequest(string? Phone, string? FirstName);
 
 public sealed record VerificationResponse(Guid VerificationId, int ExpiresInSeconds, int ResendAfterSeconds);
 
-/// <summary>StaffId boşsa "Fark etmez": o saatte boş, o gün en az dolu personel.</summary>
+/// <summary>
+/// StaffId boşsa "Fark etmez": o saatte boş, o gün en az dolu personel. VerificationId/Code: SMS açıkken zorunlu. Email isteğe bağlı
+/// (randevu e-postaları). Website: bot tuzağı (görünmez alan; dolu gelirse kayıt açılmaz). ElapsedSeconds: formun açık kaldığı süre
+/// (3 saniyeden kısa gönderim bot sayılır).
+/// </summary>
 public sealed record PublicBookingRequest(
-    Guid VerificationId, string? Code, Guid ServiceId, Guid? StaffId, DateTime StartAt, string? FirstName, string? LastName, string? Phone,
-    bool MarketingConsent);
+    Guid? VerificationId, string? Code, Guid ServiceId, Guid? StaffId, DateTime StartAt, string? FirstName, string? LastName, string? Phone,
+    bool MarketingConsent, string? Email = null, string? Website = null, int? ElapsedSeconds = null);
 
 /// <summary>ManageToken: müşterinin randevu sayfası /r/[slug]/randevu/[token] (onay ekranındaki iptal linki).</summary>
 public sealed record PublicBookingCreated(
@@ -68,7 +78,9 @@ public sealed class PublicBookingRequestValidator : AbstractValidator<PublicBook
     public PublicBookingRequestValidator()
     {
         RuleFor(x => x.Code).Must(c => c is { Length: PhoneVerification.CodeLength } && c.All(char.IsAsciiDigit))
-            .WithMessage("SMS ile gelen 6 haneli kodu girin.");
+            .When(x => x.Code is not null).WithMessage("SMS ile gelen 6 haneli kodu girin.");
+        RuleFor(x => x.Email).Must(e => System.Net.Mail.MailAddress.TryCreate(e!.Trim(), out _)).When(x => !string.IsNullOrWhiteSpace(x.Email))
+            .WithMessage("Geçerli bir e-posta adresi girin.").MaximumLength(256).WithMessage("E-posta en fazla 256 karakter olabilir.");
         RuleFor(x => x.ServiceId).NotEmpty().WithMessage("Hizmet seçin.");
         RuleFor(x => x.StartAt).Must(AppointmentTimes.WholeMinute).WithMessage("Saat seçin.");
         RuleFor(x => x.FirstName).Must(n => !string.IsNullOrWhiteSpace(n)).WithMessage("Adınızı girin.")
@@ -89,6 +101,13 @@ public static class PublicBookingEndpoints
 {
     public const string ReadRateLimit = "booking-read";
     public const string SmsRateLimit = "booking-sms";
+    public const string CreateRateLimit = "booking-create";
+
+    /// <summary>Formun en az bu kadar saniye açık kalması beklenir; daha hızlısı bot sayılır.</summary>
+    public const int MinFillSeconds = 3;
+
+    /// <summary>Aynı telefonla aynı işletmede en fazla bu kadar gelecek, onay bekleyen randevu.</summary>
+    public const int MaxPendingPerPhone = 2;
 
     public static IEndpointRouteBuilder MapPublicBookingEndpoints(this IEndpointRouteBuilder app)
     {
@@ -100,7 +119,7 @@ public static class PublicBookingEndpoints
         booking.MapPost("/verifications", SendCode).RequireRateLimiting(SmsRateLimit).Validate<VerificationRequest>()
             .Produces<VerificationResponse>()
             .WithSummary("Telefona doğrulama kodu gönder");
-        booking.MapPost("/appointments", Book).RequireRateLimiting(PublicLinkEndpoints.RateLimit).Validate<PublicBookingRequest>()
+        booking.MapPost("/appointments", Book).RequireRateLimiting(CreateRateLimit).Validate<PublicBookingRequest>()
             .Produces<PublicBookingCreated>(StatusCodes.Status201Created)
             .WithSummary("Kodu doğrula ve randevuyu oluştur (saat dolduysa 409 slot_taken)");
 
@@ -130,7 +149,16 @@ public static class PublicBookingEndpoints
 
     private static string? FormatPhone(string? e164) => e164 is null ? null : AppointmentNotifier.FormatPhone(e164);
 
-    private static async Task<IResult> Info(string slug, AppDbContext db, IServiceScopeFactory scopes, TimeProvider clock, CancellationToken ct)
+    /// <summary>Paket online randevuyu kapsıyor ve hesap salt okunur değil (karar 2026-10-17).</summary>
+    private static async Task<bool> AvailableAsync(IServiceProvider tenantServices, CancellationToken ct)
+    {
+        var plan = await tenantServices.GetRequiredService<IPlanAccess>().GetAsync(ct);
+        return plan.Has(PlanFeatures.OnlineBooking) && !plan.IsReadOnly;
+    }
+
+    private static async Task<IResult> Info(
+        string slug, AppDbContext db, IServiceScopeFactory scopes, TimeProvider clock, IOptionsMonitor<MessagingOptions> messaging,
+        CancellationToken ct)
     {
         if (await FindAsync(db, slug, ct) is not { } business)
         {
@@ -139,16 +167,25 @@ public static class PublicBookingEndpoints
 
         await using var scope = scopes.TenantScope(business.Id);
         var tenantDb = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        var today = BusinessTime.Today(clock);
+        if (!await AvailableAsync(scope.ServiceProvider, ct))
+        {
+            return TypedResults.Ok(new PublicBookingResponse(
+                business.Slug, business.Name, business.LogoUrl, business.Address, business.City, business.District, FormatPhone(business.Phone),
+                business.Phone, [], [], today, today, business.BookingSlotMinutes, false, business.CustomerCancelHours, KvkkNotice.Version,
+                Available: false, VerificationRequired: false));
+        }
+
         var (services, staff) = await PublicBookingQueries.LoadAsync(tenantDb, ct);
         var serviceIds = services.Select(s => s.Id).ToList();
-        var today = BusinessTime.Today(clock);
+        var smsEnabled = messaging.CurrentValue.SmsEnabled;
         return TypedResults.Ok(new PublicBookingResponse(
             business.Slug, business.Name, business.LogoUrl, business.Address, business.City, business.District, FormatPhone(business.Phone), business.Phone,
             services.Select(s => new PublicBookingService(s.Id, s.Name, s.DurationMinutes!.Value, s.GrossSalePrice > 0 ? s.GrossSalePrice : null)).ToList(),
             staff.Select(s => new PublicBookingStaff(s.Id, s.FullName, s.Title, serviceIds.Where(s.Gives).ToList()))
                 .Where(s => s.ServiceIds.Count > 0).ToList(),
-            today, BookingWindow.LastDay(today, business.BookingMaxDaysAhead), business.BookingSlotMinutes, business.BookingAutoConfirm,
-            business.CustomerCancelHours, KvkkNotice.Version));
+            today, BookingWindow.LastDay(today, business.BookingMaxDaysAhead), business.BookingSlotMinutes, smsEnabled && business.BookingAutoConfirm,
+            business.CustomerCancelHours, KvkkNotice.Version, Available: true, VerificationRequired: smsEnabled));
     }
 
     private static async Task<IResult> Slots(
@@ -167,6 +204,11 @@ public static class PublicBookingEndpoints
 
         await using var scope = scopes.TenantScope(business.Id);
         var tenantDb = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        if (!await AvailableAsync(scope.ServiceProvider, ct))
+        {
+            return PageNotFound();
+        }
+
         var (services, staff) = await PublicBookingQueries.LoadAsync(tenantDb, ct);
         if (services.FirstOrDefault(s => s.Id == serviceId) is not { } service)
         {
@@ -199,11 +241,17 @@ public static class PublicBookingEndpoints
 
     private static async Task<IResult> SendCode(
         string slug, VerificationRequest request, HttpContext http, AppDbContext db, IServiceScopeFactory scopes, IOptions<SmsOptions> sms,
-        TimeProvider clock, CancellationToken ct)
+        IOptionsMonitor<MessagingOptions> messaging, TimeProvider clock, CancellationToken ct)
     {
         if (await FindAsync(db, slug, ct) is not { } business)
         {
             return PageNotFound();
+        }
+
+        if (!messaging.CurrentValue.SmsEnabled)
+        {
+            return TypedResults.Problem(statusCode: StatusCodes.Status404NotFound, detail: "SMS doğrulaması kullanılmıyor.",
+                extensions: new Dictionary<string, object?> { ["code"] = "sms_disabled" });
         }
 
         if (!PhoneNumber.TryNormalize(request.Phone, out var phone) || !PhoneVerification.IsMobile(phone))
@@ -316,7 +364,8 @@ public static class PublicBookingEndpoints
     }
 
     private static async Task<IResult> Book(
-        string slug, PublicBookingRequest request, AppDbContext db, IServiceScopeFactory scopes, TimeProvider clock, CancellationToken ct)
+        string slug, PublicBookingRequest request, AppDbContext db, IServiceScopeFactory scopes, TimeProvider clock,
+        IOptionsMonitor<MessagingOptions> messaging, IOptions<BookingOptions> bookingOptions, CancellationToken ct)
     {
         if (await FindAsync(db, slug, ct) is not { } business)
         {
@@ -328,14 +377,62 @@ public static class PublicBookingEndpoints
             return Validation.FieldProblem("phone", "Cep telefonu numaranızı girin (ör. 0532 123 45 67).");
         }
 
+        var smsEnabled = messaging.CurrentValue.SmsEnabled;
+        if (smsEnabled && (request.VerificationId is null || request.Code is null))
+        {
+            return Validation.FieldProblem("code", "SMS ile gelen 6 haneli kodu girin.");
+        }
+
         await using var scope = scopes.TenantScope(business.Id);
         var sp = scope.ServiceProvider;
         var tenantDb = sp.GetRequiredService<AppDbContext>();
-        var now = clock.GetUtcNow().UtcDateTime;
-        var verification = await tenantDb.PhoneVerifications.AsNoTracking().FirstOrDefaultAsync(v => v.Id == request.VerificationId, ct);
-        if (await VerifyAsync(tenantDb, verification, phone, request.Code!, now, ct) is { } codeProblem)
+        if (!await AvailableAsync(sp, ct))
         {
-            return codeProblem;
+            return PageNotFound();
+        }
+
+        var now = clock.GetUtcNow().UtcDateTime;
+        var email = string.IsNullOrWhiteSpace(request.Email) ? null : request.Email.Trim();
+
+        // Bot tuzağı (karar 2026-10-17): görünmez alan dolu veya form 3 saniyeden kısa sürede gönderildiyse kayıt açılmaz;
+        // bota ipucu vermemek için başarılı görünür.
+        if (!string.IsNullOrEmpty(request.Website) || request.ElapsedSeconds is < MinFillSeconds)
+        {
+            var (fakeToken, _) = SecureTokens.Create();
+            var fakeStart = AppointmentTimes.Utc(request.StartAt);
+            return TypedResults.Created($"/api/public/appointments/{fakeToken}",
+                new PublicBookingCreated(fakeToken, AppointmentStatus.Pending, fakeStart, fakeStart.AddMinutes(30), "", ""));
+        }
+
+        if (smsEnabled)
+        {
+            var verification = await tenantDb.PhoneVerifications.AsNoTracking().FirstOrDefaultAsync(v => v.Id == request.VerificationId, ct);
+            if (await VerifyAsync(tenantDb, verification, phone, request.Code!, now, ct) is { } codeProblem)
+            {
+                return codeProblem;
+            }
+        }
+        else
+        {
+            // Kodsuz akışta kötüye kullanım sınırları: aynı telefonla en fazla 2 bekleyen randevu, işletme başına günlük üst sınır.
+            var pending = await tenantDb.Appointments.CountAsync(a => a.Status == AppointmentStatus.Pending && a.StartAt > now
+                && tenantDb.Contacts.Any(c => c.Id == a.ContactId && c.Phone == phone), ct);
+            if (pending >= MaxPendingPerPhone)
+            {
+                return Problems.Conflict("too_many_pending",
+                    "Bu numarayla onay bekleyen randevularınız var. İşletme onayladıktan sonra yeni randevu alabilirsiniz.");
+            }
+
+            var dayStart = BusinessTime.StartOfDayUtc(BusinessTime.LocalDay(now));
+            var onlineToday = await tenantDb.Appointments.CountAsync(a => a.Source == AppointmentSource.Online && a.CreatedAt >= dayStart, ct);
+            if (onlineToday >= bookingOptions.Value.DailyLimit)
+            {
+                return Problems.TooManyRequests("booking_daily_limit",
+                    business.Phone is { } bp
+                        ? $"Şu anda online randevu alınamıyor. Randevu için işletmeyi arayın: {FormatPhone(bp)}"
+                        : "Şu anda online randevu alınamıyor. Randevu için işletmeyi arayın.",
+                    new Dictionary<string, object?> { ["businessPhone"] = business.Phone });
+            }
         }
 
         var (services, staff) = await PublicBookingQueries.LoadAsync(tenantDb, ct);
@@ -369,7 +466,8 @@ public static class PublicBookingEndpoints
         var bookingService = sp.GetRequiredService<AppointmentBooking>();
         var protector = sp.GetRequiredService<LinkTokenProtector>();
         var end = start.AddMinutes(service.DurationMinutes!.Value);
-        var status = business.BookingAutoConfirm ? AppointmentStatus.Confirmed : AppointmentStatus.Pending;
+        // SMS kapalıyken telefon doğrulanmadığı için otomatik onay yok: işletme onaylar (karar 2026-10-17).
+        var status = smsEnabled && business.BookingAutoConfirm ? AppointmentStatus.Confirmed : AppointmentStatus.Pending;
         Appointment? created = null;
         string? token = null;
         BookableStaff? chosen = null;
@@ -382,14 +480,17 @@ public static class PublicBookingEndpoints
             {
                 (created, token) = await ledger.InTransactionAsync(async () =>
                 {
-                    var consumed = await tenantDb.PhoneVerifications.Where(v => v.Id == request.VerificationId && v.ConsumedAt == null)
-                        .ExecuteUpdateAsync(s => s.SetProperty(v => v.ConsumedAt, now), ct);
-                    if (consumed != 1)
+                    if (smsEnabled)
                     {
-                        throw new ConflictException("code_used", "Bu kod kullanıldı. Yeni kod isteyin.");
+                        var consumed = await tenantDb.PhoneVerifications.Where(v => v.Id == request.VerificationId && v.ConsumedAt == null)
+                            .ExecuteUpdateAsync(s => s.SetProperty(v => v.ConsumedAt, now), ct);
+                        if (consumed != 1)
+                        {
+                            throw new ConflictException("code_used", "Bu kod kullanıldı. Yeni kod isteyin.");
+                        }
                     }
 
-                    var contact = await FindOrCreateContactAsync(tenantDb, request, phone, now, ct);
+                    var contact = await FindOrCreateContactAsync(tenantDb, sp.GetRequiredService<IPlanAccess>(), request, phone, email, smsEnabled, now, ct);
                     var (newToken, hash) = SecureTokens.Create();
                     var appointment = new Appointment
                     {
@@ -404,11 +505,15 @@ public static class PublicBookingEndpoints
                         TimeSetAt = now,
                         ManageTokenHash = hash,
                         ManageToken = protector.Protect(newToken),
+                        BookingEmail = email,
                     };
                     tenantDb.Appointments.Add(appointment);
                     await bookingService.SaveAsync(appointment, ct);
-                    await tenantDb.PhoneVerifications.Where(v => v.Id == request.VerificationId)
-                        .ExecuteUpdateAsync(s => s.SetProperty(v => v.AppointmentId, appointment.Id), ct);
+                    if (smsEnabled)
+                    {
+                        await tenantDb.PhoneVerifications.Where(v => v.Id == request.VerificationId)
+                            .ExecuteUpdateAsync(s => s.SetProperty(v => v.AppointmentId, appointment.Id), ct);
+                    }
                     return (appointment, newToken);
                 }, ct);
                 chosen = candidate;
@@ -449,15 +554,23 @@ public static class PublicBookingEndpoints
     private static ProblemHttpResult SlotTaken() => Problems.Conflict("slot_taken", "Bu saat az önce doldu. Başka bir saat seçin.");
 
     /// <summary>
-    /// Telefonla eşleşen müşteri kullanılır (adı değiştirilmez; arşivdeki de). Silinmiş (KVKK ile silinmiş/anonimleştirilmiş) kayda asla
-    /// bağlanmaz: kiracı ve soft delete filtresi dışında kalır, yeni müşteri açılır. Pazarlama izni işaretliyse SMS izni yazılır.
+    /// Telefonla eşleşen müşteri kullanılır (adı ve e-postası değiştirilmez; arşivdeki de; kodsuz akışta telefon doğrulanmadığı için
+    /// karttaki e-posta sadece boşsa doldurulur). Silinmiş (KVKK ile silinmiş/anonimleştirilmiş) kayda asla bağlanmaz: yeni müşteri
+    /// açılır (paket müşteri sınırı doluysa 409 booking_unavailable). Pazarlama izni işaretliyse SMS izni (SMS kapalıyken e-posta
+    /// izni, e-posta girildiyse) yazılır.
     /// </summary>
-    private static async Task<Contact> FindOrCreateContactAsync(AppDbContext db, PublicBookingRequest request, string phone, DateTime now, CancellationToken ct)
+    private static async Task<Contact> FindOrCreateContactAsync(
+        AppDbContext db, IPlanAccess plans, PublicBookingRequest request, string phone, string? email, bool smsEnabled, DateTime now, CancellationToken ct)
     {
         // Anonimleştirilmiş kaydın telefonu zaten silinir; açık şart ikinci güvence (Sprint 6A, KVKK).
         var contact = await db.Contacts.FirstOrDefaultAsync(c => c.Phone == phone && !c.IsAnonymized, ct);
         if (contact is null)
         {
+            if (await plans.CheckContactsAsync(1, ct) is { Allowed: false })
+            {
+                throw new ConflictException("booking_unavailable", "Şu anda online randevu alınamıyor. Randevu için işletmeyi arayın.");
+            }
+
             contact = new Contact
             {
                 FirstName = request.FirstName!.Trim(),
@@ -465,16 +578,33 @@ public static class PublicBookingEndpoints
                 Phone = phone,
                 IsCustomer = true,
                 Source = ContactSource.OnlineBooking,
+                Email = email,
             };
             contact.RefreshDisplayName();
             db.Contacts.Add(contact);
         }
-        else if (!contact.IsCustomer)
+        else
         {
             contact.IsCustomer = true;
+            if (string.IsNullOrWhiteSpace(contact.Email) && email is not null)
+            {
+                contact.Email = email;
+            }
         }
 
-        if (request.MarketingConsent && !contact.SmsConsent)
+        if (!smsEnabled)
+        {
+            if (request.MarketingConsent && email is not null && !contact.EmailConsent)
+            {
+                contact.EmailConsent = true;
+                db.ContactConsents.Add(new ContactConsent
+                {
+                    ContactId = contact.Id, Channel = ConsentChannel.Email, Granted = true, Source = ConsentSource.OnlineBooking, At = now,
+                    IysStatus = IysStatuses.Pending,
+                });
+            }
+        }
+        else if (request.MarketingConsent && !contact.SmsConsent)
         {
             contact.SmsConsent = true;
             db.ContactConsents.Add(new ContactConsent
@@ -598,4 +728,12 @@ public static class PublicBookingEndpoints
         await tenantDb.SaveChangesAsync(ct);
         return TypedResults.Ok(response);
     }
+}
+
+/// <summary>"Booking" bölümü: kodsuz online randevuda işletme başına günlük üst sınır (kötüye kullanım).</summary>
+public sealed class BookingOptions
+{
+    public const string Section = "Booking";
+
+    public int DailyLimit { get; set; } = 50;
 }

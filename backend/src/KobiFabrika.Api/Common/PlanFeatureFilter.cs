@@ -21,3 +21,20 @@ public static class PlanFeatureFilter
             return await next(context);
         }).ProducesProblem(StatusCodes.Status403Forbidden);
 }
+
+/// <summary>
+/// SMS kapalıyken (Messaging:SmsEnabled=false) SMS gönderen yazma uçları 409 <c>sms_disabled</c>. Pilot dönemde kampanyalar ve
+/// otomasyonlar SMS'siz; e-posta ve WhatsApp kanalları sonraki adımda (docs/05).
+/// </summary>
+public static class SmsFeatureFilter
+{
+    public const string Message = "SMS gönderimi şu an kapalı. E-posta ve WhatsApp ile kampanya yakında açılacak.";
+
+    public static RouteHandlerBuilder RequireSms(this RouteHandlerBuilder builder) =>
+        builder.AddEndpointFilter(async (context, next) =>
+        {
+            var messaging = context.HttpContext.RequestServices
+                .GetRequiredService<Microsoft.Extensions.Options.IOptionsMonitor<Infrastructure.Messaging.MessagingOptions>>();
+            return messaging.CurrentValue.SmsEnabled ? await next(context) : Problems.Conflict("sms_disabled", Message);
+        });
+}

@@ -79,6 +79,7 @@ public sealed class AutomationTests(SqlServerFixture db) : MarketingTestBase(db)
         SetIstanbul(new DateOnly(2027, 5, 1), 12);
         var owner = await CreateOwnerAsync();
         var businessId = await BusinessIdAsync(owner);
+        await MakePilotAsync(businessId);
         var gone = await CustomerAsync(owner, "Uzak", "0532 410 00 01");
         var recent = await CustomerAsync(owner, "Yakın", "0532 410 00 02");
         var now = Factory.Clock.GetUtcNow().UtcDateTime;

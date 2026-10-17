@@ -44,3 +44,24 @@ internal sealed class FeedbackConfiguration : IEntityTypeConfiguration<Feedback>
         b.HasIndex(x => new { x.Status, x.CreatedAt });
     }
 }
+
+internal sealed class OutboundEmailConfiguration : IEntityTypeConfiguration<Domain.Messaging.OutboundEmail>
+{
+    public void Configure(EntityTypeBuilder<Domain.Messaging.OutboundEmail> b)
+    {
+        b.ToTable("OutboundEmails", t => t.HasCheckConstraint("CK_OutboundEmails_Attempts", "[Attempts] BETWEEN 0 AND 10"));
+        b.Property(x => x.To).HasMaxLength(256);
+        b.Property(x => x.ReplyTo).HasMaxLength(256);
+        b.Property(x => x.FromName).HasMaxLength(200);
+        b.Property(x => x.Subject).HasMaxLength(300);
+        b.Property(x => x.HtmlBody).HasMaxLength(-1);
+        b.Property(x => x.TextBody).HasMaxLength(-1);
+        b.Property(x => x.Purpose).HasMaxLength(50).IsUnicode(false);
+        b.Property(x => x.ListUnsubscribeUrl).HasMaxLength(500);
+        b.Property(x => x.Status).HasConversion<string>().HasMaxLength(10);
+        b.Property(x => x.LastError).HasMaxLength(1000);
+        b.HasIndex(x => new { x.Status, x.NextAttemptAt });
+        b.HasIndex(x => x.CreatedAt);
+        b.HasIndex(x => new { x.BusinessId, x.CreatedAt });
+    }
+}

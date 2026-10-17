@@ -8,6 +8,7 @@ using KobiFabrika.Domain.Common;
 using KobiFabrika.Domain.Finance;
 using KobiFabrika.Infrastructure;
 using KobiFabrika.Infrastructure.Auditing;
+using KobiFabrika.Infrastructure.Email;
 using KobiFabrika.Infrastructure.Finance;
 using KobiFabrika.Infrastructure.Persistence;
 using KobiFabrika.Infrastructure.Security;
@@ -71,6 +72,8 @@ public static class ReceivableEndpoints
         group.MapGet("/{contactId:guid}", ForContact).RequireAuthorization(Policies.ViewFinance).WithSummary("Müşterinin açık borç kalemleri");
         group.MapPost("/{contactId:guid}/reminder-message", PrepareMessage).RequireAuthorization(Policies.ManageFinance)
             .Produces<ReminderMessageResponse>().WithSummary("Hatırlatma metni ve hazır WhatsApp/SMS linkleri (gerekirse tahsilat linkini bir kez oluşturur)");
+        group.MapPost("/{contactId:guid}/email-reminder", EmailReminder).RequireAuthorization(Policies.ManageFinance)
+            .Produces(StatusCodes.Status204NoContent).WithSummary("Hatırlatmayı müşterinin e-postasına gönder (IBAN varsa tahsilat linkiyle)");
         group.MapPost("/{contactId:guid}/reminders", LogReminder).RequireAuthorization(Policies.ManageFinance).Validate<ReminderLogRequest>()
             .Produces(StatusCodes.Status204NoContent).WithSummary("Hatırlatma gönderildi kaydı (WhatsApp/SMS linkine tıklanınca)");
         return app;
@@ -236,6 +239,52 @@ public static class ReceivableEndpoints
             await db.SaveChangesAsync(ct);
             return (options.Link($"/odeme/{token}"), true);
         }, ct);
+
+    private static async Task<IResult> EmailReminder(
+        Guid contactId, CurrentMember member, AppDbContext db, LedgerService ledger, LinkTokenProtector protector, IOptions<AppOptions> options,
+        IAuditLogger audit, EmailDispatch email, TimeProvider clock, CancellationToken ct)
+    {
+        if (await db.Contacts.AsNoTracking().FirstOrDefaultAsync(c => c.Id == contactId, ct) is not { } contact)
+        {
+            return ContactEndpoints.ContactNotFound();
+        }
+
+        if (string.IsNullOrWhiteSpace(contact.Email))
+        {
+            return Problems.Conflict("no_email", "Müşterinin e-posta adresi kayıtlı değil.");
+        }
+
+        var today = BusinessTime.Today(clock);
+        var items = (await ReceivableQueries.LoadAsync(db, ct, contactId)).FirstOrDefault()?.Items ?? [];
+        var dueNow = items.Where(i => i.DueDate <= today).ToList();
+        var amount = dueNow.Count > 0 ? dueNow.Sum(i => i.Remaining) : items.Sum(i => i.Remaining);
+        if (amount <= 0)
+        {
+            return Problems.Conflict("no_receivable", "Bu müşterinin açık borcu yok.");
+        }
+
+        var business = await db.Businesses.AsNoTracking().FirstAsync(b => b.Id == member.BusinessId, ct);
+        var (url, _) = business.Iban is null
+            ? (null, false)
+            : await EnsurePaymentLinkAsync(db, ledger, protector, options.Value, audit, clock, contactId, amount, ct);
+        var sender = new EmailSender(business.Name, options.Value.ApiLink(business.LogoUrl),
+            business.Phone is { } p ? Infrastructure.Messaging.AppointmentNotifier.FormatPhone(p) : null);
+        await email.TrySendAsync(EmailTemplates.DueReminder(contact.Email.Trim(), sender, contact.DisplayName,
+            amount.ToString("#,##0.00", Tr) + " TL", url), ct, "due-reminder");
+
+        var log = new DueReminderLog
+        {
+            ContactId = contactId,
+            Channel = ReminderChannel.Email,
+            Amount = amount,
+            OldestDueDate = items.Count > 0 ? items.Min(i => i.DueDate) : null,
+            SentAt = clock.GetUtcNow().UtcDateTime,
+        };
+        db.DueReminderLogs.Add(log);
+        audit.Log(AuditAction.DueReminderSent, nameof(DueReminderLog), log.Id, new { contactId, channel = "Email", amount });
+        await db.SaveChangesAsync(ct);
+        return TypedResults.NoContent();
+    }
 
     private static async Task<IResult> LogReminder(
         Guid contactId, ReminderLogRequest request, AppDbContext db, IAuditLogger audit, TimeProvider clock, CancellationToken ct)

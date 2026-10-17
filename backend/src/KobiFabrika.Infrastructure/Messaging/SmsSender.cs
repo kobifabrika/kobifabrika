@@ -65,7 +65,8 @@ public interface ISmsGateway
 }
 
 internal sealed class SmsSender(
-    AppDbContext db, ISmsGateway gateway, SmsCredits credits, TimeProvider clock, ILogger<SmsSender> logger) : ISmsSender
+    AppDbContext db, ISmsGateway gateway, SmsCredits credits, TimeProvider clock, ILogger<SmsSender> logger,
+    IOptionsMonitor<MessagingOptions> messaging) : ISmsSender
 {
     public async Task<MessageLog> SendAsync(SmsMessage message, CancellationToken ct)
     {
@@ -88,6 +89,19 @@ internal sealed class SmsSender(
             RefType = message.RefType,
             RefId = message.RefId,
         };
+
+        // SMS kapalı (pilot; karar 2026-10-17): sağlayıcıya hiç gidilmez, kredi düşmez. Çağıranlar zaten e-posta/WhatsApp'a
+        // yönlenir; bu kayıt son savunma hattıdır.
+        if (!messaging.CurrentValue.SmsEnabled)
+        {
+            log.Status = MessageStatus.Skipped;
+            log.Error = "sms_disabled";
+            log.Billable = false;
+            log.CreditCost = 0;
+            db.MessageLogs.Add(log);
+            await db.SaveChangesAsync(ct);
+            return log;
+        }
 
         if (!billable)
         {

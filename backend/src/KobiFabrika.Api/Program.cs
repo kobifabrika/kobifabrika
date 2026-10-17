@@ -101,6 +101,7 @@ builder.Services.AddScoped<CommissionService>();
 builder.Services.AddScoped<AppointmentBooking>();
 builder.Services.Configure<MarketingOptions>(builder.Configuration.GetSection(MarketingOptions.Section));
 builder.Services.Configure<PublicLinkOptions>(builder.Configuration.GetSection(PublicLinkOptions.Section));
+builder.Services.Configure<BookingOptions>(builder.Configuration.GetSection(BookingOptions.Section));
 builder.Services.AddScoped<CampaignSender>();
 builder.Services.AddScoped<CampaignDispatcher>();
 builder.Services.AddScoped<MarketingSms>();
@@ -151,6 +152,12 @@ builder.Services.AddRateLimiter(options =>
         http.Connection.RemoteIpAddress?.ToString() ?? "unknown",
         _ => new FixedWindowRateLimiterOptions { PermitLimit = bookingSmsLimit, Window = TimeSpan.FromMinutes(10) }));
 
+    // Online randevu oluşturma: IP başına 10 dakikada 5 (kodsuz akışta asıl koruma; telefon ve işletme sınırları ayrıca).
+    var bookingCreateLimit = builder.Configuration.GetValue("RateLimiting:BookingCreatePermitLimit", 5);
+    options.AddPolicy(PublicBookingEndpoints.CreateRateLimit, http => RateLimitPartition.GetFixedWindowLimiter(
+        http.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+        _ => new FixedWindowRateLimiterOptions { PermitLimit = bookingCreateLimit, Window = TimeSpan.FromMinutes(10) }));
+
     // Doğrulama e-postası: kullanıcı başına 60 saniyede bir.
     options.AddPolicy(AuthEndpoints.ResendRateLimit, http => RateLimitPartition.GetFixedWindowLimiter(
         http.User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "anonymous",
@@ -173,6 +180,12 @@ builder.Services.AddOpenApi(options => options.AddDocumentTransformer((document,
     return Task.CompletedTask;
 }));
 builder.Services.AddHealthChecks().AddDbContextCheck<AppDbContext>("database");
+
+// E-posta alt bilgisindeki şirket bilgisi tek ayardan (şirket kurulana kadar "kuruluş aşamasında").
+if (builder.Configuration["Company:EmailFooter"] is { Length: > 0 } companyLine)
+{
+    KobiFabrika.Infrastructure.Email.EmailTemplates.CompanyLine = companyLine;
+}
 
 var app = builder.Build();
 
@@ -250,6 +263,7 @@ app.MapMessageLogEndpoints();
 app.MapContactPrivacyEndpoints();
 app.MapSmsCreditEndpoints();
 app.MapAdminEndpoints();
+app.MapAppointmentNoticeEndpoints();
 app.MapFeedbackEndpoints();
 app.MapSubscriptionEndpoints();
 app.MapCampaignEndpoints();

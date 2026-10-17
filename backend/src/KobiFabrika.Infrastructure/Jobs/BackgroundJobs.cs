@@ -3,6 +3,7 @@ using Hangfire.SqlServer;
 using KobiFabrika.Domain.Appointments;
 using KobiFabrika.Domain.Businesses;
 using KobiFabrika.Domain.Common;
+using KobiFabrika.Infrastructure.Email;
 using KobiFabrika.Infrastructure.Finance;
 using KobiFabrika.Infrastructure.Messaging;
 using KobiFabrika.Infrastructure.Notifications;
@@ -39,6 +40,7 @@ public static class BackgroundJobs
         services.AddScoped<AppointmentReminderJob>();
         services.AddScoped<PhoneVerificationCleanupJob>();
         services.AddScoped<IysSyncJob>();
+        services.AddScoped<RetentionCleanupJob>();
 
         if (!IsEnabled(configuration))
         {
@@ -53,7 +55,8 @@ public static class BackgroundJobs
             {
                 SchemaName = "hangfire",
                 PrepareSchemaIfNecessary = true,
-                QueuePollInterval = TimeSpan.FromSeconds(15),
+                // Uzun yoklama (Hangfire 1.8 önerisi): kuyruğa alınan e-posta saniyeler içinde gider.
+                QueuePollInterval = TimeSpan.Zero,
             }));
         services.AddHangfireServer(options => options.WorkerCount = 2);
         return services;
@@ -69,6 +72,9 @@ public static class BackgroundJobs
         jobs.AddOrUpdate<AppointmentReminderJob>(AppointmentReminderJobId, j => j.RunAsync(CancellationToken.None), Cron.Minutely);
         jobs.AddOrUpdate<PhoneVerificationCleanupJob>(PhoneVerificationCleanupJobId, j => j.RunAsync(CancellationToken.None), Cron.Hourly);
         jobs.AddOrUpdate<IysSyncJob>(IysSyncJobId, j => j.RunAsync(CancellationToken.None), "*/5 * * * *");
+        jobs.AddOrUpdate<EmailDeliveryJob>(EmailDeliveryJob.SweepJobId, j => j.SweepAsync(CancellationToken.None), Cron.Minutely);
+        jobs.AddOrUpdate<RetentionCleanupJob>(RetentionCleanupJob.JobId, j => j.RunAsync(CancellationToken.None), Cron.Daily(4, 0),
+            new RecurringJobOptions { TimeZone = BusinessTime.Zone });
     }
 }
 

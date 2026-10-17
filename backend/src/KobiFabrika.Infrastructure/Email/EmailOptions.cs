@@ -9,6 +9,14 @@ public sealed class EmailOptions
     public string FromAddress { get; set; } = "bildirim@kobifabrika.com";
     public SmtpOptions Smtp { get; set; } = new();
 
+    /// <summary>
+    /// Queue: kuyruğa yazılır, Hangfire işi gönderir (canlı, geliştirme, E2E). Inline: kuyruğa yazılır ve hemen aynı istekte
+    /// gönderilir (Hangfire'ın kapalı olduğu entegrasyon testleri).
+    /// </summary>
+    public string Delivery { get; set; } = "Queue";
+
+    public bool IsInline => string.Equals(Delivery, "Inline", StringComparison.OrdinalIgnoreCase);
+
     public sealed class SmtpOptions
     {
         public string Host { get; set; } = "localhost";

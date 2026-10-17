@@ -84,6 +84,8 @@ public static class DependencyInjection
 
         services.Configure<MessagingOptions>(configuration.GetSection(MessagingOptions.Section));
         services.AddSingleton<IEmailSender, SmtpEmailSender>();
+        services.AddScoped<IEmailQueue, EmailQueue>();
+        services.AddScoped<EmailDeliveryJob>();
         services.AddOptions<SmsOptions>().Bind(configuration.GetSection(SmsOptions.Section))
             .Validate<IHostEnvironment>(SmsOptions.IsSafe, SmsOptions.UnsafeMessage)
             .ValidateOnStart();

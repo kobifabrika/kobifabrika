@@ -5,6 +5,12 @@ namespace KobiFabrika.Domain.Messaging;
 public enum MessageChannel
 {
     Sms,
+
+    /// <summary>E-posta (SMS kapalıyken randevu bildirimleri, Sprint 8). Ücretsiz; kredi düşmez.</summary>
+    Email,
+
+    /// <summary>Panelden WhatsApp (wa.me) ile elle gönderildi; kayıt düğmeye dokununca yazılır (Handed).</summary>
+    WhatsApp,
 }
 
 /// <summary>Mesajın amacı. Doğrulama kodu platformun (işletmenin kredisinden düşmez); diğerleri bilgilendirme.</summary>
@@ -65,6 +71,12 @@ public enum MessageStatus
 
     /// <summary>İşletmenin SMS kredisi yetmedi; sağlayıcıya gönderilmedi (bakiye eksiye düşmez).</summary>
     NoCredit,
+
+    /// <summary>WhatsApp: panelde düğmeye dokunuldu, mesaj kullanıcının WhatsApp'ında açıldı (gönderimi kullanıcı yapar).</summary>
+    Handed,
+
+    /// <summary>Gönderilmedi: SMS kapalı (Messaging:SmsEnabled=false); savunma kaydı.</summary>
+    Skipped,
 }
 
 /// <summary>

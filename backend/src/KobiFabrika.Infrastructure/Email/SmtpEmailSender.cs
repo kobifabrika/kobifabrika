@@ -12,8 +12,19 @@ public sealed class SmtpEmailSender(IOptions<EmailOptions> options) : IEmailSend
     {
         var settings = options.Value;
         var mime = new MimeMessage();
-        mime.From.Add(new MailboxAddress(settings.FromName, settings.FromAddress));
+        mime.From.Add(new MailboxAddress(message.FromName ?? settings.FromName, settings.FromAddress));
         mime.To.Add(MailboxAddress.Parse(message.To));
+        if (message.ReplyTo is { } replyTo && MailboxAddress.TryParse(replyTo, out var reply))
+        {
+            mime.ReplyTo.Add(reply);
+        }
+
+        if (message.ListUnsubscribe is { } unsubscribe)
+        {
+            mime.Headers.Add("List-Unsubscribe", $"<{unsubscribe}>");
+            mime.Headers.Add("List-Unsubscribe-Post", "List-Unsubscribe=One-Click");
+        }
+
         mime.Subject = message.Subject;
         mime.Body = new BodyBuilder { HtmlBody = message.HtmlBody, TextBody = message.TextBody }.ToMessageBody();
 

@@ -126,7 +126,7 @@ public static class AutomationEndpoints
 
     private static async Task<Results<Ok<AutomationResponse>, ProblemHttpResult>> Update(
         string type, AutomationRequest request, AppDbContext db, IAuditLogger audit, TimeProvider clock, IOptions<MarketingOptions> options,
-        IPlanAccess plans, CancellationToken ct)
+        IPlanAccess plans, IOptionsMonitor<Infrastructure.Messaging.MessagingOptions> messaging, CancellationToken ct)
     {
         if (!Enum.TryParse<AutomationType>(type, ignoreCase: false, out var t) || !AutomationDefaults.All.Contains(t))
         {
@@ -137,6 +137,11 @@ public static class AutomationEndpoints
         if (request.IsEnabled && await plans.FeatureBlockedMessageAsync(FeatureOf(t), ct) is { } blocked)
         {
             return Problems.PlanFeature(blocked);
+        }
+
+        if (request.IsEnabled && !messaging.CurrentValue.SmsEnabled)
+        {
+            return Problems.Conflict("sms_disabled", SmsFeatureFilter.Message);
         }
 
         if (Check(t, request, options.Value, out var sendAt) is { } problem)

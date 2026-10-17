@@ -76,6 +76,12 @@ public class Appointment : TenantEntity
 
     /// <summary>Aynı linki SMS'lerde yeniden kullanmak için Data Protection ile şifrelenmiş token.</summary>
     public string? ManageToken { get; set; }
+
+    /// <summary>
+    /// Online randevuda müşterinin girdiği e-posta (isteğe bağlı). Randevu e-postaları buraya gider; doğrulanmadığı için müşteri
+    /// kartındaki e-postanın yerine yazılmaz (kart boşsa doldurulur).
+    /// </summary>
+    public string? BookingEmail { get; set; }
 }
 
 /// <summary>İşletmenin tatil / kapalı günü (elle eklenir). O gün online randevu alınmaz, takvimde kapalı görünür.</summary>

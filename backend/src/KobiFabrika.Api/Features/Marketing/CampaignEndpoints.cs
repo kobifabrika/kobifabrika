@@ -31,10 +31,10 @@ public static class CampaignEndpoints
         group.MapGet("/compose-info", ComposeInfo).RequireAuthorization(Policies.ManageMarketing)
             .WithSummary("Mesaj ekranı: işletme adı, çıkış eki örneği, gönderim aralığı, bakiye");
         group.MapPost("/preview", Preview).RequireAuthorization(Policies.ManageMarketing).Validate<CampaignPreviewRequest>()
-            .RequireFeature(PlanFeatures.Campaigns)
+            .RequireFeature(PlanFeatures.Campaigns).RequireSms()
             .WithSummary("Önizleme: alıcı ve elenen sayıları, 3 örnek mesaj, tahmini kredi");
         group.MapPost("/", Create).RequireAuthorization(Policies.ManageMarketing).Validate<CampaignCreateRequest>()
-            .RequireFeature(PlanFeatures.Campaigns)
+            .RequireFeature(PlanFeatures.Campaigns).RequireSms()
             .Produces<CampaignResponse>(StatusCodes.Status201Created)
             .WithSummary("Hemen gönder veya zamanla (09:00-21:00 dışı 09:00'a kayar). Kredi yetmezse 409 insufficient_credit");
         group.MapGet("/{id:guid}", Get).WithSummary("Kampanya");

@@ -183,22 +183,34 @@ public static class ContactTimeline
                     .Where(m => m.ContactId == contactId && m.CreatedAt < limit)
                     .OrderByDescending(m => m.CreatedAt).Take(take)
                     .ToListAsync(ct))
+                .Where(m => m.Status != Domain.Messaging.MessageStatus.Skipped)
                 .Select(m => new TimelineItem(
-                    "sms", m.CreatedAt,
-                    $"SMS: {Messaging.MessageLabels.Purposes[m.Purpose]}" + m.Status switch
+                    m.Channel switch
+                    {
+                        Domain.Messaging.MessageChannel.Email => "email",
+                        Domain.Messaging.MessageChannel.WhatsApp => "whatsapp",
+                        _ => "sms",
+                    },
+                    m.CreatedAt,
+                    m.Channel switch
+                    {
+                        Domain.Messaging.MessageChannel.Email => "E-posta: ",
+                        Domain.Messaging.MessageChannel.WhatsApp => "WhatsApp: ",
+                        _ => "SMS: ",
+                    } + Messaging.MessageLabels.Purposes[m.Purpose] + m.Status switch
                     {
                         Domain.Messaging.MessageStatus.Failed => " (gönderilemedi)",
                         Domain.Messaging.MessageStatus.NoCredit => " (kredi yetersiz, gönderilmedi)",
                         _ => "",
                     },
-                    m.Body, null, m.Id)));
+                    m.Channel == Domain.Messaging.MessageChannel.WhatsApp ? "WhatsApp'ta açıldı" : m.Body, null, m.Id)));
 
             items.AddRange((await db.DueReminderLogs.AsNoTracking()
                     .Where(r => r.ContactId == contactId && r.SentAt < limit)
                     .OrderByDescending(r => r.SentAt).Take(take)
                     .ToListAsync(ct))
                 .Select(r => new TimelineItem(
-                    "due_reminder", r.SentAt, $"Hatırlatma gönderildi ({(r.Channel == ReminderChannel.WhatsApp ? "WhatsApp" : "SMS")})",
+                    "due_reminder", r.SentAt, $"Hatırlatma gönderildi ({(r.Channel switch { ReminderChannel.WhatsApp => "WhatsApp", ReminderChannel.Email => "e-posta", _ => "SMS" })})",
                     r.OldestDueDate is { } due ? $"Vade {due:dd.MM.yyyy}" : null, r.Amount, r.Id)));
         }
 

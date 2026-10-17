@@ -5,6 +5,7 @@ using KobiFabrika.Api.Features.Marketing;
 using KobiFabrika.Infrastructure.Persistence;
 using KobiFabrika.Infrastructure.Tenancy;
 using KobiFabrika.Tests.Infrastructure;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace KobiFabrika.Tests.Api;
@@ -41,6 +42,10 @@ public abstract partial class MarketingTestBase(SqlServerFixture db) : ApiTestBa
         await EnsureSuccessAsync(response);
         return (await response.Content.ReadFromJsonAsync<JsonElement>(Json, Ct)).GetProperty("balance").GetInt32();
     }
+
+    /// <summary>Pilot işletme (süresiz, limitsiz): saati 14 günden fazla ileri alan testlerde deneme bitip özellikler kapanmasın.</summary>
+    protected Task MakePilotAsync(Guid businessId) =>
+        RawDbAsync(db => db.Businesses.Where(b => b.Id == businessId).ExecuteUpdateAsync(s => s.SetProperty(b => b.IsPilot, true), Ct));
 
     protected async Task<int> BalanceAsync(TestUser owner) => (await GetJsonAsync(owner.Client, "/api/sms-credits")).GetProperty("balance").GetInt32();
 

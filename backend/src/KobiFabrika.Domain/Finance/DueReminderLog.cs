@@ -6,6 +6,9 @@ public enum ReminderChannel
 {
     WhatsApp,
     Sms,
+
+    /// <summary>E-posta (Sprint 8; kuyruktan gider).</summary>
+    Email,
 }
 
 /// <summary>

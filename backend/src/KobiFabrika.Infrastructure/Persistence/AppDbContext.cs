@@ -103,6 +103,7 @@ public class AppDbContext : IdentityDbContext<AppUser, AppRole, Guid>
     public DbSet<PlatformAuditLog> PlatformAuditLogs => Set<PlatformAuditLog>();
     public DbSet<SupportNote> SupportNotes => Set<SupportNote>();
     public DbSet<Feedback> Feedbacks => Set<Feedback>();
+    public DbSet<OutboundEmail> OutboundEmails => Set<OutboundEmail>();
 
     /// <summary>
     /// Query filter'lar bu özelliğe başvurur; EF her sorguda bu context örneğinin
