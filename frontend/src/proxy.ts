@@ -18,6 +18,26 @@ export function proxy(request: NextRequest) {
   return NextResponse.redirect(login);
 }
 
+/**
+ * Prefetch istekleri proxy'ye girmez: çıkıştan hemen sonra menüdeki bağlantıların segment prefetch'i cookie'siz gelince
+ * /giris'e yönlenip orada olmayan segmenti istiyor ve 404 alıyordu. Prefetch veri taşımaz (PanelGate korur); gerçek
+ * gezinme yine buradan geçer. Next bu ayarı derlemede statik okur; değerler satır içinde kalmalı.
+ */
 export const config = {
-  matcher: ["/panel/:path*", "/kurulum"],
+  matcher: [
+    {
+      source: "/panel/:path*",
+      missing: [
+        { type: "header", key: "next-router-prefetch" },
+        { type: "header", key: "purpose", value: "prefetch" },
+      ],
+    },
+    {
+      source: "/kurulum",
+      missing: [
+        { type: "header", key: "next-router-prefetch" },
+        { type: "header", key: "purpose", value: "prefetch" },
+      ],
+    },
+  ],
 };
