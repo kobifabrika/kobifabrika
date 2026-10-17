@@ -1,3 +1,4 @@
+using KobiFabrika.Infrastructure.Billing;
 using Microsoft.AspNetCore.Http.HttpResults;
 
 namespace KobiFabrika.Api.Common;
@@ -22,6 +23,15 @@ public static class Problems
 
     public static ProblemHttpResult TooManyRequests(string code, string detail, IDictionary<string, object?>? extra = null) =>
         WithCode(StatusCodes.Status429TooManyRequests, code, detail, extra);
+
+    /// <summary>Paket limiti doldu: 403 <c>plan_limit</c> + limit ve kullanılan.</summary>
+    public static ProblemHttpResult PlanLimit(PlanCheck check) =>
+        WithCode(StatusCodes.Status403Forbidden, "plan_limit", check.Message ?? "Paketinizin sınırına ulaştınız.",
+            new Dictionary<string, object?> { ["limit"] = check.Limit, ["used"] = check.Used });
+
+    /// <summary>Özellik paketinizde kapalı: 403 <c>plan_feature</c>.</summary>
+    public static ProblemHttpResult PlanFeature(string message) =>
+        WithCode(StatusCodes.Status403Forbidden, "plan_feature", message);
 
     private static ProblemHttpResult WithCode(int status, string code, string detail, IDictionary<string, object?>? extra = null)
     {

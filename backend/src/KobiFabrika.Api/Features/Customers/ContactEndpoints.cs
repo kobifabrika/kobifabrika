@@ -4,10 +4,10 @@ using KobiFabrika.Api.Features.Staff;
 using KobiFabrika.Api.Features.Finance;
 using KobiFabrika.Domain.Auditing;
 using KobiFabrika.Domain.Common;
+using KobiFabrika.Infrastructure.Billing;
 using KobiFabrika.Domain.Contacts;
 using KobiFabrika.Domain.Finance;
 using KobiFabrika.Infrastructure.Auditing;
-using KobiFabrika.Infrastructure.Billing;
 using KobiFabrika.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
@@ -56,6 +56,7 @@ public static class ContactEndpoints
         CurrentMember member,
         AppDbContext db,
         TimeProvider clock,
+        IPlanAccess plans,
         CancellationToken ct,
         string? search = null,
         string? type = null,
@@ -82,6 +83,12 @@ public static class ContactEndpoints
                 if (ContactQueries.SystemSegmentUsesBalance(segment) && !member.CanViewFinance)
                 {
                     return FinanceForbidden();
+                }
+
+                if (segment == SystemSegments.AtRisk
+                    && await plans.FeatureBlockedMessageAsync(Domain.Billing.PlanFeatures.RiskList, ct) is { } blocked)
+                {
+                    return Problems.PlanFeature(blocked);
                 }
 
                 query = query.ApplySystemSegment(segment, clock);
@@ -189,7 +196,7 @@ public static class ContactEndpoints
         AppDbContext db,
         LedgerService ledger,
         IAuditLogger audit,
-        IPlanLimits limits,
+        IPlanAccess plans,
         TimeProvider clock,
         CancellationToken ct)
     {
@@ -198,9 +205,9 @@ public static class ContactEndpoints
             return (ValidationProblem)Validation.FieldProblem("openingBalance.amount", "Açılış bakiyesini sadece Sahip ve Yönetici girebilir.");
         }
 
-        if (!await limits.CanAddContactsAsync(1, ct))
+        if (request.IsCustomer && await plans.CheckContactsAsync(1, ct) is { Allowed: false } limit)
         {
-            return Problems.Forbidden("plan_limit", "Paketinizin müşteri sınırına ulaştınız.");
+            return Problems.PlanLimit(limit);
         }
 
         var contact = new Contact();

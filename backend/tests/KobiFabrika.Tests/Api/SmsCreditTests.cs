@@ -149,7 +149,7 @@ public sealed class SmsCreditTests(SqlServerFixture db) : MarketingTestBase(db)
         var admin = await PlatformAdminAsync();
         (await GetJsonAsync(admin.Client, "/api/auth/me")).GetProperty("user").GetProperty("isPlatformAdmin").GetBoolean().ShouldBeTrue();
         (await GetJsonAsync(owner.Client, "/api/auth/me")).GetProperty("user").GetProperty("isPlatformAdmin").GetBoolean().ShouldBeFalse();
-        var found = await GetJsonAsync(admin.Client, "/api/admin/businesses?search=Kredi%20Kuaf%C3%B6r");
+        var found = (await GetJsonAsync(admin.Client, "/api/admin/businesses?search=Kredi%20Kuaf%C3%B6r")).GetProperty("items");
         found.EnumerateArray().Select(b => b.GetProperty("id").GetGuid()).ShouldContain(businessId);
         found.EnumerateArray().First(b => b.GetProperty("id").GetGuid() == businessId).GetProperty("ownerEmail").GetString().ShouldBe(owner.Email);
 

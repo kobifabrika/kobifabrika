@@ -58,7 +58,8 @@ public sealed record CampaignResponse(
     int CreditUsed,
     bool RanOutOfCredit,
     DateTime CreatedAt,
-    string? CreatedByName);
+    string? CreatedByName,
+    bool StoppedByPlan);
 
 public sealed record CampaignListResponse(IReadOnlyList<CampaignResponse> Items, int Total);
 
@@ -142,8 +143,6 @@ public sealed class SmsSettingsRequestValidator : AbstractValidator<SmsSettingsR
 }
 
 // --- Platform (kredi yükleme) ---
-
-public sealed record AdminBusinessItem(Guid Id, string Name, string Slug, string? OwnerEmail, int SmsBalance, DateTime CreatedAt);
 
 public sealed record AdminTopUpRequest(int Amount, string Note);
 

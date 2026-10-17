@@ -1,4 +1,6 @@
 using FluentValidation;
+using KobiFabrika.Domain.Billing;
+using KobiFabrika.Infrastructure.Billing;
 using KobiFabrika.Api.Common;
 using KobiFabrika.Api.Common.Authorization;
 using KobiFabrika.Domain.Auditing;
@@ -60,9 +62,15 @@ public static class BookingSettingsEndpoints
         TypedResults.Ok(await ResponseAsync(db, await db.Businesses.AsNoTracking().SingleAsync(b => b.Id == member.BusinessId, ct), ct));
 
     private static async Task<Results<Ok<BookingSettingsResponse>, ProblemHttpResult>> Update(
-        BookingSettingsRequest request, CurrentMember member, AppDbContext db, IAuditLogger audit, CancellationToken ct)
+        BookingSettingsRequest request, CurrentMember member, AppDbContext db, IAuditLogger audit, IPlanAccess plans, CancellationToken ct)
     {
         var business = await db.Businesses.SingleAsync(b => b.Id == member.BusinessId, ct);
+        // Paket online randevuyu kapsamıyorsa sayfa açılamaz; açık kalmışsa kapatılabilir ve diğer ayarlar değişebilir.
+        if (request.Enabled && await plans.FeatureBlockedMessageAsync(PlanFeatures.OnlineBooking, ct) is { } blocked)
+        {
+            return Problems.PlanFeature(blocked);
+        }
+
         if (request.Enabled && !business.BookingEnabled && (await PublicBookingQueries.CountsAsync(db, ct)).Staff == 0)
         {
             return Problems.Conflict("booking_no_staff",

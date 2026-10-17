@@ -99,6 +99,25 @@ public class Business : Entity, ISoftDeletable, IAuditable
     /// <summary>Müşteri randevusunu en az kaç saat kala iptal edebilir (0 = müşteri iptal edemez).</summary>
     public int CustomerCancelHours { get; set; } = 2;
 
+    /// <summary>Paket kodu (Plans.Code). Deneme bitince geçerli olan paket; yeni işletmede Çırak.</summary>
+    public string PlanCode { get; set; } = Billing.PlanCodes.Cirak;
+
+    /// <summary>Deneme bitişi (kurulum + 14 gün). Bu ana kadar bütün özellikler açık.</summary>
+    public DateTime? TrialEndsAt { get; set; }
+
+    /// <summary>Pilot işletme (süper admin işaretler): süresiz, limitsiz, bütün özellikler.</summary>
+    public bool IsPilot { get; set; }
+
+    /// <summary>Süper admin salt okunur moda aldı: bütün yazmalar ve otomatik gönderimler durur.</summary>
+    public bool IsReadOnly { get; set; }
+
+    public string? ReadOnlyReason { get; set; }
+
+    /// <summary>İşletmenin istediği paket (kayıtta ?paket= veya abonelik ekranından); ödeme yok, destek değiştirir.</summary>
+    public string? RequestedPlanCode { get; set; }
+
+    public string? RequestedPeriod { get; set; }
+
     public static readonly int[] BookingSlotOptions = [5, 10, 15, 20, 30, 60];
     public const int MaxBookingDaysAhead = 180;
     public const int MaxBookingMinNoticeMinutes = 7 * 24 * 60;

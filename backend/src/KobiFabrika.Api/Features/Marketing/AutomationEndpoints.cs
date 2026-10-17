@@ -2,6 +2,8 @@ using FluentValidation;
 using KobiFabrika.Api.Common;
 using KobiFabrika.Api.Common.Authorization;
 using KobiFabrika.Domain.Auditing;
+using KobiFabrika.Domain.Billing;
+using KobiFabrika.Infrastructure.Billing;
 using KobiFabrika.Domain.Common;
 using KobiFabrika.Domain.Marketing;
 using KobiFabrika.Domain.Messaging;
@@ -57,6 +59,10 @@ public static class AutomationEndpoints
     }
 
     private static bool IsMarketing(AutomationType type) => type != AutomationType.DueReminder;
+
+    /// <summary>Memnuniyet anketi Usta'da (anket özelliği), diğerleri otomasyon özelliği.</summary>
+    public static PlanFeatures FeatureOf(AutomationType type) =>
+        type == AutomationType.Survey ? PlanFeatures.Automations | PlanFeatures.Surveys : PlanFeatures.Automations;
 
     private static async Task<Ok<IReadOnlyList<AutomationResponse>>> List(AppDbContext db, TimeProvider clock, CancellationToken ct)
     {
@@ -120,11 +126,17 @@ public static class AutomationEndpoints
 
     private static async Task<Results<Ok<AutomationResponse>, ProblemHttpResult>> Update(
         string type, AutomationRequest request, AppDbContext db, IAuditLogger audit, TimeProvider clock, IOptions<MarketingOptions> options,
-        CancellationToken ct)
+        IPlanAccess plans, CancellationToken ct)
     {
         if (!Enum.TryParse<AutomationType>(type, ignoreCase: false, out var t) || !AutomationDefaults.All.Contains(t))
         {
             return Problems.NotFound("Otomasyon bulunamadı.");
+        }
+
+        // Paket kapsamıyorsa açılamaz ve düzenlenemez; açık kalmış otomasyon kapatılabilir (çalışmaz zaten).
+        if (request.IsEnabled && await plans.FeatureBlockedMessageAsync(FeatureOf(t), ct) is { } blocked)
+        {
+            return Problems.PlanFeature(blocked);
         }
 
         if (Check(t, request, options.Value, out var sendAt) is { } problem)

@@ -44,6 +44,9 @@ public sealed class KobiFabrikaApiFactory : WebApplicationFactory<Program>
     public string MarketingWindowStart { get; init; } = "00:00";
     public string MarketingWindowEnd { get; init; } = "24:00";
     public int MarketingBatchSize { get; init; } = 100;
+
+    /// <summary>Messaging:SmsEnabled. Sprint 5-7 testleri SMS açıkken yazıldı; SMS'siz pilot modu testleri false verir.</summary>
+    public bool SmsEnabled { get; init; } = true;
     public string StoragePath { get; } = Path.Combine(Path.GetTempPath(), "kf-tests-" + Guid.NewGuid().ToString("N"));
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
@@ -63,6 +66,7 @@ public sealed class KobiFabrikaApiFactory : WebApplicationFactory<Program>
         builder.UseSetting("Marketing:SendWindowStart", MarketingWindowStart);
         builder.UseSetting("Marketing:SendWindowEnd", MarketingWindowEnd);
         builder.UseSetting("Marketing:BatchSize", MarketingBatchSize.ToString());
+        builder.UseSetting("Messaging:SmsEnabled", SmsEnabled ? "true" : "false");
         // Arka plan işleri testte zamanlanmaz; iş sınıfları doğrudan çağrılır.
         builder.UseSetting("Hangfire:Enabled", "false");
         builder.ConfigureTestServices(services =>

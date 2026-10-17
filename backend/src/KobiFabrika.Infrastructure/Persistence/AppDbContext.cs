@@ -2,6 +2,7 @@ using System.Linq.Expressions;
 using System.Reflection;
 using KobiFabrika.Domain.Appointments;
 using KobiFabrika.Domain.Auditing;
+using KobiFabrika.Domain.Billing;
 using KobiFabrika.Domain.Businesses;
 using KobiFabrika.Domain.Catalog;
 using KobiFabrika.Domain.Common;
@@ -11,6 +12,7 @@ using KobiFabrika.Domain.Imports;
 using KobiFabrika.Domain.Marketing;
 using KobiFabrika.Domain.Messaging;
 using KobiFabrika.Domain.Notifications;
+using KobiFabrika.Domain.Platform;
 using KobiFabrika.Domain.Sales;
 using KobiFabrika.Domain.Staff;
 using KobiFabrika.Domain.Users;
@@ -97,6 +99,10 @@ public class AppDbContext : IdentityDbContext<AppUser, AppRole, Guid>
     public DbSet<Automation> Automations => Set<Automation>();
     public DbSet<AutomationSend> AutomationSends => Set<AutomationSend>();
     public DbSet<Survey> Surveys => Set<Survey>();
+    public DbSet<Plan> Plans => Set<Plan>();
+    public DbSet<PlatformAuditLog> PlatformAuditLogs => Set<PlatformAuditLog>();
+    public DbSet<SupportNote> SupportNotes => Set<SupportNote>();
+    public DbSet<Feedback> Feedbacks => Set<Feedback>();
 
     /// <summary>
     /// Query filter'lar bu özelliğe başvurur; EF her sorguda bu context örneğinin

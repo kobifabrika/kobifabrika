@@ -38,13 +38,14 @@ public static class CommissionText
 /// karşılık iptal günü ve ayıyla eksi kayıt yazılır; kapanmış ayın tutarı değişmez. Satır başına tek tahakkuk ve tek iptal
 /// (benzersiz indeks).
 /// </summary>
-public sealed class CommissionService(AppDbContext db, TimeProvider clock)
+public sealed class CommissionService(AppDbContext db, TimeProvider clock, KobiFabrika.Infrastructure.Billing.IPlanAccess plans)
 {
     /// <summary>Satışın satırları kaydedildikten (Id ve paket bağlantısı belli) sonra çağrılır; SaveChanges çağıran tarafta.</summary>
     public async Task AccrueAsync(Sale sale, CancellationToken ct)
     {
         var lines = sale.Lines.Where(l => l.StaffMemberId is not null && l.LineTotal - l.VatAmount > 0).ToList();
-        if (lines.Count == 0)
+        // Prim Usta'da (karar 2026-10-17): paket kapsamıyorsa prim yazılmaz; geçmiş primler kalır, iptalde eksi kaydı yine yazılır.
+        if (lines.Count == 0 || !(await plans.GetAsync(ct)).Has(Domain.Billing.PlanFeatures.Commissions))
         {
             return;
         }

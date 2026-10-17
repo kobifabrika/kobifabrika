@@ -117,6 +117,9 @@ public enum AuditAction
 
     /// <summary>Personel rolü satış satırına varsayılandan farklı personel seçti (prim başkasına yazılır).</summary>
     SaleLineStaffChanged,
+
+    /// <summary>KobiFabrika destek (süper admin) işletmenin paketini, pilot/deneme/salt okunur durumunu değiştirdi (Sprint 8).</summary>
+    PlatformAccountChanged,
 }
 
 /// <summary>

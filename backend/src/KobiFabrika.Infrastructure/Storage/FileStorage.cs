@@ -80,3 +80,64 @@ public sealed class LocalFileStorage(IOptions<StorageOptions> options, IHostEnvi
         return fullPath;
     }
 }
+
+/// <summary>
+/// Herkese açık olmayan dosyalar (geri bildirim ekran görüntüsü). <c>/files</c> altında sunulmaz; sadece yetkili uç okur.
+/// Anahtar göreli yoldur ("feedback/{id}.png"). Klasör <c>Storage:PrivatePath</c> (varsayılan App_Data/private).
+/// </summary>
+public interface IPrivateFileStorage
+{
+    Task<string> SaveAsync(string key, Stream content, CancellationToken cancellationToken = default);
+    Task<byte[]?> ReadAsync(string key, CancellationToken cancellationToken = default);
+    Task DeleteAsync(string key, CancellationToken cancellationToken = default);
+}
+
+public sealed class PrivateStorageOptions
+{
+    public string PrivatePath { get; set; } = "App_Data/private";
+}
+
+public sealed class LocalPrivateFileStorage(IOptions<PrivateStorageOptions> options, IHostEnvironment env) : IPrivateFileStorage
+{
+    public string RootPath { get; } = Path.GetFullPath(Path.Combine(env.ContentRootPath, options.Value.PrivatePath));
+
+    public async Task<string> SaveAsync(string key, Stream content, CancellationToken cancellationToken = default)
+    {
+        var fullPath = Resolve(key);
+        Directory.CreateDirectory(Path.GetDirectoryName(fullPath)!);
+        await using (var file = File.Create(fullPath))
+        {
+            await content.CopyToAsync(file, cancellationToken);
+        }
+
+        return key;
+    }
+
+    public async Task<byte[]?> ReadAsync(string key, CancellationToken cancellationToken = default)
+    {
+        var fullPath = Resolve(key);
+        return File.Exists(fullPath) ? await File.ReadAllBytesAsync(fullPath, cancellationToken) : null;
+    }
+
+    public Task DeleteAsync(string key, CancellationToken cancellationToken = default)
+    {
+        var fullPath = Resolve(key);
+        if (File.Exists(fullPath))
+        {
+            File.Delete(fullPath);
+        }
+
+        return Task.CompletedTask;
+    }
+
+    private string Resolve(string key)
+    {
+        var fullPath = Path.GetFullPath(Path.Combine(RootPath, key));
+        if (!fullPath.StartsWith(RootPath + Path.DirectorySeparatorChar, StringComparison.Ordinal))
+        {
+            throw new InvalidOperationException("Geçersiz dosya yolu.");
+        }
+
+        return fullPath;
+    }
+}

@@ -2,6 +2,7 @@ using KobiFabrika.Api.Common;
 using KobiFabrika.Api.Features.Finance;
 using KobiFabrika.Domain.Appointments;
 using KobiFabrika.Domain.Common;
+using KobiFabrika.Infrastructure.Billing;
 using KobiFabrika.Infrastructure.Persistence;
 using KobiFabrika.Infrastructure.Tenancy;
 using Microsoft.EntityFrameworkCore;
@@ -13,8 +14,10 @@ namespace KobiFabrika.Api.Features.Appointments;
 /// <c>UPDLOCK, HOLDLOCK</c> ile kilitlenir; aynı personele gelen istekler sıraya girer, çakışma sorgusu kilitten sonra çalışır.
 /// Böylece aynı saate eşzamanlı 10 istekten yalnız biri kaydolur; farklı personellerin istekleri birbirini beklemez.
 /// Kilit sırası: personel → randevu → (satış zinciri: numara → satış → cari → kasa → stok).
+/// Aylık randevu limiti olan pakette personelden sonra işletme satırı da kilitlenir: farklı personellere paralel gelen
+/// istekler sınırı aşamaz (karar günlüğü 2026-10-17).
 /// </summary>
-public sealed class AppointmentBooking(AppDbContext db, LedgerService ledger, ITenantContext tenant)
+public sealed class AppointmentBooking(AppDbContext db, LedgerService ledger, ITenantContext tenant, IPlanAccess plans)
 {
     /// <summary>
     /// Randevuyu (eklenmiş veya değiştirilmiş, izlenen entity) kaydeder. Personel pasif/silinmişse 409 <c>staff_inactive</c>,
@@ -39,9 +42,41 @@ public sealed class AppointmentBooking(AppDbContext db, LedgerService ledger, IT
                 throw new ConflictException("appointment_overlap", overlap);
             }
 
+            await EnsureMonthlyLimitAsync(appointment, businessId, ct);
             await db.SaveChangesAsync(ct);
             return true;
         }, ct);
+
+    /// <summary>
+    /// Yeni randevuda veya başka aya taşımada aylık limit (iptaller sayılmaz). Paket düştükten sonra limit üstü aydaki mevcut
+    /// randevular düzenlenebilir; sadece o aya yeni randevu eklenemez.
+    /// </summary>
+    private async Task EnsureMonthlyLimitAsync(Appointment appointment, Guid businessId, CancellationToken ct)
+    {
+        if (appointment.Status == AppointmentStatus.Cancelled || (await plans.GetAsync(ct)).MaxAppointmentsPerMonth is null)
+        {
+            return;
+        }
+
+        var entry = db.Entry(appointment);
+        if (entry.State != EntityState.Added)
+        {
+            var before = BusinessTime.LocalDay(entry.Property(a => a.StartAt).OriginalValue);
+            var after = BusinessTime.LocalDay(appointment.StartAt);
+            if (before.Year == after.Year && before.Month == after.Month)
+            {
+                return;
+            }
+        }
+
+        await db.Database.SqlQuery<Guid>($"""
+            SELECT [Id] AS [Value] FROM [Businesses] WITH (UPDLOCK, HOLDLOCK) WHERE [Id] = {businessId}
+            """).ToListAsync(ct);
+        if (await plans.CheckAppointmentAsync(appointment.StartAt, appointment.Id, ct) is { Allowed: false } limit)
+        {
+            throw new ForbiddenException("plan_limit", limit.Message!);
+        }
+    }
 
     /// <summary>Personelin bu aralıkla çakışan (iptal olmayan) randevusu varsa Türkçe açıklama.</summary>
     public static async Task<string?> OverlapMessageAsync(

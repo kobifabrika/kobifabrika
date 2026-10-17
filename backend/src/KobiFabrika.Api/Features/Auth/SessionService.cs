@@ -1,5 +1,8 @@
 using KobiFabrika.Api.Common.Authorization;
+using KobiFabrika.Domain.Billing;
 using KobiFabrika.Domain.Businesses;
+using KobiFabrika.Infrastructure.Messaging;
+using Microsoft.Extensions.Options;
 using KobiFabrika.Infrastructure.Identity;
 using KobiFabrika.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Identity;
@@ -7,7 +10,35 @@ using Microsoft.EntityFrameworkCore;
 
 namespace KobiFabrika.Api.Features.Auth;
 
-public sealed record MeResponse(MeUser User, MeBusiness? Business, BusinessRole? Role, IReadOnlyList<MeMembership> Memberships);
+public sealed record MeResponse(
+    MeUser User, MeBusiness? Business, BusinessRole? Role, IReadOnlyList<MeMembership> Memberships, MePlatform Platform);
+
+/// <summary>Platform ayarları: SMS kapalıyken SMS ekranları gizlenir, WhatsApp/e-posta akışları görünür.</summary>
+public sealed record MePlatform(bool SmsEnabled);
+
+/// <summary>
+/// Etkin paket. Features: açık özellikler (campaigns, automations, onlineBooking, commissions, surveys, riskList).
+/// Limitlerde null = sınırsız. RequestedPlan/RequestedPeriod: işletmenin seçtiği paket (ödeme yok).
+/// </summary>
+public sealed record MePlan(
+    PlanStatus Status,
+    string Code,
+    string Name,
+    DateTime? TrialEndsAt,
+    bool IsReadOnly,
+    IReadOnlyList<string> Features,
+    int? MaxUsers,
+    int? MaxContacts,
+    int? MaxAppointmentsPerMonth,
+    string? RequestedPlan,
+    string? RequestedPeriod)
+{
+    public static IReadOnlyList<string> FeatureKeys(PlanFeatures features) =>
+        Enum.GetValues<PlanFeatures>()
+            .Where(f => f is not PlanFeatures.None and not PlanFeatures.All && features.HasFlag(f))
+            .Select(f => System.Text.Json.JsonNamingPolicy.CamelCase.ConvertName(f.ToString()))
+            .ToList();
+}
 
 /// <summary>IsPlatformAdmin: KobiFabrika ekibi (menüde "Kredi yükle (platform)" ekranı).</summary>
 public sealed record MeUser(Guid Id, string FullName, string Email, bool EmailConfirmed, string? Phone, bool IsPlatformAdmin);
@@ -30,7 +61,8 @@ public sealed record MeBusiness(
     string? City,
     string? District,
     int ReceiptWidth,
-    int DefaultDueDays);
+    int DefaultDueDays,
+    MePlan Plan);
 
 public sealed record ModulesDto(bool Appointments, bool Stock)
 {
@@ -51,7 +83,9 @@ public sealed class SessionService(
     AppDbContext db,
     UserManager<AppUser> users,
     SignInManager<AppUser> signIn,
-    PlatformAdmins admins)
+    PlatformAdmins admins,
+    TimeProvider clock,
+    IOptionsMonitor<MessagingOptions> messaging)
 {
     /// <summary>Kullanıcının aktif üyelikleri; en son seçilen önce, sonra en eski üyelik.</summary>
     private Task<List<MeMembership>> ActiveMembershipsAsync(Guid userId, CancellationToken ct) =>
@@ -99,19 +133,24 @@ public sealed class SessionService(
         MeBusiness? business = null;
         if (current is not null)
         {
-            business = await db.Businesses
-                .Where(b => b.Id == current.BusinessId)
-                .Select(b => new MeBusiness(
-                    b.Id, b.Name, b.Slug, b.Sector, b.Template, ModulesDto.From(b.Modules), b.LogoUrl, b.SetupCompletedAt != null,
-                    b.Phone, b.Address, b.City, b.District, b.ReceiptWidth, b.DefaultDueDays))
-                .FirstAsync(ct);
+            var b = await db.Businesses.AsNoTracking().FirstAsync(x => x.Id == current.BusinessId, ct);
+            var plans = await db.Plans.AsNoTracking().ToListAsync(ct);
+            var effective = EffectivePlan.Resolve(plans.Single(p => p.Code == b.PlanCode), plans.Single(p => p.Code == PlanCodes.Usta),
+                b.IsPilot, b.TrialEndsAt, b.IsReadOnly, clock.GetUtcNow().UtcDateTime);
+            var plan = new MePlan(effective.Status, effective.PlanCode, effective.PlanName, effective.TrialEndsAt, effective.IsReadOnly,
+                MePlan.FeatureKeys(effective.Features), effective.MaxUsers, effective.MaxContacts, effective.MaxAppointmentsPerMonth,
+                b.RequestedPlanCode, b.RequestedPeriod);
+            business = new MeBusiness(
+                b.Id, b.Name, b.Slug, b.Sector, b.Template, ModulesDto.From(b.Modules), b.LogoUrl, b.SetupCompletedAt != null,
+                b.Phone, b.Address, b.City, b.District, b.ReceiptWidth, b.DefaultDueDays, plan);
         }
 
         return new MeResponse(
             new MeUser(user.Id, user.FullName, user.Email!, user.EmailConfirmed, user.PhoneNumber, await admins.IsAdminAsync(user.Id)),
             business,
             current?.Role,
-            memberships);
+            memberships,
+            new MePlatform(messaging.CurrentValue.SmsEnabled));
     }
 
     public static Guid? ActiveBusinessOf(CurrentMember member) => member.IsMember ? member.BusinessId : null;

@@ -32,7 +32,6 @@ public static class SmsCreditEndpoints
             .Validate<SmsSettingsRequest>().WithSummary("Düşük bakiye uyarı eşiği (0 = kapalı)");
 
         var admin = app.MapGroup("/api/admin").WithTags("Admin").RequireAuthorization(Policies.PlatformAdmin);
-        admin.MapGet("/businesses", AdminBusinesses).WithSummary("İşletme ara (kredi yükleme için; ad, slug, sahip e-postası)");
         admin.MapPost("/businesses/{id:guid}/sms-credits", AdminTopUp).Validate<AdminTopUpRequest>().WithSummary("SMS kredisi yükle");
         return app;
     }
@@ -147,28 +146,8 @@ public static class SmsCreditEndpoints
 
     // --- Platform ---
 
-    private static async Task<Ok<IReadOnlyList<AdminBusinessItem>>> AdminBusinesses(AppDbContext db, CancellationToken ct, string? search = null)
-    {
-        var term = search?.Trim();
-        var query = db.Businesses.AsNoTracking().Where(b => b.SetupCompletedAt != null);
-        if (!string.IsNullOrEmpty(term))
-        {
-            query = query.Where(b => b.Name.Contains(term) || b.Slug.Contains(term)
-                || db.BusinessMemberships.Any(m => m.BusinessId == b.Id && m.Role == BusinessRole.Owner
-                    && db.Users.Any(u => u.Id == m.UserId && u.Email!.Contains(term))));
-        }
-
-        var items = await query.OrderBy(b => b.Name).Take(20)
-            .Select(b => new AdminBusinessItem(b.Id, b.Name, b.Slug,
-                db.BusinessMemberships.Where(m => m.BusinessId == b.Id && m.Role == BusinessRole.Owner && m.IsActive)
-                    .OrderBy(m => m.CreatedAt).Select(m => db.Users.Where(u => u.Id == m.UserId).Select(u => u.Email).FirstOrDefault()).FirstOrDefault(),
-                b.SmsBalance, b.CreatedAt))
-            .ToListAsync(ct);
-        return TypedResults.Ok<IReadOnlyList<AdminBusinessItem>>(items);
-    }
-
     private static async Task<Results<Ok<AdminTopUpResponse>, ProblemHttpResult>> AdminTopUp(
-        Guid id, AdminTopUpRequest request, CurrentMember member, AppDbContext db, IServiceScopeFactory scopes, CancellationToken ct)
+        Guid id, AdminTopUpRequest request, CurrentMember member, AppDbContext db, IServiceScopeFactory scopes, HttpContext http, CancellationToken ct)
     {
         var business = await db.Businesses.AsNoTracking().Where(b => b.Id == id && b.SetupCompletedAt != null)
             .Select(b => new { b.Id, b.Name }).FirstOrDefaultAsync(ct);
@@ -187,6 +166,8 @@ public static class SmsCreditEndpoints
         var tenantDb = scope.ServiceProvider.GetRequiredService<AppDbContext>();
         scope.ServiceProvider.GetRequiredService<IAuditLogger>().Log(AuditAction.SmsCreditsAdded, nameof(Business), business.Id,
             new { amount = request.Amount, note = request.Note.Trim(), balance, by = "KobiFabrika" });
+        Admin.AdminEndpoints.Log(tenantDb, member, http, business.Id, Domain.Platform.PlatformAction.SmsCreditsAdded,
+            new { amount = request.Amount, note = request.Note.Trim(), balance }, scope.ServiceProvider.GetRequiredService<TimeProvider>().GetUtcNow().UtcDateTime);
         await tenantDb.SaveChangesAsync(ct);
         return TypedResults.Ok(new AdminTopUpResponse(business.Id, business.Name, balance));
     }

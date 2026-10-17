@@ -223,7 +223,7 @@ public sealed class InvitationTests(SqlServerFixture db) : ApiTestBase(db)
         var businessId = (await GetJsonAsync(owner.Client, "/api/business")).GetProperty("id").GetGuid();
         using var scope = Factory.Services.CreateScope();
         scope.ServiceProvider.GetRequiredService<TenantContext>().Set(businessId);
-        var count = await scope.ServiceProvider.GetRequiredService<IPlanLimits>().CountBillableUsersAsync(Ct);
+        var count = await scope.ServiceProvider.GetRequiredService<IPlanAccess>().CountBillableUsersAsync(Ct);
 
         // Owner + Staff üye, Manager bekleyen davet; iki Mali Müşavir sayılmaz.
         count.ShouldBe(3);

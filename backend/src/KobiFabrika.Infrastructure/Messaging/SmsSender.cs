@@ -8,6 +8,17 @@ using Microsoft.Extensions.Options;
 
 namespace KobiFabrika.Infrastructure.Messaging;
 
+/// <summary>
+/// "Messaging" bölümü. SmsEnabled tek ayardır (karar 2026-10-17): kapalıyken hiçbir SMS gönderilmez; randevu bildirimleri
+/// e-postayla ve WhatsApp düğmeleriyle gider, online randevu kodsuz çalışır, SMS ekranları gizlenir. Canlıda varsayılan kapalı.
+/// </summary>
+public sealed class MessagingOptions
+{
+    public const string Section = "Messaging";
+
+    public bool SmsEnabled { get; set; }
+}
+
 /// <summary>"Sms" bölümü.</summary>
 public sealed class SmsOptions
 {

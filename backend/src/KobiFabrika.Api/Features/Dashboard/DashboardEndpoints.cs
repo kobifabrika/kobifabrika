@@ -78,7 +78,8 @@ public static class DashboardEndpoints
         return app;
     }
 
-    internal static async Task<Ok<DashboardResponse>> Today(CurrentMember member, AppDbContext db, TimeProvider clock, CancellationToken ct)
+    internal static async Task<Ok<DashboardResponse>> Today(
+        CurrentMember member, AppDbContext db, TimeProvider clock, KobiFabrika.Infrastructure.Billing.IPlanAccess plans, CancellationToken ct)
     {
         var today = BusinessTime.Today(clock);
         var (dayStart, dayEnd) = BusinessTime.DayRangeUtc(today);
@@ -157,7 +158,9 @@ public static class DashboardEndpoints
         {
             marketing = new Marketing.DashboardMarketing(
                 await Marketing.MarketingSuggestions.EmptySlotsAsync(db, member.RequiredBusinessId, today.AddDays(1), clock, ct),
-                await Marketing.MarketingSuggestions.AtRiskAsync(db, clock, ct));
+                (await plans.GetAsync(ct)).Has(Domain.Billing.PlanFeatures.RiskList)
+                    ? await Marketing.MarketingSuggestions.AtRiskAsync(db, clock, ct)
+                    : new Marketing.AtRiskSummary(0, []));
         }
 
         DashboardStaff? staff = null;

@@ -169,7 +169,7 @@ public static class TeamEndpoints
         InviteRequest request,
         CurrentMember member,
         AppDbContext db,
-        IPlanLimits limits,
+        IPlanAccess plans,
         IAuditLogger audit,
         InvitationMailer mailer,
         TimeProvider clock,
@@ -202,11 +202,9 @@ public static class TeamEndpoints
                 extensions: new Dictionary<string, object?> { ["code"] = "already_invited" });
         }
 
-        if (!await limits.CanAddUserAsync(request.Role, ct))
+        if (await plans.CheckUserAsync(request.Role, ct) is { Allowed: false } limit)
         {
-            return TypedResults.Problem(statusCode: StatusCodes.Status403Forbidden,
-                detail: "Paketinizin kullanıcı sınırına ulaştınız. Mali müşavir sınıra sayılmaz.",
-                extensions: new Dictionary<string, object?> { ["code"] = "plan_limit" });
+            return Problems.PlanLimit(limit);
         }
 
         var (token, hash) = InvitationTokens.Create();

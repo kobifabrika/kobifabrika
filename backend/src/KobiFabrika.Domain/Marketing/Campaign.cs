@@ -71,6 +71,9 @@ public class Campaign : TenantEntity
 
     /// <summary>Çıkışlar bu kampanyaya bağlanabiliyor mu (Sprint 7B'den önceki kampanyalarda false: raporda "—").</summary>
     public bool OptOutsTracked { get; set; } = true;
+
+    /// <summary>Paket kampanyayı kapsamadığı için (deneme bitti) dağıtıcı durdurdu: "Paket nedeniyle durduruldu".</summary>
+    public bool StoppedByPlan { get; set; }
 }
 
 public enum RecipientStatus

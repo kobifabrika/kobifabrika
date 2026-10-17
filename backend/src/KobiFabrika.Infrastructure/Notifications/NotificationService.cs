@@ -28,4 +28,7 @@ public static class NotificationTypes
     public const string AppointmentOnlinePending = "appointment.online_pending";
     public const string AppointmentOnlineCreated = "appointment.online_created";
     public const string AppointmentCustomerCancelled = "appointment.customer_cancelled";
+    public const string FeedbackUpdated = "feedback.updated";
+    public const string TrialEnding = "subscription.trial_ending";
+    public const string TrialEnded = "subscription.trial_ended";
 }

@@ -1,4 +1,6 @@
 using Hangfire;
+using KobiFabrika.Domain.Billing;
+using KobiFabrika.Infrastructure.Billing;
 using KobiFabrika.Api.Features.Finance;
 using KobiFabrika.Domain.Appointments;
 using KobiFabrika.Domain.Common;
@@ -34,6 +36,7 @@ public sealed class AutomationRunner(
     IOptions<AppOptions> app,
     IOptions<PublicLinkOptions> links,
     KobiFabrika.Infrastructure.Tenancy.ITenantContext tenant,
+    IPlanAccess plans,
     ILogger<AutomationRunner> logger)
 {
     public const string RefType = "Automation";
@@ -197,7 +200,10 @@ public sealed class AutomationRunner(
         var automations = await db.Automations.AsNoTracking().Where(a => a.IsEnabled
             && (a.Type == AutomationType.VisitThanks || a.Type == AutomationType.Survey)).ToListAsync(ct);
         var thanks = automations.FirstOrDefault(a => a.Type == AutomationType.VisitThanks);
-        var survey = automations.FirstOrDefault(a => a.Type == AutomationType.Survey);
+        // Anket Usta'da (karar 2026-10-17): paket kapsamıyorsa açık kalmış anket otomasyonu çalışmaz.
+        var survey = (await plans.GetAsync(ct)).Has(PlanFeatures.Surveys)
+            ? automations.FirstOrDefault(a => a.Type == AutomationType.Survey)
+            : null;
         if ((thanks is null && survey is null) || !marketing.WindowOpen)
         {
             return 0;
@@ -327,6 +333,13 @@ public sealed class AutomationDispatcher(AppDbContext db, IServiceScopeFactory s
                 var runner = scope.ServiceProvider.GetRequiredService<AutomationRunner>();
                 var marketing = scope.ServiceProvider.GetRequiredService<MarketingSms>();
                 var name = business.First().Name;
+
+                // Salt okunur işletmede veya paket otomasyonu kapsamıyorsa (deneme bitti, Çırak) çalışmaz; ayarlar korunur.
+                var plan = await scope.ServiceProvider.GetRequiredService<IPlanAccess>().GetAsync(ct);
+                if (plan.IsReadOnly || !plan.Has(PlanFeatures.Automations))
+                {
+                    continue;
+                }
 
                 foreach (var a in business.Select(x => x.Automation).Where(a => a.IsDaily))
                 {

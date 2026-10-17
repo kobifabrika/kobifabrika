@@ -1,4 +1,6 @@
 using Hangfire;
+using KobiFabrika.Domain.Billing;
+using KobiFabrika.Infrastructure.Billing;
 using KobiFabrika.Api.Features.Finance;
 using KobiFabrika.Domain.Common;
 using KobiFabrika.Domain.Contacts;
@@ -362,6 +364,22 @@ public sealed class CampaignDispatcher(AppDbContext db, IServiceScopeFactory sco
                 await using var scope = scopes.TenantScope(candidate.BusinessId);
                 var tenantDb = scope.ServiceProvider.GetRequiredService<AppDbContext>();
                 var sender = scope.ServiceProvider.GetRequiredService<CampaignSender>();
+
+                // Salt okunur işletmede bekler; paket kampanyayı kapsamıyorsa (deneme bitti) "Paket nedeniyle durduruldu" (karar 2026-10-17).
+                var plan = await scope.ServiceProvider.GetRequiredService<IPlanAccess>().GetAsync(ct);
+                if (plan.IsReadOnly)
+                {
+                    continue;
+                }
+
+                if (!plan.Has(PlanFeatures.Campaigns))
+                {
+                    await tenantDb.Campaigns
+                        .Where(c => c.Id == candidate.Id && (c.Status == CampaignStatus.Scheduled || c.Status == CampaignStatus.Sending))
+                        .ExecuteUpdateAsync(s => s.SetProperty(c => c.Status, CampaignStatus.Cancelled)
+                            .SetProperty(c => c.CancelledAt, now).SetProperty(c => c.StoppedByPlan, true), ct);
+                    continue;
+                }
 
                 if (candidate.Status == CampaignStatus.Scheduled)
                 {

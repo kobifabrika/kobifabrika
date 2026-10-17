@@ -1,3 +1,4 @@
+using KobiFabrika.Domain.Billing;
 using KobiFabrika.Domain.Businesses;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
@@ -41,6 +42,11 @@ internal sealed class BusinessConfiguration : IEntityTypeConfiguration<Business>
         b.Property(x => x.ReceiptWidth).HasDefaultValue(Business.DefaultReceiptWidth);
         b.Property(x => x.IysBrandCode).HasMaxLength(20).IsUnicode(false);
         b.Property(x => x.OvertimeWeeklyHours).HasPrecision(4, 1);
+        b.Property(x => x.PlanCode).HasMaxLength(10).IsUnicode(false);
+        b.HasOne<Plan>().WithMany().HasForeignKey(x => x.PlanCode).HasPrincipalKey(p => p.Code).OnDelete(DeleteBehavior.Restrict);
+        b.Property(x => x.ReadOnlyReason).HasMaxLength(500);
+        b.Property(x => x.RequestedPlanCode).HasMaxLength(10).IsUnicode(false);
+        b.Property(x => x.RequestedPeriod).HasMaxLength(10).IsUnicode(false);
 
         // Kredi sadece SmsCredits'teki atomik UPDATE ile değişir; entity üzerinden yazılmaz (eşzamanlı gönderim).
         b.Property(x => x.SmsBalance).Metadata.SetAfterSaveBehavior(Microsoft.EntityFrameworkCore.Metadata.PropertySaveBehavior.Ignore);

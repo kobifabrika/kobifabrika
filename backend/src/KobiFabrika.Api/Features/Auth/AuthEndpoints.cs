@@ -3,6 +3,7 @@ using FluentValidation;
 using KobiFabrika.Api.Common;
 using KobiFabrika.Api.Common.Authorization;
 using KobiFabrika.Domain.Auditing;
+using KobiFabrika.Domain.Billing;
 using KobiFabrika.Domain.Users;
 using KobiFabrika.Infrastructure;
 using KobiFabrika.Infrastructure.Auditing;
@@ -18,7 +19,9 @@ using Microsoft.Extensions.Options;
 
 namespace KobiFabrika.Api.Features.Auth;
 
-public sealed record RegisterRequest(string FullName, string Email, string Phone, string Password, bool KvkkAccepted);
+/// <summary>Plan/Period: fiyat sayfasından gelen paket tercihi (?paket=kalfa&donem=yillik); geçersizse yok sayılır.</summary>
+public sealed record RegisterRequest(
+    string FullName, string Email, string Phone, string Password, bool KvkkAccepted, string? Plan = null, string? Period = null);
 public sealed record LoginRequest(string Email, string Password, bool RememberMe);
 public sealed record ConfirmEmailRequest(Guid UserId, string Token);
 public sealed record ForgotPasswordRequest(string Email);
@@ -81,6 +84,8 @@ public static class AuthEndpoints
             Email = email,
             PhoneNumber = Validation.NormalizePhone(request.Phone),
             CreatedAt = clock.GetUtcNow().UtcDateTime,
+            RequestedPlanCode = PlanCodes.IsValid(request.Plan) ? request.Plan : null,
+            RequestedPeriod = PlanCodes.IsValid(request.Plan) && PlanPeriods.IsValid(request.Period) ? request.Period : null,
         };
 
         var result = await users.CreateAsync(user, request.Password);
@@ -114,6 +119,7 @@ public static class AuthEndpoints
         TenantContext tenant,
         IAuditLogger audit,
         AppDbContext db,
+        TimeProvider clock,
         CancellationToken ct)
     {
         var user = await users.FindByEmailAsync(Validation.NormalizeEmail(request.Email));
@@ -137,6 +143,8 @@ public static class AuthEndpoints
         }
 
         await session.SignInAsync(user, request.RememberMe, ct);
+        var loggedInAt = clock.GetUtcNow().UtcDateTime;
+        await db.Users.Where(u => u.Id == user.Id).ExecuteUpdateAsync(s => s.SetProperty(u => u.LastLoginAt, loggedInAt), ct);
 
         // Zaten açık bir oturumla başka işletmeye girişte kiracı bağlamı değiştirilemez; günlük o durumda atlanır.
         if (user.LastBusinessId is { } businessId && (tenant.BusinessId is null || tenant.BusinessId == businessId))

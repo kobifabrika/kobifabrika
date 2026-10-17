@@ -1,4 +1,6 @@
 using FluentValidation;
+using KobiFabrika.Domain.Billing;
+using KobiFabrika.Infrastructure.Billing;
 using KobiFabrika.Api.Common;
 using KobiFabrika.Api.Common.Authorization;
 using KobiFabrika.Domain.Auditing;
@@ -105,8 +107,10 @@ public static class CommissionEndpoints
         var rules = app.MapGroup("/api/commission-rules").WithTags("Commissions").RequireAuthorization(Policies.ViewSettings);
         rules.MapGet("/", ListRules).WithSummary("Prim kuralları (öncelik sırasıyla)");
         rules.MapPost("/", CreateRule).RequireAuthorization(Policies.ManageBusiness).Validate<CommissionRuleRequest>()
+            .RequireFeature(PlanFeatures.Commissions)
             .Produces<CommissionRuleResponse>(StatusCodes.Status201Created).WithSummary("Prim kuralı ekle");
         rules.MapPut("/{id:guid}", UpdateRule).RequireAuthorization(Policies.ManageBusiness).Validate<CommissionRuleRequest>()
+            .RequireFeature(PlanFeatures.Commissions)
             .Produces<CommissionRuleResponse>().WithSummary("Prim kuralını düzenle (yazılmış primler değişmez)");
         rules.MapDelete("/{id:guid}", DeleteRule).RequireAuthorization(Policies.ManageBusiness).WithSummary("Prim kuralını sil");
 

@@ -82,6 +82,7 @@ public static class DependencyInjection
         services.Configure<EmailOptions>(configuration.GetSection(EmailOptions.Section));
         services.Configure<StorageOptions>(configuration.GetSection(StorageOptions.Section));
 
+        services.Configure<MessagingOptions>(configuration.GetSection(MessagingOptions.Section));
         services.AddSingleton<IEmailSender, SmtpEmailSender>();
         services.AddOptions<SmsOptions>().Bind(configuration.GetSection(SmsOptions.Section))
             .Validate<IHostEnvironment>(SmsOptions.IsSafe, SmsOptions.UnsafeMessage)
@@ -92,10 +93,13 @@ public static class DependencyInjection
         services.AddScoped<AppointmentNotifier>();
         services.AddSingleton<IIysClient, FakeIysClient>();
         services.AddSingleton<IFileStorage, LocalFileStorage>();
+        services.Configure<PrivateStorageOptions>(configuration.GetSection(StorageOptions.Section));
+        services.AddSingleton<IPrivateFileStorage, LocalPrivateFileStorage>();
         services.AddSingleton<LocationCatalog>();
         services.AddScoped<IAuditLogger, AuditLogger>();
         services.AddScoped<INotificationService, NotificationService>();
-        services.AddScoped<IPlanLimits, PlanLimits>();
+        services.AddScoped<IPlanAccess, PlanAccess>();
+        services.AddSingleton<IPaymentProvider, DisabledPaymentProvider>();
         services.AddScoped<SlugService>();
 
         // QuestPDF Community lisansı: yıllık geliri 1 milyon $ altındaki şirketler için ücretsiz (karar günlüğü).

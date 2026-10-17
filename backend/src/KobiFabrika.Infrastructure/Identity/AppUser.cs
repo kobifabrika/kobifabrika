@@ -12,4 +12,13 @@ public class AppUser : IdentityUser<Guid>
 
     /// <summary>Girişte açılacak işletme: en son seçilen. Üyelik pasifse başka aktif üyeliğe düşülür.</summary>
     public Guid? LastBusinessId { get; set; }
+
+    /// <summary>Son başarılı giriş (süper admin listesinde "son giriş").</summary>
+    public DateTime? LastLoginAt { get; set; }
+
+    /// <summary>Fiyat sayfasından kayıtta seçilen paket (<c>?paket=</c>); kurulum bitince işletmeye kopyalanır.</summary>
+    public string? RequestedPlanCode { get; set; }
+
+    /// <summary>Seçilen ödeme dönemi: monthly veya yearly.</summary>
+    public string? RequestedPeriod { get; set; }
 }

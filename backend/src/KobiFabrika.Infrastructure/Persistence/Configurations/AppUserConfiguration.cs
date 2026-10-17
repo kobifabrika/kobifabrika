@@ -10,5 +10,7 @@ internal sealed class AppUserConfiguration : IEntityTypeConfiguration<AppUser>
     {
         b.Property(x => x.FullName).HasMaxLength(200);
         b.Property(x => x.PhoneNumber).HasMaxLength(20);
+        b.Property(x => x.RequestedPlanCode).HasMaxLength(10).IsUnicode(false);
+        b.Property(x => x.RequestedPeriod).HasMaxLength(10).IsUnicode(false);
     }
 }

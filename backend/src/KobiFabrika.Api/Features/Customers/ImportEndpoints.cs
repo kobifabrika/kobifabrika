@@ -138,7 +138,7 @@ public static class ImportEndpoints
 
     private static async Task<Results<Ok<ImportCommitResponse>, ProblemHttpResult>> Commit(
         Guid jobId, ImportMappingRequest request, CurrentMember member, AppDbContext db, LedgerService ledger, LocationCatalog locations,
-        IAuditLogger audit, IPlanLimits limits, TimeProvider clock, CancellationToken ct)
+        IAuditLogger audit, IPlanAccess plans, TimeProvider clock, CancellationToken ct)
     {
         var (job, problem) = await ImportJobs.LoadAsync(db, jobId, ImportKind.Contacts, clock, ct);
         if (problem is not null)
@@ -158,9 +158,9 @@ public static class ImportEndpoints
 
         var rows = await EvaluateAsync(db, job, request.Mapping, locations, member.CanManageFinance, ct);
         var toAdd = rows.Where(r => r.Candidate is not null).ToList();
-        if (!await limits.CanAddContactsAsync(toAdd.Count, ct))
+        if (await plans.CheckContactsAsync(toAdd.Count, ct) is { Allowed: false } limit)
         {
-            return Problems.Forbidden("plan_limit", "Paketinizin müşteri sınırı bu kadar kaydı almıyor.");
+            return Problems.PlanLimit(limit);
         }
 
         var results = rows.Select(r => r.Result).ToList();

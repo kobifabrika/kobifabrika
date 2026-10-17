@@ -3,6 +3,7 @@ using KobiFabrika.Api.Common;
 using KobiFabrika.Api.Common.Authorization;
 using KobiFabrika.Api.Features.Auth;
 using KobiFabrika.Api.Features.Businesses;
+using KobiFabrika.Domain.Billing;
 using KobiFabrika.Domain.Businesses;
 using KobiFabrika.Domain.Catalog;
 using KobiFabrika.Domain.Finance;
@@ -165,13 +166,21 @@ public static class SetupEndpoints
         }
 
         var business = await db.Businesses.SingleAsync(b => b.Id == member.BusinessId, ct);
-        business.SetupCompletedAt ??= ops.Now;
+        var user = (await users.FindByIdAsync(member.RequiredUserId.ToString()))!;
+        if (business.SetupCompletedAt is null)
+        {
+            // 14 gün deneme kurulum bitince başlar; fiyat sayfasından seçilen paket hatırlanır (karar 2026-10-17).
+            business.SetupCompletedAt = ops.Now;
+            business.TrialEndsAt ??= ops.Now.AddDays(EffectivePlan.TrialDays);
+            business.RequestedPlanCode ??= user.RequestedPlanCode;
+            business.RequestedPeriod ??= user.RequestedPeriod;
+        }
+
         await db.SaveChangesAsync(ct);
 
         // Bir kereye mahsus 50 SMS hoş geldin kredisi (karar 2026-10-15; deneme için).
         await credits.GrantWelcomeAsync(ct);
 
-        var user = (await users.FindByIdAsync(member.RequiredUserId.ToString()))!;
         return TypedResults.Ok(await session.BuildMeAsync(user, business.Id, ct));
     }
 
