@@ -92,10 +92,9 @@ kopar, sahipsiz Next dev sunucusu `write EPIPE` ile bozulur (sayfalar dakikalarc
 - **URL'ler:** Frontend yolları Türkçe (`/panel/musteriler`, `/giris`), API yolları İngilizce (`/api/customers`).
 - **Mobil:** En küçük yazı 12px, input yazısı 16px, dokunma alanı en az 44px. Her ekranı 375px genişlikte kontrol et.
 - Küçük, okunur commit'ler; mesajlar Türkçe ve emir kipinde ("Müşteri listesini ekle").
-- **Bitti tanımı:** Bir özellik ya da sprint ancak `.\test.ps1` tamamen yeşilse (backend, frontend lint/birim/build, E2E) ve
-  yeni her ekranın E2E senaryosu varsa (`frontend/e2e/`, masaüstü + 375 px) bitmiş sayılır. Yerel bellek tam `test.ps1`'e
-  yetmediğinde: GitHub Actions'taki tam koşu yeşil + yeni/değişen senaryolar yerelde yeşil (yerelde aşamalar ayrı: backend;
-  frontend lint + Vitest + build; yeni/değişen E2E). E2E gerçek bir hata bulursa test gevşetilmez, uygulama düzeltilir.
+- **Bitti tanımı:** GitHub Actions tam koşusu yeşil (bütün E2E senaryoları orada üç profilde koşar). Yerelde geliştirme
+  sırasında yeni ve değişen senaryolar tek profille (telefon-chromium) koşulur; yerelde tam koşu gerekmez. Yeni her ekranın
+  E2E senaryosu olur (`frontend/e2e/`, masaüstü + 375 px). E2E gerçek bir hata bulursa test gevşetilmez, uygulama düzeltilir.
 
 ## Çalışma şekli
 
@@ -108,7 +107,7 @@ kopar, sahipsiz Next dev sunucusu `write EPIPE` ile bozulur (sayfalar dakikalarc
 
 ## Güncel durum
 
-- Sprint: **7 (personel, mesai, izin, prim)** bitti (2026-10-15). Sıradaki: **Sprint 8** (abonelik, destek, canlı ortam, pilot). Kararlar `docs/karar-gunlugu.md` 2026-10-15 (Sprint 7 planı, 7A, 7B).
+- Sprint: **7 (personel, mesai, izin, prim)** bitti: Actions #22 yeşil (2026-10-15). Sıradaki: **Sprint 8** (abonelik, destek, canlı ortam, pilot). Kararlar `docs/karar-gunlugu.md` 2026-10-15 (Sprint 7 planı, 7A, 7B).
 - Mesai sadece `TimeClock`, izin sadece `LeaveService` ile yazılır (personel satırı kilidi; açık mesai `UX_TimeEntries_Open`). Maaş personel yanıtında yok: `/api/staff/{id}/salary` (Sahip yazar, Sahip + Mali Müşavir görür). Onaylı izin = `StaffTimeOff` (Leave, LeaveRequestId); yıllık izin bakiyesi `LeaveBalanceEntries` toplamı. Slogan `content/site.ts` → `siteSlogan`.
 - Prim sadece `CommissionService` ile ve sadece `SaleService` içinden (satışta tahakkuk, iptalde iptal ayına eksi kayıt; `Commissions` yalnızca eklenir). Kural seçimi Domain `CommissionRuleResolver`, tutar `CommissionCalculator` (taban `NetAmount`). Satır personeli `DocumentLineRequest.staffMemberId` (boş = personelsiz; varsayılanı istemci gönderir). Personel sadece kendi primini görür (`/api/commissions/me`).
 - Pencere/alt sayfa telefonda ilk alana odaklanmaz (`lib/focus.ts`, `DialogContent`/`SheetContent`); pencere içinde `autoFocus` gerekiyorsa `autoFocus={useIsDesktop()}`.
@@ -120,5 +119,6 @@ kopar, sahipsiz Next dev sunucusu `write EPIPE` ile bozulur (sayfalar dakikalarc
 - EF: alt sorguda `IgnoreQueryFilters([SoftDelete])` bütün sorgunun soft delete filtresini kapatır; silinebilen kayıtta adları ayrı sorguyla oku veya kökte `!IsDeleted` yaz.
 - Bakiyeler (`Contact.Balance`, `CashAccount.Balance`) sadece `LedgerService` ile, stok (`Product.StockQuantity`) sadece `StockService` ile, SQL'de atomik güncellenir; entity üzerinden yazılmaz. Satış sadece `SaleService` ile yazılır (numara, cari, kasa, stok aynı transaction'da).
 - Kasa hareketi silinmez: düzeltme `POST /api/cash-transactions/{id}/reverse` (ters kayıt, bugünün tarihiyle; tahsilat ve ödemede cari karşı kaydıyla). Toplamlarda ters kayıtlar düşülür (`CashTransaction.NetAmount`). Vade hesabı `ReceivableAllocator` (FIFO); "bugün" `BusinessTime` ile İstanbul günü.
+- `proxy.ts` prefetch isteklerine girmez (matcher `missing`); cookie'siz segment prefetch'i `/giris`'e yönlenince 404 alıyordu.
 - OpenAPI: yanıtta veya sorgu parametresinde nullable enum kullanma (ortak enum şemasını `| null` yapar, frontend tipleri bozulur); metin veya ayrı enum kullan.
 - GitHub: github.com/kobifabrika/kobifabrika (private)

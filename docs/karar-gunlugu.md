@@ -2,6 +2,11 @@
 
 En yeni en üstte. Notion'daki "Proje Planı ve Kararlar" sayfasıyla aynı kararlar; teknik kararlar burada daha ayrıntılı.
 
+- **2026-10-17 (Sprint 7 kapanışı):**
+  - Sprint 7 kapandı: Actions #22 yeşil (commit `8e0a5f8`; #21 gece yarısına bağlı test yüzünden kırmızıydı, uygulama düzeltildi).
+  - #22'deki tek flaky (`sprint1-hesap`, telefon-chromium ilk deneme) gerçek hataydı: çıkıştan sonra menü bağlantılarının segment prefetch'i cookie'siz gidince `proxy.ts` `/giris`'e yönlendiriyor, `/giris` panel segmentini bulamayıp 404 veriyordu. Proxy artık prefetch isteklerine girmiyor (matcher `missing`: `next-router-prefetch`, `purpose: prefetch`); yetki kontrolü zaten PanelGate'te, gerçek gezinme yine yönlenir.
+  - **Bitti tanımı değişti:** GitHub Actions tam koşusu yeşil (bütün E2E senaryoları orada üç profilde). Yerelde yeni ve değişen senaryolar tek profille (telefon-chromium) koşulur; yerelde tam `test.ps1` gerekmez.
+
 - **2026-10-15 (Sprint 7B, ürün):**
   - Adresler: `/panel/personel?sekme=prim` (Prim kuralları), `/panel/raporlar?rapor=prim|personel|kampanyalar|anket` (prim raporunda `&ay=yyyy-MM`), `/panel/mesai-izin?sekme=prim` (Primim; Personel rolü, `&ay=`).
   - **Prim kuralları:** kime (Herkes / personel), neye (Bütün satışlar, Hizmetler, Ürünler, Kategori, Tek ürün/hizmet), Yüzde veya Adet başına TL; aynı personel + hedef için tek aktif kural; pasife alma ve silme; "Öncelik sırası" açıklaması (8 basamak). Değişiklik yazılmış primi değiştirmez (kural metni kopyalanır). Mali Müşavir salt okunur görür.
