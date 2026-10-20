@@ -246,4 +246,4 @@ export const test = base.extend<Fixtures & Options, { e2eTarget: void }>({
 export { expect };
 
 /** Masaüstü projesi mi (sol menü) yoksa telefon mu (alt çubuk). */
-export const isDesktop = (info: TestInfo) => info.project.name === "masaustu";
+export const isDesktop = (info: TestInfo) => info.project.name.startsWith("masaustu");

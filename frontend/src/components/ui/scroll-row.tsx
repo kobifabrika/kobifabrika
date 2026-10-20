@@ -60,7 +60,7 @@ export function Chip({
       aria-pressed={active}
       className={cn(
         chipClass,
-        active ? "border-black bg-black text-white" : "border-border bg-background text-black hover:border-black",
+        active ? "border-link bg-link text-white" : "border-border bg-background text-black hover:border-black",
         className,
       )}
       {...props}
@@ -76,7 +76,7 @@ export function ChipLink({ active, className, ...props }: { active: boolean } & 
       className={cn(
         chipClass,
         "inline-flex items-center",
-        active ? "border-black bg-black text-white" : "border-border bg-background text-black hover:border-black",
+        active ? "border-link bg-link text-white" : "border-border bg-background text-black hover:border-black",
         className,
       )}
       {...props}
@@ -98,7 +98,7 @@ export function TabNav({ tabs, active, label }: { tabs: TabItem[]; active: strin
           aria-current={t.key === active ? "page" : undefined}
           className={cn(
             "-mb-px flex min-h-11 shrink-0 items-center border-b-2 px-3 text-sm font-semibold whitespace-nowrap",
-            t.key === active ? "border-brand text-black" : "border-transparent text-neutral-600 hover:text-black",
+            t.key === active ? "border-link text-link" : "border-transparent text-neutral-600 hover:text-black",
           )}
         >
           {t.label}

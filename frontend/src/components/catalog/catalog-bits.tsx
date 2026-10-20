@@ -96,7 +96,7 @@ export function ChoiceGroup<T extends string>({
           onClick={() => onChange(o.value)}
           className={cn(
             "min-h-11 min-w-14 rounded-lg border px-3 text-sm font-semibold",
-            value === o.value ? "border-black bg-black text-white" : "border-border bg-background text-black hover:border-black",
+            value === o.value ? "border-link bg-link text-white" : "border-border bg-background text-black hover:border-black",
           )}
         >
           {o.label}

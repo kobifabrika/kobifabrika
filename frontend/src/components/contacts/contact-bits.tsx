@@ -83,11 +83,23 @@ export function ContactActions({ phone, compact = false }: { phone: string | nul
 
 export { TabNav, type TabItem } from "@/components/ui/scroll-row";
 
-/** Boş liste/ekran açıklaması. */
+/**
+ * Boş liste/ekran açıklaması. Üstte sade çizim (panel yenilemesi): lacivert çizgili boş sayfa ve köşesinde mavi daire içinde
+ * ekranın ikonu. Gölge ve gradyan yok.
+ */
 export function EmptyState({ icon, title, children }: { icon: ReactNode; title: string; children?: ReactNode }) {
   return (
     <div className="flex flex-col items-start gap-3 border border-dashed border-neutral-300 px-5 py-8">
-      <span className="text-neutral-400">{icon}</span>
+      <span aria-hidden className="relative block h-16 w-20">
+        <svg viewBox="0 0 80 64" className="absolute inset-0 size-full">
+          <rect x="2" y="12" width="56" height="48" rx="6" fill="var(--color-white)" stroke="var(--color-navy-950)" strokeWidth="1.5" />
+          <path d="M12 28h30M12 37h22M12 46h26" stroke="var(--color-neutral-300)" strokeWidth="3" strokeLinecap="round" />
+          <circle cx="62" cy="16" r="15" fill="var(--color-brand)" />
+        </svg>
+        <span className="absolute top-[3px] left-[49px] flex size-[26px] items-center justify-center text-black [&_svg]:size-4">
+          {icon}
+        </span>
+      </span>
       <p className="text-base font-semibold text-black">{title}</p>
       {children}
     </div>

@@ -195,6 +195,11 @@ npm run gen:api                  # API çalışırken: OpenAPI'den src/lib/api/s
 
 Backend'de bir endpoint ekleyip değiştirdikten sonra `npm run gen:api` çalıştırın ve üretilen dosyayı commit'leyin.
 
+### Marka ve tanıtım görselleri
+
+- **Logo, favicon, uygulama ikonları:** kaynaklar `frontend/public/marka/` (`logo.png`, `isaret.svg`); `cd frontend; npm run marka` favicon.ico (16/32/48), icon.png (512), apple-icon.png (180), manifest ikonları ve logonun kırpılmış sürümlerini yeniden üretir.
+- **Site ve yardım ekran görüntüleri:** `cd frontend; npm run demo:shots` E2E ortamında (geliştirme veritabanına dokunmaz) "Işıltı Kuaför" demo işletmesini kurar ve `public/site/`, `public/yardim/` altına WebP görüntüler yazar. Docker açık olmalı.
+
 ## Yeni migration
 
 ```bash

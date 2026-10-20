@@ -29,6 +29,16 @@ export const smsApiPort = Number(process.env.E2E_SMS_API_PORT || 5181);
 export const smsWebPort = Number(process.env.E2E_SMS_WEB_PORT || 3101);
 export const smsApiUrl = `http://localhost:${smsApiPort}`;
 export const smsWebUrl = `http://localhost:${smsWebPort}`;
+/**
+ * Koşu kimliği: Playwright yapılandırması (koşucu) ilk kez okurken üretilir; sunuculara ve worker'lara ortam değişkeniyle aynen
+ * geçer. Sabit adresli hesaplar (süper admin) her koşuda ve çiftte ayrı olsun: ortak Mailpit'te başka çiftin ya da önceki
+ * koşunun doğrulama e-postası okunmasın.
+ */
+export const runId = (process.env.E2E_RUN_ID ??= Date.now().toString(36));
+
+/** Süper admin adresi (API: Platform:AdminEmails). */
+export const platformEmail = (sms) => `e2e-platform-${sms ? "sms-" : ""}${runId}@example.test`;
+
 /** E2E_SMS=0: SMS çiftini açma (yerelde sadece SMS kapalı senaryolar koşarken iki sunucu ve bir derleme kazanılır). */
 export const smsPairEnabled = process.env.E2E_SMS !== "0";
 export const mailpitUrl = process.env.E2E_MAILPIT_URL || "http://localhost:8025";

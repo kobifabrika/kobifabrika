@@ -7,15 +7,17 @@
 /*
  * KobiFabrika tema token'ları — kaynak: docs/04-tasarim.md
  *
- * Üç renk: siyah, beyaz ve vurgu mavisi (#00b0ff, wordmark'taki "Fabrika"). Arası gri tonlar serbest.
- * Kırmızı sadece hata ve silme gibi işlevsel uyarılarda. Başarı için yeşil yok: siyah/mavi + ✓ ikonu.
+ * Marka paleti (karar 2026-10-17, panel yenilemesi): siyah, beyaz, vurgu mavisi #00b0ff (ana düğme, wordmark'taki "Fabrika"),
+ * koyu lacivert #000a1d (koyu yüzeyler: sol menü, üst çubuk, koyu bölümler), lacivert #00385a (sadece koyu zeminde: kart, hover),
+ * link mavisi #006ea6 (beyazda link, seçili sekme/çip, açık anahtar), camgöbeği #00fdff (sadece koyu zeminde vurgu). Arası gri
+ * tonlar serbest. Kırmızı sadece hata ve silme. Başarı için yeşil yok: siyah/mavi + ✓ ikonu. Gradyan, gölge, emoji yok.
  * Tailwind'in hazır renk paleti kapatıldı (--color-*: initial); ör. `text-red-500` üretilmez.
  *
  * KONTRAST KURALLARI (src/lib/theme/contrast.test.ts bunları doğrular):
- * - Beyaz zeminde yazı/link: siyah veya neutral-600 ve koyusu. Link = siyah + alt çizgi.
- * - brand (#00b0ff) beyaz zeminde YAZI OLARAK KULLANILMAZ (2.1:1); sadece çizgi, ikon, alt çizgi, vurgu zemini.
- * - Siyah zeminde brand yazı/link olabilir (9.9:1).
- * - brand buton → yazı siyah. Siyah buton → yazı beyaz.
+ * - Beyaz zeminde yazı/link: siyah, neutral-600 ve koyusu, link mavisi #006ea6 (5,5:1).
+ * - brand (#00b0ff) ve cyan (#00fdff) beyaz zeminde YAZI OLARAK KULLANILMAZ; brand çizgi, ikon, şerit, düğme zemini olabilir.
+ * - Koyu zeminde (#000a1d, #00385a) beyaz, neutral-300, brand ve cyan yazı olabilir.
+ * - brand düğme → yazı siyah. Lacivert/siyah düğme → yazı beyaz.
  */
 @theme {
   --color-*: initial;
@@ -25,8 +27,12 @@
   --color-transparent: transparent;
   --color-current: currentColor;
 
-  /* Vurgu mavisi (tek marka rengi) */
-  --color-brand: #00b0ff;
+  /* Marka renkleri */
+  --color-brand: #00b0ff; /* vurgu mavisi: ana düğme (yazı siyah), şerit, ikon */
+  --color-link: #006ea6; /* beyazda link ve seçili öğe (yazı olabilir) */
+  --color-navy-950: #000a1d; /* koyu yüzey */
+  --color-navy-800: #00385a; /* sadece koyu zeminde: kart, hover */
+  --color-cyan: #00fdff; /* sadece koyu zeminde vurgu */
 
   /* Nötr griler (renk tonu yok) */
   --color-neutral-50: #fafafa;
@@ -70,6 +76,7 @@
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
+  --color-link-text: var(--link);
   --color-chart-1: var(--chart-1);
   --color-chart-2: var(--chart-2);
   --color-chart-3: var(--chart-3);
@@ -103,8 +110,8 @@
   --card-foreground: var(--color-black);
   --popover: var(--color-white);
   --popover-foreground: var(--color-black);
-  --primary: var(--color-black); /* ana buton siyah, yazı beyaz */
-  --primary-foreground: var(--color-white);
+  --primary: var(--color-brand); /* ana düğme mavi, yazı siyah */
+  --primary-foreground: var(--color-black);
   --secondary: var(--color-neutral-100);
   --secondary-foreground: var(--color-black);
   --muted: var(--color-neutral-100);
@@ -114,7 +121,8 @@
   --destructive: var(--color-danger-600);
   --border: var(--color-neutral-200);
   --input: var(--color-neutral-400);
-  --ring: var(--color-brand); /* mavi halka; inputta kenarlık ayrıca siyaha döner (3:1 garantisi) */
+  --ring: var(--color-navy-950); /* koyu halka: mavi düğmede ve beyaz zeminde görünür */
+  --link: var(--color-link);
 
   --chart-1: var(--color-black);
   --chart-2: var(--color-brand);
@@ -122,19 +130,19 @@
   --chart-4: var(--color-neutral-300);
   --chart-5: var(--color-neutral-700);
 
-  /* Siyah sol menü ve üst çubuk; aktif menü mavi zemin + siyah yazı */
-  --sidebar: var(--color-black);
+  /* Koyu lacivert sol menü ve üst çubuk; aktif menü mavi zemin + siyah yazı, hover lacivert */
+  --sidebar: var(--color-navy-950);
   --sidebar-foreground: var(--color-neutral-300);
   --sidebar-primary: var(--color-brand);
   --sidebar-primary-foreground: var(--color-black);
-  --sidebar-accent: var(--color-neutral-800);
+  --sidebar-accent: var(--color-navy-800);
   --sidebar-accent-foreground: var(--color-white);
-  --sidebar-border: var(--color-neutral-800);
+  --sidebar-border: var(--color-navy-800);
   --sidebar-ring: var(--color-brand);
 }
 
 /*
- * Siyah kapsam: panelin üst çubuğu, sitedeki 1-2 siyah bölüm, kimlik ekranlarının marka paneli.
+ * Koyu kapsam (#000a1d): panelin üst çubuğu, sitedeki koyu bölümler, kimlik ekranlarının marka paneli.
  * Kapsayıcıya `dark` sınıfı verilir; içindeki shadcn bileşenleri ve semantik sınıflar (bg-card, text-foreground,
  * text-muted-foreground, text-primary…) kendiliğinden siyah zemine döner. Burada mavi yazı/link olabilir.
  * Kontrast: src/lib/theme/contrast.test.ts bu bloktaki değerleri de doğrular.
@@ -142,23 +150,24 @@
 .dark {
   color-scheme: dark;
 
-  --background: var(--color-black);
+  --background: var(--color-navy-950);
   --foreground: var(--color-white);
-  --card: var(--color-neutral-900);
+  --card: var(--color-navy-800);
   --card-foreground: var(--color-white);
-  --popover: var(--color-neutral-900);
+  --popover: var(--color-navy-800);
   --popover-foreground: var(--color-white);
-  --primary: var(--color-brand); /* buton zemini (yazı siyah), link */
+  --primary: var(--color-brand); /* buton zemini (yazı siyah) */
   --primary-foreground: var(--color-black);
-  --secondary: var(--color-neutral-800);
+  --secondary: var(--color-navy-800);
   --secondary-foreground: var(--color-white);
-  --muted: var(--color-neutral-800);
+  --muted: var(--color-navy-800);
   --muted-foreground: var(--color-neutral-300);
-  --accent: var(--color-neutral-800);
+  --accent: var(--color-navy-800);
   --accent-foreground: var(--color-white);
-  --border: var(--color-neutral-800);
-  --input: var(--color-neutral-500);
+  --border: var(--color-navy-800);
+  --input: var(--color-neutral-400);
   --ring: var(--color-brand);
+  --link: var(--color-brand);
 }
 
 @layer base {

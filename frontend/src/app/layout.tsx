@@ -3,6 +3,8 @@ import { Schibsted_Grotesk } from "next/font/google";
 
 import { QueryProvider } from "@/components/providers/query-provider";
 import { Toaster } from "@/components/ui/sonner";
+import { siteUrl } from "@/content/seo";
+import { siteDescription } from "@/content/site";
 
 import "./globals.css";
 
@@ -14,19 +16,21 @@ const display = Schibsted_Grotesk({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(siteUrl),
   title: {
     default: "KobiFabrika — KOBİ'nin dijital fabrikası",
     template: "%s · KobiFabrika",
   },
-  description:
-    "KOBİ'nin dijital fabrikası: esnafın parasını takip eden, müşteri getiren ve personelini yöneten tek uygulama. Cari, kasa, stok, satış, randevu, SMS kampanyası, mesai ve izin.",
+  description: siteDescription,
   applicationName: "KobiFabrika",
+  openGraph: { type: "website", locale: "tr_TR", siteName: "KobiFabrika" },
+  twitter: { card: "summary_large_image" },
 };
 
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
-  themeColor: "#000000",
+  themeColor: "#000a1d",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

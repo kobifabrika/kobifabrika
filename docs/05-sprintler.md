@@ -101,16 +101,25 @@ Tahmini, yarı zamanlı. Toplam yaklaşık 15-18 hafta. Her sprint sonunda: buil
 
 ### 8A — Yayın öncesi
 
-- [ ] Paketler ve abonelik (ödemesiz): Plans tablosu (Çırak 0 TL · 1 kullanıcı, 100 müşteri, ayda 50 randevu; Kalfa 699 TL/ay, 6.990 TL/yıl · 3, 1.000, 500 · kampanya, otomasyon, online randevu; Usta 1.299 TL/ay, 12.990 TL/yıl · 10, sınırsız · hepsi; KDV hariç, Mali Müşavir sayılmaz), 14 gün deneme (bütün özellikler, Usta limitleri), deneme bitince Çırak (veri silinmez, kapalı özellikler salt okunur), limit aşımında anlaşılır mesaj, Pilot (süresiz, limitsiz, etiketli), salt okunur mod, `?paket=` kaydı
-- [ ] Süper admin paneli `/platform` (çekirdek): işletmeler (arama, filtre, sayılar, son giriş), ayrıntı (paket, pilot, deneme uzatma/bitirme, salt okunur, kullanıcılar, kredi, destek notları, platform günlüğü), geri bildirimler; müşteri verisi görünmez
-- [ ] SMS'siz çalışma: `Messaging:SmsEnabled=false`; randevu bildirimleri e-postayla, WhatsApp düğmeleri, "Yarının randevuları" + "Hatırlatıldı", anket linki WhatsApp'tan, vade hatırlatma e-postası; online randevu kodsuz (işletme onaylar, e-posta isteğe bağlı, bot tuzağı ve hız sınırları)
-- [ ] E-posta altyapısı: Brevo (SMTP), `bildirim@kobifabrika.com`, Reply-To işletme, Hangfire kuyruğu (OutboundEmails), logolu sade şablonlar
-- [ ] Destek ve yardım: Yardım menüsü (WhatsApp +90 535 977 93 82, destek@kobifabrika.com, makaleler), geri bildirim (metin + isteğe bağlı ekran görüntüsü), 4 temel yardım makalesi
-- [ ] Hukuki metin taslakları (son güncelleme tarihli): KVKK aydınlatma, gizlilik, çerez, kullanım koşulları, veri işleme sözleşmesi, işletmenin müşterileri için aydınlatma şablonu; şirket bilgisi tek ayardan ("KobiFabrika (kuruluş aşamasında)")
-- [ ] Tanıtım sitesi yeniden tasarımı (5 marka rengi), "Işıltı Kuaför" demo ekran görüntüleri, fiyat/SSS/hakkımızda/iletişim/yardım/hukuki sayfalar, SEO (başlık, açıklama, OG görseli, sitemap, robots)
-- [ ] Panel ve giriş ekranları renk yenilemesi (#000a1d koyu yüzeyler, #006ea6 link/seçili, #00b0ff ana düğme; Bugün kartlarında renkli ikon ve şerit, boş durum çizimleri)
+- [x] Paketler ve abonelik (ödemesiz; pilot kısmı: Plans/Subscription, deneme, limitler, Pilot, salt okunur, `?paket=` kaydı; abonelik ekranı cilası yayından sonra): Plans tablosu (Çırak 0 TL · 1 kullanıcı, 100 müşteri, ayda 50 randevu; Kalfa 699 TL/ay, 6.990 TL/yıl · 3, 1.000, 500 · kampanya, otomasyon, online randevu; Usta 1.299 TL/ay, 12.990 TL/yıl · 10, sınırsız · hepsi; KDV hariç, Mali Müşavir sayılmaz), 14 gün deneme (bütün özellikler, Usta limitleri), deneme bitince Çırak (veri silinmez, kapalı özellikler salt okunur), limit aşımında anlaşılır mesaj, Pilot (süresiz, limitsiz, etiketli), salt okunur mod, `?paket=` kaydı
+- [x] Süper admin paneli `/platform` (çekirdek): işletmeler (arama, filtre, sayılar, son giriş), ayrıntı (paket, pilot, deneme uzatma/bitirme, salt okunur, kullanıcılar, kredi, destek notları, platform günlüğü), geri bildirimler; müşteri verisi görünmez
+- [x] SMS'siz çalışma: `Messaging:SmsEnabled=false`; randevu bildirimleri e-postayla, WhatsApp düğmeleri, "Yarının randevuları" + "Hatırlatıldı", anket linki WhatsApp'tan, vade hatırlatma e-postası; online randevu kodsuz (işletme onaylar, e-posta isteğe bağlı, bot tuzağı ve hız sınırları)
+- [x] E-posta altyapısı (kod; Brevo hesabı ve DNS 8B'de): Brevo (SMTP), `bildirim@kobifabrika.com`, Reply-To işletme, Hangfire kuyruğu (OutboundEmails), logolu sade şablonlar
+- [x] Destek ve yardım: Yardım menüsü (WhatsApp +90 535 977 93 82, destek@kobifabrika.com, makaleler), geri bildirim (metin + isteğe bağlı ekran görüntüsü), 4 temel yardım makalesi
+- [x] Hukuki metin taslakları (son güncelleme tarihli): KVKK aydınlatma, gizlilik, çerez, kullanım koşulları, veri işleme sözleşmesi, işletmenin müşterileri için aydınlatma şablonu; şirket bilgisi tek ayardan ("KobiFabrika (kuruluş aşamasında)")
+- [x] Tanıtım sitesi yeniden tasarımı (5 marka rengi), "Işıltı Kuaför" demo ekran görüntüleri, fiyat/SSS/hakkımızda/iletişim/yardım/hukuki sayfalar, SEO (başlık, açıklama, OG görseli, sitemap, robots)
+- [x] Panel ve giriş ekranları renk yenilemesi (#000a1d koyu yüzeyler, #006ea6 link/seçili, #00b0ff ana düğme; Bugün kartlarında renkli ikon ve şerit, boş durum çizimleri)
 - [ ] Baştan sona tur: her rol ve ekran masaüstü + 375 px, `docs/pilot-test-raporu.md`; online randevu sayfası ve müşteri e-postalarına ayrı özen
 - [ ] E2E "yeni esnaf" senaryosu (`sprint8a-yeni-esnaf`): kayıt → doğrulama → kurulum → personel → hizmet → online randevu → onay → tamamlandı → satış → kasa → Bugün
+- [x] Logo ve ikonlar: logo sitede, giriş/kayıtta, panel menüsünde ve sistem e-postalarında; favicon ve uygulama ikonları "KF" işaretinden (`public/marka/`, `npm run marka`)
+- Yayın öncesi kontrol listesi (A8 + A10):
+  - [x] Özel 404 ve genel hata sayfası (site, panel, /r ve kök), Türkçe ve yönlendirici
+  - [x] Bütün görsellerde anlamlı alt metin (sprint8a-site kontrol eder)
+  - [x] İlk ekranda "Ücretsiz dene"; telefonda altta sabit "Ücretsiz dene"
+  - [x] Kayıt sonrası "E-postanı kontrol et" ekranı
+  - [x] Görseller next/image ile, WebP, ekran genişliğine göre boyut
+  - [x] Cloudflare Web Analytics (çerezsiz; `NEXT_PUBLIC_CF_ANALYTICS_TOKEN` boşsa eklenmez; gizlilik ve çerez metninde)
+  - [ ] PageSpeed/Lighthouse mobil puanları (`docs/pilot-test-raporu.md`)
 
 ### 8A — Yayından sonra
 

@@ -2,56 +2,63 @@
 
 Referans taslaklar: `docs/tasarim-referans/index.html` (giriş ekranı) ve `admin.html` (panel).
 Bu dosyalar sadece görsel referanstır; içlerindeki "KOBIOS" adı eski çalışma adıdır, her yerde **KobiFabrika** yazılacak.
-Logo henüz yok: logo gelene kadar "KobiFabrika" yazısı (wordmark) kullanılır.
-Slogan: **"KOBİ'nin dijital fabrikası"** (sayfa başlığı, meta açıklama, tanıtım sitesi, giriş ekranı marka paneli; tek kaynak `frontend/src/content/site.ts` → `siteSlogan`). Eski "işletim sistemi" ifadesi kullanılmaz (taslaklarda geçer). Sosyal medya hesapları (`siteSocial`: Instagram, Facebook, YouTube, TikTok) site alt bilgisinde tek renk çizgi ikonlarla (`components/site/social-icons.tsx`; lucide 1.x marka ikonu içermez), 44 px dokunma alanı, yeni sekmede.
+**Logo:** `frontend/public/marka/logo.png` (siyah kare zeminde beyaz "KOBI" + mavi "FABRIKA"). Sitede, giriş/kayıt ekranında, panelin koyu menüsünde ve sistem e-postalarında kırpılmış hali kullanılır (`components/brand/logo.tsx`, `next/image`); **sadece koyu zeminde**. Beyaz zeminde metin wordmark (`Wordmark`). Logo 16-48 px'te okunmadığı için favicon ve uygulama ikonları ayrı **işaretten**: `public/marka/isaret.svg` (siyah yuvarlak köşeli kare, beyaz "K", mavi "F"). Yeniden üretim: `npm run marka` (README).
+Slogan: **"KOBİ'nin dijital fabrikası"** (sayfa başlığı, meta açıklama, tanıtım sitesi, giriş ekranı marka paneli; tek kaynak `frontend/src/content/site.ts` → `siteSlogan`). Eski "işletim sistemi" ifadesi kullanılmaz (taslaklarda geçer). Sosyal medya hesapları (`siteSocial`) site alt bilgisinde ve İletişim sayfasında tek renk çizgi ikonlarla, 44 px dokunma alanı, yeni sekmede.
 
-## Renkler (site geneli, kesin — 2026-10-10)
-
-Sitenin, giriş ekranlarının ve panelin tamamında **üç renk** var:
+## Renkler (kesin — 2026-10-17, panel yenilemesi)
 
 | Token | Hex | Kullanım |
 |---|---|---|
-| `black` | `#000000` | Yazı, ana buton (panel ve giriş), sol menü, üst çubuk, giriş ekranı marka paneli, sitede en fazla 2 siyah bölüm |
-| `white` | `#ffffff` | Zemin, siyah zeminde yazı |
-| `brand` | `#00b0ff` | Vurgu mavisi (wordmark'taki "Fabrika"): sitenin ana çağrı butonu, aktif menü, odak halkası, alt çizgi, küçük ikon |
+| `black` | `#000000` | Yazı |
+| `white` | `#ffffff` | Zemin, koyu zeminde yazı |
+| `brand` | `#00b0ff` | Vurgu mavisi: **ana düğme (yazı siyah)**, aktif menü zemini, şerit, ikon, koyu zeminde link/yazı |
+| `link` | `#006ea6` | Beyazda link ve vurgulu yazı (5,5:1), seçili sekme/çip, açık anahtar, kart ikonu |
+| `navy-950` | `#000a1d` | Koyu yüzey: sol menü, üst çubuk, sitenin üst menüsü/alt bilgisi/koyu bölümleri, giriş ekranı marka paneli, odak halkası (beyaz kapsamda) |
+| `navy-800` | `#00385a` | **Sadece koyu zeminde:** kart, hover, ayırıcı |
+| `cyan` | `#00fdff` | **Sadece koyu zeminde** küçük vurgu (etiket, numara, ✓) |
 
-- **Griler** (`neutral-50` … `neutral-900`) siyah-beyaz arası, renk tonu yok (R = G = B). Ayırıcı çizgi `neutral-200`, ikincil metin `neutral-600`, input kenarlığı `neutral-400`, siyah zeminde ikincil metin `neutral-300`.
-- **Kırmızı** (`danger-600` #b91c1c, açık zemini `danger-50`) sadece hata mesajı ve silme gibi işlevsel uyarılarda.
-- **Başarı için yeşil yok:** siyah (veya mavi ikon) + ✓. Uyarı için sarı yok: gri kutu + solda ince mavi çizgi.
-- Kaldırılanlar (kodda, token'da, e-posta şablonunda kullanılmaz): `#000a1d`, `#00385a`, `#006ea6`, `#00fdff` ve onlardan türetilen tonlar; `success-*`, `warning-*`.
-- Token'ların kodu: `frontend/src/app/globals.css` (Tailwind: `bg-black`, `bg-brand`, `border-neutral-200`, `text-danger-600`…). Tailwind'in hazır paleti kapalı.
+- **Griler** (`neutral-50` … `neutral-900`) renksiz (R = G = B). Ayırıcı `neutral-200`, ikincil metin `neutral-600`, input kenarlığı `neutral-400`, koyu zeminde ikincil metin `neutral-300`.
+- **Kırmızı** (`danger-600` #b91c1c, zemini `danger-50`) sadece hata ve silme.
+- **Başarı için yeşil, uyarı için sarı yok:** ✓ ikonu; uyarı gri kutu + solda ince mavi çizgi.
+- Token'lar: `frontend/src/app/globals.css`. Tailwind'in hazır paleti kapalı. Panel ve site aynı token'ları kullanır.
 
-### Kontrast kuralları
+### Kontrast kuralları (`src/lib/theme/contrast.test.ts` hepsini token değerleriyle doğrular)
 
-- Beyaz zeminde yazı/link: siyah (21:1), `neutral-700`, `neutral-600` (7.8:1). Link = siyah yazı + alt çizgi (alt çizgi mavi olabilir).
-- **Mavi beyaz zeminde yazı olarak kullanılmaz** (2.1:1). Sadece çizgi, ikon, alt çizgi, vurgu zemini (ör. aktif menü, ilerleme çubuğu).
-- Siyah zeminde mavi yazı/link olabilir (9.9:1).
-- Mavi buton → yazı **siyah** (9.9:1). Siyah buton → yazı beyaz.
-- Odak: mavi halka (3px). Beyaz zeminde mavi tek başına 3:1 vermediği için inputların kenarı odakta siyaha döner; butonlarda halka siyah butona bitişik durur.
-- `danger-600` siyah zeminde yazı olamaz; siyah zeminde hata mesajı açık kutuda (`bg-danger-50 text-danger-600`).
-- `src/lib/theme/contrast.test.ts` bu kuralları gerçek token değerleri üzerinden doğrular; eski renkler `globals.css`'e geri girerse test kırılır.
+- Beyaz zeminde yazı: siyah, `neutral-600`/`700`, `link` (#006ea6). **`brand` ve `cyan` beyazda yazı olamaz** (2,1:1 ve 1,2:1); `brand` beyazda düğme zemini, şerit, ikon, alt çizgi olabilir.
+- Koyu zeminde (`navy-950`, `navy-800`): beyaz, `neutral-300`, `brand`, `cyan` yazı olabilir.
+- Düğmeler: mavi (`brand`) + siyah yazı (ana düğme); `link` veya lacivert zemin + beyaz yazı (seçili çip, numara rozeti).
+- Odak: beyaz kapsamda lacivert halka (`navy-950`; mavi düğmenin yanında da 3:1), koyu kapsamda mavi halka.
+- `danger-600` koyu zeminde yazı olamaz; koyu zeminde hata mesajı açık kutuda.
 
 ### Kapsamlar
 
-- **Beyaz (varsayılan, `:root`):** tanıtım sitesi, giriş/kayıt/şifre/davet/e-posta doğrulama, kurulum sihirbazı, panel içerik alanı. Ana buton siyah (`primary`), sitenin çağrı butonu mavi (`<Button variant="accent">`).
-- **Siyah (`.dark` sınıfı):** panelin üst çubuğu, sitedeki siyah bölümler. İçindeki semantik sınıflar (`bg-card`, `text-foreground`, `text-muted-foreground`, `text-primary`) kendiliğinden siyah zemine döner; burada `primary` mavidir.
-- **Sol menü:** siyah zemin, `neutral-300` yazı, aktif öğe mavi zemin + siyah yazı, hover `neutral-800`.
-- Giriş ekranları: solda siyah marka paneli (wordmark, slogan, şirket unvanı), sağda beyaz form; 768px altında marka paneli üstte ince bant.
+- **Beyaz (`:root`):** panel içerik alanı, giriş/kayıt formları, kurulum, sitenin beyaz bölümleri. Ana düğme mavi (`<Button>`).
+- **Koyu (`.dark` sınıfı, #000a1d):** panelin üst çubuğu ve sol menüsü (`sidebar-*`: aktif öğe mavi zemin + siyah yazı, hover lacivert #00385a), sitenin üst menüsü, alt bilgisi ve koyu bölümleri, giriş ekranının marka paneli. İçindeki semantik sınıflar kendiliğinden koyu zemine döner.
+- **Bugün kartları:** üstte 4 px renkli şerit (`brand`, `link`, `navy-800`, `navy-950`) ve aynı tonda küçük ikon; yazı siyah.
+- **Boş durumlar:** sade SVG çizim (`EmptyState`: lacivert çizgili boş sayfa + mavi dairede ekranın ikonu).
+- Giriş ekranları: solda koyu lacivert marka paneli (logo, slogan, şirket unvanı), sağda beyaz form; 768px altında marka paneli üstte ince bant.
+
+### Tanıtım sitesi
+
+- Sıra: giriş (koyu, gerçek ekran görüntüsü laptop + telefon çerçevesinde) → kimler için (kendi SVG çizgi ikonları) → özellikler (para, müşteri, ekip) → farkımız (koyu) → nasıl çalışır (3 adım, büyük numaralar) → fiyatlar (Aylık/Yıllık) → SSS → son çağrı (koyu).
+- Ana çağrı her yerde **"Ücretsiz dene"**; telefonda sayfanın altında sabit. Sayfalar: `/fiyatlar`, `/sss`, `/hakkimizda`, `/iletisim`, `/yardim`, hukuki metinler.
+- Görseller demo işletmenin gerçek ekranları (`npm run demo:shots`, WebP), `next/image` ile; her görselde ne gösterdiğini anlatan alt metin; çerçeveler kendi CSS'imiz. Stok fotoğraf, uydurma yorum/sayı yok.
+- Hafif belirme yalnızca giriş bölümünde (`.kf-fade`, `prefers-reduced-motion`'a uyar).
 
 ## Tasarım ilkeleri (site ve panel)
 
 Rakip incelemesi: `docs/rakip-site-notlari.md`.
 
 - Ağırlıklı beyaz zemin, siyah yazı, bol boşluk, güçlü tipografi hiyerarşisi, **sola hizalı** düzen.
-- **Mavi az:** her ekran alanında bir mavi öğe yeter (sitede bölüm başına: ana buton *ya da* bir kelimenin alt çizgisi *ya da* paketlerde önerilen paketin üst çizgisi).
+- **Mavi ölçülü:** her bölümde bir ana mavi öğe (ana düğme ya da vurgu); link mavisi #006ea6 yazı ve seçili durumlar için.
 - Bölümleri ayırmak için **gölge yerine ince çizgi** (`border-black` güçlü ayrım, `border-neutral-200` hafif). Kartlarda gölge yok.
-- **Ürünü göster:** sitedeki ekranlar resim değil, panelin gerçek bileşenleriyle (`Card`, `Badge`, `Button`, menü) çizilir (`src/components/site/product-shots.tsx`), tarayıcı ve telefon çerçevesinde. Örnek veriler gerçekçi ve esnafa ait ("Ayşe Yılmaz — Saç kesimi, 14:30", "Bakiye 1.250 TL"); her çerçevenin altında "Örnek ekran" yazar.
+- **Ürünü göster:** sitedeki ekranlar demo işletmenin ("Işıltı Kuaför") gerçek ekran görüntüleri, kendi laptop ve telefon çerçevelerimizde; altında "Örnek ekran" yazar.
 - **Metin esnafın dilinde,** somut ve kısa: "Veresiye defterini kapat", "Gelmeyen müşteriyi geri çağır". Kalıp sözler yok: "devrim", "akıllı", "yapay zekâ destekli", "işinizi bir üst seviyeye taşıyın".
 - **Yasak:** gradyan, neon ışıma, cam/blur kart, yüzen/eğik 3D kart, emoji, her bölümde ikon yağmuru, her şeyin ortalanması, her kartın aynı yuvarlak köşe + gölge alması, sayaç animasyonu, uydurma müşteri yorumu/logo/kullanıcı sayısı.
 - İkonlar tek renk (siyah; siyah zeminde beyaz/gri) ve az; liste maddelerinde ✓ yeterli.
-- **Animasyon en az:** sadece sitenin ilk bölümünde hafif belirme (`.kf-fade`), `prefers-reduced-motion: no-preference` iken. Kaydırmaya bağlı animasyon yok.
+- **Animasyon en az:** sadece sitenin ilk bölümünde hafif belirme (`.kf-fade`), `prefers-reduced-motion: no-preference` iken.
 - Köşe yuvarlaklığı 6px (`--radius`); büyük yüzeylerde (çerçeve, tablo) köşe yok ya da az.
-- Paket fiyatları tek dosyada: `frontend/src/content/plans.ts` (`monthlyPrice: null` → "Lansman fiyatı yakında").
+- Paket fiyatları ve limitleri sitede `frontend/src/content/plans.ts`, uygulamada Plans tablosu (süper admin); ikisi birlikte güncellenir.
 
 ## Tipografi
 

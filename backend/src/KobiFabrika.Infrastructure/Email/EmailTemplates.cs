@@ -28,6 +28,12 @@ public static class EmailTemplates
     /// <summary>Sistem e-postalarının alt bilgisi; açılışta <c>Company:*</c> ayarından (şirket kurulana kadar "kuruluş aşamasında").</summary>
     public static string CompanyLine { get; set; } = "KobiFabrika (kuruluş aşamasında) · destek@kobifabrika.com";
 
+    /// <summary>
+    /// Sistem e-postalarının üstündeki logo (siyah zeminli PNG, 200 px gösterim). Görseller engellenirse alt metin "KobiFabrika"
+    /// okunur. Açılışta App:FrontendUrl'den ayarlanır.
+    /// </summary>
+    public static string? LogoUrl { get; set; }
+
     private const string Ink = "#000000";
     private const string Navy = "#000a1d";
     private const string Muted = "#525252";
@@ -237,7 +243,9 @@ public static class EmailTemplates
         static string E(string s) => Html.Encode(s);
 
         var header = sender is null
-            ? $"""<p style="margin:0 0 20px;font-size:22px;font-weight:800;letter-spacing:-0.3px;color:{Ink}">Kobi<span style="border-bottom:3px solid {Accent}">Fabrika</span></p>"""
+            ? LogoUrl is { } logoUrl
+                ? $"""<p style="margin:0 0 20px"><img src="{E(logoUrl)}" alt="KobiFabrika" width="200" height="37" style="display:block;width:200px;height:auto;border:0;border-radius:4px;background:#000000;color:#ffffff;font-size:18px;font-weight:800"></p>"""
+                : $"""<p style="margin:0 0 20px;font-size:22px;font-weight:800;letter-spacing:-0.3px;color:{Ink}">Kobi<span style="border-bottom:3px solid {Accent}">Fabrika</span></p>"""
             : $"""
               <table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 0 20px"><tr>
                 {(sender.LogoUrl is { } logo ? $"""<td style="padding-right:12px;vertical-align:middle"><img src="{E(logo)}" alt="" width="40" height="40" style="display:block;width:40px;height:40px;border-radius:6px;object-fit:contain"></td>""" : "")}

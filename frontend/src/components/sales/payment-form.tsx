@@ -156,7 +156,7 @@ export function PaymentForm({
               onClick={() => onChange({ ...value, method })}
               className={cn(
                 "flex min-h-14 items-center justify-center gap-2 rounded-lg border text-sm font-semibold",
-                value.method === method ? "border-black bg-black text-white" : "border-border bg-background text-black hover:border-black",
+                value.method === method ? "border-link bg-link text-white" : "border-border bg-background text-black hover:border-black",
               )}
             >
               <Icon aria-hidden className="size-5" />

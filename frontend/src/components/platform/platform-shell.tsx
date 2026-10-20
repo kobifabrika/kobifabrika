@@ -6,7 +6,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, type ReactNode } from "react";
 
-import { Wordmark } from "@/components/brand/wordmark";
+import { Logo } from "@/components/brand/logo";
 import { QueryError } from "@/components/feedback/query-error";
 import { useLogout, useMeQuery } from "@/components/providers/session-provider";
 import { TabNav } from "@/components/ui/scroll-row";
@@ -75,7 +75,7 @@ export function PlatformShell({ children }: { children: ReactNode }) {
       <header className="dark sticky top-0 z-20 border-b border-sidebar-border bg-background text-foreground">
         <div className="mx-auto flex h-14 max-w-6xl items-center justify-between gap-3 px-4 lg:h-16 lg:px-8">
           <Link href="/platform" className="flex min-h-11 items-center gap-2">
-            <Wordmark onDark className="text-lg" />
+            <Logo className="h-4 sm:h-5" />
             <span className="rounded border border-neutral-600 px-1.5 py-0.5 text-xs font-semibold text-white">
               Süper admin
             </span>
@@ -88,7 +88,7 @@ export function PlatformShell({ children }: { children: ReactNode }) {
                 aria-current={active === n.href ? "page" : undefined}
                 className={cn(
                   "flex min-h-11 items-center rounded-md px-3 text-sm font-semibold",
-                  active === n.href ? "bg-neutral-800 text-white" : "text-neutral-300 hover:text-white",
+                  active === n.href ? "bg-navy-800 text-white" : "text-neutral-300 hover:text-white",
                 )}
               >
                 {n.label}

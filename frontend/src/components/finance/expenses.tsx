@@ -278,7 +278,7 @@ export function ExpenseForm({ kind, staffId: initialStaffId }: { kind: ExpenseCa
                 key={c.id}
                 className={cn(
                   "flex min-h-12 cursor-pointer items-center border px-3 text-sm font-semibold",
-                  selectedCategoryId === c.id ? "border-black bg-black text-white" : "border-border text-black hover:border-black",
+                  selectedCategoryId === c.id ? "border-link bg-link text-white" : "border-border text-black hover:border-black",
                 )}
               >
                 <input

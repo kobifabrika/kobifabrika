@@ -9,7 +9,7 @@ import { mkdirSync, rmSync } from "node:fs";
 import path from "node:path";
 
 import { withLock } from "./lock.mjs";
-import { apiPort, connectionString, repoRoot, runDir, smsApiPort, smsWebUrl, webUrl } from "./env.mjs";
+import { apiPort, connectionString, platformEmail, repoRoot, runDir, smsApiPort, smsWebUrl, webUrl } from "./env.mjs";
 
 const sms = process.argv.includes("--sms");
 const port = sms ? smsApiPort : apiPort;
@@ -47,8 +47,8 @@ const env = {
   Marketing__AutomationsCron: "* * * * *",
   // Çıkış ve anket linkleri E2E frontend'ine işaret etsin (canlıda kobifabrika.com).
   PublicLinks__ShortBaseUrl: frontend,
-  // Süper admin (E2E'de bu adresle kayıt olan kullanıcı).
-  Platform__AdminEmails__0: "e2e-platform@example.test",
+  // Süper admin (E2E'de bu adresle kayıt olan kullanıcı; koşuya ve çifte özel).
+  Platform__AdminEmails__0: platformEmail(sms),
   Storage__LocalPath: path.join(apiRunDir, "files"),
   DataProtection__KeysPath: path.join(apiRunDir, "keys"),
   Serilog__MinimumLevel__Default: "Warning",

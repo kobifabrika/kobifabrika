@@ -1,7 +1,12 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useMutation } from "@tanstack/react-query";
+import { MailCheck } from "lucide-react";
+import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { useState } from "react";
+import { toast } from "sonner";
 import { useForm, useWatch } from "react-hook-form";
 import { z } from "zod";
 
@@ -12,6 +17,8 @@ import { PasswordHints, PasswordInput } from "@/components/forms/password-input"
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { api, errorMessage, fieldErrors, unwrap } from "@/lib/api/client";
+import type { Me } from "@/lib/api/types";
+import { plans, type Period } from "@/content/plans";
 import { emailSchema, fullNameSchema, passwordSchema, phoneSchema } from "@/lib/validation/rules";
 
 const schema = z.object({
@@ -24,9 +31,82 @@ const schema = z.object({
 
 type Values = z.infer<typeof schema>;
 
-/** Kayıt: işletme adı burada sorulmaz, kurulum sihirbazında sorulur. Kayıt olan kişi işletmenin sahibi olur. */
-export function RegisterForm() {
+/** ?paket=kalfa&donem=yillik (fiyat sayfasından): geçerliyse paket ve dönem; dönem yoksa aylık. */
+export function requestedPlan(params: URLSearchParams): { plan: (typeof plans)[number]; period: Period } | null {
+  const plan = plans.find((p) => p.id === params.get("paket"));
+  if (!plan) return null;
+  return { plan, period: params.get("donem") === "yillik" ? "yillik" : "aylik" };
+}
+
+/**
+ * Kayıt ekranı: işletme adı burada sorulmaz, kurulum sihirbazında sorulur; kayıt olan kişi işletmenin sahibi olur. Fiyat
+ * sayfasından gelindiyse seçilen paket gösterilir ve kayda yazılır (ödeme yok, deneme bitince Sahip seçer). Kayıttan sonra
+ * "E-postanı kontrol et" ekranı: doğrulama bağlantısı, tekrar gönder, gelmezse ne yapmalı ve kuruluma devam.
+ */
+export function RegisterView() {
+  const [registered, setRegistered] = useState<Me | null>(null);
+  if (registered) return <CheckEmail me={registered} />;
+  return (
+    <>
+      <h1 className="text-3xl font-bold tracking-tight text-black">Üye ol</h1>
+      <p className="mt-2 text-sm text-neutral-600">Hesabınızı oluşturun; işletme bilgilerini sonraki adımda soracağız.</p>
+      <RegisterForm onRegistered={setRegistered} />
+      <p className="mt-6 text-center text-sm text-neutral-600">
+        Zaten hesabınız var mı?{" "}
+        <Link
+          href="/giris"
+          className="inline-flex min-h-11 items-center font-semibold text-black underline decoration-brand decoration-2 underline-offset-4 hover:decoration-black"
+        >
+          Giriş yap
+        </Link>
+      </p>
+    </>
+  );
+}
+
+function CheckEmail({ me }: { me: Me }) {
   const afterAuth = useAfterAuth();
+  const resend = useMutation({
+    mutationFn: () => unwrap(api.POST("/api/auth/resend-confirmation")),
+    onSuccess: () => toast.success("Doğrulama e-postası tekrar gönderildi."),
+    onError: (e) => toast.error(errorMessage(e)),
+  });
+  return (
+    <section aria-labelledby="eposta-kontrol" className="flex flex-col gap-5">
+      <MailCheck aria-hidden className="size-10 text-link" />
+      <h1 id="eposta-kontrol" className="text-3xl font-bold tracking-tight text-black">
+        E-postanı kontrol et
+      </h1>
+      <p className="text-base text-neutral-700">
+        <span className="font-semibold break-all text-black">{me.user.email}</span> adresine bir doğrulama bağlantısı gönderdik.
+        Bağlantıya dokununca hesabın doğrulanır.
+      </p>
+      <ol className="flex flex-col gap-2 border-l-2 border-brand bg-neutral-50 px-4 py-3 text-sm text-neutral-700">
+        <li>1. E-posta kutunu aç; &quot;E-posta adresini doğrula&quot; konulu e-postayı bul.</li>
+        <li>2. Birkaç dakikada gelmezse İstenmeyen (Spam) ve Promosyonlar klasörüne bak.</li>
+        <li>3. Hâlâ yoksa aşağıdan tekrar gönder.</li>
+      </ol>
+      <p className="text-sm text-neutral-600">Beklemene gerek yok: işletmeni şimdi kurabilir, e-postayı sonra doğrulayabilirsin.</p>
+      <Button size="lg" className="w-full" onClick={() => afterAuth(me)}>
+        İşletmemi kurmaya başla
+      </Button>
+      <Button variant="outline" className="w-full" disabled={resend.isPending || resend.isSuccess} onClick={() => resend.mutate()}>
+        {resend.isSuccess ? "Tekrar gönderildi" : "E-postayı tekrar gönder"}
+      </Button>
+      <p className="text-sm text-neutral-600">
+        E-posta adresini yanlış mı yazdın?{" "}
+        <a href="mailto:destek@kobifabrika.com" className="font-semibold text-link underline">
+          destek@kobifabrika.com
+        </a>{" "}
+        adresine yazabilirsin.
+      </p>
+    </section>
+  );
+}
+
+function RegisterForm({ onRegistered }: { onRegistered: (me: Me) => void }) {
+  const params = useSearchParams();
+  const chosen = requestedPlan(params);
   const [error, setError] = useState<string | null>(null);
   const {
     register,
@@ -43,7 +123,13 @@ export function RegisterForm() {
   const onSubmit = handleSubmit(async (values) => {
     setError(null);
     try {
-      afterAuth(await unwrap(api.POST("/api/auth/register", { body: values })));
+      onRegistered(
+        await unwrap(
+          api.POST("/api/auth/register", {
+            body: { ...values, plan: chosen?.plan.id ?? null, period: chosen && chosen.plan.monthlyPrice > 0 ? chosen.period : null },
+          }),
+        ),
+      );
     } catch (e) {
       const fields = fieldErrors(e);
       for (const [name, message] of Object.entries(fields)) {
@@ -55,6 +141,12 @@ export function RegisterForm() {
 
   return (
     <form className="mt-8 flex flex-col gap-5" onSubmit={onSubmit} noValidate>
+      {chosen && (
+        <p className="border-l-2 border-brand bg-neutral-50 px-4 py-3 text-sm text-black">
+          Seçtiğiniz paket: <span className="font-semibold">{chosen.plan.name}</span>
+          {chosen.plan.monthlyPrice > 0 && ` (${chosen.period === "yillik" ? "yıllık" : "aylık"}) · 14 gün ücretsiz deneyin`}
+        </p>
+      )}
       <Field label="Ad soyad" error={errors.fullName?.message}>
         <Input autoComplete="name" placeholder="Adınız ve soyadınız" {...register("fullName")} />
       </Field>

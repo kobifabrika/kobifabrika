@@ -5,7 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "cn";
 
-import { Wordmark } from "@/components/brand/wordmark";
+import { Logo } from "@/components/brand/logo";
 import { BusinessSwitcher } from "@/components/panel/business-switcher";
 import { ApiStatus } from "@/components/panel/api-status";
 import { useSession } from "@/components/providers/session-provider";
@@ -78,7 +78,7 @@ export function Sidebar() {
     <aside className="fixed inset-y-0 left-0 z-30 hidden w-64 flex-col overflow-hidden border-r border-sidebar-border bg-sidebar text-sidebar-foreground lg:flex">
       <div className="flex flex-col gap-3 border-b border-sidebar-border px-3 pt-4 pb-3">
         <Link href="/panel" className="self-start rounded-md px-3 outline-sidebar-ring" aria-label="KobiFabrika — Bugün">
-          <Wordmark onDark className="text-2xl" />
+          <Logo className="h-5" />
         </Link>
         <BusinessSwitcher variant="sidebar" />
       </div>

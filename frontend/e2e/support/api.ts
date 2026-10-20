@@ -7,6 +7,7 @@ import {
   type BrowserContext,
 } from "@playwright/test";
 
+import { platformEmail } from "../scripts/env.mjs";
 import { target } from "./target";
 import { linkFromEmail } from "./mailpit";
 
@@ -108,9 +109,9 @@ export type Sector =
 
 /** Kurulumu bitmiş işletmesi olan Sahip. Perakende (stok açık) varsayılan. */
 export async function ownerWithBusiness(
-  options: { name?: string; sector?: Sector; confirmEmail?: boolean; email?: string } = {},
+  options: { name?: string; sector?: Sector; confirmEmail?: boolean; email?: string; fullName?: string } = {},
 ): Promise<ApiUser> {
-  const owner = await register({ email: options.email });
+  const owner = await register({ email: options.email, fullName: options.fullName });
   await owner.post("/api/setup/business", {
     name: options.name ?? `Deneme Butik ${Math.random().toString(36).slice(2, 6)}`,
     sector: options.sector ?? "Other",
@@ -235,15 +236,14 @@ export function createQuote(
 
 // --- Platform yöneticisi (Sprint 6A) -------------------------------------------------------------------
 
-/** E2E API'sinde Platform:AdminEmails (scripts/start-api.mjs). Bütün testler aynı hesabı paylaşır. */
-export const PLATFORM_EMAIL = "e2e-platform@example.test";
-
 /**
- * Platform yöneticisi (kredi yükleme ekranı için işletmesi de olur). Projeler paralel koştuğu için: önce giriş dener, yoksa
+ * Platform yöneticisi (E2E API'sinde Platform:AdminEmails, scripts/start-api.mjs; adres koşuya ve çifte özel, çiftin bütün
+ * testleri aynı hesabı paylaşır; işletmesi de olur). Projeler paralel koştuğu için: önce giriş dener, yoksa
  * kaydolur; aynı anda başka test kaydettiyse girişi ve e-posta doğrulamasını bekler.
  */
 export async function platformAdmin(): Promise<ApiUser> {
   const ctx = await newApiContext();
+  const PLATFORM_EMAIL = platformEmail(target().sms);
   const user = new ApiUser(ctx, PLATFORM_EMAIL, "KobiFabrika Destek");
   const login = () => ctx.post("/api/auth/login", { data: { email: PLATFORM_EMAIL, password: PASSWORD, rememberMe: false } });
   if (!(await login()).ok()) {

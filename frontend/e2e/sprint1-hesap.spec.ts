@@ -9,13 +9,19 @@ test("kayıt, doğrulama, kurulum sihirbazı, çıkış/giriş ve şifre sıfır
   const businessName = `Kaya Butik ${Date.now().toString(36)}`;
 
   // Kayıt
-  await visit(page, "/kayit", "Kayıt");
+  await visit(page, "/kayit?paket=kalfa&donem=yillik", "Kayıt");
+  await expect(page.getByText("Seçtiğiniz paket: Kalfa (yıllık) · 14 gün ücretsiz deneyin")).toBeVisible();
   await page.getByLabel("Ad soyad").fill("Emir Deneme");
   await page.getByLabel("E-posta").fill(email);
   await page.getByLabel("Cep telefonu").fill("0532 123 45 67");
   await page.getByLabel("Şifre", { exact: true }).fill(PASSWORD);
   await page.locator("#terms").check();
   await page.getByRole("button", { name: "Hesap oluştur" }).click();
+  // Kayıttan sonra "E-postanı kontrol et": adres, ne yapmalı, tekrar gönder, kuruluma devam.
+  await expect(page.getByRole("heading", { name: "E-postanı kontrol et" })).toBeVisible();
+  await expect(page.getByText(email)).toBeVisible();
+  await check(page, "Kayıt · e-postanı kontrol et");
+  await page.getByRole("button", { name: "İşletmemi kurmaya başla" }).click();
   await expect(page).toHaveURL(/\/kurulum/);
   await expect(page.getByRole("heading", { name: "İşletmeni tanıyalım" })).toBeVisible();
 

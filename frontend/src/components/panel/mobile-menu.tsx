@@ -15,7 +15,7 @@ import {
 import Link from "next/link";
 import { useState } from "react";
 
-import { Wordmark } from "@/components/brand/wordmark";
+import { Logo } from "@/components/brand/logo";
 import { ApiStatus } from "@/components/panel/api-status";
 import { FeedbackDialog, useSupportLinks } from "@/components/panel/help-menu";
 import { useSwitchBusiness } from "@/components/panel/business-switcher";
@@ -26,7 +26,7 @@ import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTr
 import { roleNames, type Role } from "@/lib/api/types";
 
 const rowClass =
-  "flex min-h-11 w-full items-center gap-3 rounded-md px-3 text-left text-sm text-sidebar-foreground transition-colors hover:bg-neutral-800";
+  "flex min-h-11 w-full items-center gap-3 rounded-md px-3 text-left text-sm text-sidebar-foreground transition-colors hover:bg-navy-800";
 
 /**
  * Telefonda sağ üstteki "Menü": kullanıcı menüsüyle birleşik tek düğme (üst çubukta ayrı hamburger + avatar 375 px'te sıkışır).
@@ -47,7 +47,7 @@ export function MobileMenu() {
         <SheetTrigger asChild>
           <button
             type="button"
-            className="flex size-11 items-center justify-center rounded-md text-white hover:bg-neutral-800 lg:hidden"
+            className="flex size-11 items-center justify-center rounded-md text-white hover:bg-navy-800 lg:hidden"
             aria-label="Menü"
           >
             <Menu aria-hidden className="size-6" />
@@ -59,14 +59,14 @@ export function MobileMenu() {
         >
           <SheetHeader className="border-b border-sidebar-border px-5 py-4">
             <SheetTitle>
-              <Wordmark onDark className="text-xl" />
+              <Logo className="h-5" />
             </SheetTitle>
             <SheetDescription className="sr-only">Panel menüsü ve hesap</SheetDescription>
           </SheetHeader>
           <div className="flex-1 overflow-y-auto">
             <section aria-label="Hesap" className="border-b border-sidebar-border px-3 py-4">
               <div className="flex items-center gap-3 px-3 pb-3">
-                <span className="flex size-11 shrink-0 items-center justify-center rounded-full bg-neutral-800 text-sm font-bold text-white">
+                <span className="flex size-11 shrink-0 items-center justify-center rounded-full bg-navy-800 text-sm font-bold text-white">
                   {initials(me.user.fullName)}
                 </span>
                 <span className="flex min-w-0 flex-col">

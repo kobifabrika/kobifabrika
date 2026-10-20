@@ -2,7 +2,7 @@
 
 import type { ComponentProps } from "react";
 
-const link = "font-semibold text-primary underline underline-offset-2";
+const link = "font-semibold text-link-text underline underline-offset-2";
 
 /**
  * Kayıt onayı (karar 2026-10-17): "Kullanım koşullarını ve Veri işleme sözleşmesini kabul ediyorum" (davetle gelen çalışanda sadece

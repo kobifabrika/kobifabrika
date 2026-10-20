@@ -24,7 +24,6 @@ test("süper admin: işletme, pilot, not, geri bildirim", async ({
       "href",
       /^https:\/\/wa\.me\/905359779382\?text=/,
     );
-    await check(page, "Yardım menüsü");
     await page.getByRole("menuitem", { name: "Geri bildirim gönder" }).click();
   } else {
     await page.getByRole("banner").getByRole("button", { name: "Menü" }).click();

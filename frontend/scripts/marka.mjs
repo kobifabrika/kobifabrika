@@ -74,7 +74,8 @@ const yazi = sharp(data, { raw: { width: info.width, height: info.height, channe
 // Sitede/girişte 2x yoğunlukta en fazla ~280 px genişlik gösterilir.
 await yazi.clone().resize({ width: 640 }).webp({ quality: 90 }).toFile(path.join(marka, "logo-yazi.webp"));
 await yazi.clone().resize({ width: 640 }).png().toFile(path.join(marka, "logo-yazi.png"));
-// E-posta: istemciler WebP ve saydamlığı her zaman desteklemez; siyah zeminli, 2x (gösterim 200 px).
+// E-posta: istemciler WebP ve saydamlığı her zaman desteklemez; siyah zeminli, 2x (gösterim 200×37 px; sharp önce boyutlar
+// sonra kenar ekler: 464×87).
 await sharp(path.join(marka, "logo.png"))
   .trim({ background: "#000000", threshold: 10 })
   .extend({ top: 24, bottom: 24, left: 32, right: 32, background: "#000000" })

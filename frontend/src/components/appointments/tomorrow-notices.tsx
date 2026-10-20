@@ -35,10 +35,10 @@ export function TomorrowNotices() {
   const reminded = items.filter((i) => i.remindedAt).length;
 
   return (
-    <Card role="region" className="gap-3 py-4" aria-labelledby="tomorrow-title">
+    <Card role="region" className="gap-3 border-t-4 border-t-link py-4" aria-labelledby="tomorrow-title">
       <CardHeader className="flex flex-row flex-wrap items-center justify-between gap-2 px-4">
         <CardTitle id="tomorrow-title" className="flex items-center gap-2 text-base font-semibold text-black">
-          <MessageCircle aria-hidden className="size-5 text-neutral-600" />
+          <MessageCircle aria-hidden className="size-5 text-link" />
           Yarının randevuları
           <span className="text-sm font-normal text-neutral-600 tabular-nums">({items.length})</span>
         </CardTitle>

@@ -32,15 +32,18 @@ const BLACK = "#000000";
 const AA_TEXT = 4.5;
 const AA_NON_TEXT = 3;
 
-describe("palet: siyah, beyaz, vurgu mavisi (docs/04-tasarim.md)", () => {
-  it("tek marka rengi #00b0ff; siyah ve beyaz saf", () => {
+describe("palet: siyah, beyaz, mavi, lacivert (docs/04-tasarim.md, karar 2026-10-17)", () => {
+  it("marka renkleri sabit; siyah ve beyaz saf", () => {
     expect(token("brand")).toBe("#00b0ff");
+    expect(token("link")).toBe("#006ea6");
+    expect(token("navy-950")).toBe("#000a1d");
+    expect(token("navy-800")).toBe("#00385a");
+    expect(token("cyan")).toBe("#00fdff");
     expect(token("black")).toBe(BLACK);
     expect(token("white")).toBe(WHITE);
   });
 
-  it("eski marka renkleri ve yeşil/sarı durum renkleri token'larda yok", () => {
-    for (const hex of ["#000a1d", "#00385a", "#006ea6", "#00fdff"]) expect(css.toLowerCase()).not.toContain(hex);
+  it("yeşil/sarı durum renkleri ve mavi ton dizisi yok", () => {
     expect(css).not.toMatch(/--color-(success|warning|brand-\d+)/);
   });
 
@@ -58,17 +61,29 @@ describe("palet: siyah, beyaz, vurgu mavisi (docs/04-tasarim.md)", () => {
 });
 
 describe("kontrast kuralları", () => {
-  it("mavi beyaz zeminde yazı için yetersiz; kural bunu yasaklıyor", () => {
+  it("mavi ve camgöbeği beyaz zeminde yazı için yetersiz; kural bunu yasaklıyor", () => {
     expect(contrast(token("brand"), WHITE)).toBeLessThan(AA_TEXT);
+    expect(contrast(token("cyan"), WHITE)).toBeLessThan(AA_TEXT);
   });
 
-  it("mavi siyah zeminde yazı/link olarak okunur", () => {
-    expect(contrast(token("brand"), BLACK)).toBeGreaterThanOrEqual(AA_TEXT);
+  it("link mavisi beyaz ve açık gri zeminde yazı olarak okunur", () => {
+    for (const bg of [WHITE, token("neutral-50"), token("neutral-100")])
+      expect(contrast(token("link"), bg)).toBeGreaterThanOrEqual(AA_TEXT);
   });
 
-  it("mavi buton + siyah yazı; siyah buton + beyaz yazı", () => {
+  it.each(["navy-950", "navy-800"])("%s zemininde beyaz, neutral-300, mavi ve camgöbeği yazı okunur", (bg) => {
+    for (const fg of [WHITE, token("neutral-300"), token("brand"), token("cyan")])
+      expect(contrast(fg, token(bg))).toBeGreaterThanOrEqual(AA_TEXT);
+  });
+
+  it("mavi düğme + siyah yazı; lacivert ve link zemininde beyaz yazı", () => {
     expect(contrast(BLACK, token("brand"))).toBeGreaterThanOrEqual(AA_TEXT);
-    expect(contrast(WHITE, BLACK)).toBeGreaterThanOrEqual(AA_TEXT);
+    expect(contrast(WHITE, token("navy-950"))).toBeGreaterThanOrEqual(AA_TEXT);
+    expect(contrast(WHITE, token("link"))).toBeGreaterThanOrEqual(AA_TEXT);
+  });
+
+  it("şeritler ve ikonlar beyaz zeminde: link ve lacivertler 3:1", () => {
+    for (const c of ["link", "navy-800", "navy-950"]) expect(contrast(token(c), WHITE)).toBeGreaterThanOrEqual(AA_NON_TEXT);
   });
 
   it.each(["neutral-600", "neutral-700", "danger-600"])(
@@ -83,18 +98,8 @@ describe("kontrast kuralları", () => {
     expect(contrast(token("danger-600"), token("danger-50"))).toBeGreaterThanOrEqual(AA_TEXT);
   });
 
-  it.each(["neutral-300", "neutral-400"])("%s siyah ve neutral-900 zeminde ikincil metin olarak okunur", (name) => {
-    expect(contrast(token(name), BLACK)).toBeGreaterThanOrEqual(AA_TEXT);
-    expect(contrast(token(name), token("neutral-900"))).toBeGreaterThanOrEqual(AA_TEXT);
-  });
-
   it("input kenarlığı beyaz zeminde en az 3:1", () => {
     expect(contrast(token("neutral-400"), WHITE)).toBeGreaterThanOrEqual(AA_NON_TEXT);
-  });
-
-  it("odak: mavi halka siyah buton/zemin yanında 3:1; beyaz zeminde input kenarı odakta siyaha döner", () => {
-    expect(contrast(token("brand"), BLACK)).toBeGreaterThanOrEqual(AA_NON_TEXT);
-    expect(contrast(BLACK, WHITE)).toBeGreaterThanOrEqual(AA_NON_TEXT);
   });
 });
 
@@ -134,15 +139,21 @@ const light = (name: string) => variable(":root", name);
 const dark = (name: string) => variable(".dark", name);
 
 describe("beyaz kapsam: panel içeriği, giriş ekranları, site", () => {
-  it("zemin beyaz, yazı siyah, ana buton siyah + beyaz yazı, odak halkası mavi", () => {
+  it("zemin beyaz, yazı siyah, ana düğme mavi + siyah yazı, link mavisi, odak halkası lacivert", () => {
     expect(light("background")).toBe(WHITE);
     expect(light("foreground")).toBe(BLACK);
-    expect(light("primary")).toBe(BLACK);
-    expect(light("primary-foreground")).toBe(WHITE);
-    expect(light("ring")).toBe(token("brand"));
+    expect(light("primary")).toBe(token("brand"));
+    expect(light("primary-foreground")).toBe(BLACK);
+    expect(light("link")).toBe(token("link"));
+    expect(light("ring")).toBe(token("navy-950"));
   });
 
-  it.each(["foreground", "muted-foreground", "secondary-foreground", "accent-foreground"])(
+  it("odak halkası beyaz zeminde ve mavi düğmenin yanında en az 3:1", () => {
+    expect(contrast(light("ring"), WHITE)).toBeGreaterThanOrEqual(AA_NON_TEXT);
+    expect(contrast(light("ring"), light("primary"))).toBeGreaterThanOrEqual(AA_NON_TEXT);
+  });
+
+  it.each(["foreground", "muted-foreground", "secondary-foreground", "accent-foreground", "link"])(
     "%s beyaz ve muted zeminde okunur",
     (name) => {
       expect(contrast(light(name), light("background"))).toBeGreaterThanOrEqual(AA_TEXT);
@@ -153,22 +164,31 @@ describe("beyaz kapsam: panel içeriği, giriş ekranları, site", () => {
   it("input kenarlığı 3:1", () => {
     expect(contrast(light("input"), light("background"))).toBeGreaterThanOrEqual(AA_NON_TEXT);
   });
+
+  it("lacivert #00385a ve camgöbeği beyaz kapsamın zemin/yazı değişkenlerinde yok (sadece koyu menüde)", () => {
+    const body = block(":root")
+      .split("\n")
+      .filter((l) => !l.includes("--sidebar"))
+      .join("\n");
+    expect(body).not.toMatch(/navy-800|--color-cyan/);
+  });
 });
 
-describe("siyah kapsam (.dark): üst çubuk, sitedeki siyah bölümler", () => {
+describe("koyu kapsam (.dark): üst çubuk, sitedeki koyu bölümler", () => {
   const surfaces = ["background", "card", "popover", "muted"] as const;
 
-  it("zemin siyah, birincil renk mavi + siyah yazı, odak halkası mavi", () => {
-    expect(dark("background")).toBe(BLACK);
+  it("zemin koyu lacivert, birincil renk mavi + siyah yazı, link mavi, odak halkası mavi", () => {
+    expect(dark("background")).toBe(token("navy-950"));
     expect(dark("primary")).toBe(token("brand"));
     expect(dark("primary-foreground")).toBe(BLACK);
+    expect(dark("link")).toBe(token("brand"));
     expect(dark("ring")).toBe(token("brand"));
   });
 
   it.each(surfaces)("ana metin, ikincil metin ve mavi link %s üstünde okunur", (s) => {
     expect(contrast(dark("foreground"), dark(s))).toBeGreaterThanOrEqual(AA_TEXT);
     expect(contrast(dark("muted-foreground"), dark(s))).toBeGreaterThanOrEqual(AA_TEXT);
-    expect(contrast(dark("primary"), dark(s))).toBeGreaterThanOrEqual(AA_TEXT);
+    expect(contrast(dark("link"), dark(s))).toBeGreaterThanOrEqual(AA_TEXT);
   });
 
   it("buton: mavi zemin + siyah yazı", () => {
@@ -184,18 +204,19 @@ describe("siyah kapsam (.dark): üst çubuk, sitedeki siyah bölümler", () => {
     expect(contrast(dark("input"), dark("background"))).toBeGreaterThanOrEqual(AA_NON_TEXT);
   });
 
-  it("hata yazısı siyah zeminde okunmaz; hata mesajı açık kutuda gösterilir", () => {
-    expect(contrast(token("danger-600"), BLACK)).toBeLessThan(AA_TEXT);
+  it("hata yazısı koyu zeminde okunmaz; hata mesajı açık kutuda gösterilir", () => {
+    expect(contrast(token("danger-600"), dark("background"))).toBeLessThan(AA_TEXT);
   });
 });
 
-describe("panel sol menü (siyah, aktif öğe mavi)", () => {
-  it("menü yazısı ve grup başlıkları siyah zeminde okunur", () => {
+describe("panel sol menü (koyu lacivert, aktif öğe mavi)", () => {
+  it("menü yazısı ve grup başlıkları koyu zeminde okunur", () => {
+    expect(light("sidebar")).toBe(token("navy-950"));
     expect(contrast(light("sidebar-foreground"), light("sidebar"))).toBeGreaterThanOrEqual(AA_TEXT);
     expect(contrast(token("neutral-400"), light("sidebar"))).toBeGreaterThanOrEqual(AA_TEXT);
   });
 
-  it("aktif öğe: mavi zemin + siyah yazı; hover: koyu gri + beyaz yazı", () => {
+  it("aktif öğe: mavi zemin + siyah yazı; hover: lacivert + beyaz yazı", () => {
     expect(light("sidebar-primary")).toBe(token("brand"));
     expect(contrast(light("sidebar-primary-foreground"), light("sidebar-primary"))).toBeGreaterThanOrEqual(AA_TEXT);
     expect(contrast(light("sidebar-accent-foreground"), light("sidebar-accent"))).toBeGreaterThanOrEqual(AA_TEXT);

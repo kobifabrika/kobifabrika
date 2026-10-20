@@ -274,7 +274,7 @@ export function ImportWizard({ kind = "contacts" }: { kind?: ImportKind }) {
                 onClick={() => setFilter(key)}
                 className={cn(
                   "min-h-11 rounded-full border px-4 text-sm font-medium",
-                  filter === key ? "border-black bg-black text-white" : "border-border text-black hover:border-black",
+                  filter === key ? "border-link bg-link text-white" : "border-border text-black hover:border-black",
                 )}
               >
                 {label}

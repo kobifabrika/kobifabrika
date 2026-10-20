@@ -187,6 +187,10 @@ if (builder.Configuration["Company:EmailFooter"] is { Length: > 0 } companyLine)
     KobiFabrika.Infrastructure.Email.EmailTemplates.CompanyLine = companyLine;
 }
 
+// Sistem e-postalarının üstündeki logo (frontend public/marka/logo-eposta.png; `npm run marka` üretir).
+KobiFabrika.Infrastructure.Email.EmailTemplates.LogoUrl =
+    (builder.Configuration["App:FrontendUrl"] ?? "http://localhost:3000").TrimEnd('/') + "/marka/logo-eposta.png";
+
 var app = builder.Build();
 
 app.UseMiddleware<CorrelationIdMiddleware>();

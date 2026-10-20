@@ -1,16 +1,34 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 
-import { Wordmark } from "@/components/brand/wordmark";
+import { StatusPage } from "@/components/feedback/status-page";
+import { Button } from "@/components/ui/button";
 
+export const metadata: Metadata = { title: "Sayfa bulunamadı", robots: { index: false } };
+
+/** Genel 404 (site ve bilinmeyen adresler). */
 export default function NotFound() {
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center gap-4 bg-background px-4 text-center">
-      <Wordmark className="text-2xl" />
-      <h1 className="text-xl font-bold text-black">Sayfa bulunamadı</h1>
-      <p className="text-sm text-neutral-600">Aradığınız sayfa taşınmış veya hiç var olmamış olabilir.</p>
-      <Link href="/" className="inline-flex min-h-11 items-center font-semibold text-black underline decoration-brand decoration-2 underline-offset-4 hover:decoration-black">
-        Ana sayfaya dön
-      </Link>
-    </main>
+    <StatusPage
+      code="404"
+      title="Aradığın sayfa burada değil"
+      actions={
+        <>
+          <Button asChild size="lg">
+            <Link href="/">Ana sayfaya dön</Link>
+          </Button>
+          <Button asChild size="lg" variant="outline">
+            <Link href="/panel">Panele git</Link>
+          </Button>
+        </>
+      }
+      links={[
+        { href: "/yardim", label: "Yardım" },
+        { href: "/fiyatlar", label: "Fiyatlar" },
+        { href: "/iletisim", label: "İletişim" },
+      ]}
+    >
+      Bağlantı eksik kopyalanmış ya da sayfa taşınmış olabilir. Adresi kontrol et veya aşağıdan devam et.
+    </StatusPage>
   );
 }

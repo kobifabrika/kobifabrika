@@ -56,7 +56,7 @@ export function BottomNav() {
         <Sheet open={quickOpen} onOpenChange={setQuickOpen}>
           <SheetTrigger asChild>
             <button type="button" className={cn(tabClass, "text-black")} aria-label="Hızlı işlem">
-              <span className="flex size-12 items-center justify-center rounded-full bg-black text-white">
+              <span className="flex size-12 items-center justify-center rounded-full bg-primary text-primary-foreground">
                 <Plus aria-hidden className="size-7" />
               </span>
             </button>

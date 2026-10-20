@@ -19,7 +19,7 @@ export function PasswordInput({ className, ...props }: ComponentProps<"input">) 
         onClick={() => setVisible((v) => !v)}
         aria-pressed={visible}
         aria-label={visible ? "Şifreyi gizle" : "Şifreyi göster"}
-        className="absolute inset-y-0 right-0 min-w-16 rounded-r-lg px-3 text-sm font-medium text-primary"
+        className="absolute inset-y-0 right-0 min-w-16 rounded-r-lg px-3 text-sm font-medium text-link-text"
       >
         {visible ? "Gizle" : "Göster"}
       </button>

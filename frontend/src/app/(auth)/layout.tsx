@@ -1,6 +1,7 @@
 import Link from "next/link";
 
-import { Wordmark } from "@/components/brand/wordmark";
+import { Logo } from "@/components/brand/logo";
+import { company } from "@/content/company";
 import { siteSlogan } from "@/content/site";
 
 /**
@@ -10,16 +11,16 @@ import { siteSlogan } from "@/content/site";
 export default function AuthLayout({ children }: LayoutProps<"/">) {
   return (
     <div className="flex min-h-screen flex-col bg-white md:flex-row">
-      <section className="relative flex shrink-0 items-center justify-between bg-black px-4 py-4 text-white md:w-1/2 md:flex-col md:justify-center md:px-12 md:py-12">
-        <Link href="/" className="rounded-md outline-sidebar-ring md:text-center" aria-label="KobiFabrika ana sayfa">
-          <Wordmark onDark className="text-2xl md:text-6xl" />
+      <section className="relative flex shrink-0 items-center justify-between bg-navy-950 px-4 py-4 text-white md:w-1/2 md:flex-col md:justify-center md:px-12 md:py-12">
+        <Link href="/" className="flex min-h-11 items-center rounded-md outline-sidebar-ring" aria-label="KobiFabrika ana sayfa">
+          <Logo priority className="h-5 md:h-9" />
         </Link>
         <p className="hidden max-w-sm text-center text-base text-sidebar-foreground md:mt-5 md:block">
           <span className="block text-xl font-semibold text-white">{siteSlogan}</span>
           <span className="mt-2 block">Paranı takip eden, müşteri getiren, personelini yöneten tek uygulama.</span>
         </p>
         <div className="hidden text-center text-xs text-sidebar-foreground/80 md:absolute md:inset-x-12 md:bottom-8 md:block">
-          <p className="font-semibold tracking-wider uppercase">KobiFabrika Yazılım A.Ş.</p>
+          <p className="font-semibold tracking-wider">{company.name}</p>
           <p className="mt-1">Tüm hakları saklıdır.</p>
         </div>
       </section>

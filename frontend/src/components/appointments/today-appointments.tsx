@@ -15,10 +15,10 @@ import { StatusBadge } from "./appointment-bits";
  */
 export function TodayAppointments({ data, canWrite }: { data: DashboardAppointments; canWrite: boolean }) {
   return (
-    <Card className="gap-3 py-4">
+    <Card className="gap-3 border-t-4 border-t-brand py-4">
       <CardHeader className="flex flex-row items-center justify-between gap-2 px-4">
         <CardTitle className="flex items-center gap-2 text-base font-semibold text-black">
-          <CalendarDays aria-hidden className="size-5 text-neutral-600" />
+          <CalendarDays aria-hidden className="size-5 text-link" />
           {data.onlyOwn ? "Bugünkü randevularım" : "Bugünün randevuları"}
           <span className="text-sm font-normal text-neutral-600 tabular-nums">({data.total})</span>
         </CardTitle>

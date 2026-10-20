@@ -39,24 +39,34 @@ const compactTl = new Intl.NumberFormat("tr-TR", { notation: "compact", maximumF
 /** "2026-10-12" → "12.10" (grafik ekseni). */
 const shortDay = (day: string) => `${day.slice(8, 10)}.${day.slice(5, 7)}`;
 
+/** Kart şeridi ve ikon rengi (panel yenilemesi, karar 2026-10-17): ince üst şerit + renkli küçük ikon; yazı siyah kalır. */
+const tones = {
+  brand: { stripe: "border-t-brand", icon: "text-link" },
+  link: { stripe: "border-t-link", icon: "text-link" },
+  navy: { stripe: "border-t-navy-800", icon: "text-navy-800" },
+  ink: { stripe: "border-t-navy-950", icon: "text-navy-950" },
+} as const;
+
 function StatCard({
   label,
   icon: Icon,
   value,
   children,
   href,
+  tone = "brand",
 }: {
   label: string;
   icon: LucideIcon;
   value: string;
   children?: ReactNode;
   href?: string;
+  tone?: keyof typeof tones;
 }) {
   const body = (
-    <Card className="h-full gap-2 py-4">
+    <Card className={`h-full gap-2 border-t-4 py-4 ${tones[tone].stripe}`}>
       <CardHeader className="flex flex-row items-center justify-between gap-2 px-4">
         <CardTitle className="text-xs font-medium text-neutral-600">{label}</CardTitle>
-        <Icon aria-hidden className="size-5 shrink-0 text-neutral-600" />
+        <Icon aria-hidden className={`size-5 shrink-0 ${tones[tone].icon}`} />
       </CardHeader>
       <CardContent className="flex flex-col gap-1 px-4">
         <p className="text-2xl font-bold text-black tabular-nums">{value}</p>
@@ -174,6 +184,7 @@ function DashboardBody({ data }: { data: Dashboard }) {
           <StatCard
             label="Bugünkü tahsilat"
             icon={HandCoins}
+            tone="link"
             value={formatMoney(data.collections)}
             href="/panel/cari-kasa?sekme=bakiyeler"
           />
@@ -182,6 +193,7 @@ function DashboardBody({ data }: { data: Dashboard }) {
           <StatCard
             label="Vadesi gelen alacak"
             icon={AlertTriangle}
+            tone="navy"
             value={formatMoney(dueTotal)}
             href="/panel/cari-kasa?sekme=vadeler"
           >
@@ -194,7 +206,7 @@ function DashboardBody({ data }: { data: Dashboard }) {
           </StatCard>
         )}
         {stock.enabled && (
-          <StatCard label="Kritik stok" icon={Boxes} value={`${stock.low} ürün`} href="/panel/stok?filtre=kritik">
+          <StatCard label="Kritik stok" icon={Boxes} tone="ink" value={`${stock.low} ürün`} href="/panel/stok?filtre=kritik">
             {stock.negative > 0 && <span className="text-xs text-neutral-700">{stock.negative} ürün eksi stokta</span>}
           </StatCard>
         )}

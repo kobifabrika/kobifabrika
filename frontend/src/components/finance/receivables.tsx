@@ -79,7 +79,7 @@ export function ReceivablesTab() {
               className={cn(
                 "flex min-h-14 flex-col items-start justify-center border px-3 py-2 text-left",
                 t.key === active.key
-                  ? "border-black bg-black text-white"
+                  ? "border-link bg-link text-white"
                   : "border-border bg-white text-black hover:border-black",
               )}
             >

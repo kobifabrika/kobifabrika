@@ -29,7 +29,7 @@ export function QuoteStatusBadge({ status, expired, className }: { status: Quote
         expired
           ? "border-neutral-400 bg-white text-neutral-700"
           : status === "Accepted"
-            ? "border-black bg-black text-white"
+            ? "border-link bg-link text-white"
             : status === "Converted"
               ? "border-black bg-white text-black"
               : status === "Rejected"

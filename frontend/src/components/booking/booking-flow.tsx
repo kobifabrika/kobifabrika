@@ -467,7 +467,7 @@ function TimeStep({
                 onClick={() => setDay(d.date)}
                 className={cn(
                   "flex min-h-14 flex-col items-center justify-center rounded-lg border text-sm",
-                  selected === d.date ? "border-black bg-black text-white" : "border-border bg-white text-black",
+                  selected === d.date ? "border-link bg-link text-white" : "border-border bg-white text-black",
                   empty && "border-dashed text-neutral-400",
                 )}
               >
@@ -521,7 +521,7 @@ function TimeStep({
                     className={cn(
                       "min-h-11 rounded-lg border text-base font-semibold tabular-nums",
                       choice.date === selected && choice.time === t
-                        ? "border-black bg-black text-white"
+                        ? "border-link bg-link text-white"
                         : "border-border bg-white text-black hover:border-black",
                     )}
                   >
