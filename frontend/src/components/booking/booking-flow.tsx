@@ -5,7 +5,7 @@ import { cn } from "cn";
 import { CalendarPlus, Check, ChevronLeft, ChevronRight, Clock, UserRound } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useMemo, useState, type FormEvent, type ReactNode } from "react";
+import { useEffect, useMemo, useRef, useState, type FormEvent, type ReactNode } from "react";
 import { toast } from "sonner";
 
 import { PublicMessage } from "@/components/public/public-shell";
@@ -15,7 +15,17 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { ApiError, api, errorMessage, fieldErrors, problemCode, unwrap } from "@/lib/api/client";
 import type { PublicBooking, PublicBookingCreated, PublicBookingService, PublicBookingStaff } from "@/lib/api/types";
-import { buildIcs, groupSlots, isBookingStep, isMobile, slotToUtc, stripBounds, stripLabel, weekFrom, type BookingStep } from "@/lib/booking";
+import {
+  buildIcs,
+  groupSlots,
+  isBookingStep,
+  isMobile,
+  slotToUtc,
+  stripBounds,
+  stripLabel,
+  weekFrom,
+  type BookingStep,
+} from "@/lib/booking";
 import { longDayLabel } from "@/lib/calendar";
 import { addDays } from "@/lib/date-ranges";
 import { formatMoney, istanbulParts } from "@/lib/format";
@@ -30,7 +40,14 @@ type Choice = {
   time?: string;
 };
 
-type Person = { firstName: string; lastName: string; phone: string; marketing: boolean };
+type Person = {
+  firstName: string;
+  lastName: string;
+  phone: string;
+  email: string;
+  marketing: boolean;
+  website: string;
+};
 
 const stepTitles: Record<BookingStep, string> = {
   hizmet: "Hizmet seçin",
@@ -41,12 +58,15 @@ const stepTitles: Record<BookingStep, string> = {
   onay: "Randevunuz alındı",
 };
 
-const numbered: BookingStep[] = ["hizmet", "personel", "saat", "bilgiler", "kod"];
+/** SMS kapalıyken (pilot) kod adımı yok: randevu talebi doğrudan gönderilir, işletme onaylar. */
+const numberedSteps = (verify: boolean): BookingStep[] =>
+  verify ? ["hizmet", "personel", "saat", "bilgiler", "kod"] : ["hizmet", "personel", "saat", "bilgiler"];
 
 export const bookingKey = (slug: string) => ["public", "booking", slug] as const;
 
 /**
- * Online randevu (/r/[slug]): hizmet → personel ("Fark etmez" ilk) → gün/saat → bilgiler → SMS kodu → onay. Adım ?adim= ile
+ * Online randevu (/r/[slug]): hizmet → personel ("Fark etmez" ilk) → gün/saat → bilgiler → SMS kodu → onay. SMS kapalıyken
+ * (verificationRequired false) kod adımı yok: bilgilerden sonra talep gönderilir, durum her zaman "onay bekliyor". Adım ?adim= ile
  * adreste; tarayıcının geri tuşu adımlar arasında çalışır. Seçimler sayfada tutulur; sayfa yenilenirse baştan başlar.
  */
 export function BookingFlow({ slug }: { slug: string }) {
@@ -60,7 +80,19 @@ export function BookingFlow({ slug }: { slug: string }) {
     retry: false,
   });
   const [choice, setChoice] = useState<Choice>({});
-  const [person, setPerson] = useState<Person>({ firstName: "", lastName: "", phone: "", marketing: false });
+  const [person, setPerson] = useState<Person>({
+    firstName: "",
+    lastName: "",
+    phone: "",
+    email: "",
+    marketing: false,
+    website: "",
+  });
+  // Bot tuzağı: sayfa açıldıktan 3 saniyeden kısa sürede gelen gönderim sunucuda kayıt açmaz.
+  const openedAt = useRef<number | null>(null);
+  useEffect(() => {
+    openedAt.current = Date.now();
+  }, []);
   const [verification, setVerification] = useState<{ id: string; sentAt: number } | null>(null);
   const [created, setCreated] = useState<PublicBookingCreated | null>(null);
 
@@ -105,13 +137,30 @@ export function BookingFlow({ slug }: { slug: string }) {
     return (
       <BookingShell>
         <PublicMessage title={missing ? "Online randevu sayfası bulunamadı" : "Sayfa açılamadı"}>
-          {missing ? "İşletme online randevuyu kapatmış olabilir. Randevu için işletmeyi arayın." : errorMessage(page.error)}
+          {missing
+            ? "İşletme online randevuyu kapatmış olabilir. Randevu için işletmeyi arayın."
+            : errorMessage(page.error)}
         </PublicMessage>
       </BookingShell>
     );
   }
 
   const b = page.data;
+  if (!b.available)
+    return (
+      <BookingShell
+        name={b.name}
+        logoUrl={b.logoUrl}
+        address={[b.address, b.district, b.city]}
+        phone={b.phone}
+        phoneE164={b.phoneE164}
+      >
+        <PublicMessage title="Şu an online randevu alınmıyor">
+          {b.phone ? `Randevu için işletmeyi arayın: ${b.phone}` : "Randevu için işletmeyle iletişime geçin."}
+        </PublicMessage>
+      </BookingShell>
+    );
+  const numbered = numberedSteps(b.verificationRequired);
   const index = numbered.indexOf(step);
   const summary = <Summary business={b} choice={choice} />;
 
@@ -122,7 +171,11 @@ export function BookingFlow({ slug }: { slug: string }) {
       address={[b.address, b.district, b.city]}
       phone={b.phone}
       phoneE164={b.phoneE164}
-      aside={step !== "onay" && choice.service ? <div className="sticky top-6 border border-border p-4">{summary}</div> : undefined}
+      aside={
+        step !== "onay" && choice.service ? (
+          <div className="sticky top-6 border border-border p-4">{summary}</div>
+        ) : undefined
+      }
     >
       <div className="flex flex-col gap-1">
         {index >= 0 && (
@@ -144,7 +197,9 @@ export function BookingFlow({ slug }: { slug: string }) {
         </button>
       )}
 
-      {step !== "hizmet" && step !== "onay" && choice.service && <div className="border border-border p-3 lg:hidden">{summary}</div>}
+      {step !== "hizmet" && step !== "onay" && choice.service && (
+        <div className="border border-border p-3 lg:hidden">{summary}</div>
+      )}
 
       {step === "hizmet" && (
         <ServiceStep
@@ -175,7 +230,7 @@ export function BookingFlow({ slug }: { slug: string }) {
           }}
         />
       )}
-      {step === "bilgiler" && (
+      {step === "bilgiler" && b.verificationRequired && (
         <PersonStep
           slug={slug}
           business={b}
@@ -184,6 +239,25 @@ export function BookingFlow({ slug }: { slug: string }) {
           onSent={(id) => {
             setVerification({ id, sentAt: Date.now() });
             go("kod");
+          }}
+        />
+      )}
+      {step === "bilgiler" && !b.verificationRequired && (
+        <RequestStep
+          slug={slug}
+          business={b}
+          choice={choice}
+          value={person}
+          onChange={setPerson}
+          elapsedSeconds={() => (openedAt.current ? Math.floor((Date.now() - openedAt.current) / 1000) : 0)}
+          onSlotTaken={() => {
+            void queryClient.invalidateQueries({ queryKey: ["public", "booking", slug, "slots"] });
+            setChoice((c) => ({ ...c, time: undefined }));
+            go("saat", true);
+          }}
+          onDone={(result) => {
+            setCreated(result);
+            go("onay", true);
           }}
         />
       )}
@@ -211,7 +285,9 @@ export function BookingFlow({ slug }: { slug: string }) {
           }}
         />
       )}
-      {step === "onay" && created && <Confirmation slug={slug} business={b} created={created} />}
+      {step === "onay" && created && (
+        <Confirmation slug={slug} business={b} created={created} emailGiven={!!person.email.trim()} />
+      )}
     </BookingShell>
   );
 }
@@ -224,7 +300,9 @@ function Summary({ choice }: { business: PublicBooking; choice: Choice }) {
         <dt className="text-xs text-neutral-600">Hizmet</dt>
         <dd className="font-semibold text-black">
           {choice.service.name} · {choice.service.durationMinutes} dk
-          {choice.service.price != null && <span className="font-normal text-neutral-700"> · {formatMoney(choice.service.price)}</span>}
+          {choice.service.price != null && (
+            <span className="font-normal text-neutral-700"> · {formatMoney(choice.service.price)}</span>
+          )}
         </dd>
       </div>
       {choice.staff !== undefined && (
@@ -245,7 +323,15 @@ function Summary({ choice }: { business: PublicBooking; choice: Choice }) {
   );
 }
 
-function OptionButton({ children, onClick, selected }: { children: ReactNode; onClick: () => void; selected?: boolean }) {
+function OptionButton({
+  children,
+  onClick,
+  selected,
+}: {
+  children: ReactNode;
+  onClick: () => void;
+  selected?: boolean;
+}) {
   return (
     <button
       type="button"
@@ -262,7 +348,9 @@ function OptionButton({ children, onClick, selected }: { children: ReactNode; on
 
 function ServiceStep({ business, onPick }: { business: PublicBooking; onPick: (s: PublicBookingService) => void }) {
   if (business.services.length === 0)
-    return <PublicMessage title="Şu anda online randevuya açık hizmet yok">Randevu için işletmeyi arayın.</PublicMessage>;
+    return (
+      <PublicMessage title="Şu anda online randevuya açık hizmet yok">Randevu için işletmeyi arayın.</PublicMessage>
+    );
   return (
     <ul className="flex flex-col gap-2" aria-label="Hizmetler">
       {business.services.map((s) => (
@@ -275,7 +363,9 @@ function ServiceStep({ business, onPick }: { business: PublicBooking; onPick: (s
                 {s.durationMinutes} dk
               </span>
             </span>
-            {s.price != null && <span className="shrink-0 text-base font-semibold text-black tabular-nums">{formatMoney(s.price)}</span>}
+            {s.price != null && (
+              <span className="shrink-0 text-base font-semibold text-black tabular-nums">{formatMoney(s.price)}</span>
+            )}
           </OptionButton>
         </li>
       ))}
@@ -329,12 +419,18 @@ function TimeStep({
     queryFn: () =>
       unwrap(
         api.GET("/api/public/booking/{slug}/slots", {
-          params: { path: { slug }, query: { serviceId: choice.service!.id, staffId: choice.staff?.id, from, days: 7 } },
+          params: {
+            path: { slug },
+            query: { serviceId: choice.service!.id, staffId: choice.staff?.id, from, days: 7 },
+          },
         }),
       ),
     retry: false,
   });
-  const days = useMemo(() => slots.data?.days ?? weekFrom(from).map((date) => ({ date, times: [] as string[] })), [slots.data, from]);
+  const days = useMemo(
+    () => slots.data?.days ?? weekFrom(from).map((date) => ({ date, times: [] as string[] })),
+    [slots.data, from],
+  );
   const firstFree = days.find((d) => d.times.length > 0)?.date ?? null;
   const selected = day && days.some((d) => d.date === day) ? day : firstFree;
   const times = days.find((d) => d.date === selected)?.times ?? [];
@@ -347,7 +443,13 @@ function TimeStep({
   return (
     <div className="flex flex-col gap-4">
       <div className="flex items-center gap-2">
-        <Button variant="outline" size="icon" aria-label="Önceki hafta" disabled={!bounds.prev} onClick={() => shift(-1)}>
+        <Button
+          variant="outline"
+          size="icon"
+          aria-label="Önceki hafta"
+          disabled={!bounds.prev}
+          onClick={() => shift(-1)}
+        >
           <ChevronLeft aria-hidden />
         </Button>
         <div role="radiogroup" aria-label="Gün" className="grid flex-1 grid-cols-7 gap-1">
@@ -375,7 +477,13 @@ function TimeStep({
             );
           })}
         </div>
-        <Button variant="outline" size="icon" aria-label="Sonraki hafta" disabled={!bounds.next} onClick={() => shift(1)}>
+        <Button
+          variant="outline"
+          size="icon"
+          aria-label="Sonraki hafta"
+          disabled={!bounds.next}
+          onClick={() => shift(1)}
+        >
           <ChevronRight aria-hidden />
         </Button>
       </div>
@@ -412,7 +520,9 @@ function TimeStep({
                     onClick={() => onPick(selected!, t)}
                     className={cn(
                       "min-h-11 rounded-lg border text-base font-semibold tabular-nums",
-                      choice.date === selected && choice.time === t ? "border-black bg-black text-white" : "border-border bg-white text-black hover:border-black",
+                      choice.date === selected && choice.time === t
+                        ? "border-black bg-black text-white"
+                        : "border-border bg-white text-black hover:border-black",
                     )}
                   >
                     {t}
@@ -444,7 +554,12 @@ function PersonStep({
   const [error, setError] = useState<string | null>(null);
   const send = useMutation({
     mutationFn: () =>
-      unwrap(api.POST("/api/public/booking/{slug}/verifications", { params: { path: { slug } }, body: { phone: value.phone, firstName: value.firstName } })),
+      unwrap(
+        api.POST("/api/public/booking/{slug}/verifications", {
+          params: { path: { slug } },
+          body: { phone: value.phone, firstName: value.firstName },
+        }),
+      ),
     onSuccess: (r) => onSent(r.verificationId),
     onError: (e) => {
       const fields = fieldErrors(e);
@@ -468,10 +583,20 @@ function PersonStep({
     <form onSubmit={submit} noValidate className="flex flex-col gap-4">
       <div className="grid gap-4 sm:grid-cols-2">
         <Field label="Ad" error={errors.firstName}>
-          <Input autoComplete="given-name" maxLength={100} value={value.firstName} onChange={(e) => set({ firstName: e.target.value })} />
+          <Input
+            autoComplete="given-name"
+            maxLength={100}
+            value={value.firstName}
+            onChange={(e) => set({ firstName: e.target.value })}
+          />
         </Field>
         <Field label="Soyad" error={errors.lastName}>
-          <Input autoComplete="family-name" maxLength={100} value={value.lastName} onChange={(e) => set({ lastName: e.target.value })} />
+          <Input
+            autoComplete="family-name"
+            maxLength={100}
+            value={value.lastName}
+            onChange={(e) => set({ lastName: e.target.value })}
+          />
         </Field>
       </div>
       <Field label="Cep telefonu" error={errors.phone} hint="Doğrulama kodu bu numaraya SMS ile gelir.">
@@ -493,7 +618,11 @@ function PersonStep({
         .
       </p>
       <label className="flex min-h-11 items-start gap-3 text-sm text-black">
-        <Checkbox className="mt-0.5" checked={value.marketing} onCheckedChange={(v) => set({ marketing: v === true })} />
+        <Checkbox
+          className="mt-0.5"
+          checked={value.marketing}
+          onCheckedChange={(v) => set({ marketing: v === true })}
+        />
         <span>Kampanya ve fırsatlardan SMS ile haberdar olmak istiyorum.</span>
       </label>
       {error && <FormMessage>{error}</FormMessage>}
@@ -569,12 +698,24 @@ function CodeStep({
         onSlotTaken();
         return;
       }
-      setError({ text: errorMessage(e), renew: c === "code_expired" || c === "code_used" || c === "code_attempts" || (e instanceof ApiError && e.status === 429) });
+      setError({
+        text: errorMessage(e),
+        renew:
+          c === "code_expired" ||
+          c === "code_used" ||
+          c === "code_attempts" ||
+          (e instanceof ApiError && e.status === 429),
+      });
     },
   });
   const resend = useMutation({
     mutationFn: () =>
-      unwrap(api.POST("/api/public/booking/{slug}/verifications", { params: { path: { slug } }, body: { phone: person.phone, firstName: person.firstName } })),
+      unwrap(
+        api.POST("/api/public/booking/{slug}/verifications", {
+          params: { path: { slug } },
+          body: { phone: person.phone, firstName: person.firstName },
+        }),
+      ),
     onSuccess: (r) => {
       onResent(r.verificationId);
       setCode("");
@@ -597,7 +738,8 @@ function CodeStep({
   return (
     <form onSubmit={submit} noValidate className="flex flex-col gap-4">
       <p className="text-base text-neutral-700">
-        <span className="font-semibold text-black tabular-nums">{person.phone}</span> numarasına gelen 6 haneli kodu girin.
+        <span className="font-semibold text-black tabular-nums">{person.phone}</span> numarasına gelen 6 haneli kodu
+        girin.
       </p>
       <Field label="Doğrulama kodu">
         <Input
@@ -630,7 +772,17 @@ function CodeStep({
   );
 }
 
-function Confirmation({ slug, business, created }: { slug: string; business: PublicBooking; created: PublicBookingCreated }) {
+function Confirmation({
+  slug,
+  business,
+  created,
+  emailGiven,
+}: {
+  slug: string;
+  business: PublicBooking;
+  created: PublicBookingCreated;
+  emailGiven: boolean;
+}) {
   const when = istanbulParts(created.startAt);
   const end = istanbulParts(created.endAt);
   const pending = created.status === "Pending";
@@ -655,9 +807,11 @@ function Confirmation({ slug, business, created }: { slug: string; business: Pub
       <section className="flex items-start gap-3 border-l-2 border-brand bg-neutral-50 px-4 py-4">
         <Check aria-hidden className="mt-0.5 size-5 shrink-0 text-black" />
         <div className="flex flex-col gap-1">
-          <p className="text-base font-semibold text-black">{pending ? "Randevu talebiniz alındı." : "Randevunuz onaylandı."}</p>
+          <p className="text-base font-semibold text-black">
+            {pending ? "Randevu talebiniz alındı." : "Randevunuz onaylandı."}
+          </p>
           <p className="text-sm text-neutral-700">
-            {pending ? "İşletme onayladığında SMS ile bilgi vereceğiz." : "Randevu bilgileri SMS ile de gönderildi."}
+            {confirmationNote(business.verificationRequired, pending, emailGiven)}
           </p>
         </div>
       </section>
@@ -687,5 +841,175 @@ function Confirmation({ slug, business, created }: { slug: string; business: Pub
         </Button>
       </div>
     </div>
+  );
+}
+
+/** Onay ekranındaki bilgi satırı: SMS açık/kapalı ve e-posta girilip girilmediğine göre. */
+export function confirmationNote(sms: boolean, pending: boolean, emailGiven: boolean): string {
+  if (sms)
+    return pending ? "İşletme onayladığında SMS ile bilgi vereceğiz." : "Randevu bilgileri SMS ile de gönderildi.";
+  if (!pending)
+    return emailGiven ? "Randevu bilgileri e-postanıza da gönderildi." : "Randevu saatinde sizi bekliyoruz.";
+  return emailGiven
+    ? "İşletme onayladığında e-postayla bilgi vereceğiz. Talebinizin bir kopyası e-postanıza gönderildi."
+    : "İşletme randevunuzu onaylayınca size telefonla veya WhatsApp'tan haber verir.";
+}
+
+const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+/**
+ * SMS kapalıyken bilgiler adımı: ad, soyad, cep telefonu (zorunlu), e-posta (isteğe bağlı) ve görünmez bot tuzağı alanı. Gönderince
+ * randevu talebi açılır (kod yok); işletme panelden onaylar.
+ */
+function RequestStep({
+  slug,
+  business,
+  choice,
+  value,
+  onChange,
+  elapsedSeconds,
+  onSlotTaken,
+  onDone,
+}: {
+  slug: string;
+  business: PublicBooking;
+  choice: Choice;
+  value: Person;
+  onChange: (p: Person) => void;
+  elapsedSeconds: () => number;
+  onSlotTaken: () => void;
+  onDone: (created: PublicBookingCreated) => void;
+}) {
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [error, setError] = useState<string | null>(null);
+  const hasEmail = !!value.email.trim();
+  const book = useMutation({
+    mutationFn: () =>
+      unwrap(
+        api.POST("/api/public/booking/{slug}/appointments", {
+          params: { path: { slug } },
+          body: {
+            verificationId: null,
+            code: null,
+            serviceId: choice.service!.id,
+            staffId: choice.staff?.id ?? null,
+            startAt: slotToUtc(choice.date!, choice.time!),
+            firstName: value.firstName.trim(),
+            lastName: value.lastName.trim(),
+            phone: value.phone,
+            email: value.email.trim() || null,
+            marketingConsent: hasEmail && value.marketing,
+            website: value.website || null,
+            elapsedSeconds: elapsedSeconds(),
+          },
+        }),
+      ),
+    onSuccess: onDone,
+    onError: (e) => {
+      const c = problemCode(e);
+      if (c === "slot_taken" || c === "slot_invalid") {
+        toast.error(errorMessage(e));
+        onSlotTaken();
+        return;
+      }
+      const fields = fieldErrors(e);
+      setErrors(fields);
+      setError(Object.keys(fields).length ? null : codeError(e, business));
+    },
+  });
+  const submit = (e: FormEvent) => {
+    e.preventDefault();
+    const next: Record<string, string> = {};
+    if (!value.firstName.trim()) next.firstName = "Adınızı girin.";
+    if (!value.lastName.trim()) next.lastName = "Soyadınızı girin.";
+    if (!isMobile(value.phone)) next.phone = "Cep telefonu numaranızı girin (ör. 0532 123 45 67).";
+    if (hasEmail && !emailPattern.test(value.email.trim())) next.email = "Geçerli bir e-posta adresi girin.";
+    setErrors(next);
+    setError(null);
+    if (Object.keys(next).length === 0) book.mutate();
+  };
+  const set = (patch: Partial<Person>) => onChange({ ...value, ...patch });
+
+  return (
+    <form onSubmit={submit} noValidate className="relative flex flex-col gap-4">
+      <div className="grid gap-4 sm:grid-cols-2">
+        <Field label="Ad" error={errors.firstName}>
+          <Input
+            autoComplete="given-name"
+            maxLength={100}
+            value={value.firstName}
+            onChange={(e) => set({ firstName: e.target.value })}
+          />
+        </Field>
+        <Field label="Soyad" error={errors.lastName}>
+          <Input
+            autoComplete="family-name"
+            maxLength={100}
+            value={value.lastName}
+            onChange={(e) => set({ lastName: e.target.value })}
+          />
+        </Field>
+      </div>
+      <Field label="Cep telefonu" error={errors.phone} hint="İşletme randevunuz için bu numaradan size ulaşır.">
+        <Input
+          type="tel"
+          inputMode="tel"
+          autoComplete="tel-national"
+          placeholder="05xx xxx xx xx"
+          maxLength={20}
+          value={value.phone}
+          onChange={(e) => set({ phone: e.target.value })}
+        />
+      </Field>
+      <Field
+        label="E-posta (isteğe bağlı)"
+        error={errors.email}
+        hint="Girerseniz randevu bilgileri e-postanıza da gelir."
+      >
+        <Input
+          type="email"
+          inputMode="email"
+          autoComplete="email"
+          maxLength={256}
+          value={value.email}
+          onChange={(e) => set({ email: e.target.value })}
+        />
+      </Field>
+      {/* Bot tuzağı: insanlar görmez ve doldurmaz; doluysa sunucu kayıt açmaz. */}
+      <div aria-hidden className="absolute top-0 -left-[9999px] size-px overflow-hidden">
+        <label>
+          Web sitesi
+          <input
+            tabIndex={-1}
+            autoComplete="off"
+            name="website"
+            value={value.website}
+            onChange={(e) => set({ website: e.target.value })}
+          />
+        </label>
+      </div>
+      <p className="text-sm text-neutral-700">
+        Kişisel verileriniz randevunuz için işlenir:{" "}
+        <a href="/kvkk" target="_blank" rel="noopener" className="font-semibold text-black underline">
+          KVKK aydınlatma metni
+        </a>
+        .
+      </p>
+      {hasEmail && (
+        <label className="flex min-h-11 items-start gap-3 text-sm text-black">
+          <Checkbox
+            className="mt-0.5"
+            checked={value.marketing}
+            onCheckedChange={(v) => set({ marketing: v === true })}
+          />
+          <span>Kampanya ve fırsatlardan e-posta ile haberdar olmak istiyorum.</span>
+        </label>
+      )}
+      {error && <FormMessage>{error}</FormMessage>}
+      <Button type="submit" size="lg" disabled={book.isPending}>
+        Randevu talebini gönder
+      </Button>
+      <p className="text-sm text-neutral-600">Randevunuz işletme onayladığında kesinleşir.</p>
+    </form>
   );
 }

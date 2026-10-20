@@ -1,6 +1,6 @@
 import { expect as pwExpect, request, type Page } from "@playwright/test";
 
-import { apiUrl } from "./scripts/env.mjs";
+import { target } from "./support/target";
 import { createContact, uniquePhone, type ApiUser } from "./support/api";
 import { at, book, createService, createStaff, openAllDay, workAllDay } from "./support/appointments";
 import { smsCode, smsTexts } from "./support/mailpit";
@@ -37,7 +37,7 @@ async function openBooking(owner: ApiUser) {
  * saat kalmalı: akşam koşunca (en erken bildirim 4 saat) bugün tek boş saat kalabiliyordu (CI 2026-10-15, 18:00 sonrası).
  */
 async function firstSlot(slug: string, serviceId: string, staffId: string, minFree = 1) {
-  const ctx = await request.newContext({ baseURL: apiUrl });
+  const ctx = await request.newContext({ baseURL: target().apiUrl });
   try {
     const res = await ctx.get(`/api/public/booking/${slug}/slots?serviceId=${serviceId}&staffId=${staffId}&days=7`);
     const slots = (await res.json()) as Slots;
@@ -59,7 +59,7 @@ async function fillPerson(page: Page, phone: string, first = "Deniz", last = "Ak
  * yanlış kod; panelde Beklemede → Onayla (müşteriye onay SMS'i); dolu saat (başka müşteri kod girerken saat doldu → saat adımına
  * döner, aynı kodla başka saat); müşterinin iptal linki.
  */
-test("online randevu: kodla randevu, onay, dolu saat ve iptal linki", async ({ owner, ownerPage, newPublicPage, check, visit, guard }) => {
+test("online randevu: kodla randevu, onay, dolu saat ve iptal linki @sms", async ({ owner, ownerPage, newPublicPage, check, visit, guard }) => {
   guard.allow(400, /\/api\/public\/booking\/.+\/appointments$/); // yanlış kod (beklenen)
   guard.allow(409, /\/api\/public\/booking\/.+\/appointments$/); // dolu saat (beklenen)
   const { slug, service, ayse, name } = await openBooking(owner);

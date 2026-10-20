@@ -9,23 +9,25 @@ import { Card, CardContent } from "@/components/ui/card";
 import { TabNav } from "@/components/ui/scroll-row";
 import { can, type Permission } from "@/lib/permissions";
 
-const tabs: { href: string; label: string; permission: Permission; module?: "appointments" }[] = [
+const tabs: { href: string; label: string; permission: Permission; module?: "appointments"; sms?: true }[] = [
   { href: "/panel/ayarlar", label: "İşletme", permission: "viewSettings" },
   { href: "/panel/ayarlar/calisma-saatleri", label: "Çalışma saatleri", permission: "viewSettings" },
   { href: "/panel/ayarlar/randevu", label: "Randevu", permission: "viewSettings", module: "appointments" },
   { href: "/panel/ayarlar/finans", label: "Finans", permission: "viewFinance" },
   { href: "/panel/ayarlar/personel", label: "Personel", permission: "viewSettings" },
-  { href: "/panel/ayarlar/sms", label: "SMS", permission: "viewMarketing" },
+  { href: "/panel/ayarlar/sms", label: "SMS", permission: "viewMarketing", sms: true },
   { href: "/panel/ayarlar/ekip", label: "Ekip", permission: "manageTeam" },
   { href: "/panel/ayarlar/aktivite", label: "Aktivite günlüğü", permission: "viewAuditLog" },
 ];
 
-/** Ayarlar sekmeleri; role göre görünür. Telefonda yatay kaydırılır. */
+/** Ayarlar sekmeleri; role göre görünür (SMS sekmesi SMS kapalıyken gizli). Telefonda yatay kaydırılır. */
 export function SettingsNav() {
   const pathname = usePathname();
-  const { role, business } = useSession();
+  const { role, business, me } = useSession();
 
-  const visible = tabs.filter((t) => can(role, t.permission) && (!t.module || business.modules[t.module]));
+  const visible = tabs.filter(
+    (t) => can(role, t.permission) && (!t.module || business.modules[t.module]) && (!t.sms || me.platform.smsEnabled),
+  );
   return (
     <TabNav
       label="Ayarlar"

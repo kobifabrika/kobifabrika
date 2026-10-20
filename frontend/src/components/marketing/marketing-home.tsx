@@ -19,9 +19,13 @@ const tabs = [
   { key: "anketler", label: "Anketler" },
 ] as const;
 
-/** /panel/kampanyalar?sekme=kampanyalar|otomasyonlar|anketler: kredi şeridi, sekmeler. */
+/**
+ * /panel/kampanyalar?sekme=kampanyalar|otomasyonlar|anketler: kredi şeridi, sekmeler. SMS kapalıyken (pilot) kredi şeridi ve yeni
+ * SMS kampanyası yok; e-posta ve WhatsApp kampanyaları yayından sonra (Sprint 8A, A6).
+ */
 export function MarketingHome() {
-  const { role } = useSession();
+  const { role, me } = useSession();
+  const sms = me.platform.smsEnabled;
   const params = useSearchParams();
   const active = tabs.find((t) => t.key === params.get("sekme"))?.key ?? "kampanyalar";
 
@@ -29,7 +33,7 @@ export function MarketingHome() {
     <div className="flex flex-col gap-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h1 className="text-2xl font-bold tracking-tight text-black">Kampanyalar</h1>
-        {active === "kampanyalar" && can(role, "manageMarketing") && (
+        {active === "kampanyalar" && sms && can(role, "manageMarketing") && (
           <Button asChild className="max-sm:w-full">
             <Link href="/panel/kampanyalar/yeni">
               <Plus aria-hidden /> Yeni kampanya
@@ -37,7 +41,14 @@ export function MarketingHome() {
           </Button>
         )}
       </div>
-      <CreditStrip />
+      {sms ? (
+        <CreditStrip />
+      ) : (
+        <p className="border-l-2 border-brand bg-neutral-50 px-4 py-3 text-sm text-neutral-700">
+          SMS gönderimi pilot döneminde kapalı. Randevu bildirimlerini WhatsApp&apos;tan ve e-postayla yapabilirsiniz;
+          e-posta ve WhatsApp kampanyaları yakında burada.
+        </p>
+      )}
       <TabNav label="Pazarlama sekmeleri" active={active} tabs={tabs.map((t) => ({ ...t, href: `?sekme=${t.key}` }))} />
       {active === "kampanyalar" && <CampaignList />}
       {active === "otomasyonlar" && <AutomationList />}

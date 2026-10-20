@@ -69,11 +69,11 @@ public sealed class PilotMessagingTests(SqlServerFixture db) : MarketingTestBase
 
         var day = Workday();
         var phone = OnlineBookingTests.RandomMobile();
-        var response = await BookAsync(s.Slug, Body(s, At(day, 11), phone, "deniz@ornek.com", consent: true));
+        var response = await BookAsync(s.Slug, Body(s, At(day, 11), phone, "deniz.yildirim.uzun.adres@ornek-alan-adi.com.tr", consent: true));
         response.StatusCode.ShouldBe(HttpStatusCode.Created);
         (await response.Content.ReadFromJsonAsync<JsonElement>(Json, Ct)).GetProperty("status").GetString().ShouldBe("Pending");
 
-        var mail = Factory.Emails.To("deniz@ornek.com").Single();
+        var mail = Factory.Emails.To("deniz.yildirim.uzun.adres@ornek-alan-adi.com.tr").Single();
         mail.Subject.ShouldBe("Işıltı Kuaför: randevu talebiniz alındı");
         mail.TextBody.ShouldContain("Saç kesimi");
         mail.TextBody.ShouldContain($"/r/{s.Slug}/randevu/");
@@ -84,11 +84,11 @@ public sealed class PilotMessagingTests(SqlServerFixture db) : MarketingTestBase
         var appointment = (await AppointmentsOnAsync(s.Owner.Client, day)).EnumerateArray().Single();
         var contactId = appointment.GetProperty("contactId").GetGuid();
         var contact = await GetJsonAsync(s.Owner.Client, $"/api/contacts/{contactId}");
-        contact.GetProperty("email").GetString().ShouldBe("deniz@ornek.com");
+        contact.GetProperty("email").GetString().ShouldBe("deniz.yildirim.uzun.adres@ornek-alan-adi.com.tr");
 
         // Panelden onay: "onaylandı" e-postası, SMS yok.
         await EnsureSuccessAsync(await s.Owner.Client.PostAsync($"/api/appointments/{appointment.GetProperty("id").GetGuid()}/confirm", null, Ct));
-        Factory.Emails.To("deniz@ornek.com").Last().Subject.ShouldStartWith("Işıltı Kuaför: randevunuz onaylandı");
+        Factory.Emails.To("deniz.yildirim.uzun.adres@ornek-alan-adi.com.tr").Last().Subject.ShouldStartWith("Işıltı Kuaför: randevunuz onaylandı");
         Factory.Sms.Sent.ShouldBeEmpty();
         var timeline = await GetJsonAsync(s.Owner.Client, $"/api/contacts/{contactId}/timeline");
         timeline.GetProperty("items").EnumerateArray().Select(i => i.GetProperty("title").GetString()).ShouldContain(t => t!.StartsWith("E-posta: "));

@@ -1,11 +1,12 @@
 "use client";
 
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { cn } from "cn";
-import { BellRing, CalendarClock, HandCoins, MessageCircle, MessageSquareText, Search } from "lucide-react";
+import { BellRing, CalendarClock, HandCoins, Mail, MessageCircle, MessageSquareText, Search } from "lucide-react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
+import { toast } from "sonner";
 
 import { useDebounced } from "@/components/catalog/product-list";
 import { contactHref } from "@/components/contacts/contact-list";
@@ -32,7 +33,12 @@ const tabs: { key: string; tab: ReceivableTab; label: string }[] = [
   { key: "ileri", tab: "Later", label: "İleri tarihli" },
 ];
 
-const countKey: Record<ReceivableTab, "overdue" | "today" | "week" | "later"> = { Overdue: "overdue", Today: "today", Week: "week", Later: "later" };
+const countKey: Record<ReceivableTab, "overdue" | "today" | "week" | "later"> = {
+  Overdue: "overdue",
+  Today: "today",
+  Week: "week",
+  Later: "later",
+};
 
 function dueText(row: ReceivableRow, tab: ReceivableTab) {
   if (tab === "Overdue") return `${row.daysOverdue} gün gecikti · vade ${formatDayShort(row.oldestDueDate)}`;
@@ -53,7 +59,8 @@ export function ReceivablesTab() {
   const [collecting, setCollecting] = useState<ReceivableRow | null>(null);
   const list = useQuery({
     queryKey: [...receivablesKey, active.tab, q],
-    queryFn: () => unwrap(api.GET("/api/receivables", { params: { query: { tab: active.tab, search: q || undefined } } })),
+    queryFn: () =>
+      unwrap(api.GET("/api/receivables", { params: { query: { tab: active.tab, search: q || undefined } } })),
   });
 
   return (
@@ -71,7 +78,9 @@ export function ReceivablesTab() {
               onClick={() => router.replace(`/panel/cari-kasa?sekme=vadeler&filtre=${t.key}`, { scroll: false })}
               className={cn(
                 "flex min-h-14 flex-col items-start justify-center border px-3 py-2 text-left",
-                t.key === active.key ? "border-black bg-black text-white" : "border-border bg-white text-black hover:border-black",
+                t.key === active.key
+                  ? "border-black bg-black text-white"
+                  : "border-border bg-white text-black hover:border-black",
               )}
             >
               <span className="text-sm font-semibold">
@@ -84,8 +93,18 @@ export function ReceivablesTab() {
         })}
       </div>
       <div className="relative max-w-md">
-        <Search aria-hidden className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-neutral-600" />
-        <Input type="search" aria-label="Müşteri ara" placeholder="Ad veya telefon ara" value={search} onChange={(e) => setSearch(e.target.value)} className="pl-9" />
+        <Search
+          aria-hidden
+          className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-neutral-600"
+        />
+        <Input
+          type="search"
+          aria-label="Müşteri ara"
+          placeholder="Ad veya telefon ara"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="pl-9"
+        />
       </div>
       {list.isPending ? (
         <p role="status" className="text-sm text-neutral-600">
@@ -94,14 +113,22 @@ export function ReceivablesTab() {
       ) : list.isError ? (
         <QueryError error={list.error} onRetry={list.refetch} />
       ) : list.data.items.length === 0 ? (
-        <EmptyState icon={<CalendarClock className="size-10" />} title={q ? "Aramaya uyan alacak yok" : `${active.label} alacak yok`}>
-          <p className="text-sm text-neutral-600">{"Veresiye satışların vadesi Ayarlar → Finans'taki varsayılan gün kadar sonradır."}</p>
+        <EmptyState
+          icon={<CalendarClock className="size-10" />}
+          title={q ? "Aramaya uyan alacak yok" : `${active.label} alacak yok`}
+        >
+          <p className="text-sm text-neutral-600">
+            {"Veresiye satışların vadesi Ayarlar → Finans'taki varsayılan gün kadar sonradır."}
+          </p>
         </EmptyState>
       ) : (
         <ul className="flex flex-col divide-y divide-border border-y border-border">
           {list.data.items.map((row) => (
             <li key={row.contactId} className="flex flex-col gap-3 py-3 md:flex-row md:items-center">
-              <Link href={`${contactHref({ id: row.contactId, isCustomer: true })}?sekme=cari`} className="flex min-h-11 min-w-0 flex-1 flex-col justify-center">
+              <Link
+                href={`${contactHref({ id: row.contactId, isCustomer: true })}?sekme=cari`}
+                className="flex min-h-11 min-w-0 flex-1 flex-col justify-center"
+              >
                 <span className="truncate text-sm font-semibold text-black">{row.name}</span>
                 <span className="text-xs text-neutral-600">
                   {dueText(row, active.tab)}
@@ -109,13 +136,15 @@ export function ReceivablesTab() {
                 </span>
                 <span className="text-xs text-neutral-600">
                   {row.lastReminderAt
-                    ? `Son hatırlatma: ${formatRelative(row.lastReminderAt)} (${row.lastReminderChannel === "Sms" ? "SMS" : "WhatsApp"})`
+                    ? `Son hatırlatma: ${formatRelative(row.lastReminderAt)} (${reminderChannelName(row.lastReminderChannel)})`
                     : "Hatırlatma gönderilmedi"}
                 </span>
               </Link>
               <span className="flex items-baseline justify-between gap-3 md:flex-col md:items-end">
                 <span className="text-lg font-bold text-black tabular-nums">{formatMoney(row.dueAmount)}</span>
-                {row.balance !== row.dueAmount && <span className="text-xs text-neutral-600 tabular-nums">Toplam borç {formatMoney(row.balance)}</span>}
+                {row.balance !== row.dueAmount && (
+                  <span className="text-xs text-neutral-600 tabular-nums">Toplam borç {formatMoney(row.balance)}</span>
+                )}
               </span>
               {manage && (
                 <span className="grid grid-cols-2 gap-2 md:flex">
@@ -150,14 +179,38 @@ export function ReceivablesTab() {
  * ve SMS düğmeleri tıklanmadan önce hazır gerçek linklerdir (iPhone Safari await sonrası açılan pencereyi engeller).
  * Tıklama kaydı fetch keepalive ile gider, link aynı anda açılır.
  */
-export function ReminderSheet({ row, onClose }: { row: Pick<ReceivableRow, "contactId" | "name">; onClose: () => void }) {
+export function ReminderSheet({
+  row,
+  onClose,
+}: {
+  row: Pick<ReceivableRow, "contactId" | "name">;
+  onClose: () => void;
+}) {
   const queryClient = useQueryClient();
   const message = useQuery({
     queryKey: [...receivablesKey, "message", row.contactId],
-    queryFn: () => unwrap(api.POST("/api/receivables/{contactId}/reminder-message", { params: { path: { contactId: row.contactId } } })),
+    queryFn: () =>
+      unwrap(
+        api.POST("/api/receivables/{contactId}/reminder-message", { params: { path: { contactId: row.contactId } } }),
+      ),
     staleTime: 0,
     gcTime: 0,
     retry: false,
+  });
+
+  const sendEmail = useMutation({
+    mutationFn: () =>
+      unwrap(
+        api.POST("/api/receivables/{contactId}/email-reminder", { params: { path: { contactId: row.contactId } } }),
+      ),
+    onSuccess: async () => {
+      toast.success("Hatırlatma e-postası gönderildi.");
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: receivablesKey }),
+        queryClient.invalidateQueries({ queryKey: ["timeline"] }),
+      ]);
+    },
+    onError: (e) => toast.error(errorMessage(e)),
   });
 
   const log = (channel: "WhatsApp" | "Sms") => {
@@ -179,7 +232,10 @@ export function ReminderSheet({ row, onClose }: { row: Pick<ReceivableRow, "cont
 
   return (
     <Sheet open onOpenChange={(v) => !v && onClose()}>
-      <SheetContent side="bottom" className="max-h-[92vh] overflow-y-auto rounded-t-xl pb-[calc(1rem+env(safe-area-inset-bottom))] sm:mx-auto sm:max-w-lg">
+      <SheetContent
+        side="bottom"
+        className="max-h-[92vh] overflow-y-auto rounded-t-xl pb-[calc(1rem+env(safe-area-inset-bottom))] sm:mx-auto sm:max-w-lg"
+      >
         <SheetHeader>
           <SheetTitle>Hatırlatma gönder</SheetTitle>
           <SheetDescription>{row.name}</SheetDescription>
@@ -194,16 +250,29 @@ export function ReminderSheet({ row, onClose }: { row: Pick<ReceivableRow, "cont
           ) : (
             <>
               <p className="text-sm text-neutral-700">
-                Vadesi gelen: <span className="font-semibold text-black tabular-nums">{formatMoney(message.data.amount)}</span>
+                Vadesi gelen:{" "}
+                <span className="font-semibold text-black tabular-nums">{formatMoney(message.data.amount)}</span>
                 {message.data.paymentLinkCreated && " · Tahsilat linki oluşturuldu"}
               </p>
-              <p aria-label="Mesaj metni" className="border border-border bg-neutral-50 px-3 py-2 text-sm whitespace-pre-wrap text-black">
+              <p
+                aria-label="Mesaj metni"
+                className="border border-border bg-neutral-50 px-3 py-2 text-sm whitespace-pre-wrap text-black"
+              >
                 {message.data.text}
               </p>
-              {!message.data.phone && <p className="text-sm text-neutral-600">Müşterinin telefonu yok; uygulamada alıcıyı seçmeniz gerekir.</p>}
+              {!message.data.phone && (
+                <p className="text-sm text-neutral-600">
+                  Müşterinin telefonu yok; uygulamada alıcıyı seçmeniz gerekir.
+                </p>
+              )}
               <div className="grid grid-cols-2 gap-2">
                 <Button asChild>
-                  <a href={message.data.whatsappUrl} target="_blank" rel="noopener noreferrer" onClick={() => log("WhatsApp")}>
+                  <a
+                    href={message.data.whatsappUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={() => log("WhatsApp")}
+                  >
                     <MessageCircle aria-hidden />
                     WhatsApp
                   </a>
@@ -214,6 +283,17 @@ export function ReminderSheet({ row, onClose }: { row: Pick<ReceivableRow, "cont
                     SMS
                   </a>
                 </Button>
+                {message.data.hasEmail && (
+                  <Button
+                    variant="outline"
+                    className="col-span-2"
+                    disabled={sendEmail.isPending || sendEmail.isSuccess}
+                    onClick={() => sendEmail.mutate()}
+                  >
+                    <Mail aria-hidden />
+                    {sendEmail.isSuccess ? "E-posta gönderildi" : "E-posta gönder"}
+                  </Button>
+                )}
                 <div className="col-span-2 grid">
                   <CopyButton text={message.data.text} label="Metni kopyala" />
                 </div>
@@ -224,4 +304,8 @@ export function ReminderSheet({ row, onClose }: { row: Pick<ReceivableRow, "cont
       </SheetContent>
     </Sheet>
   );
+}
+
+function reminderChannelName(channel: string | null | undefined): string {
+  return channel === "Sms" ? "SMS" : channel === "Email" ? "E-posta" : "WhatsApp";
 }

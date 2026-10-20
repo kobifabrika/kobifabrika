@@ -131,7 +131,13 @@ export function isValidSlug(slug: string): boolean {
 
 /** Panele geri dönüş adresi: sadece /panel ile başlayan iç yollar kabul edilir (açık yönlendirme yok). */
 export function safeReturnPath(value: string | null | undefined): string | null {
-  if (!value || !value.startsWith("/panel") || value.startsWith("//") || value.includes("\\")) return null;
+  if (
+    !value ||
+    !(value.startsWith("/panel") || value.startsWith("/platform")) ||
+    value.startsWith("//") ||
+    value.includes("\\")
+  )
+    return null;
   return value;
 }
 

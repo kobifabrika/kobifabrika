@@ -1,21 +1,35 @@
-// E2E frontend'i (Playwright webServer): production build (.next-e2e, API adresi E2E API'si) + next start, ayrı portta.
-// Geliştirme sunucusunun .next klasörüne dokunmaz. E2E_SKIP_WEB_BUILD=1: test.ps1 build adımında zaten derledi.
+// E2E frontend'i (Playwright webServer): production build (API adresi E2E API'si) + next start, ayrı portta.
+// Geliştirme sunucusunun .next klasörüne dokunmaz. Varsayılan: .next-e2e, 3100 → API 5180 (SMS kapalı). --sms: .next-e2e-sms,
+// 3101 → API 5181 (SMS açık). NEXT_PUBLIC_API_URL derlemeye gömüldüğü için iki çiftin derlemesi ayrıdır; aynı anda başlarlarsa
+// derlemeler sıraya girer. E2E_SKIP_WEB_BUILD=1: derleme önceden yapıldı (test.ps1, CI).
 import { spawn, spawnSync } from "node:child_process";
 import path from "node:path";
 
-import { apiUrl, frontendDir, webPort } from "./env.mjs";
+import { withLock } from "./lock.mjs";
+import { apiUrl, frontendDir, runDir, smsApiUrl, smsWebPort, webPort } from "./env.mjs";
 
+const sms = process.argv.includes("--sms");
+const tag = sms ? "e2e-web-sms" : "e2e-web";
+const distDir = sms ? ".next-e2e-sms" : ".next-e2e";
+const port = sms ? smsWebPort : webPort;
 const nextBin = path.join(frontendDir, "node_modules", "next", "dist", "bin", "next");
-const env = { ...process.env, NEXT_DIST_DIR: ".next-e2e", NEXT_PUBLIC_API_URL: apiUrl, NEXT_TELEMETRY_DISABLED: "1" };
+const env = {
+  ...process.env,
+  NEXT_DIST_DIR: distDir,
+  NEXT_PUBLIC_API_URL: sms ? smsApiUrl : apiUrl,
+  NEXT_TELEMETRY_DISABLED: "1",
+};
 
 if (process.env.E2E_SKIP_WEB_BUILD !== "1") {
-  console.log("[e2e-web] Frontend derleniyor (production, .next-e2e)");
-  const build = spawnSync(process.execPath, [nextBin, "build"], { cwd: frontendDir, env, stdio: "inherit" });
-  if (build.status !== 0) process.exit(build.status ?? 1);
+  await withLock(path.join(runDir, "web-build.lock"), () => {
+    console.log(`[${tag}] Frontend derleniyor (production, ${distDir})`);
+    const build = spawnSync(process.execPath, [nextBin, "build"], { cwd: frontendDir, env, stdio: "inherit" });
+    if (build.status !== 0) process.exit(build.status ?? 1);
+  });
 }
 
-console.log(`[e2e-web] Frontend başlıyor: http://localhost:${webPort}`);
-const web = spawn(process.execPath, [nextBin, "start", "-p", String(webPort)], {
+console.log(`[${tag}] Frontend başlıyor: http://localhost:${port}`);
+const web = spawn(process.execPath, [nextBin, "start", "-p", String(port)], {
   cwd: frontendDir,
   env,
   stdio: "inherit",

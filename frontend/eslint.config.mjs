@@ -12,6 +12,7 @@ const eslintConfig = defineConfig([
     // Default ignores of eslint-config-next:
     ".next/**",
     ".next-e2e/**",
+    ".next-e2e-sms/**",
     "playwright-report/**",
     "test-results/**",
     "e2e/.run/**",

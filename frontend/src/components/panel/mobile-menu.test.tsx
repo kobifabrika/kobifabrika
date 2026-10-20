@@ -17,12 +17,13 @@ describe("MobileMenu", () => {
     expect(within(dialog).getByRole("link", { name: "Hesabım" })).toHaveAttribute("href", "/panel/hesabim");
     expect(within(dialog).getByRole("button", { name: "Çıkış yap" })).toBeInTheDocument();
     expect(within(dialog).getByRole("navigation", { name: "Ana menü" })).toBeInTheDocument();
-    expect(within(dialog).queryByRole("link", { name: /Kredi yükle/ })).not.toBeInTheDocument();
+    expect(within(dialog).queryByRole("link", { name: /Süper admin/ })).not.toBeInTheDocument();
+    expect(within(dialog).getByRole("button", { name: /Geri bildirim gönder/ })).toBeInTheDocument();
   });
 
-  it("platform yöneticisine kredi yükleme linkini gösterir", async () => {
+  it("platform yöneticisine süper admin linkini gösterir", async () => {
     renderWithSession(<MobileMenu />, { platformAdmin: true });
     fireEvent.click(screen.getByRole("button", { name: "Menü" }));
-    expect(await screen.findByRole("link", { name: /Kredi yükle \(platform\)/ })).toHaveAttribute("href", "/panel/platform/kredi");
+    expect(await screen.findByRole("link", { name: /Süper admin/ })).toHaveAttribute("href", "/platform");
   });
 });

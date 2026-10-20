@@ -2753,9 +2753,8 @@ namespace KobiFabrika.Infrastructure.Persistence.Migrations
 
                     b.Property<string>("To")
                         .IsRequired()
-                        .HasMaxLength(20)
-                        .IsUnicode(false)
-                        .HasColumnType("varchar(20)");
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
 
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("datetime2");

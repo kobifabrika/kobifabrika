@@ -10,22 +10,21 @@ const sms = (on: boolean) => ({ sms: on, email: false, call: false });
  * (hedef, mesaj sayacı, önizleme) → gönderim → Mailpit'te SMS ve çıkış linki → /c/[kod] "SMS'leri durdur" → müşteri kartında
  * SMS izni kapalı (çıkış linkinden).
  */
-test("kredi yükle, kampanya gönder, çıkış linki", async ({ owner, ownerPage: page, pageAs, newPublicPage, visit, check }, info) => {
-  const business = await owner.get<{ name: string }>("/api/business");
+test("kredi yükle, kampanya gönder, çıkış linki @sms", async ({ owner, ownerPage: page, pageAs, newPublicPage, visit, check }, info) => {
+  const business = await owner.get<{ id: string; name: string }>("/api/business");
   const aysePhone = uniquePhone();
   const ayse = await createContact(owner, { firstName: "Ayşe", lastName: "Yılmaz", phone: aysePhone, consents: sms(true) });
   await createContact(owner, { firstName: "Elif", lastName: "Kara", consents: sms(true) });
   await createContact(owner, { firstName: "Zeynep", lastName: "Ak", consents: sms(false) });
 
-  // Platform yöneticisi kredi yükler.
+  // Süper admin kredi yükler (işletme → Kredi sekmesi).
   const admin = await platformAdmin();
   const adminPage = await pageAs(admin);
-  await visit(adminPage, "/panel/platform/kredi", "Platform · kredi yükle");
-  await adminPage.getByRole("searchbox", { name: "İşletme ara" }).fill(business.name);
-  await adminPage.getByRole("button", { name: new RegExp(business.name) }).click();
-  await adminPage.getByLabel("Kredi miktarı").fill("100");
+  await visit(adminPage, `/platform/isletmeler/${business.id}?sekme=kredi`, "Süper admin · kredi yükle");
+  await expect(adminPage.getByRole("heading", { name: business.name })).toBeVisible();
+  await adminPage.getByLabel("Kredi", { exact: true }).fill("100");
   await adminPage.getByLabel("Not", { exact: true }).fill("E2E havale");
-  await check(adminPage, "Platform · kredi yükle · seçili");
+  await check(adminPage, "Süper admin · kredi yükle · dolu");
   await adminPage.getByRole("button", { name: "Yükle" }).click();
   await expect(toast(adminPage, /100 kredi yüklendi\. Yeni bakiye 150/)).toBeVisible();
 
@@ -37,7 +36,7 @@ test("kredi yükle, kampanya gönder, çıkış linki", async ({ owner, ownerPag
   await expect(history.getByText("Hoş geldin kredisi")).toBeVisible();
   await page.getByRole("button", { name: "Kredi yükle" }).first().click();
   const dialog = page.getByRole("dialog");
-  await expect(dialog.getByText("Kredi yüklemek için KobiFabrika destek ekibine ulaşın.")).toBeVisible();
+  await expect(dialog.getByRole("link", { name: /WhatsApp ile destek/ })).toHaveAttribute("href", /^https:\/\/wa\.me\/905359779382\?text=/);
   await check(page, "Ayarlar · SMS · kredi yükle");
   await page.keyboard.press("Escape");
 

@@ -29,7 +29,7 @@ env:
 jobs:
   test:
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 60
     services:
       sqlserver:
         image: mcr.microsoft.com/mssql/server:2025-latest
@@ -109,14 +109,14 @@ jobs:
         working-directory: frontend
         run: npm run test
 
+      # İki E2E çifti (SMS kapalı: 5180/3100, SMS açık @sms: 5181/3101); API adresi derlemeye gömülü olduğu için iki derleme.
       - name: Frontend build (E2E için)
         id: build
         if: success() || failure()
         working-directory: frontend
-        env:
-          NEXT_DIST_DIR: .next-e2e
-          NEXT_PUBLIC_API_URL: http://localhost:5180
-        run: npx next build
+        run: |
+          NEXT_DIST_DIR=.next-e2e NEXT_PUBLIC_API_URL=http://localhost:5180 npx next build
+          NEXT_DIST_DIR=.next-e2e-sms NEXT_PUBLIC_API_URL=http://localhost:5181 npx next build
 
       - name: E2E (Playwright)
         if: (success() || failure()) && steps.build.outcome == 'success'

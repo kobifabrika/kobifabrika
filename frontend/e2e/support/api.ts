@@ -7,7 +7,7 @@ import {
   type BrowserContext,
 } from "@playwright/test";
 
-import { apiUrl } from "../scripts/env.mjs";
+import { target } from "./target";
 import { linkFromEmail } from "./mailpit";
 
 /**
@@ -79,7 +79,7 @@ export class ApiUser {
 }
 
 export async function newApiContext(): Promise<APIRequestContext> {
-  return request.newContext({ baseURL: apiUrl });
+  return request.newContext({ baseURL: target().apiUrl });
 }
 
 /** Yeni hesap (oturum açık döner). */

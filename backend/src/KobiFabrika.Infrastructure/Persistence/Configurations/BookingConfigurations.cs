@@ -14,7 +14,8 @@ internal sealed class MessageLogConfiguration : IEntityTypeConfiguration<Message
     {
         b.ToTable("MessageLogs");
         b.Property(x => x.Channel).HasConversion<string>().HasMaxLength(10);
-        b.Property(x => x.To).HasMaxLength(20).IsUnicode(false);
+        // E.164 telefon ya da e-posta adresi (Sprint 8A: e-posta kanalı; 20 karakterde e-posta sığmıyordu, E2E 2026-10-20).
+        b.Property(x => x.To).HasMaxLength(256);
         b.Property(x => x.Body).HasMaxLength(MessageLog.MaxBodyLength);
         b.Property(x => x.Purpose).HasConversion<string>().HasMaxLength(30);
         b.Property(x => x.Provider).HasMaxLength(30).IsUnicode(false);

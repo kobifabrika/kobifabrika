@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="KobiFabrika">
+  <rect width="512" height="512" rx="72" fill="#000000"/>
+  <!-- K (beyaz): dikey gövde + iki kol. Harfler yazı tipine bağlı kalmasın diye çokgen. -->
+  <g fill="#ffffff">
+    <rect x="64" y="100" width="76" height="312"/>
+    <polygon points="132,268 222,100 306,100 196,312"/>
+    <polygon points="178,226 308,412 222,412 132,282"/>
+  </g>
+  <!-- F (mavi #00b0ff) -->
+  <g fill="#00b0ff">
+    <rect x="326" y="100" width="76" height="312"/>
+    <rect x="326" y="100" width="124" height="68"/>
+    <rect x="326" y="226" width="110" height="64"/>
+  </g>
+</svg>

@@ -48,11 +48,11 @@ public sealed record ContactReceivableResponse(
 
 /// <summary>
 /// Hatırlatma penceresinin içeriği: WhatsApp ve SMS linkleri tıklanmadan önce hazırdır (iPhone Safari, await sonrası açılan
-/// pencereyi engeller). PaymentLinkUrl: IBAN varsa müşterinin tahsilat linki (açık link varsa o, yoksa bir kez oluşturulur).
+/// pencereyi engeller). HasEmail: "E-posta gönder" düğmesi (email-reminder). PaymentLinkUrl: IBAN varsa müşterinin tahsilat linki (açık link varsa o, yoksa bir kez oluşturulur).
 /// </summary>
 public sealed record ReminderMessageResponse(
     Guid ContactId, string ContactName, string? Phone, decimal Amount, DateOnly? DueDate, string Text, string WhatsappUrl, string SmsUrl,
-    string? PaymentLinkUrl, bool PaymentLinkCreated);
+    string? PaymentLinkUrl, bool PaymentLinkCreated, bool HasEmail);
 
 public sealed record ReminderLogRequest(ReminderChannel Channel);
 
@@ -196,7 +196,7 @@ public static class ReceivableEndpoints
 
         var text = ReminderText(contact.DisplayName, business.Name, amount, dueDate, today, url);
         return TypedResults.Ok(new ReminderMessageResponse(contactId, contact.DisplayName, contact.Phone, amount, dueDate, text,
-            ShareLinks.WhatsApp(contact.Phone, text), Sms(contact.Phone, text), url, created));
+            ShareLinks.WhatsApp(contact.Phone, text), Sms(contact.Phone, text), url, created, !string.IsNullOrWhiteSpace(contact.Email)));
     }
 
     /// <summary>

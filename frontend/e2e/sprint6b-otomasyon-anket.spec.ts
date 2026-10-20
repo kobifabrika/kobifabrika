@@ -38,7 +38,7 @@ async function surveyPath(phone: string): Promise<string> {
  * Sprint 6B: Kampanyalar → Otomasyonlar (teşekkür ve anket aç), tamamlanan randevu → Mailpit'te tek SMS (teşekkür + anket linki)
  * → /a/[kod]'da 2 puan → yorum → işletmeye bildirim; başka müşteri 5 puan → Google düğmesi önde. Anketler sekmesinde özet.
  */
-test("otomasyon: teşekkür + anket, puan ve yorum, Google linki", async ({ owner, ownerPage: page, newPublicPage, visit, check }) => {
+test("otomasyon: teşekkür + anket, puan ve yorum, Google linki @sms", async ({ owner, ownerPage: page, newPublicPage, visit, check }) => {
   test.setTimeout(240_000);
   await openAllDay(owner);
   const service = await createService(owner, "Saç kesimi", 30);

@@ -27,6 +27,8 @@ import { useIsDesktop } from "@/lib/use-media";
 import { StatusBadge, calendarKey, useAppointmentRefresh } from "./appointment-bits";
 import { AppointmentForm, hasMobile, type AppointmentDraft } from "./appointment-form";
 import { AppointmentSheet } from "./appointment-sheet";
+import { TomorrowNotices } from "./tomorrow-notices";
+import { useSmsEnabled, type WhatsAppKind } from "./whatsapp-notice";
 import { TimeGrid, type GridColumn, type MoveTarget } from "./time-grid";
 
 type View = "gun" | "hafta";
@@ -55,6 +57,9 @@ export function CalendarView() {
   const refresh = useAppointmentRefresh();
   const now = useNowMinute();
   const write = can(role, "writeAppointments");
+  const sms = useSmsEnabled();
+  /** SMS kapalıyken taşıma sonrası açılan randevu penceresinde "Yeni saati WhatsApp'tan bildir". */
+  const [notice, setNotice] = useState<WhatsAppKind | null>(null);
 
   const view: View = params.get("gorunum") === "hafta" ? "hafta" : "gun";
   const date = params.get("tarih") ?? now.today;
@@ -84,7 +89,8 @@ export function CalendarView() {
   const columnsStaff = useMemo(() => calendar.data?.staff ?? [], [calendar.data]);
   const selectedParam = params.get("personel");
   const defaultStaff = columnsStaff.find((s) => s.id === calendar.data?.myStaffId) ?? columnsStaff[0];
-  const selected = columnsStaff.find((s) => s.id === selectedParam) ?? (desktop && view === "gun" ? null : defaultStaff);
+  const selected =
+    columnsStaff.find((s) => s.id === selectedParam) ?? (desktop && view === "gun" ? null : defaultStaff);
   const staffColors = useMemo(
     () => Object.fromEntries(columnsStaff.map((s) => [s.id, s.color])) as Record<string, StaffColor>,
     [columnsStaff],
@@ -109,15 +115,22 @@ export function CalendarView() {
     onMutate: async ({ appointment, target }) => {
       await queryClient.cancelQueries({ queryKey: key });
       const previous = queryClient.getQueryData<Calendar>(key);
-      queryClient.setQueryData<Calendar>(key, (old) =>
-        old && {
-          ...old,
-          appointments: old.appointments.map((a) =>
-            a.id === appointment.id
-              ? { ...a, staffMemberId: target.staffId, startAt: toIso(target.date, target.start), endAt: toIso(target.date, target.end) }
-              : a,
-          ),
-        },
+      queryClient.setQueryData<Calendar>(
+        key,
+        (old) =>
+          old && {
+            ...old,
+            appointments: old.appointments.map((a) =>
+              a.id === appointment.id
+                ? {
+                    ...a,
+                    staffMemberId: target.staffId,
+                    startAt: toIso(target.date, target.start),
+                    endAt: toIso(target.date, target.end),
+                  }
+                : a,
+            ),
+          },
       );
       return { previous };
     },
@@ -129,16 +142,33 @@ export function CalendarView() {
       toast.success("Randevu taşındı.");
       for (const w of saved.warnings) toast.warning(w);
       // Saat değiştiyse ve cep telefonu varsa: "Müşteriye SMS ile bildirilsin mi? [Gönder]" (online randevuda kapanmaz).
-      const timeChanged = saved.appointment.startAt !== appointment.startAt || saved.appointment.endAt !== appointment.endAt;
-      if (timeChanged && hasMobile(appointment.contactPhone)) {
-        const online = appointment.source === "Online";
-        toast(online ? "Online randevu taşındı. Müşteriye SMS ile bildirilsin mi?" : "Müşteriye SMS ile bildirilsin mi?", {
+      const timeChanged =
+        saved.appointment.startAt !== appointment.startAt || saved.appointment.endAt !== appointment.endAt;
+      if (timeChanged && hasMobile(appointment.contactPhone) && !sms) {
+        toast("Müşteriye yeni saati bildirin.", {
           id: `notify-${appointment.id}`,
-          description: `${appointment.contactName} · yeni saat ve iptal linki`,
-          duration: online ? Infinity : 10_000,
-          closeButton: online,
-          action: { label: "Gönder", onClick: () => notifyMoved.mutate(appointment.id) },
+          description: `${appointment.contactName} · WhatsApp'tan`,
+          duration: 15_000,
+          action: {
+            label: "Bildir",
+            onClick: () => {
+              setNotice("Moved");
+              setParams({ randevu: appointment.id });
+            },
+          },
         });
+      } else if (timeChanged && hasMobile(appointment.contactPhone)) {
+        const online = appointment.source === "Online";
+        toast(
+          online ? "Online randevu taşındı. Müşteriye SMS ile bildirilsin mi?" : "Müşteriye SMS ile bildirilsin mi?",
+          {
+            id: `notify-${appointment.id}`,
+            description: `${appointment.contactName} · yeni saat ve iptal linki`,
+            duration: online ? Infinity : 10_000,
+            closeButton: online,
+            action: { label: "Gönder", onClick: () => notifyMoved.mutate(appointment.id) },
+          },
+        );
       }
     },
     onSettled: () => refresh(),
@@ -159,11 +189,22 @@ export function CalendarView() {
     mutationFn: () =>
       unwrap(
         api.POST("/api/staff", {
-          body: { fullName: me.user.fullName, title: null, phone: null, color: "Black", showInBooking: true, userId: me.user.id, isActive: true },
+          body: {
+            fullName: me.user.fullName,
+            title: null,
+            phone: null,
+            color: "Black",
+            showInBooking: true,
+            userId: me.user.id,
+            isActive: true,
+          },
         }),
       ),
     onSuccess: async () => {
-      await Promise.all([queryClient.invalidateQueries({ queryKey: staffKey }), queryClient.invalidateQueries({ queryKey: calendarKey })]);
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: staffKey }),
+        queryClient.invalidateQueries({ queryKey: calendarKey }),
+      ]);
       toast.success("Personel olarak eklendiniz. Çalışma saatleriniz işletmenin saatleri.");
     },
     onError: (e) => toast.error(errorMessage(e)),
@@ -211,10 +252,15 @@ export function CalendarView() {
       }));
     }
   }
-  const visibleAppointments = (data?.appointments ?? []).filter((a) => columns.some((c) => c.staffId === a.staffMemberId));
+  const visibleAppointments = (data?.appointments ?? []).filter((a) =>
+    columns.some((c) => c.staffId === a.staffMemberId),
+  );
   const bounds = gridBounds(
     data?.days ?? [],
-    visibleAppointments.map((a) => ({ start: minutesOf(a.startAt), end: minutesOf(a.startAt) + (Date.parse(a.endAt) - Date.parse(a.startAt)) / 60000 })),
+    visibleAppointments.map((a) => ({
+      start: minutesOf(a.startAt),
+      end: minutesOf(a.startAt) + (Date.parse(a.endAt) - Date.parse(a.startAt)) / 60000,
+    })),
   );
   const pending = (data?.appointments ?? []).filter((a) => a.status === "Pending").length;
   const title = view === "hafta" ? `${dayLabel(from)} – ${dayLabel(to)}` : longDayLabel(date);
@@ -240,10 +286,20 @@ export function CalendarView() {
 
       <div className="flex flex-wrap items-center gap-2">
         <div className="flex items-center">
-          <Button variant="outline" size="icon" aria-label={view === "hafta" ? "Önceki hafta" : "Önceki gün"} onClick={() => shift(-1)}>
+          <Button
+            variant="outline"
+            size="icon"
+            aria-label={view === "hafta" ? "Önceki hafta" : "Önceki gün"}
+            onClick={() => shift(-1)}
+          >
             <ChevronLeft aria-hidden />
           </Button>
-          <Button variant="outline" size="icon" aria-label={view === "hafta" ? "Sonraki hafta" : "Sonraki gün"} onClick={() => shift(1)}>
+          <Button
+            variant="outline"
+            size="icon"
+            aria-label={view === "hafta" ? "Sonraki hafta" : "Sonraki gün"}
+            onClick={() => shift(1)}
+          >
             <ChevronRight aria-hidden />
           </Button>
         </div>
@@ -269,7 +325,9 @@ export function CalendarView() {
               onClick={() => setParams({ gorunum: v === "gun" ? null : v })}
               className={cn(
                 "min-h-11 border px-3 text-sm font-semibold first:rounded-l-lg last:rounded-r-lg",
-                view === v ? "border-black bg-black text-white" : "border-border bg-white text-black hover:border-black",
+                view === v
+                  ? "border-black bg-black text-white"
+                  : "border-border bg-white text-black hover:border-black",
               )}
             >
               {v === "gun" ? "Gün" : "Hafta"}
@@ -285,7 +343,19 @@ export function CalendarView() {
       <p className="text-base font-semibold text-black" aria-live="polite">
         {title}
       </p>
-      {view !== "hafta" && date === addDays(now.today, 1) && can(role, "manageMarketing") && <EmptySlotStrip date={date} />}
+      {view !== "hafta" && date === addDays(now.today, 1) && sms && can(role, "manageMarketing") && (
+        <EmptySlotStrip date={date} />
+      )}
+      {view !== "hafta" && date === addDays(now.today, 1) && !sms && (
+        <details className="group border border-border">
+          <summary className="flex min-h-11 cursor-pointer items-center px-3 text-sm font-semibold text-black">
+            Yarının hatırlatmaları (WhatsApp)
+          </summary>
+          <div className="p-2">
+            <TomorrowNotices />
+          </div>
+        </details>
+      )}
 
       {columnsStaff.length > 1 && (!desktop || view === "hafta") && (
         <ScrollRow role="radiogroup" aria-label="Personel">
@@ -320,7 +390,10 @@ export function CalendarView() {
       ) : calendar.isError ? (
         <QueryError error={calendar.error} onRetry={calendar.refetch} />
       ) : columnsStaff.length === 0 ? (
-        <EmptyState icon={<CalendarDays aria-hidden className="size-8" />} title={data!.onlyOwn ? "Hesabınız bir personele bağlı değil" : "Takvimde personel yok"}>
+        <EmptyState
+          icon={<CalendarDays aria-hidden className="size-8" />}
+          title={data!.onlyOwn ? "Hesabınız bir personele bağlı değil" : "Takvimde personel yok"}
+        >
           <p className="text-sm text-neutral-600">
             {data!.onlyOwn
               ? "Sadece kendi randevularınızı görürsünüz. İşletme sahibinden hesabınızı bir personele bağlamasını isteyin."
@@ -357,7 +430,15 @@ export function CalendarView() {
             draggable={desktop}
             showCancelled={showCancelled}
             staffColors={staffColors}
-            onCreate={(c, minute) => setForm({ draft: { staffId: c.staffId, date: c.date, time: `${String(Math.floor(minute / 60)).padStart(2, "0")}:${String(minute % 60).padStart(2, "0")}` } })}
+            onCreate={(c, minute) =>
+              setForm({
+                draft: {
+                  staffId: c.staffId,
+                  date: c.date,
+                  time: `${String(Math.floor(minute / 60)).padStart(2, "0")}:${String(minute % 60).padStart(2, "0")}`,
+                },
+              })
+            }
             onOpen={(a) => setParams({ randevu: a.id })}
             onMove={(appointment, target) => move.mutate({ appointment, target })}
           />
@@ -378,14 +459,24 @@ export function CalendarView() {
           staff={staffList.data.filter((s) => !data?.onlyOwn || s.id === data.myStaffId)}
           onSaved={(saved) => {
             const d = dayOf(saved.appointment.startAt);
-            if (d < from || d > to) setParams({ tarih: d, yeni: null });
+            const before = form.appointment;
+            const moved =
+              !!before && (before.startAt !== saved.appointment.startAt || before.endAt !== saved.appointment.endAt);
+            if (moved && !sms && hasMobile(before.contactPhone)) {
+              setNotice("Moved");
+              setParams({ tarih: d, yeni: null, randevu: saved.appointment.id });
+            } else if (d < from || d > to) setParams({ tarih: d, yeni: null });
           }}
         />
       )}
       <AppointmentSheet
         appointmentId={openId}
         initial={openInitial}
-        onClose={() => setParams({ randevu: null })}
+        notice={notice}
+        onClose={() => {
+          setNotice(null);
+          setParams({ randevu: null });
+        }}
         onMove={(a) => {
           setParams({ randevu: null });
           setForm({ appointment: a });
@@ -410,10 +501,16 @@ function WeekAgenda({
   return (
     <ul className="flex flex-col divide-y divide-border border-y border-border">
       {days.map((d) => {
-        const items = appointments.filter((a) => dayOf(a.startAt) === d).sort((a, b) => a.startAt.localeCompare(b.startAt));
+        const items = appointments
+          .filter((a) => dayOf(a.startAt) === d)
+          .sort((a, b) => a.startAt.localeCompare(b.startAt));
         return (
           <li key={d} className="flex flex-col gap-1 py-3">
-            <button type="button" onClick={() => onDay(d)} className="flex min-h-11 items-center text-left text-sm font-semibold text-black underline-offset-4 hover:underline">
+            <button
+              type="button"
+              onClick={() => onDay(d)}
+              className="flex min-h-11 items-center text-left text-sm font-semibold text-black underline-offset-4 hover:underline"
+            >
               {longDayLabel(d)}
             </button>
             {items.length === 0 ? (
@@ -426,7 +523,9 @@ function WeekAgenda({
                   onClick={() => onOpen(a)}
                   className="flex min-h-11 items-center gap-3 rounded-md px-1 text-left hover:bg-neutral-100"
                 >
-                  <span className="w-12 text-sm font-semibold text-black tabular-nums">{istanbulParts(a.startAt).time}</span>
+                  <span className="w-12 text-sm font-semibold text-black tabular-nums">
+                    {istanbulParts(a.startAt).time}
+                  </span>
                   <span className="flex min-w-0 flex-1 flex-col">
                     <span className="truncate text-sm font-semibold text-black">{a.contactName}</span>
                     <span className="truncate text-xs text-neutral-600">{a.serviceName}</span>
@@ -452,11 +551,18 @@ function EmptySlotStrip({ date }: { date: string }) {
   const items = slots.data?.items ?? [];
   if (items.length === 0) return null;
   return (
-    <section aria-label="Boş saat önerisi" className="flex flex-col gap-2 border-l-2 border-brand bg-neutral-50 px-3 py-2">
+    <section
+      aria-label="Boş saat önerisi"
+      className="flex flex-col gap-2 border-l-2 border-brand bg-neutral-50 px-3 py-2"
+    >
       {items.map((s) => (
         <div key={`${s.staffId}-${s.start}`} className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
           <span className="text-sm text-black">
-            Yarın <span className="font-semibold tabular-nums">{s.start}-{s.end}</span> {s.staffName} boş
+            Yarın{" "}
+            <span className="font-semibold tabular-nums">
+              {s.start}-{s.end}
+            </span>{" "}
+            {s.staffName} boş
           </span>
           <Link
             href={emptySlotCampaignHref(date, s)}

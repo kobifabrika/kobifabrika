@@ -1,6 +1,7 @@
 import { expect, request } from "@playwright/test";
 
-import { mailpitUrl, webUrl } from "../scripts/env.mjs";
+import { mailpitUrl } from "../scripts/env.mjs";
+import { target } from "./target";
 
 type Summary = { ID: string; Subject: string; To: { Address: string }[]; Created: string };
 
@@ -42,7 +43,7 @@ export async function linkFromEmail(to: string, subject: RegExp, path: string, c
     )
     .toBeGreaterThanOrEqual(count);
   const body = await text(found!.ID);
-  const escaped = `${webUrl}${path}`.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const escaped = `${target().webUrl}${path}`.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
   const link = body.match(new RegExp(`${escaped}[^\\s)>\\]]*`))?.[0];
   expect(link, `E-postada ${path} linki yok:\n${body}`).toBeTruthy();
   return link!;

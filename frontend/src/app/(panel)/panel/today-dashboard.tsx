@@ -1,12 +1,23 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { AlertTriangle, Boxes, CalendarPlus, ChevronRight, HandCoins, Landmark, ReceiptText, Wallet, type LucideIcon } from "lucide-react";
+import {
+  AlertTriangle,
+  Boxes,
+  CalendarPlus,
+  ChevronRight,
+  HandCoins,
+  Landmark,
+  ReceiptText,
+  Wallet,
+  type LucideIcon,
+} from "lucide-react";
 import Link from "next/link";
 import { useState, type ReactNode } from "react";
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from "recharts";
 
 import { TodayAppointments } from "@/components/appointments/today-appointments";
+import { TomorrowNotices } from "@/components/appointments/tomorrow-notices";
 import { TodayMyClock, TodayStaff } from "@/components/attendance/today-staff";
 import { QueryError } from "@/components/feedback/query-error";
 import { AccountBalance, accountHref } from "@/components/finance/cash-accounts";
@@ -28,7 +39,19 @@ const compactTl = new Intl.NumberFormat("tr-TR", { notation: "compact", maximumF
 /** "2026-10-12" → "12.10" (grafik ekseni). */
 const shortDay = (day: string) => `${day.slice(8, 10)}.${day.slice(5, 7)}`;
 
-function StatCard({ label, icon: Icon, value, children, href }: { label: string; icon: LucideIcon; value: string; children?: ReactNode; href?: string }) {
+function StatCard({
+  label,
+  icon: Icon,
+  value,
+  children,
+  href,
+}: {
+  label: string;
+  icon: LucideIcon;
+  value: string;
+  children?: ReactNode;
+  href?: string;
+}) {
   const body = (
     <Card className="h-full gap-2 py-4">
       <CardHeader className="flex flex-row items-center justify-between gap-2 px-4">
@@ -53,7 +76,7 @@ function StatCard({ label, icon: Icon, value, children, href }: { label: string;
 /**
  * Bugün ekranı (Europe/Istanbul günü; tek uç: /api/dashboard/today). Personel kendi satışlarını ve kritik stoğu görür;
  * tahsilat, bakiye ve alacak kartları ona gelmez (API null döner). Randevular modülü açıksa "Bugünün randevuları" en üstte
- * (Personel kendi randevularını görür); ardından "Aktif personel" (yöneticiler ve Mali Müşavir) veya Personel rolünde "Mesaim".
+ * (Personel kendi randevularını görür), SMS kapalıyken altında "Yarının randevuları" (WhatsApp hatırlatma); ardından "Aktif personel" (yöneticiler ve Mali Müşavir) veya Personel rolünde "Mesaim".
  */
 export function TodayDashboard() {
   const { role } = useSession();
@@ -72,7 +95,9 @@ export function TodayDashboard() {
       ) : (
         <DashboardBody data={data.data} />
       )}
-      {collecting && can(role, "manageFinance") && <CollectionDialog open onOpenChange={(v) => !v && setCollecting(false)} />}
+      {collecting && can(role, "manageFinance") && (
+        <CollectionDialog open onOpenChange={(v) => !v && setCollecting(false)} />
+      )}
     </>
   );
 }
@@ -127,11 +152,17 @@ function DashboardBody({ data }: { data: Dashboard }) {
   return (
     <>
       {data.appointments && <TodayAppointments data={data.appointments} canWrite={can(role, "writeAppointments")} />}
+      {data.appointments && <TomorrowNotices />}
       {data.myClock && <TodayMyClock />}
       {data.staff && <TodayStaff data={data.staff} />}
       {data.marketing && <MarketingCards data={data.marketing} />}
       <section aria-label="Özet" className="grid grid-cols-2 gap-3 lg:grid-cols-4 lg:gap-4">
-        <StatCard label={sales.onlyOwn ? "Bugünkü satışlarım" : "Bugünkü satış"} icon={ReceiptText} value={formatMoney(sales.total)} href="/panel/satislar">
+        <StatCard
+          label={sales.onlyOwn ? "Bugünkü satışlarım" : "Bugünkü satış"}
+          icon={ReceiptText}
+          value={formatMoney(sales.total)}
+          href="/panel/satislar"
+        >
           <span className="text-xs text-neutral-600">{sales.count} satış</span>
           {sales.byMethod.map((m) => (
             <span key={m.method} className="text-xs text-neutral-700 tabular-nums">
@@ -140,10 +171,20 @@ function DashboardBody({ data }: { data: Dashboard }) {
           ))}
         </StatCard>
         {data.collections !== null && (
-          <StatCard label="Bugünkü tahsilat" icon={HandCoins} value={formatMoney(data.collections)} href="/panel/cari-kasa?sekme=bakiyeler" />
+          <StatCard
+            label="Bugünkü tahsilat"
+            icon={HandCoins}
+            value={formatMoney(data.collections)}
+            href="/panel/cari-kasa?sekme=bakiyeler"
+          />
         )}
         {receivables && (
-          <StatCard label="Vadesi gelen alacak" icon={AlertTriangle} value={formatMoney(dueTotal)} href="/panel/cari-kasa?sekme=vadeler">
+          <StatCard
+            label="Vadesi gelen alacak"
+            icon={AlertTriangle}
+            value={formatMoney(dueTotal)}
+            href="/panel/cari-kasa?sekme=vadeler"
+          >
             <span className="text-xs text-neutral-700 tabular-nums">
               Bugün {formatMoney(receivables.dueToday)} ({receivables.dueTodayContacts} müşteri)
             </span>
@@ -162,20 +203,41 @@ function DashboardBody({ data }: { data: Dashboard }) {
       <div className="grid gap-4 lg:grid-cols-3">
         <Card className="lg:col-span-2">
           <CardHeader>
-            <CardTitle className="text-black">{sales.onlyOwn ? "Son 30 gün · satışlarım" : "Son 30 gün satış"}</CardTitle>
+            <CardTitle className="text-black">
+              {sales.onlyOwn ? "Son 30 gün · satışlarım" : "Son 30 gün satış"}
+            </CardTitle>
           </CardHeader>
           <CardContent>
-            <ChartContainer config={chartConfig} className="aspect-auto h-56 w-full" role="img" aria-label="Son 30 gün satış grafiği">
+            <ChartContainer
+              config={chartConfig}
+              className="aspect-auto h-56 w-full"
+              role="img"
+              aria-label="Son 30 gün satış grafiği"
+            >
               <BarChart data={data.last30Days} margin={{ left: 0, right: 0, top: 8 }}>
                 <CartesianGrid vertical={false} />
-                <XAxis dataKey="date" tickLine={false} axisLine={false} tickMargin={6} minTickGap={16} tickFormatter={shortDay} />
-                <YAxis tickLine={false} axisLine={false} width={44} tickFormatter={(v: number) => compactTl.format(v)} />
+                <XAxis
+                  dataKey="date"
+                  tickLine={false}
+                  axisLine={false}
+                  tickMargin={6}
+                  minTickGap={16}
+                  tickFormatter={shortDay}
+                />
+                <YAxis
+                  tickLine={false}
+                  axisLine={false}
+                  width={44}
+                  tickFormatter={(v: number) => compactTl.format(v)}
+                />
                 <ChartTooltip
                   cursor={false}
                   content={
                     <ChartTooltipContent
                       labelFormatter={(value) => shortDay(String(value))}
-                      formatter={(value) => <span className="font-semibold text-black tabular-nums">{formatMoney(Number(value))}</span>}
+                      formatter={(value) => (
+                        <span className="font-semibold text-black tabular-nums">{formatMoney(Number(value))}</span>
+                      )}
                     />
                   }
                 />
@@ -195,7 +257,11 @@ function DashboardBody({ data }: { data: Dashboard }) {
                 {data.accounts.map((a) => (
                   <li key={a.id}>
                     <Link href={accountHref(a.id)} className="flex min-h-12 items-center gap-3 py-2">
-                      {a.type === "Cash" ? <Wallet aria-hidden className="size-5 text-black" /> : <Landmark aria-hidden className="size-5 text-black" />}
+                      {a.type === "Cash" ? (
+                        <Wallet aria-hidden className="size-5 text-black" />
+                      ) : (
+                        <Landmark aria-hidden className="size-5 text-black" />
+                      )}
                       <span className="min-w-0 flex-1 truncate text-sm text-black">{a.name}</span>
                       <AccountBalance value={a.balance} className="text-sm" />
                     </Link>
@@ -223,13 +289,17 @@ function DashboardBody({ data }: { data: Dashboard }) {
                     <li key={s.id}>
                       <Link href={`/panel/satislar/${s.id}`} className="flex min-h-12 items-center gap-3 py-2">
                         <span className="flex min-w-0 flex-1 flex-col">
-                          <span className="truncate text-sm font-semibold text-black">{s.contactName ?? "Müşterisiz satış"}</span>
+                          <span className="truncate text-sm font-semibold text-black">
+                            {s.contactName ?? "Müşterisiz satış"}
+                          </span>
                           <span className="text-xs text-neutral-600 tabular-nums">
                             {s.no} · {when.date.split("-").reverse().join(".")} {when.time}
                             {s.status === "Cancelled" && " · İptal"}
                           </span>
                         </span>
-                        <span className={`text-sm font-semibold tabular-nums ${s.status === "Cancelled" ? "text-neutral-600 line-through" : "text-black"}`}>
+                        <span
+                          className={`text-sm font-semibold tabular-nums ${s.status === "Cancelled" ? "text-neutral-600 line-through" : "text-black"}`}
+                        >
                           {formatMoney(s.total)}
                         </span>
                         <ChevronRight aria-hidden className="size-4 text-neutral-500" />
@@ -257,7 +327,12 @@ function DashboardBody({ data }: { data: Dashboard }) {
                         <span className="min-w-0 flex-1 truncate text-sm text-black">{p.name}</span>
                         <span className="text-sm font-semibold text-black tabular-nums">
                           {p.quantity.toLocaleString("tr-TR")}
-                          {p.criticalLevel !== null && <span className="font-normal text-neutral-600"> / {p.criticalLevel.toLocaleString("tr-TR")}</span>}
+                          {p.criticalLevel !== null && (
+                            <span className="font-normal text-neutral-600">
+                              {" "}
+                              / {p.criticalLevel.toLocaleString("tr-TR")}
+                            </span>
+                          )}
                         </span>
                       </Link>
                     </li>

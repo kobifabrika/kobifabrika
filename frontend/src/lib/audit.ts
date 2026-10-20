@@ -85,6 +85,7 @@ export const auditActionLabels: Record<AuditAction, string> = {
   CustomerPackageExtended: "Müşteri paketinin süresini uzattı",
   CustomerPackageClosed: "Müşteri paketini kapattı",
   SmsCreditsAdded: "SMS kredisi yüklendi (KobiFabrika)",
+  PlatformAccountChanged: "KobiFabrika destek hesabı değiştirdi",
   SmsCreditsExported: "SMS kredi hareketlerini Excel'e aktardı",
   SmsSettingsChanged: "SMS uyarı eşiğini değiştirdi",
   CampaignCreated: "Kampanya oluşturdu",

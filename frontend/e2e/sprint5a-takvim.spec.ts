@@ -26,7 +26,7 @@ async function drag(page: Page, target: Locator, dy: number, fromBottom = false)
  * Sprint 5A takvim: gün görünümü (masaüstünde personel kolonlu, telefonda personel seçicili), yeni randevu (mevcut ve hızlı yeni
  * müşteri), masaüstünde sürükle-bırak ile taşıma, süre uzatma ve çakışmada geri dönme; telefonda "Taşı" ve gün okları; hafta görünümü.
  */
-test("takvim: yeni randevu, sürükle-bırak / Taşı, çakışma ve hafta görünümü", async ({ owner, ownerPage: page, visit, check, guard }, info) => {
+test("takvim: yeni randevu, sürükle-bırak / Taşı, çakışma ve hafta görünümü @sms", async ({ owner, ownerPage: page, visit, check, guard }, info) => {
   await openAllDay(owner);
   const service = await createService(owner, "Saç kesimi", 45);
   const ayse = await createStaff(owner, "Ayşe Usta");

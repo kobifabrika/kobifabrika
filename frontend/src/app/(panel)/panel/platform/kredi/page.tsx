@@ -1,12 +1,6 @@
-import type { Metadata } from "next";
+import { redirect } from "next/navigation";
 
-import { PlatformCredit } from "@/components/marketing/platform-credit";
-
-export const instant = false;
-
-export const metadata: Metadata = { title: "Kredi yükle (platform)" };
-
-/** Sadece KobiFabrika ekibi (PlatformAdmin). Tam süper admin paneli Sprint 8'de. */
+/** Eski kredi yükleme ekranı: süper admin paneline taşındı (/platform → işletme → Kredi). */
 export default function PlatformCreditPage() {
-  return <PlatformCredit />;
+  redirect("/platform/isletmeler");
 }

@@ -3,6 +3,7 @@
 import { CalendarClock, Megaphone, UserMinus } from "lucide-react";
 import Link from "next/link";
 
+import { useSession } from "@/components/providers/session-provider";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { DashboardMarketing, EmptySlot } from "@/lib/api/types";
@@ -10,14 +11,24 @@ import { formatDay } from "@/lib/format";
 
 /** Boş aralıktan kampanya sihirbazına: hazır mesajla, tüm müşteriler hedefli. */
 export function emptySlotCampaignHref(date: string, slot: Pick<EmptySlot, "start" | "end" | "staffName">) {
-  const q = new URLSearchParams({ tur: "bos-saat", tarih: date, saat: slot.start, bitis: slot.end, personel: slot.staffName });
+  const q = new URLSearchParams({
+    tur: "bos-saat",
+    tarih: date,
+    saat: slot.start,
+    bitis: slot.end,
+    personel: slot.staffName,
+  });
   return `/panel/kampanyalar/yeni?${q}`;
 }
 
 export const riskCampaignHref = "/panel/kampanyalar/yeni?segment=at-risk&tur=risk";
 
-/** Bugün ekranı: yarın boş saatler ve kaybedilme riski (boşsa kart gösterilmez; Sahip ve Yönetici). */
+/**
+ * Bugün ekranı: yarın boş saatler ve kaybedilme riski (boşsa kart gösterilmez; Sahip ve Yönetici). SMS kapalıyken (pilot) kampanya
+ * düğmeleri yok: kampanya şimdilik sadece SMS ile gönderilir.
+ */
 export function MarketingCards({ data }: { data: DashboardMarketing }) {
+  const sms = useSession().me.platform.smsEnabled;
   const slots = data.emptySlots.items;
   const risk = data.atRisk;
   if (slots.length === 0 && risk.count === 0) return null;
@@ -31,7 +42,11 @@ export function MarketingCards({ data }: { data: DashboardMarketing }) {
             </CardTitle>
           </CardHeader>
           <CardContent className="flex flex-col gap-3">
-            <p className="text-sm text-neutral-700">{formatDay(data.emptySlots.date)} için müşterilerinize haber verin.</p>
+            <p className="text-sm text-neutral-700">
+              {sms
+                ? `${formatDay(data.emptySlots.date)} için müşterilerinize haber verin.`
+                : `${formatDay(data.emptySlots.date)} için boş saatler; müşterilerinize WhatsApp durumundan veya mesajla duyurabilirsiniz.`}
+            </p>
             <ul className="flex flex-col divide-y divide-border" aria-label="Yarın boş saatler">
               {slots.map((s) => (
                 <li key={`${s.staffId}-${s.start}`} className="flex items-center justify-between gap-3 py-2">
@@ -41,11 +56,16 @@ export function MarketingCards({ data }: { data: DashboardMarketing }) {
                     </span>{" "}
                     <span className="break-words">{s.staffName} boş</span>
                   </span>
-                  <Button asChild variant="outline" className="shrink-0">
-                    <Link href={emptySlotCampaignHref(data.emptySlots.date, s)} aria-label={`${s.start}-${s.end} ${s.staffName}: kampanya başlat`}>
-                      <Megaphone aria-hidden /> Kampanya
-                    </Link>
-                  </Button>
+                  {sms && (
+                    <Button asChild variant="outline" className="shrink-0">
+                      <Link
+                        href={emptySlotCampaignHref(data.emptySlots.date, s)}
+                        aria-label={`${s.start}-${s.end} ${s.staffName}: kampanya başlat`}
+                      >
+                        <Megaphone aria-hidden /> Kampanya
+                      </Link>
+                    </Button>
+                  )}
                 </li>
               ))}
             </ul>
@@ -66,7 +86,10 @@ export function MarketingCards({ data }: { data: DashboardMarketing }) {
             <ul className="flex flex-col divide-y divide-border" aria-label="Kaybedilme riskindeki müşteriler">
               {risk.items.map((c) => (
                 <li key={c.id} className="flex items-center justify-between gap-3 py-2">
-                  <Link href={`/panel/musteriler/${c.id}`} className="min-w-0 truncate text-sm font-semibold text-black underline-offset-4 hover:underline">
+                  <Link
+                    href={`/panel/musteriler/${c.id}`}
+                    className="min-w-0 truncate text-sm font-semibold text-black underline-offset-4 hover:underline"
+                  >
                     {c.name}
                   </Link>
                   <span className="shrink-0 text-xs text-neutral-600 tabular-nums">
@@ -79,11 +102,13 @@ export function MarketingCards({ data }: { data: DashboardMarketing }) {
               <Button asChild variant="outline">
                 <Link href="/panel/musteriler?segment=at-risk">Listeyi gör</Link>
               </Button>
-              <Button asChild>
-                <Link href={riskCampaignHref}>
-                  <Megaphone aria-hidden /> Kampanya başlat
-                </Link>
-              </Button>
+              {sms && (
+                <Button asChild>
+                  <Link href={riskCampaignHref}>
+                    <Megaphone aria-hidden /> Kampanya başlat
+                  </Link>
+                </Button>
+              )}
             </div>
           </CardContent>
         </Card>

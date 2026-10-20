@@ -23,6 +23,7 @@ import { useNow } from "@/lib/use-now";
 
 import { StatusBadge, appointmentsKey, useAppointmentRefresh } from "./appointment-bits";
 import { hasMobile } from "./appointment-form";
+import { WhatsAppNoticeButton, useSmsEnabled, type WhatsAppKind } from "./whatsapp-notice";
 
 type Action = "confirm" | "complete" | "no-show" | "reopen" | "cancel" | "reject";
 
@@ -36,20 +37,28 @@ export function appointmentWhen(a: Pick<Appointment, "startAt" | "endAt">): stri
  * Randevu ayrıntısı (masaüstünde sağdan, telefonda alttan): durum düğmeleri, "Taşı", "Satışa çevir", müşteri kartı.
  * Tamamlandı/Gelmedi başlangıç saatinden sonra işaretlenir; satışa çevrilen randevu geri alınamaz. Onay bekleyen online randevu
  * onaylanınca müşteriye onay, reddedilince "onaylanmadı" SMS'i gider; iptalde "Müşteriye SMS ile bildir" (online randevuda işaretli).
+ * SMS kapalıyken (pilot) bildirim e-postası müşterinin e-postası varsa gider; onay, ret, iptal ve taşımadan sonra "WhatsApp'tan
+ * bildir" düğmesi çıkar (notice: takvimden taşıma sonrası açılınca "Moved"). Onaylıda "WhatsApp'tan hatırlat", tamamlananda anket linki.
  */
 export function AppointmentSheet({
   appointmentId,
   initial,
   onClose,
   onMove,
+  notice: initialNotice,
 }: {
   appointmentId: string | null;
   initial?: Appointment;
   onClose: () => void;
   onMove: (appointment: Appointment) => void;
+  notice?: WhatsAppKind | null;
 }) {
   const desktop = useIsDesktop();
-  const { role } = useSession();
+  const { role, business } = useSession();
+  const sms = useSmsEnabled();
+  // İşlemden sonra seçilen bildirim türü bu randevuya aittir; başka randevu açılınca çağıranın verdiği (taşıma) geçerli olur.
+  const [acted, setActed] = useState<{ id: string; kind: WhatsAppKind | null } | null>(null);
+  const notice = acted && acted.id === appointmentId ? acted.kind : (initialNotice ?? null);
   const refresh = useAppointmentRefresh();
   const [cancelling, setCancelling] = useState<"cancel" | "reject" | null>(null);
   const [reason, setReason] = useState("");
@@ -74,16 +83,36 @@ export function AppointmentSheet({
           return unwrap(api.POST("/api/appointments/{id}/reopen", path));
         case "cancel":
           return unwrap(
-            api.POST("/api/appointments/{id}/cancel", { ...path, body: { reason: reason.trim() || null, notifyCustomer: notifyCustomer } }),
+            api.POST("/api/appointments/{id}/cancel", {
+              ...path,
+              body: { reason: reason.trim() || null, notifyCustomer: notifyCustomer },
+            }),
           );
         case "reject":
-          return unwrap(api.POST("/api/appointments/{id}/reject", { ...path, body: { reason: reason.trim() || null, notifyCustomer: true } }));
+          return unwrap(
+            api.POST("/api/appointments/{id}/reject", {
+              ...path,
+              body: { reason: reason.trim() || null, notifyCustomer: true },
+            }),
+          );
       }
     },
     onSuccess: async (_, action) => {
       await refresh();
       setCancelling(null);
       setReason("");
+      if (!sms && appointmentId)
+        setActed({
+          id: appointmentId,
+          kind:
+            action === "confirm"
+              ? "Confirmed"
+              : action === "cancel"
+                ? "Cancelled"
+                : action === "reject"
+                  ? "Rejected"
+                  : null,
+        });
       toast.success(
         {
           confirm: "Randevu onaylandı.",
@@ -100,8 +129,9 @@ export function AppointmentSheet({
 
   const a = query.data;
   const mobile = hasMobile(a?.contactPhone);
-  // İptalde SMS kutusu: kullanıcı değiştirmediyse online randevuda işaretli.
-  const notifyCustomer = mobile && (notify ?? a?.source === "Online");
+  // İptalde SMS kutusu: kullanıcı değiştirmediyse online randevuda işaretli. SMS kapalıyken e-posta (kayıtlıysa), varsayılan açık.
+  const notifyCustomer = sms ? mobile && (notify ?? a?.source === "Online") : (notify ?? true);
+  const surveys = business.plan.features.includes("surveys");
   const write = can(role, "writeAppointments");
   const now = useNow(30_000);
   const started = a ? Date.parse(a.startAt) <= now : false;
@@ -110,11 +140,17 @@ export function AppointmentSheet({
     <Sheet open={!!appointmentId} onOpenChange={(o) => !o && onClose()}>
       <SheetContent
         side={desktop ? "right" : "bottom"}
-        className={desktop ? "w-full overflow-y-auto sm:max-w-md" : "max-h-[92vh] gap-0 overflow-y-auto rounded-t-xl pb-[calc(1rem+env(safe-area-inset-bottom))]"}
+        className={
+          desktop
+            ? "w-full overflow-y-auto sm:max-w-md"
+            : "max-h-[92vh] gap-0 overflow-y-auto rounded-t-xl pb-[calc(1rem+env(safe-area-inset-bottom))]"
+        }
       >
         <SheetHeader>
           <SheetTitle>{a ? a.contactName : "Randevu"}</SheetTitle>
-          <SheetDescription>{a ? `${a.serviceName} · ${a.staffName}` : query.isError ? "Açılamadı" : "Yükleniyor…"}</SheetDescription>
+          <SheetDescription>
+            {a ? `${a.serviceName} · ${a.staffName}` : query.isError ? "Açılamadı" : "Yükleniyor…"}
+          </SheetDescription>
         </SheetHeader>
         {query.isError && (
           <div className="px-4 pb-4">
@@ -165,6 +201,13 @@ export function AppointmentSheet({
               )}
             </div>
 
+            {write && !sms && mobile && notice && (
+              <div className="flex flex-col gap-2 border border-border bg-neutral-50 p-3">
+                <p className="text-sm font-semibold text-black">Müşteriye haber verin</p>
+                <WhatsAppNoticeButton key={notice} appointmentId={a.id} kind={notice} variant="default" />
+              </div>
+            )}
+
             {write && (
               <div className="flex flex-col gap-2 border-t border-border pt-4">
                 {a.status === "Pending" && (
@@ -172,7 +215,13 @@ export function AppointmentSheet({
                     <Button onClick={() => act.mutate("confirm")} disabled={act.isPending}>
                       Onayla
                     </Button>
-                    {mobile && <p className="text-xs text-neutral-600">Onaylayınca veya reddedince müşteriye SMS ile bilgi verilir.</p>}
+                    {mobile && (
+                      <p className="text-xs text-neutral-600">
+                        {sms
+                          ? "Onaylayınca veya reddedince müşteriye SMS ile bilgi verilir."
+                          : "Onaylayınca veya reddedince müşteriye WhatsApp'tan haber verebilirsiniz; e-postası varsa e-posta da gider."}
+                      </p>
+                    )}
                   </>
                 )}
                 {a.status === "Confirmed" && (
@@ -180,16 +229,30 @@ export function AppointmentSheet({
                     <Button onClick={() => act.mutate("complete")} disabled={act.isPending || !started}>
                       Tamamlandı
                     </Button>
-                    <Button variant="outline" onClick={() => act.mutate("no-show")} disabled={act.isPending || !started}>
+                    <Button
+                      variant="outline"
+                      onClick={() => act.mutate("no-show")}
+                      disabled={act.isPending || !started}
+                    >
                       Gelmedi
                     </Button>
-                    {!started && <p className="text-xs text-neutral-600">Tamamlandı ve Gelmedi randevu saati gelince işaretlenir.</p>}
+                    {!started && (
+                      <p className="text-xs text-neutral-600">
+                        Tamamlandı ve Gelmedi randevu saati gelince işaretlenir.
+                      </p>
+                    )}
+                    {!sms && mobile && notice !== "Confirmed" && notice !== "Moved" && !started && (
+                      <WhatsAppNoticeButton appointmentId={a.id} kind="Reminder" />
+                    )}
                   </>
                 )}
                 {a.status === "Completed" && !a.saleId && can(role, "createSales") && (
                   <Button asChild>
                     <Link href={`/panel/satislar/yeni?randevu=${a.id}`}>Satışa çevir</Link>
                   </Button>
+                )}
+                {a.status === "Completed" && !sms && mobile && surveys && (
+                  <WhatsAppNoticeButton appointmentId={a.id} kind="Survey" />
                 )}
                 {(a.status === "Pending" || a.status === "Confirmed") && (
                   <Button variant="outline" onClick={() => onMove(a)}>
@@ -204,13 +267,15 @@ export function AppointmentSheet({
                 {(a.status === "Pending" || a.status === "Confirmed") &&
                   (cancelling ? (
                     <div className="flex flex-col gap-2 border border-border p-3">
-                      <Field label={cancelling === "reject" ? "Ret nedeni (isteğe bağlı)" : "İptal nedeni (isteğe bağlı)"}>
+                      <Field
+                        label={cancelling === "reject" ? "Ret nedeni (isteğe bağlı)" : "İptal nedeni (isteğe bağlı)"}
+                      >
                         <Textarea rows={2} maxLength={500} value={reason} onChange={(e) => setReason(e.target.value)} />
                       </Field>
-                      {cancelling === "cancel" && mobile && (
+                      {cancelling === "cancel" && (sms ? mobile : true) && (
                         <label className="flex min-h-11 items-center gap-3 text-sm text-black">
                           <Checkbox checked={notifyCustomer} onCheckedChange={(v) => setNotify(v === true)} />
-                          Müşteriye SMS ile bildir
+                          {sms ? "Müşteriye SMS ile bildir" : "Müşteriye e-postayla bildir (e-postası kayıtlıysa)"}
                         </label>
                       )}
                       <div className="flex flex-wrap gap-2">

@@ -253,14 +253,7 @@ export type CampaignRecipientItem = Schemas["CampaignRecipientItem"];
 export type RecipientStatus = Schemas["RecipientStatus"];
 /** Yanıtta metin (nullable enum ortak şemayı bozduğu için); değerler backend RecipientSkipReason. */
 export type RecipientSkipReason =
-  | "NoPhone"
-  | "NoConsent"
-  | "OptedOut"
-  | "DailyLimit"
-  | "NoCredit"
-  | "Cancelled"
-  | "Unavailable"
-  | "Interrupted";
+  "NoPhone" | "NoConsent" | "OptedOut" | "DailyLimit" | "NoCredit" | "Cancelled" | "Unavailable" | "Interrupted";
 export type AdminBusinessItem = Schemas["AdminBusinessItem"];
 export type PublicOptOut = Schemas["PublicOptOutResponse"];
 
@@ -366,7 +359,11 @@ export const leaveStatusNames: Record<LeaveStatus, string> = {
   Cancelled: "İptal edildi",
 };
 
-export const halfDayNames: Record<HalfDay, string> = { None: "Tam gün", Morning: "Öğleden önce", Afternoon: "Öğleden sonra" };
+export const halfDayNames: Record<HalfDay, string> = {
+  None: "Tam gün",
+  Morning: "Öğleden önce",
+  Afternoon: "Öğleden sonra",
+};
 
 export const leaveBalanceKindNames: Record<LeaveBalanceKind, string> = {
   Opening: "Açılış bakiyesi",
@@ -399,4 +396,39 @@ export const commissionTargetNames: Record<CommissionTarget, string> = {
   Product: "Ürünler",
   Category: "Kategori",
   Item: "Tek ürün/hizmet",
+};
+
+// Sprint 8A: SMS'siz pilot (WhatsApp bildirimleri)
+export type WhatsAppNoticeKind = Schemas["WhatsAppNoticeKind"];
+export type TomorrowNotices = Schemas["TomorrowNotices"];
+export type TomorrowNotice = Schemas["TomorrowNotice"];
+
+// Sprint 8A: süper admin (/platform) ve geri bildirim
+export type AdminOverview = Schemas["AdminOverview"];
+export type AdminBusinessDetail = Schemas["AdminBusinessDetail"];
+export type AdminUserItem = Schemas["AdminUserItem"];
+export type AdminNote = Schemas["AdminNote"];
+export type AdminActivityItem = Schemas["AdminActivityItem"];
+export type AdminFeedbackItem = Schemas["AdminFeedbackItem"];
+export type FeedbackStatus = Schemas["FeedbackStatus"];
+export type PlanStatus = Schemas["PlanStatus"];
+export type PlatformAction = Schemas["PlatformAction"];
+
+export const feedbackStatusNames: Record<FeedbackStatus, string> = {
+  New: "Yeni",
+  InProgress: "İnceleniyor",
+  Resolved: "Çözüldü",
+  Closed: "Kapandı",
+};
+
+export const platformActionNames: Record<PlatformAction, string> = {
+  PlanChanged: "Paket değişti",
+  PilotChanged: "Pilot değişti",
+  ReadOnlyChanged: "Salt okunur değişti",
+  TrialExtended: "Deneme uzatıldı",
+  TrialEnded: "Deneme bitirildi",
+  SmsCreditsAdded: "SMS kredisi yüklendi",
+  NoteAdded: "Not eklendi",
+  FeedbackUpdated: "Geri bildirim güncellendi",
+  PlanSettingsChanged: "Paket ayarları değişti",
 };

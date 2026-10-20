@@ -209,13 +209,20 @@ try {
         }
 
         if (-not $E2E -and -not $Hizli) {
-            Write-Step 'Frontend build (production, E2E için .next-e2e)'
+            Write-Step 'Frontend build (production, E2E için .next-e2e ve .next-e2e-sms)'
             $watch = [Diagnostics.Stopwatch]::StartNew()
             $env:NEXT_DIST_DIR = '.next-e2e'
             $env:NEXT_PUBLIC_API_URL = 'http://localhost:5180'
             $env:NEXT_TELEMETRY_DISABLED = '1'
             node node_modules/next/dist/bin/next build
             $buildOk = $LASTEXITCODE -eq 0
+            # SMS açık ikinci E2E çifti (@sms senaryoları): API adresi derlemeye gömülü olduğu için ayrı derleme.
+            if ($buildOk) {
+                $env:NEXT_DIST_DIR = '.next-e2e-sms'
+                $env:NEXT_PUBLIC_API_URL = 'http://localhost:5181'
+                node node_modules/next/dist/bin/next build
+                $buildOk = $LASTEXITCODE -eq 0
+            }
             Remove-Item Env:NEXT_DIST_DIR, Env:NEXT_PUBLIC_API_URL -ErrorAction SilentlyContinue
             $watch.Stop()
             $summary = if ($buildOk) { [pscustomobject]@{ passed = 1; failed = 0; failures = @() } } else { New-Failure 'next build' 'Derleme başarısız (çıktıya bakın).' }

@@ -27,7 +27,7 @@ async function codeFrom(phone: string, pattern: RegExp): Promise<string> {
  * Sprint 7B raporları: Kampanyalar (gönderilen / alıcı, nedenine göre elenen, kredi, sonradan çıkış yapan), Anket (ortalama,
  * dağılım, personel), Personel (satış, randevu, anket, çalışılan saat). Masaüstünde tablo, telefonda kart; Excel indirilir.
  */
-test("raporlar: kampanya, anket ve personel", async ({ owner, ownerPage: page, visit, guard }) => {
+test("raporlar: kampanya, anket ve personel @sms", async ({ owner, ownerPage: page, visit, guard }) => {
   // Anket SMS'i dakikalık otomasyonla gelir (6B senaryosuyla aynı süre).
   test.setTimeout(240_000);
   await openAllDay(owner);

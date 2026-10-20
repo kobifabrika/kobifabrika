@@ -89,7 +89,7 @@ public class MessageLog : TenantEntity
 
     public MessageChannel Channel { get; set; } = MessageChannel.Sms;
 
-    /// <summary>E.164.</summary>
+    /// <summary>SMS ve WhatsApp: E.164 telefon; e-posta kanalı: e-posta adresi.</summary>
     public required string To { get; set; }
 
     public required string Body { get; set; }

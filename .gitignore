@@ -14,6 +14,7 @@ TestResults/
 node_modules/
 .next/
 .next-e2e/
+.next-e2e-sms/
 
 # Playwright (E2E): çalışma klasörü, raporlar, hata kayıtları
 frontend/e2e/.run/

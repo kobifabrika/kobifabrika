@@ -55,7 +55,9 @@ const slotOptions = [5, 10, 15, 20, 30, 60];
 
 /** Seçenek listesinde olmayan kayıtlı değer de görünsün (ör. API'den 90 dk). */
 const withCurrent = (options: [number, string][], value: number, label: (v: number) => string): [number, string][] =>
-  options.some(([v]) => v === value) ? options : [...options, [value, label(value)] as [number, string]].sort((a, b) => a[0] - b[0]);
+  options.some(([v]) => v === value)
+    ? options
+    : [...options, [value, label(value)] as [number, string]].sort((a, b) => a[0] - b[0]);
 
 function bookingLink(slug: string) {
   return typeof window === "undefined" ? `/r/${slug}` : `${window.location.origin}/r/${slug}`;
@@ -66,12 +68,20 @@ function bookingLink(slug: string) {
  * otomatik onay, en erken randevu, en fazla gün, saat aralığı, hatırlatma SMS'i ve müşterinin iptal süresi; link kopyala/önizle.
  */
 export function BookingSettingsCard() {
-  const settings = useQuery({ queryKey: bookingSettingsKey, queryFn: () => unwrap(api.GET("/api/business/booking-settings")) });
+  const { me } = useSession();
+  const settings = useQuery({
+    queryKey: bookingSettingsKey,
+    queryFn: () => unwrap(api.GET("/api/business/booking-settings")),
+  });
   return (
     <Card>
       <CardHeader>
         <CardTitle className="text-black">Online randevu</CardTitle>
-        <CardDescription>Müşterileriniz randevu linkinizden hizmet, personel ve saat seçip SMS koduyla randevu alır.</CardDescription>
+        <CardDescription>
+          {me.platform.smsEnabled
+            ? "Müşterileriniz randevu linkinizden hizmet, personel ve saat seçip SMS koduyla randevu alır."
+            : "Müşterileriniz randevu linkinizden hizmet, personel ve saat seçip randevu talebi gönderir; siz onaylarsınız."}
+        </CardDescription>
       </CardHeader>
       <CardContent>
         {settings.isPending ? (
@@ -89,7 +99,8 @@ export function BookingSettingsCard() {
 }
 
 function BookingSettingsForm({ initial }: { initial: BookingSettings }) {
-  const { role } = useSession();
+  const { role, me } = useSession();
+  const sms = me.platform.smsEnabled;
   const readOnly = !can(role, "manageBusiness");
   const queryClient = useQueryClient();
   const [form, setForm] = useState<BookingSettingsRequest>({
@@ -108,7 +119,9 @@ function BookingSettingsForm({ initial }: { initial: BookingSettings }) {
     mutationFn: (body: BookingSettingsRequest) => unwrap(api.PUT("/api/business/booking-settings", { body })),
     onSuccess: (next) => {
       queryClient.setQueryData(bookingSettingsKey, next);
-      toast.success(next.enabled ? "Online randevu ayarları kaydedildi. Sayfanız açık." : "Online randevu ayarları kaydedildi.");
+      toast.success(
+        next.enabled ? "Online randevu ayarları kaydedildi. Sayfanız açık." : "Online randevu ayarları kaydedildi.",
+      );
     },
     onError: (e) => {
       const fields = fieldErrors(e);
@@ -146,20 +159,29 @@ function BookingSettingsForm({ initial }: { initial: BookingSettings }) {
         <span className="flex flex-col">
           <span className="text-sm font-semibold text-black">Online randevu sayfası açık</span>
           <span className="text-sm text-neutral-600">
-            Açmak için en az bir personelde &quot;Online randevuda görünsün&quot; açık olmalı. Online sayfada {initial.bookableStaff} personel,{" "}
-            {initial.bookableServices} hizmet görünür.
+            Açmak için en az bir personelde &quot;Online randevuda görünsün&quot; açık olmalı. Online sayfada{" "}
+            {initial.bookableStaff} personel, {initial.bookableServices} hizmet görünür.
           </span>
         </span>
-        <Switch aria-label="Online randevu sayfası açık" checked={form.enabled} disabled={readOnly} onCheckedChange={(v) => set({ enabled: v })} />
+        <Switch
+          aria-label="Online randevu sayfası açık"
+          checked={form.enabled}
+          disabled={readOnly}
+          onCheckedChange={(v) => set({ enabled: v })}
+        />
       </label>
       {initial.bookableServices === 0 && (
-        <Notice>Hizmetin online sayfada çıkması için aktif olması ve süresinin tanımlı olması gerekir (Ürünler/Hizmetler).</Notice>
+        <Notice>
+          Hizmetin online sayfada çıkması için aktif olması ve süresinin tanımlı olması gerekir (Ürünler/Hizmetler).
+        </Notice>
       )}
 
       <div className="flex flex-col gap-2">
         <span className="text-sm font-semibold text-black">Randevu linkiniz</span>
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-          <code className="min-h-11 flex-1 truncate rounded-lg border border-border bg-neutral-50 px-3 py-2.5 text-sm text-black">{link}</code>
+          <code className="min-h-11 flex-1 truncate rounded-lg border border-border bg-neutral-50 px-3 py-2.5 text-sm text-black">
+            {link}
+          </code>
           <div className="flex gap-2">
             <Button type="button" variant="outline" onClick={copy}>
               <Copy aria-hidden />
@@ -173,15 +195,26 @@ function BookingSettingsForm({ initial }: { initial: BookingSettings }) {
             </Button>
           </div>
         </div>
-        {!initial.enabled && <p className="text-xs text-neutral-600">Sayfa kapalıyken link &quot;bulunamadı&quot; gösterir.</p>}
+        {!initial.enabled && (
+          <p className="text-xs text-neutral-600">Sayfa kapalıyken link &quot;bulunamadı&quot; gösterir.</p>
+        )}
       </div>
 
       <label className="flex min-h-14 items-center justify-between gap-4">
         <span className="flex flex-col">
           <span className="text-sm font-semibold text-black">Online randevuları otomatik onayla</span>
-          <span className="text-sm text-neutral-600">Kapalıyken online randevu &quot;Beklemede&quot; düşer; takvimden onaylarsınız.</span>
+          <span className="text-sm text-neutral-600">
+            {sms
+              ? 'Kapalıyken online randevu "Beklemede" düşer; takvimden onaylarsınız.'
+              : 'Pilot döneminde telefon SMS koduyla doğrulanmadığı için online randevular her zaman "Beklemede" düşer; takvimden onaylarsınız.'}
+          </span>
         </span>
-        <Switch aria-label="Otomatik onay" checked={form.autoConfirm} disabled={readOnly} onCheckedChange={(v) => set({ autoConfirm: v })} />
+        <Switch
+          aria-label="Otomatik onay"
+          checked={sms && form.autoConfirm}
+          disabled={readOnly || !sms}
+          onCheckedChange={(v) => set({ autoConfirm: v })}
+        />
       </label>
 
       <div className="grid gap-4 sm:grid-cols-2">
@@ -200,10 +233,27 @@ function BookingSettingsForm({ initial }: { initial: BookingSettings }) {
           </select>
         </Field>
         <Field label="En fazla kaç gün ilerisi" error={errors.maxDaysAhead} hint="1 ile 180 gün arası.">
-          <Input type="number" inputMode="numeric" min={1} max={180} disabled={readOnly} value={maxDaysText} onChange={(e) => setMaxDaysText(e.target.value)} />
+          <Input
+            type="number"
+            inputMode="numeric"
+            min={1}
+            max={180}
+            disabled={readOnly}
+            value={maxDaysText}
+            onChange={(e) => setMaxDaysText(e.target.value)}
+          />
         </Field>
-        <Field label="Saat aralığı" error={errors.slotMinutes} hint="Müşteriye gösterilen saatler bu aralıkla başlar (09:00, 09:15…).">
-          <select className={selectClass} disabled={readOnly} value={form.slotMinutes} onChange={(e) => set({ slotMinutes: Number(e.target.value) })}>
+        <Field
+          label="Saat aralığı"
+          error={errors.slotMinutes}
+          hint="Müşteriye gösterilen saatler bu aralıkla başlar (09:00, 09:15…)."
+        >
+          <select
+            className={selectClass}
+            disabled={readOnly}
+            value={form.slotMinutes}
+            onChange={(e) => set({ slotMinutes: Number(e.target.value) })}
+          >
             {slotOptions.map((v) => (
               <option key={v} value={v}>
                 {v} dakika
@@ -211,7 +261,14 @@ function BookingSettingsForm({ initial }: { initial: BookingSettings }) {
             ))}
           </select>
         </Field>
-        <Field label="Hatırlatma SMS'i" hint="Onaylı randevudan önce müşteriye bir kez gider.">
+        <Field
+          label={sms ? "Hatırlatma SMS'i" : "Hatırlatma e-postası"}
+          hint={
+            sms
+              ? "Onaylı randevudan önce müşteriye bir kez gider."
+              : 'E-postası olan müşteriye bir kez gider. WhatsApp hatırlatması Bugün\'deki "Yarının randevuları"ndan.'
+          }
+        >
           <select
             className={selectClass}
             disabled={readOnly}
@@ -225,7 +282,10 @@ function BookingSettingsForm({ initial }: { initial: BookingSettings }) {
             ))}
           </select>
         </Field>
-        <Field label="Müşterinin online iptali" hint="SMS'teki linkten ve onay sayfasından.">
+        <Field
+          label="Müşterinin online iptali"
+          hint={sms ? "SMS'teki linkten ve onay sayfasından." : "Mesajdaki linkten ve onay sayfasından."}
+        >
           <select
             className={selectClass}
             disabled={readOnly}

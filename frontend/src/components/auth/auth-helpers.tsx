@@ -9,14 +9,23 @@ import { Input } from "@/components/ui/input";
 import type { Me } from "@/lib/api/types";
 import { safeReturnPath } from "@/lib/validation/rules";
 
-/** Giriş/kayıt sonrası: kurulumu bitmemişse /kurulum, bitmişse geri dönüş adresi veya /panel. */
+/**
+ * Giriş/kayıt sonrası: kurulumu bitmemişse /kurulum, bitmişse geri dönüş adresi veya /panel. Süper admin /platform'a dönerken
+ * işletme kurulumu aranmaz (bir işletmeye üye olmayabilir).
+ */
 export function useAfterAuth() {
   const queryClient = useQueryClient();
   const router = useRouter();
   return useCallback(
     (me: Me, returnPath?: string | null) => {
       queryClient.setQueryData(meQueryKey, me);
-      const target = me.business?.setupCompleted ? (safeReturnPath(returnPath) ?? "/panel") : "/kurulum";
+      const back = safeReturnPath(returnPath);
+      const target =
+        back?.startsWith("/platform") && me.user.isPlatformAdmin
+          ? back
+          : me.business?.setupCompleted
+            ? ((back?.startsWith("/panel") ? back : null) ?? "/panel")
+            : "/kurulum";
       router.replace(target);
     },
     [queryClient, router],
@@ -27,10 +36,20 @@ export function useAfterAuth() {
 export function PhoneInput(props: ComponentProps<"input">) {
   return (
     <div className="relative">
-      <span aria-hidden className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-base text-muted-foreground">
+      <span
+        aria-hidden
+        className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-base text-muted-foreground"
+      >
         +90
       </span>
-      <Input type="tel" inputMode="tel" autoComplete="tel-national" placeholder="532 123 45 67" className="pl-12" {...props} />
+      <Input
+        type="tel"
+        inputMode="tel"
+        autoComplete="tel-national"
+        placeholder="532 123 45 67"
+        className="pl-12"
+        {...props}
+      />
     </div>
   );
 }

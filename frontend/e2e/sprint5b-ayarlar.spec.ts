@@ -8,7 +8,7 @@ test.use({ ownerSector: "HairBarber" });
  * Sprint 5B: Ayarlar → Randevu → Online randevu. Sayfa varsayılan kapalı (link "bulunamadı" der); personel yokken açılamaz;
  * personel eklenince açılır, otomatik onay, saat aralığı, en fazla gün ve hatırlatma kaydedilir; link önizlenir.
  */
-test("online randevu ayarları: kapalı sayfa, personel şartı, kaydet", async ({ owner, ownerPage: page, newPublicPage, visit, check, guard }) => {
+test("online randevu ayarları: kapalı sayfa, personel şartı, kaydet @sms", async ({ owner, ownerPage: page, newPublicPage, visit, check, guard }) => {
   guard.allow(404, /\/api\/public\/booking\//); // kapalı sayfa (beklenen)
   guard.allow(409, /\/api\/business\/booking-settings$/); // personel yokken açma (beklenen)
   const { slug } = await owner.get<{ slug: string }>("/api/business/booking-settings");

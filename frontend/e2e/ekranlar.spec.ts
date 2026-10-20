@@ -15,6 +15,8 @@ test("tanıtım ve giriş ekranları", async ({ page, visit }) => {
 });
 
 test("panel ekranları (Sahip, dolu veri)", async ({ owner, ownerPage: page, visit }) => {
+  // Her ekran ayrı ayrı açılıp taranır (axe + taşma); liste uzadıkça WebKit 120 sn sınırını aşıyordu (Actions, 2026-10-17).
+  test.setTimeout(300_000);
   const contact = await createContact(owner, { firstName: "Ayşe", lastName: "Yılmaz", email: "ayse@example.test" });
   const supplier = await createContact(owner, {
     firstName: "Toptan",

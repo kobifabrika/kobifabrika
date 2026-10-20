@@ -15,7 +15,7 @@ function istanbulDay(offset: number) {
  * Sprint 6B öneriler: Bugün'de "Yarın boş saatler" → Kampanya → sihirbaz hazır mesajla; takvimde yarın görünümünde öneri şeridi;
  * "Kaybedilme riski" kartı (en az 3 ziyaret, ortalamanın 2 katından uzun) → Listeyi gör (segment çipi) → kampanya.
  */
-test("Bugün: boş saat ve kaybedilme riski önerileri", async ({ owner, ownerPage: page, visit, check }) => {
+test("Bugün: boş saat ve kaybedilme riski önerileri @sms", async ({ owner, ownerPage: page, visit, check }) => {
   await openAllDay(owner);
   await createService(owner, "Saç kesimi", 45);
   const staff = await createStaff(owner, "Ayşe Usta");

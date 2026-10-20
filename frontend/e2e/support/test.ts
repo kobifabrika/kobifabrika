@@ -1,8 +1,8 @@
 import AxeBuilder from "@axe-core/playwright";
 import { test as base, expect, type Browser, type BrowserContext, type Page, type TestInfo } from "@playwright/test";
 
-import { apiUrl, webUrl } from "../scripts/env.mjs";
 import { ownerWithBusiness, type ApiUser, type Sector } from "./api";
+import { isSmsProject, setSmsTarget, target } from "./target";
 
 /**
  * Ortak test düzeneği. Her sayfada kendiliğinden:
@@ -53,6 +53,7 @@ export class Guard {
     });
     page.on("response", (response) => {
       const url = response.url();
+      const { apiUrl, webUrl } = target();
       if (!url.startsWith(apiUrl) && !url.startsWith(webUrl)) return;
       const status = response.status();
       if (status < 400 || this.isAllowed(status, url)) return;
@@ -60,7 +61,7 @@ export class Guard {
     });
     page.on("requestfailed", (request) => {
       const url = request.url();
-      if (!url.startsWith(apiUrl) || this.isAllowed("network", url)) return;
+      if (!url.startsWith(target().apiUrl) || this.isAllowed("network", url)) return;
       const reason = request.failure()?.errorText ?? "";
       // Sayfa değişirken iptal edilen istekler hata değildir.
       if (/ERR_ABORTED|cancelled|NS_BINDING_ABORTED|Load request cancelled/i.test(reason)) return;
@@ -115,10 +116,18 @@ type Options = { ownerSector: Sector; ownerConfirmed: boolean };
 /** Ek bağlamlar projenin cihaz ayarlarıyla (telefon/masaüstü) açılır. */
 const contextOptions = (_browser: Browser, info: TestInfo) => {
   const { viewport, screen, userAgent, deviceScaleFactor, isMobile, hasTouch, locale, timezoneId } = info.project.use;
-  return { viewport, screen, userAgent, deviceScaleFactor, isMobile, hasTouch, locale, timezoneId, baseURL: webUrl };
+  return { viewport, screen, userAgent, deviceScaleFactor, isMobile, hasTouch, locale, timezoneId, baseURL: target().webUrl };
 };
 
-export const test = base.extend<Fixtures & Options>({
+export const test = base.extend<Fixtures & Options, { e2eTarget: void }>({
+  // Worker başında hangi E2E çiftiyle (SMS kapalı / açık) konuşulacağı (support/target.ts).
+  e2eTarget: [
+    async ({}, use, workerInfo) => {
+      setSmsTarget(isSmsProject(workerInfo.project.name));
+      await use();
+    },
+    { scope: "worker", auto: true },
+  ],
   ownerSector: ["Other", { option: true }],
   ownerConfirmed: [false, { option: true }],
 

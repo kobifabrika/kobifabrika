@@ -1,6 +1,6 @@
 import { addMember, createContact, createProduct, createQuote, createSale, line, ownerWithBusiness } from "./support/api";
 import { book, createService, createStaff, pastSlot } from "./support/appointments";
-import { apiUrl } from "./scripts/env.mjs";
+import { target } from "./support/target";
 import { expect, test } from "./support/test";
 
 /** Kiracı ayrımı: B işletmesinin kullanıcısı A'nın kayıt adreslerini açınca "bulunamadı" görür; API 404 döner. */
@@ -73,24 +73,24 @@ test("B işletmesi A'nın müşteri, cari, ürün, satış ve teklif adreslerind
 /** API kapalıyken Türkçe hata ve "Tekrar dene"; API dönünce sayfa açılır. */
 test("API kapalıyken Türkçe hata ve Tekrar dene", async ({ ownerPage: page, guard, check }) => {
   guard.allow("network");
-  await page.route(`${apiUrl}/**`, (route) => route.abort("connectionrefused"));
+  await page.route(`${target().apiUrl}/**`, (route) => route.abort("connectionrefused"));
   await page.goto("/panel/musteriler");
   await expect(page.getByText("Panel açılamadı")).toBeVisible({ timeout: 60_000 });
   await expect(page.getByText(/Sunucuya ulaşılamıyor/).first()).toBeVisible();
   await expect(page.getByRole("button", { name: "Tekrar dene" })).toBeVisible();
   await check(page, "Hata · API kapalı");
 
-  await page.unroute(`${apiUrl}/**`);
+  await page.unroute(`${target().apiUrl}/**`);
   await page.getByRole("button", { name: "Tekrar dene" }).click();
   await expect(page.getByRole("heading", { name: "Müşteriler" })).toBeVisible();
 
   // Panel açıkken API düşerse sayfa içinde aynı hata ve "Tekrar dene".
-  await page.route(`${apiUrl}/api/products**`, (route) => route.abort("connectionrefused"));
+  await page.route(`${target().apiUrl}/api/products**`, (route) => route.abort("connectionrefused"));
   await page.goto("/panel/urunler");
   await expect(page.getByText(/Sunucuya ulaşılamıyor/).first()).toBeVisible({ timeout: 60_000 });
   await expect(page.getByRole("button", { name: "Tekrar dene" })).toBeVisible();
   await check(page, "Hata · liste yüklenemedi");
-  await page.unroute(`${apiUrl}/api/products**`);
+  await page.unroute(`${target().apiUrl}/api/products**`);
   await page.getByRole("button", { name: "Tekrar dene" }).click();
   await expect(page.getByRole("button", { name: "Tekrar dene" })).toHaveCount(0);
 });

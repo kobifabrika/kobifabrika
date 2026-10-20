@@ -40,7 +40,8 @@ export function TopUpButton({ variant = "outline" }: { variant?: "outline" | "de
       <ResponsivePanel open={open} onOpenChange={setOpen} title="Kredi yükle">
         <div className="flex flex-col gap-4">
           <p className="text-sm text-neutral-700">
-            Kartla kredi yükleme yakında. Şimdilik kredi yüklemek için destekten isteyin; yükleme yapılınca bakiyeniz burada görünür.
+            Kartla kredi yükleme yakında. Şimdilik kredi yüklemek için destekten isteyin; yükleme yapılınca bakiyeniz
+            burada görünür.
           </p>
           {whatsapp || supportEmail ? (
             <div className="flex flex-col gap-2 sm:flex-row">
@@ -81,7 +82,8 @@ export function CreditStrip() {
       <div className="flex flex-col">
         <span className="text-xs text-neutral-600">SMS kredisi</span>
         <span className="text-lg font-semibold text-black tabular-nums">
-          {number(c.balance)} kredi{c.isLow && <span className="ml-2 text-sm font-normal text-neutral-700">· azaldı</span>}
+          {number(c.balance)} kredi
+          {c.isLow && <span className="ml-2 text-sm font-normal text-neutral-700">· azaldı</span>}
         </span>
       </div>
       <div className="flex items-center gap-2">
@@ -98,11 +100,19 @@ export function CreditStrip() {
 
 /** Ayarlar → SMS: bakiye, uyarı eşiği, kredi hareketleri. */
 export function SmsSettings() {
-  const { role } = useSession();
-  const credit = useSmsCredit();
+  const { role, me } = useSession();
+  const credit = useSmsCredit(me.platform.smsEnabled);
+  if (!me.platform.smsEnabled)
+    return (
+      <p className="border-l-2 border-brand bg-neutral-50 px-4 py-3 text-sm text-neutral-700">
+        SMS gönderimi pilot döneminde kapalı. Randevu bildirimleri WhatsApp&apos;tan ve e-postayla yapılır.
+      </p>
+    );
   return (
     <div className="flex flex-col gap-4">
-      {role === "Accountant" && <p className="text-sm text-neutral-600">Mali Müşavir olarak bu sayfayı görüntüleyebilirsin; değiştiremezsin.</p>}
+      {role === "Accountant" && (
+        <p className="text-sm text-neutral-600">Mali Müşavir olarak bu sayfayı görüntüleyebilirsin; değiştiremezsin.</p>
+      )}
       {credit.isPending ? (
         <p role="status" className="text-sm text-neutral-600">
           Yükleniyor…
@@ -122,7 +132,8 @@ function BalanceCard({ summary: c, readOnly }: { summary: SmsCreditSummary; read
   const [threshold, setThreshold] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const save = useMutation({
-    mutationFn: (lowBalanceThreshold: number) => unwrap(api.PUT("/api/business/sms-settings", { body: { lowBalanceThreshold } })),
+    mutationFn: (lowBalanceThreshold: number) =>
+      unwrap(api.PUT("/api/business/sms-settings", { body: { lowBalanceThreshold } })),
     onSuccess: (next) => {
       queryClient.setQueryData([...smsCreditKey], next);
       setThreshold(null);
@@ -137,7 +148,10 @@ function BalanceCard({ summary: c, readOnly }: { summary: SmsCreditSummary; read
     <Card>
       <CardHeader>
         <CardTitle className="text-black">SMS kredisi</CardTitle>
-        <CardDescription>1 kredi = 1 SMS (Türkçe karakterli mesaj 70, diğerleri 160 karakterde bir kredi). Doğrulama kodları krediden düşmez.</CardDescription>
+        <CardDescription>
+          1 kredi = 1 SMS (Türkçe karakterli mesaj 70, diğerleri 160 karakterde bir kredi). Doğrulama kodları krediden
+          düşmez.
+        </CardDescription>
       </CardHeader>
       <CardContent className="flex flex-col gap-5">
         <div className="grid gap-4 sm:grid-cols-3">
@@ -146,7 +160,11 @@ function BalanceCard({ summary: c, readOnly }: { summary: SmsCreditSummary; read
             <span className="text-3xl font-semibold text-black tabular-nums" data-testid="sms-balance">
               {number(c.balance)}
             </span>
-            {c.isLow && <span className="mt-1 border-l-2 border-brand pl-2 text-sm text-black">Bakiye uyarı eşiğinin altında.</span>}
+            {c.isLow && (
+              <span className="mt-1 border-l-2 border-brand pl-2 text-sm text-black">
+                Bakiye uyarı eşiğinin altında.
+              </span>
+            )}
           </div>
           <div className="flex flex-col">
             <span className="text-sm text-neutral-600">Son 30 gün</span>
@@ -163,12 +181,23 @@ function BalanceCard({ summary: c, readOnly }: { summary: SmsCreditSummary; read
           onSubmit={(e) => {
             e.preventDefault();
             const n = Number(value);
-            if (!/^\d+$/.test(value) || n > 100000) return setError("Eşik 0 ile 100.000 arasında olmalı (0 = uyarı kapalı).");
+            if (!/^\d+$/.test(value) || n > 100000)
+              return setError("Eşik 0 ile 100.000 arasında olmalı (0 = uyarı kapalı).");
             save.mutate(n);
           }}
         >
-          <Field label="Düşük bakiye uyarısı" hint="Bakiye bunun altına inince Sahip ve Yöneticilere bildirim gider. 0 = kapalı." error={error ?? undefined} className="w-56">
-            <Input inputMode="numeric" value={value} disabled={readOnly} onChange={(e) => setThreshold(e.target.value)} />
+          <Field
+            label="Düşük bakiye uyarısı"
+            hint="Bakiye bunun altına inince Sahip ve Yöneticilere bildirim gider. 0 = kapalı."
+            error={error ?? undefined}
+            className="w-56"
+          >
+            <Input
+              inputMode="numeric"
+              value={value}
+              disabled={readOnly}
+              onChange={(e) => setThreshold(e.target.value)}
+            />
           </Field>
           {!readOnly && (
             <Button type="submit" variant="outline" disabled={save.isPending || threshold === null}>
@@ -186,7 +215,8 @@ function Transactions() {
   const list = useInfiniteQuery({
     queryKey: [...smsCreditKey, "transactions"],
     initialPageParam: 1,
-    queryFn: ({ pageParam }) => unwrap(api.GET("/api/sms-credits/transactions", { params: { query: { page: pageParam, pageSize: 25 } } })),
+    queryFn: ({ pageParam }) =>
+      unwrap(api.GET("/api/sms-credits/transactions", { params: { query: { page: pageParam, pageSize: 25 } } })),
     getNextPageParam: (last, pages) => (pages.length * 25 < last.total ? pages.length + 1 : undefined),
   });
   const items = list.data?.pages.flatMap((p) => p.items) ?? [];
@@ -228,7 +258,9 @@ function Transactions() {
                   </span>
                 </div>
                 <div className="flex shrink-0 flex-col items-end">
-                  <span className="text-sm font-semibold text-black tabular-nums">{t.amount > 0 ? `+${number(t.amount)}` : number(t.amount)}</span>
+                  <span className="text-sm font-semibold text-black tabular-nums">
+                    {t.amount > 0 ? `+${number(t.amount)}` : number(t.amount)}
+                  </span>
                   <span className="text-xs text-neutral-600 tabular-nums">Bakiye {number(t.balanceAfter)}</span>
                 </div>
               </li>
@@ -236,7 +268,12 @@ function Transactions() {
           </ul>
         )}
         {list.hasNextPage && (
-          <Button variant="outline" className="mt-3 w-full" onClick={() => list.fetchNextPage()} disabled={list.isFetchingNextPage}>
+          <Button
+            variant="outline"
+            className="mt-3 w-full"
+            onClick={() => list.fetchNextPage()}
+            disabled={list.isFetchingNextPage}
+          >
             Daha fazla
           </Button>
         )}

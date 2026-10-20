@@ -20,8 +20,15 @@ import type { CartContact } from "@/lib/cart";
 import { formatDay, istanbulParts, istanbulToUtcIso } from "@/lib/format";
 
 import { ResponsivePanel, useAppointmentRefresh } from "./appointment-bits";
+import { useSmsEnabled } from "./whatsapp-notice";
 
-export type AppointmentDraft = { staffId?: string; date: string; time?: string; contact?: CartContact | null; contactId?: string | null };
+export type AppointmentDraft = {
+  staffId?: string;
+  date: string;
+  time?: string;
+  contact?: CartContact | null;
+  contactId?: string | null;
+};
 
 /** "Ayşe Yılmaz son 5 randevusundan 2'sine gelmedi." */
 export function noShowText(name: string | undefined, w: { noShows: number; of: number }) {
@@ -70,7 +77,11 @@ export function AppointmentForm({
   const start = appointment ? istanbulParts(appointment.startAt) : null;
   const end = appointment ? istanbulParts(appointment.endAt) : null;
   const [picked, setPicked] = useState<{ contact: CartContact | null } | null>(
-    appointment ? { contact: { id: appointment.contactId, name: appointment.contactName, phone: appointment.contactPhone } } : draft?.contact ? { contact: draft.contact } : null,
+    appointment
+      ? { contact: { id: appointment.contactId, name: appointment.contactName, phone: appointment.contactPhone } }
+      : draft?.contact
+        ? { contact: draft.contact }
+        : null,
   );
   const [staffId, setStaffId] = useState(appointment?.staffMemberId ?? draft?.staffId ?? staff[0]?.id ?? "");
   const [serviceId, setServiceId] = useState(appointment?.productId ?? "");
@@ -79,9 +90,12 @@ export function AppointmentForm({
   const [endTime, setEndTime] = useState(end?.time ?? "");
   const [endTouched, setEndTouched] = useState(false);
   const [note, setNote] = useState(appointment?.note ?? "");
-  const [notify, setNotify] = useState(appointment?.source === "Online");
+  const sms = useSmsEnabled();
+  const [notify, setNotify] = useState(sms ? appointment?.source === "Online" : true);
   // undefined: otomatik (tek uygun paket varsa o); null: paket kullanma.
-  const [packageChoice, setPackageChoice] = useState<string | null | undefined>(appointment ? (appointment.customerPackageId ?? null) : undefined);
+  const [packageChoice, setPackageChoice] = useState<string | null | undefined>(
+    appointment ? (appointment.customerPackageId ?? null) : undefined,
+  );
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [error, setError] = useState<string | null>(null);
 
@@ -100,7 +114,10 @@ export function AppointmentForm({
 
   const member = staff.find((s) => s.id === staffId);
   const offered = useMemo(
-    () => (services.data ?? []).filter((s) => !member || member.allServices || member.serviceIds.includes(s.id) || s.id === appointment?.productId),
+    () =>
+      (services.data ?? []).filter(
+        (s) => !member || member.allServices || member.serviceIds.includes(s.id) || s.id === appointment?.productId,
+      ),
     [services.data, member, appointment?.productId],
   );
 
@@ -114,17 +131,30 @@ export function AppointmentForm({
 
   const startAt = date && time ? istanbulToUtcIso(date, time) : null;
   const endAt = date && endTime ? istanbulToUtcIso(date, endTime) : null;
-  const timeChanged = !!appointment && (startAt !== new Date(appointment.startAt).toISOString() || endAt !== new Date(appointment.endAt).toISOString());
+  const timeChanged =
+    !!appointment &&
+    (startAt !== new Date(appointment.startAt).toISOString() || endAt !== new Date(appointment.endAt).toISOString());
 
   const packages = useContactPackages(contact?.id, open);
   const usable = (packages.data?.items ?? []).filter(
-    (p) => p.productId === serviceId && (p.state === "Active" || p.id === appointment?.customerPackageId) && (!date || p.expiresOn >= date),
+    (p) =>
+      p.productId === serviceId &&
+      (p.state === "Active" || p.id === appointment?.customerPackageId) &&
+      (!date || p.expiresOn >= date),
   );
   const packageId =
-    packageChoice === undefined ? (usable.length === 1 ? usable[0]!.id : null) : usable.some((p) => p.id === packageChoice) ? packageChoice : null;
+    packageChoice === undefined
+      ? usable.length === 1
+        ? usable[0]!.id
+        : null
+      : usable.some((p) => p.id === packageChoice)
+        ? packageChoice
+        : null;
   const chosenPackage = usable.find((p) => p.id === packageId);
   const checkInput = useDebounced(
-    startAt && endAt && staffId && endAt > startAt ? { contactId: contact?.id ?? null, staffMemberId: staffId, startAt, endAt, excludeId: appointment?.id ?? null } : null,
+    startAt && endAt && staffId && endAt > startAt
+      ? { contactId: contact?.id ?? null, staffMemberId: staffId, startAt, endAt, excludeId: appointment?.id ?? null }
+      : null,
     300,
   );
   const check = useQuery({
@@ -146,7 +176,7 @@ export function AppointmentForm({
                 endAt: endAt!,
                 note: note.trim() || null,
                 customerPackageId: packageId,
-                notifyCustomer: timeChanged && notify && hasMobile(appointment.contactPhone),
+                notifyCustomer: timeChanged && notify && (!sms || hasMobile(appointment.contactPhone)),
               },
             })
           : api.POST("/api/appointments", {
@@ -164,7 +194,8 @@ export function AppointmentForm({
     onSuccess: async (saved) => {
       await refresh();
       toast.success(appointment ? "Randevu güncellendi." : "Randevu verildi.");
-      if (appointment && timeChanged && notify && hasMobile(appointment.contactPhone)) toast.success("Müşteriye SMS ile bildirildi.");
+      if (sms && appointment && timeChanged && notify && hasMobile(appointment.contactPhone))
+        toast.success("Müşteriye SMS ile bildirildi.");
       for (const w of saved.warnings) toast.warning(w);
       onSaved?.(saved);
       onOpenChange(false);
@@ -193,7 +224,12 @@ export function AppointmentForm({
 
   const warnings = check.data;
   return (
-    <ResponsivePanel open={open} onOpenChange={onOpenChange} title={editing ? "Randevuyu taşı / düzenle" : "Yeni randevu"} wide>
+    <ResponsivePanel
+      open={open}
+      onOpenChange={onOpenChange}
+      title={editing ? "Randevuyu taşı / düzenle" : "Yeni randevu"}
+      wide
+    >
       <form onSubmit={submit} noValidate className="flex flex-col gap-4">
         {editing ? (
           <p className="text-sm text-black">
@@ -248,12 +284,21 @@ export function AppointmentForm({
             />
           </Field>
           <Field label="Bitiş" error={errors.endAt}>
-            <Input type="time" step={300} value={endTime} onChange={(e) => (setEndTime(e.target.value), setEndTouched(true))} />
+            <Input
+              type="time"
+              step={300}
+              value={endTime}
+              onChange={(e) => (setEndTime(e.target.value), setEndTouched(true))}
+            />
           </Field>
         </div>
         {usable.length > 0 && (
           <Field label="Paketten kullan" error={errors.customerPackageId}>
-            <select className={selectClass} value={packageId ?? ""} onChange={(e) => setPackageChoice(e.target.value || null)}>
+            <select
+              className={selectClass}
+              value={packageId ?? ""}
+              onChange={(e) => setPackageChoice(e.target.value || null)}
+            >
               <option value="">Paket kullanma</option>
               {usable.map((p) => (
                 <option key={p.id} value={p.id}>
@@ -267,10 +312,12 @@ export function AppointmentForm({
         <Field label="Not (isteğe bağlı)">
           <Textarea value={note} onChange={(e) => setNote(e.target.value)} maxLength={500} rows={2} />
         </Field>
-        {editing && timeChanged && hasMobile(appointment.contactPhone) && (
+        {editing && timeChanged && (sms ? hasMobile(appointment.contactPhone) : true) && (
           <label className="flex min-h-11 items-center gap-3 text-sm text-black">
             <Checkbox checked={notify} onCheckedChange={(v) => setNotify(v === true)} />
-            Müşteriye SMS ile bildir (yeni saat ve iptal linki)
+            {sms
+              ? "Müşteriye SMS ile bildir (yeni saat ve iptal linki)"
+              : "Müşteriye e-postayla bildir (e-postası kayıtlıysa)"}
           </label>
         )}
 

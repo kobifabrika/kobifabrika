@@ -14,8 +14,12 @@ type Options = {
   receiptWidth?: 58 | 80;
   /** Ek üyelikler (aktif işletme her zaman ilk sıradadır). */
   otherMemberships?: Me["memberships"];
-  /** KobiFabrika ekibi (kredi yükleme ekranı). */
+  /** KobiFabrika ekibi (süper admin). */
   platformAdmin?: boolean;
+  /** SMS sağlayıcısı açık mı (pilotta kapalı; varsayılan açık: eski SMS ekranlarının testleri). */
+  smsEnabled?: boolean;
+  /** Etkin paketin özellikleri (varsayılan: hepsi açık, pilot). */
+  features?: string[];
 };
 
 export function testMe({
@@ -27,9 +31,18 @@ export function testMe({
   receiptWidth = 80,
   otherMemberships = [],
   platformAdmin = false,
+  smsEnabled = true,
+  features = ["campaigns", "automations", "onlineBooking", "commissions", "surveys", "riskList"],
 }: Options = {}): Me {
   return {
-    user: { id: "u1", fullName: "Emir Kaya", email: "emir@test.com", emailConfirmed, phone: "+905321234567", isPlatformAdmin: platformAdmin },
+    user: {
+      id: "u1",
+      fullName: "Emir Kaya",
+      email: "emir@test.com",
+      emailConfirmed,
+      phone: "+905321234567",
+      isPlatformAdmin: platformAdmin,
+    },
     business: {
       id: "b1",
       name: businessName,
@@ -45,8 +58,22 @@ export function testMe({
       city: "İstanbul",
       district: "Kadıköy",
       receiptWidth,
+      plan: {
+        status: "Pilot",
+        code: "usta",
+        name: "Usta",
+        trialEndsAt: null,
+        isReadOnly: false,
+        features,
+        maxUsers: null,
+        maxContacts: null,
+        maxAppointmentsPerMonth: null,
+        requestedPlan: null,
+        requestedPeriod: null,
+      },
     },
     role,
+    platform: { smsEnabled },
     memberships: [{ businessId: "b1", businessName, role }, ...otherMemberships],
   };
 }

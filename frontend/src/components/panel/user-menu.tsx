@@ -1,6 +1,6 @@
 "use client";
 
-import { Building2, Check, Coins, LogOut, UserRound } from "lucide-react";
+import { Building2, Check, LogOut, ShieldCheck, UserRound } from "lucide-react";
 import Link from "next/link";
 
 import { useSwitchBusiness } from "@/components/panel/business-switcher";
@@ -53,8 +53,8 @@ export function UserMenu() {
         </DropdownMenuItem>
         {me.user.isPlatformAdmin && (
           <DropdownMenuItem asChild>
-            <Link href="/panel/platform/kredi">
-              <Coins aria-hidden /> Kredi yükle (platform)
+            <Link href="/platform">
+              <ShieldCheck aria-hidden /> Süper admin
             </Link>
           </DropdownMenuItem>
         )}
