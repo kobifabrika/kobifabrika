@@ -19,7 +19,7 @@ namespace KobiFabrika.Api.Features.Invitations;
 public sealed record InvitationPreviewResponse(
     string BusinessName, BusinessRole Role, string InvitedBy, string Email, bool HasAccount, InvitationStatus Status);
 
-public sealed record AcceptInvitationRegisterRequest(string FullName, string Phone, string Password, bool KvkkAccepted);
+public sealed record AcceptInvitationRegisterRequest(string FullName, string Phone, string Password, bool TermsAccepted);
 
 /// <summary>
 /// /davet/[token] sayfasının uçları. Kiracı token'dan çözülür (docs/02-mimari.md: herkese açık uçlar kiracıyı
@@ -177,7 +177,7 @@ public static class InvitationEndpoints
             return (ValidationProblem)Validation.IdentityProblem(result);
         }
 
-        db.UserConsents.Add(AuthEndpoints.KvkkConsent(user.Id, clock, http));
+        db.UserConsents.AddRange(AuthEndpoints.Consents(user.Id, clock, http, owner: false));
         await db.SaveChangesAsync(ct);
 
         await acceptor.AcceptAsync(invitation.Id, invitation.BusinessId, user, ct);
@@ -242,6 +242,6 @@ public sealed class AcceptInvitationRegisterRequestValidator : AbstractValidator
         RuleFor(x => x.FullName).ValidFullName();
         RuleFor(x => x.Phone).ValidPhone();
         RuleFor(x => x.Password).ValidPassword();
-        RuleFor(x => x.KvkkAccepted).Equal(true).WithMessage("Devam etmek için KVKK aydınlatma metnini onaylayın.");
+        RuleFor(x => x.TermsAccepted).Equal(true).WithMessage("Devam etmek için Kullanım koşullarını kabul edin.");
     }
 }

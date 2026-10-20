@@ -19,9 +19,15 @@ using Microsoft.Extensions.Options;
 
 namespace KobiFabrika.Api.Features.Auth;
 
-/// <summary>Plan/Period: fiyat sayfasından gelen paket tercihi (?paket=kalfa&donem=yillik); geçersizse yok sayılır.</summary>
+/// <summary>
+/// TermsAccepted: "Kullanım koşullarını ve Veri işleme sözleşmesini kabul ediyorum" (zorunlu); KVKK aydınlatma metni linkle
+/// bilgilendirmedir. Plan/Period: fiyat sayfasından gelen paket tercihi (?paket=kalfa&amp;donem=yillik); geçersizse yok sayılır.
+/// </summary>
 public sealed record RegisterRequest(
-    string FullName, string Email, string Phone, string Password, bool KvkkAccepted, string? Plan = null, string? Period = null);
+    string FullName, string Email, string Phone, string Password, bool TermsAccepted, string? Plan = null, string? Period = null);
+
+/// <summary>Bir sonraki girişte yeniden onay (Sahip; sürümü değişen Kullanım koşulları ve Veri işleme sözleşmesi).</summary>
+public sealed record ConsentRequest(bool TermsAccepted);
 public sealed record LoginRequest(string Email, string Password, bool RememberMe);
 public sealed record ConfirmEmailRequest(Guid UserId, string Token);
 public sealed record ForgotPasswordRequest(string Email);
@@ -30,10 +36,10 @@ public sealed record UpdateProfileRequest(string FullName, string Phone);
 public sealed record ChangePasswordRequest(string CurrentPassword, string NewPassword);
 public sealed record SwitchBusinessRequest(Guid BusinessId);
 
-/// <summary>KVKK aydınlatma metninin sürümü; metin değişince artırılır (frontend src/content/kvkk-aydinlatma.ts).</summary>
+/// <summary>KVKK aydınlatma metninin sürümü; metin değişince artırılır (frontend src/content/legal.ts → kvkk.version).</summary>
 public static class KvkkNotice
 {
-    public const string Version = "2026-10";
+    public const string Version = "2026-10-20";
 }
 
 public static class AuthEndpoints
@@ -60,6 +66,8 @@ public static class AuthEndpoints
             .Validate<ForgotPasswordRequest>().WithSummary("Şifre sıfırlama e-postası (hesap olsun olmasın 204)");
         group.MapPost("/reset-password", ResetPassword).AllowAnonymous().RequireRateLimiting(AuthRateLimit)
             .Validate<ResetPasswordRequest>().WithSummary("Yeni şifre belirle; diğer oturumlar düşer");
+        group.MapPost("/consents", AcceptConsents).RequireAuthorization().Validate<ConsentRequest>()
+            .WithSummary("Güncellenen Kullanım koşulları ve Veri işleme sözleşmesini onayla");
         group.MapPut("/profile", UpdateProfile).RequireAuthorization().Validate<UpdateProfileRequest>().WithSummary("Ad ve telefonu güncelle");
         group.MapPost("/change-password", ChangePassword).RequireAuthorization().Validate<ChangePasswordRequest>().WithSummary("Şifre değiştir");
 
@@ -94,7 +102,7 @@ public static class AuthEndpoints
             return (ValidationProblem)Validation.IdentityProblem(result);
         }
 
-        db.UserConsents.Add(KvkkConsent(user.Id, clock, http));
+        db.UserConsents.AddRange(Consents(user.Id, clock, http, owner: true));
         await db.SaveChangesAsync(ct);
 
         await emails.SendConfirmationAsync(user, ct);
@@ -102,14 +110,43 @@ public static class AuthEndpoints
         return TypedResults.Ok(await session.BuildMeAsync(user, null, ct));
     }
 
-    internal static UserConsent KvkkConsent(Guid userId, TimeProvider clock, HttpContext http) => new()
+    /// <summary>
+    /// Kayıtta yazılan onaylar: KVKK bilgilendirmesi ve Kullanım koşulları; işletme kuracak kullanıcıda (owner) Veri işleme
+    /// sözleşmesi de. Davetle gelen çalışan veri işleme sözleşmesinin tarafı değildir.
+    /// </summary>
+    internal static IEnumerable<UserConsent> Consents(Guid userId, TimeProvider clock, HttpContext http, bool owner)
     {
-        UserId = userId,
-        Kind = UserConsentKind.KvkkPrivacyNotice,
-        Version = KvkkNotice.Version,
-        AcceptedAt = clock.GetUtcNow().UtcDateTime,
-        IpAddress = http.Connection.RemoteIpAddress?.ToString(),
-    };
+        var now = clock.GetUtcNow().UtcDateTime;
+        var ip = http.Connection.RemoteIpAddress?.ToString();
+        UserConsent Make(UserConsentKind kind, string version) =>
+            new() { UserId = userId, Kind = kind, Version = version, AcceptedAt = now, IpAddress = ip };
+
+        yield return Make(UserConsentKind.KvkkPrivacyNotice, KvkkNotice.Version);
+        yield return Make(UserConsentKind.TermsOfUse, LegalVersions.TermsOfUse);
+        if (owner)
+        {
+            yield return Make(UserConsentKind.DataProcessingAgreement, LegalVersions.DataProcessingAgreement);
+        }
+    }
+
+    /// <summary>Sahip için güncel sürümlerin eksik olanları yazılır (tekrar çağrılırsa yeni satır açmaz).</summary>
+    private static async Task<Ok<MeResponse>> AcceptConsents(
+        ConsentRequest request, UserManager<AppUser> users, SessionService session, AppDbContext db, TimeProvider clock, HttpContext http,
+        CancellationToken ct)
+    {
+        var user = await users.GetUserAsync(http.User) ?? throw new UnauthorizedAccessException();
+        var have = await db.UserConsents.Where(c => c.UserId == user.Id).Select(c => new { c.Kind, c.Version }).ToListAsync(ct);
+        foreach (var consent in Consents(user.Id, clock, http, owner: true))
+        {
+            if (consent.Kind != UserConsentKind.KvkkPrivacyNotice && !have.Any(h => h.Kind == consent.Kind && h.Version == consent.Version))
+            {
+                db.UserConsents.Add(consent);
+            }
+        }
+
+        await db.SaveChangesAsync(ct);
+        return TypedResults.Ok(await session.BuildMeAsync(user, user.LastBusinessId, ct));
+    }
 
     private static async Task<Results<Ok<MeResponse>, ProblemHttpResult>> Login(
         LoginRequest request,
@@ -313,7 +350,9 @@ public static class AuthEndpoints
 
         var result = await users.UpdateAsync(user);
         return result.Succeeded
-            ? TypedResults.Ok(new MeUser(user.Id, user.FullName, user.Email!, user.EmailConfirmed, user.PhoneNumber, await admins.IsAdminAsync(user.Id)))
+            // ConsentRequired false: onay penceresi paneli kapatır; onaylanmadan profil ekranına gelinmez.
+            ? TypedResults.Ok(new MeUser(user.Id, user.FullName, user.Email!, user.EmailConfirmed, user.PhoneNumber, await admins.IsAdminAsync(user.Id),
+                ConsentRequired: false))
             : (ValidationProblem)Validation.IdentityProblem(result);
     }
 
@@ -389,8 +428,14 @@ public sealed class RegisterRequestValidator : AbstractValidator<RegisterRequest
         RuleFor(x => x.Email).ValidEmail();
         RuleFor(x => x.Phone).ValidPhone();
         RuleFor(x => x.Password).ValidPassword();
-        RuleFor(x => x.KvkkAccepted).Equal(true).WithMessage("Devam etmek için KVKK aydınlatma metnini onaylayın.");
+        RuleFor(x => x.TermsAccepted).Equal(true).WithMessage("Devam etmek için Kullanım koşullarını ve Veri işleme sözleşmesini kabul edin.");
     }
+}
+
+public sealed class ConsentRequestValidator : AbstractValidator<ConsentRequest>
+{
+    public ConsentRequestValidator() =>
+        RuleFor(x => x.TermsAccepted).Equal(true).WithMessage("Devam etmek için Kullanım koşullarını ve Veri işleme sözleşmesini kabul edin.");
 }
 
 public sealed class LoginRequestValidator : AbstractValidator<LoginRequest>

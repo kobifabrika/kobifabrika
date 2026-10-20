@@ -1,6 +1,6 @@
 import { createContact, createProduct, createQuote, createSale, line } from "./support/api";
 import { book, createService, createStaff, pastSlot } from "./support/appointments";
-import { test } from "./support/test";
+import { expect, test } from "./support/test";
 
 /**
  * Ekran turu: her ekran Sahip olarak dolu veriyle açılır; otomatik kontroller (taşma, erişilebilirlik, konsol, HTTP) ve
@@ -9,6 +9,13 @@ import { test } from "./support/test";
 test("tanıtım ve giriş ekranları", async ({ page, visit }) => {
   await visit(page, "/", "Tanıtım sitesi");
   await visit(page, "/kvkk", "KVKK aydınlatma");
+  await expect(page.getByText(/Son güncelleme: .* · Sürüm \d{4}-\d{2}-\d{2}/)).toBeVisible();
+  await visit(page, "/gizlilik", "Gizlilik politikası");
+  await expect(page.getByText(/Cloudflare Web Analytics/)).toBeVisible();
+  await visit(page, "/cerez-politikasi", "Çerez politikası");
+  await visit(page, "/kullanim-kosullari", "Kullanım koşulları");
+  await visit(page, "/veri-isleme-sozlesmesi", "Veri işleme sözleşmesi");
+  await visit(page, "/kvkk/musteri-aydinlatma-sablonu", "Müşteri aydınlatma şablonu");
   await visit(page, "/giris", "Giriş");
   await visit(page, "/kayit", "Kayıt");
   await visit(page, "/sifremi-unuttum", "Şifremi unuttum");

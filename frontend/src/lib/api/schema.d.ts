@@ -1472,6 +1472,55 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/auth/consents": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Güncellenen Kullanım koşulları ve Veri işleme sözleşmesini onayla */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["ConsentRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["MeResponse"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/auth/profile": {
         parameters: {
             query?: never;
@@ -12838,7 +12887,7 @@ export interface components {
             fullName: string;
             phone: string;
             password: string;
-            kvkkAccepted: boolean;
+            termsAccepted: boolean;
         };
         AccountBalance: {
             /** Format: uuid */
@@ -13748,6 +13797,9 @@ export interface components {
         };
         /** @enum {unknown} */
         ConsentChannel: "Sms" | "Email" | "Call";
+        ConsentRequest: {
+            termsAccepted: boolean;
+        };
         /** @enum {unknown} */
         ConsentSource: "Panel" | "Import" | "OnlineBooking" | "OptOutLink" | "OptOutSms" | "Iys" | "Anonymization" | null;
         ConsentsRequest: {
@@ -14702,6 +14754,7 @@ export interface components {
             emailConfirmed: boolean;
             phone: null | string;
             isPlatformAdmin: boolean;
+            consentRequired: boolean;
         };
         ModulesDto: {
             appointments: boolean;
@@ -15375,7 +15428,7 @@ export interface components {
             email: string;
             phone: string;
             password: string;
-            kvkkAccepted: boolean;
+            termsAccepted: boolean;
             plan?: null | string;
             period?: null | string;
         };

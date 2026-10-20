@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Wordmark } from "@/components/brand/wordmark";
 import { SiteHeader } from "@/components/site/site-header";
 import { SocialIcon } from "@/components/site/social-icons";
+import { legalLinks } from "@/content/legal";
 import { siteContact, siteNav, siteSlogan, siteSocial } from "@/content/site";
 
 const footerLink =
@@ -17,7 +18,7 @@ export default function SiteLayout({ children }: LayoutProps<"/">) {
       <main className="flex-1">{children}</main>
 
       <footer className="border-t border-neutral-200">
-        <div className="mx-auto grid max-w-6xl gap-8 px-4 py-12 sm:grid-cols-2 sm:px-6 lg:grid-cols-4">
+        <div className="mx-auto grid max-w-6xl gap-8 px-4 py-12 sm:grid-cols-2 sm:px-6 lg:grid-cols-5">
           <div className="lg:col-span-2">
             <Wordmark className="text-2xl" />
             <p className="mt-3 max-w-sm text-sm text-neutral-600">
@@ -49,11 +50,18 @@ export default function SiteLayout({ children }: LayoutProps<"/">) {
                   </Link>
                 </li>
               ))}
-              <li>
-                <Link href="/kvkk" className={footerLink}>
-                  KVKK aydınlatma metni
-                </Link>
-              </li>
+            </ul>
+          </nav>
+          <nav aria-label="Hukuki metinler">
+            <p className="text-sm font-semibold">Hukuki</p>
+            <ul className="mt-2 flex flex-col">
+              {legalLinks.map((item) => (
+                <li key={item.href}>
+                  <Link href={item.href} className={footerLink}>
+                    {item.label}
+                  </Link>
+                </li>
+              ))}
             </ul>
           </nav>
           <div>
@@ -70,7 +78,12 @@ export default function SiteLayout({ children }: LayoutProps<"/">) {
         </div>
         <div className="border-t border-neutral-200">
           <p className="mx-auto max-w-6xl px-4 py-6 text-xs text-neutral-600 sm:px-6">
-            © {siteContact.company} Tüm hakları saklıdır.
+            © {siteContact.company}. Tüm hakları saklıdır. Bu sitede yalnızca oturum için zorunlu çerez
+            kullanılır;{" "}
+            <Link href="/cerez-politikasi" className="underline underline-offset-2 hover:text-black">
+              çerez politikası
+            </Link>
+            .
           </p>
         </div>
       </footer>

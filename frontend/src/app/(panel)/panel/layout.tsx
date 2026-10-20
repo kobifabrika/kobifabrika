@@ -1,6 +1,7 @@
 import { Suspense } from "react";
 
 import { BottomNav } from "@/components/panel/bottom-nav";
+import { ConsentDialog } from "@/components/panel/consent-dialog";
 import { EmailBanner } from "@/components/panel/email-banner";
 import { PanelGate } from "@/components/panel/panel-gate";
 import { Sidebar } from "@/components/panel/sidebar";
@@ -36,6 +37,7 @@ export default function PanelLayout({ children }: LayoutProps<"/panel">) {
           <div className="print:hidden">
             <BottomNav />
           </div>
+          <ConsentDialog />
         </div>
       </PanelGate>
     </Suspense>

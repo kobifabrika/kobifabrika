@@ -89,7 +89,7 @@ export async function register(options: { email?: string; fullName?: string } = 
   const fullName = options.fullName ?? "Deneme Sahip";
   await ok(
     await ctx.post("/api/auth/register", {
-      data: { fullName, email, phone: uniquePhone(), password: PASSWORD, kvkkAccepted: true },
+      data: { fullName, email, phone: uniquePhone(), password: PASSWORD, termsAccepted: true },
     }),
     "Kayıt",
   );
@@ -133,7 +133,7 @@ export async function addMember(owner: ApiUser, role: Exclude<Role, "Owner">, fu
   const name = fullName ?? `Deneme ${role}`;
   await ok(
     await ctx.post(`/api/invitations/${token}/register`, {
-      data: { fullName: name, phone: uniquePhone(), password: PASSWORD, kvkkAccepted: true },
+      data: { fullName: name, phone: uniquePhone(), password: PASSWORD, termsAccepted: true },
     }),
     "Davetle kayıt",
   );
@@ -248,7 +248,7 @@ export async function platformAdmin(): Promise<ApiUser> {
   const login = () => ctx.post("/api/auth/login", { data: { email: PLATFORM_EMAIL, password: PASSWORD, rememberMe: false } });
   if (!(await login()).ok()) {
     const reg = await ctx.post("/api/auth/register", {
-      data: { fullName: user.fullName, email: PLATFORM_EMAIL, phone: uniquePhone(), password: PASSWORD, kvkkAccepted: true },
+      data: { fullName: user.fullName, email: PLATFORM_EMAIL, phone: uniquePhone(), password: PASSWORD, termsAccepted: true },
     });
     if (reg.ok()) {
       await user.post("/api/setup/business", { name: "KobiFabrika Destek", sector: "Other", phone: "0212 555 44 33", city: "İstanbul", district: "Kadıköy" });

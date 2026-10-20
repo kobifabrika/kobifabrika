@@ -10,7 +10,7 @@ import { z } from "zod";
 
 import { PhoneInput } from "@/components/auth/auth-helpers";
 import { Field, FormMessage } from "@/components/forms/field";
-import { KvkkConsent } from "@/components/forms/kvkk-consent";
+import { TermsConsent } from "@/components/forms/terms-consent";
 import { PasswordHints, PasswordInput } from "@/components/forms/password-input";
 import { meQueryKey, useMeQuery } from "@/components/providers/session-provider";
 import { Button } from "@/components/ui/button";
@@ -195,7 +195,7 @@ const registerSchema = z.object({
   fullName: fullNameSchema,
   phone: phoneSchema,
   password: passwordSchema,
-  kvkkAccepted: z.boolean().refine((v) => v, "Devam etmek için KVKK aydınlatma metnini onaylayın."),
+  termsAccepted: z.boolean().refine((v) => v, "Devam etmek için Kullanım koşullarını kabul edin."),
 });
 
 type RegisterValues = z.infer<typeof registerSchema>;
@@ -210,7 +210,7 @@ function RegisterAndAccept({ token, email, onJoined }: { token: string; email: s
     formState: { errors, isSubmitting },
   } = useForm<RegisterValues>({
     resolver: zodResolver(registerSchema),
-    defaultValues: { fullName: "", phone: "", password: "", kvkkAccepted: false },
+    defaultValues: { fullName: "", phone: "", password: "", termsAccepted: false },
   });
   const password = useWatch({ control, name: "password" });
 
@@ -242,7 +242,7 @@ function RegisterAndAccept({ token, email, onJoined }: { token: string; email: s
       <Field label="Şifre" error={errors.password?.message} hint={<PasswordHints value={password} />}>
         <PasswordInput autoComplete="new-password" {...register("password")} />
       </Field>
-      <KvkkConsent error={errors.kvkkAccepted?.message} {...register("kvkkAccepted")} />
+      <TermsConsent dpa={false} error={errors.termsAccepted?.message} {...register("termsAccepted")} />
       {error && <FormMessage>{error}</FormMessage>}
       <Button type="submit" size="lg" className="w-full" disabled={isSubmitting}>
         {isSubmitting ? "Hesap oluşturuluyor…" : "Hesap oluştur ve katıl"}

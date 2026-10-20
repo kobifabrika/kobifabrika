@@ -42,6 +42,7 @@ export function testMe({
       emailConfirmed,
       phone: "+905321234567",
       isPlatformAdmin: platformAdmin,
+      consentRequired: false,
     },
     business: {
       id: "b1",

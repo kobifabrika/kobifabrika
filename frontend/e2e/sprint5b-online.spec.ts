@@ -79,7 +79,7 @@ test("online randevu: kodla randevu, onay, dolu saat ve iptal linki @sms", async
   const chosen = (await firstTime.textContent())!.trim();
   await firstTime.click();
   await expect(page.getByRole("heading", { name: "Bilgileriniz" })).toBeVisible();
-  await expect(page.getByRole("link", { name: "KVKK aydınlatma metni" })).toHaveAttribute("href", "/kvkk");
+  await expect(page.getByRole("link", { name: "KVKK aydınlatma metni" })).toHaveAttribute("href", `/r/${slug}/aydinlatma`);
   const phoneA = uniquePhone();
   await fillPerson(page, phoneA);
   await check(page, "Online randevu · bilgiler");

@@ -14,7 +14,7 @@ test("kayıt, doğrulama, kurulum sihirbazı, çıkış/giriş ve şifre sıfır
   await page.getByLabel("E-posta").fill(email);
   await page.getByLabel("Cep telefonu").fill("0532 123 45 67");
   await page.getByLabel("Şifre", { exact: true }).fill(PASSWORD);
-  await page.locator("#kvkk").check();
+  await page.locator("#terms").check();
   await page.getByRole("button", { name: "Hesap oluştur" }).click();
   await expect(page).toHaveURL(/\/kurulum/);
   await expect(page.getByRole("heading", { name: "İşletmeni tanıyalım" })).toBeVisible();

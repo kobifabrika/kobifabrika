@@ -78,7 +78,7 @@ public sealed class PlanTests(SqlServerFixture db) : MarketingTestBase(db)
         var email = UniqueEmail("paket");
         await EnsureSuccessAsync(await client.PostAsJsonAsync("/api/auth/register", new
         {
-            fullName = "Deneme Sahibi", email, phone = "0532 123 45 67", password = DefaultPassword, kvkkAccepted = true,
+            fullName = "Deneme Sahibi", email, phone = "0532 123 45 67", password = DefaultPassword, termsAccepted = true,
             plan = "kalfa", period = "yearly",
         }, Ct));
         var owner = new TestUser(client, email, DefaultPassword, Guid.Empty);
@@ -102,7 +102,7 @@ public sealed class PlanTests(SqlServerFixture db) : MarketingTestBase(db)
         var other = NewClient();
         await EnsureSuccessAsync(await other.PostAsJsonAsync("/api/auth/register", new
         {
-            fullName = "Diğer", email = UniqueEmail(), phone = "0532 123 45 67", password = DefaultPassword, kvkkAccepted = true, plan = "altin",
+            fullName = "Diğer", email = UniqueEmail(), phone = "0532 123 45 67", password = DefaultPassword, termsAccepted = true, plan = "altin",
         }, Ct));
     }
 

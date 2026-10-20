@@ -7,7 +7,7 @@ import { z } from "zod";
 
 import { PhoneInput, useAfterAuth } from "@/components/auth/auth-helpers";
 import { Field, FormMessage } from "@/components/forms/field";
-import { KvkkConsent } from "@/components/forms/kvkk-consent";
+import { TermsConsent } from "@/components/forms/terms-consent";
 import { PasswordHints, PasswordInput } from "@/components/forms/password-input";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -19,7 +19,7 @@ const schema = z.object({
   email: emailSchema,
   phone: phoneSchema,
   password: passwordSchema,
-  kvkkAccepted: z.boolean().refine((v) => v, "Devam etmek için KVKK aydınlatma metnini onaylayın."),
+  termsAccepted: z.boolean().refine((v) => v, "Devam etmek için Kullanım koşullarını ve Veri işleme sözleşmesini kabul edin."),
 });
 
 type Values = z.infer<typeof schema>;
@@ -36,7 +36,7 @@ export function RegisterForm() {
     formState: { errors, isSubmitting },
   } = useForm<Values>({
     resolver: zodResolver(schema),
-    defaultValues: { fullName: "", email: "", phone: "", password: "", kvkkAccepted: false },
+    defaultValues: { fullName: "", email: "", phone: "", password: "", termsAccepted: false },
   });
   const password = useWatch({ control, name: "password" });
 
@@ -71,7 +71,7 @@ export function RegisterForm() {
         <PasswordInput autoComplete="new-password" placeholder="En az 8 karakter" {...register("password")} />
       </Field>
 
-      <KvkkConsent error={errors.kvkkAccepted?.message} {...register("kvkkAccepted")} />
+      <TermsConsent error={errors.termsAccepted?.message} {...register("termsAccepted")} />
 
       {error && <FormMessage>{error}</FormMessage>}
 

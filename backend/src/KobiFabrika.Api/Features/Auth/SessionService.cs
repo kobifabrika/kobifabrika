@@ -1,6 +1,7 @@
 using KobiFabrika.Api.Common.Authorization;
 using KobiFabrika.Domain.Billing;
 using KobiFabrika.Domain.Businesses;
+using KobiFabrika.Domain.Users;
 using KobiFabrika.Infrastructure.Messaging;
 using Microsoft.Extensions.Options;
 using KobiFabrika.Infrastructure.Identity;
@@ -40,8 +41,12 @@ public sealed record MePlan(
             .ToList();
 }
 
-/// <summary>IsPlatformAdmin: KobiFabrika ekibi (menüde "Kredi yükle (platform)" ekranı).</summary>
-public sealed record MeUser(Guid Id, string FullName, string Email, bool EmailConfirmed, string? Phone, bool IsPlatformAdmin);
+/// <summary>
+/// IsPlatformAdmin: KobiFabrika ekibi (süper admin, /platform). ConsentRequired: işletme Sahibi güncel Kullanım koşulları ve Veri
+/// işleme sözleşmesini henüz onaylamadı (panel bir kez onay ister).
+/// </summary>
+public sealed record MeUser(
+    Guid Id, string FullName, string Email, bool EmailConfirmed, string? Phone, bool IsPlatformAdmin, bool ConsentRequired);
 
 /// <summary>
 /// Phone (E.164), Address, City, District: fiş ve belgelerin başlığı için; ReceiptWidth fiş genişliği (mm);
@@ -145,12 +150,24 @@ public sealed class SessionService(
                 b.Phone, b.Address, b.City, b.District, b.ReceiptWidth, b.DefaultDueDays, plan);
         }
 
+        var consentRequired = current?.Role == BusinessRole.Owner && await ConsentMissingAsync(user.Id, ct);
         return new MeResponse(
-            new MeUser(user.Id, user.FullName, user.Email!, user.EmailConfirmed, user.PhoneNumber, await admins.IsAdminAsync(user.Id)),
+            new MeUser(user.Id, user.FullName, user.Email!, user.EmailConfirmed, user.PhoneNumber, await admins.IsAdminAsync(user.Id),
+                consentRequired),
             business,
             current?.Role,
             memberships,
             new MePlatform(messaging.CurrentValue.SmsEnabled));
+    }
+
+    private async Task<bool> ConsentMissingAsync(Guid userId, CancellationToken ct)
+    {
+        var accepted = await db.UserConsents.AsNoTracking()
+            .Where(c => c.UserId == userId
+                && ((c.Kind == UserConsentKind.TermsOfUse && c.Version == LegalVersions.TermsOfUse)
+                    || (c.Kind == UserConsentKind.DataProcessingAgreement && c.Version == LegalVersions.DataProcessingAgreement)))
+            .Select(c => c.Kind).Distinct().CountAsync(ct);
+        return accepted < 2;
     }
 
     public static Guid? ActiveBusinessOf(CurrentMember member) => member.IsMember ? member.BusinessId : null;

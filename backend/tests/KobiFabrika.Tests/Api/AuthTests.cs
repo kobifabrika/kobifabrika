@@ -1,6 +1,8 @@
 using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
+using KobiFabrika.Api.Features.Auth;
+using KobiFabrika.Domain.Users;
 using KobiFabrika.Infrastructure.Persistence;
 using KobiFabrika.Tests.Infrastructure;
 using Microsoft.AspNetCore.WebUtilities;
@@ -26,14 +28,48 @@ public sealed class AuthTests(SqlServerFixture db) : ApiTestBase(db)
         email.Subject.ShouldBe("E-posta adresini doğrula");
         email.TextBody.ShouldContain("http://localhost:3000/e-posta-dogrula?u=");
 
+        // Kayıtta: KVKK bilgilendirmesi, Kullanım koşulları ve Veri işleme sözleşmesi (sürümleriyle); yeniden onay istenmez.
         using var scope = Factory.Services.CreateScope();
-        var consent = await scope.ServiceProvider.GetRequiredService<AppDbContext>().UserConsents
-            .SingleAsync(c => c.UserId == user.UserId, Ct);
-        consent.Version.ShouldBe("2026-10");
+        var consents = await scope.ServiceProvider.GetRequiredService<AppDbContext>().UserConsents
+            .Where(c => c.UserId == user.UserId).ToListAsync(Ct);
+        consents.Select(c => (c.Kind, c.Version)).ShouldBe([
+            (UserConsentKind.KvkkPrivacyNotice, KvkkNotice.Version),
+            (UserConsentKind.TermsOfUse, LegalVersions.TermsOfUse),
+            (UserConsentKind.DataProcessingAgreement, LegalVersions.DataProcessingAgreement),
+        ], ignoreOrder: true);
+        me.GetProperty("user").GetProperty("consentRequired").GetBoolean().ShouldBeFalse();
     }
 
     [Fact]
-    public async Task Register_without_kvkk_or_with_weak_password_returns_turkish_errors()
+    public async Task Owner_without_current_terms_is_asked_once_and_consent_is_recorded()
+    {
+        var owner = await CreateOwnerAsync();
+        using (var scope = Factory.Services.CreateScope())
+        {
+            // Eski sürümle kaydolmuş Sahip: güncel sürümlü onayları yok.
+            var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            await db.UserConsents.Where(c => c.UserId == owner.UserId && c.Kind != UserConsentKind.KvkkPrivacyNotice).ExecuteDeleteAsync(Ct);
+        }
+
+        var me = await owner.Client.GetFromJsonAsync<JsonElement>("/api/auth/me", Ct);
+        me.GetProperty("user").GetProperty("consentRequired").GetBoolean().ShouldBeTrue();
+
+        var refused = await owner.Client.PostAsJsonAsync("/api/auth/consents", new { termsAccepted = false }, Ct);
+        (await ProblemAsync(refused, HttpStatusCode.BadRequest)).GetProperty("errors").GetProperty("termsAccepted")[0].GetString()
+            .ShouldBe("Devam etmek için Kullanım koşullarını ve Veri işleme sözleşmesini kabul edin.");
+
+        var accepted = await owner.Client.PostAsJsonAsync("/api/auth/consents", new { termsAccepted = true }, Ct);
+        accepted.StatusCode.ShouldBe(HttpStatusCode.OK);
+        (await accepted.Content.ReadFromJsonAsync<JsonElement>(Ct)).GetProperty("user").GetProperty("consentRequired").GetBoolean().ShouldBeFalse();
+        (await owner.Client.PostAsJsonAsync("/api/auth/consents", new { termsAccepted = true }, Ct)).StatusCode.ShouldBe(HttpStatusCode.OK);
+
+        using var check = Factory.Services.CreateScope();
+        (await check.ServiceProvider.GetRequiredService<AppDbContext>().UserConsents
+            .CountAsync(c => c.UserId == owner.UserId && c.Kind != UserConsentKind.KvkkPrivacyNotice, Ct)).ShouldBe(2);
+    }
+
+    [Fact]
+    public async Task Register_without_terms_or_with_weak_password_returns_turkish_errors()
     {
         var response = await NewClient().PostAsJsonAsync("/api/auth/register", new
         {
@@ -41,12 +77,12 @@ public sealed class AuthTests(SqlServerFixture db) : ApiTestBase(db)
             email = "gecersiz",
             phone = "123",
             password = "sadeceharf",
-            kvkkAccepted = false,
+            termsAccepted = false,
         }, Ct);
 
         var problem = await ProblemAsync(response, HttpStatusCode.BadRequest);
         var errors = problem.GetProperty("errors");
-        errors.GetProperty("kvkkAccepted")[0].GetString().ShouldBe("Devam etmek için KVKK aydınlatma metnini onaylayın.");
+        errors.GetProperty("termsAccepted")[0].GetString().ShouldBe("Devam etmek için Kullanım koşullarını ve Veri işleme sözleşmesini kabul edin.");
         errors.GetProperty("password")[0].GetString().ShouldBe("Şifre en az bir rakam içermeli.");
         errors.GetProperty("email")[0].GetString().ShouldBe("Geçerli bir e-posta adresi girin.");
         errors.GetProperty("phone")[0].GetString().ShouldStartWith("Geçerli bir telefon numarası girin");
@@ -64,7 +100,7 @@ public sealed class AuthTests(SqlServerFixture db) : ApiTestBase(db)
             email = user.Email.ToUpperInvariant(),
             phone = "05321234567",
             password = DefaultPassword,
-            kvkkAccepted = true,
+            termsAccepted = true,
         }, Ct);
 
         var problem = await ProblemAsync(response, HttpStatusCode.BadRequest);

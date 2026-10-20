@@ -32,7 +32,7 @@ test("davet, personel kaydı, rol kısıtları ve ekipten çıkarma", async ({
   await staff.getByLabel("Ad soyad").fill("Zeynep Personel");
   await staff.getByLabel("Cep telefonu").fill("0533 222 33 44");
   await staff.getByLabel("Şifre", { exact: true }).fill(PASSWORD);
-  await staff.locator("#kvkk").check();
+  await staff.locator("#terms").check();
   await staff.getByRole("button", { name: "Hesap oluştur ve katıl" }).click();
   await expect(staff).toHaveURL(/\/panel$/);
   await check(staff, "Personel · Bugün");

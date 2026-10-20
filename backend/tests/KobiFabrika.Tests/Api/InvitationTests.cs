@@ -15,7 +15,7 @@ public sealed class InvitationTests(SqlServerFixture db) : ApiTestBase(db)
     private Task<HttpResponseMessage> InviteAsync(TestUser owner, string email, string role = "Staff") =>
         owner.Client.PostAsJsonAsync("/api/team/invitations", new { email, role }, Ct);
 
-    private object NewAccount => new { fullName = "Davetli Kişi", phone = "0532 111 22 33", password = DefaultPassword, kvkkAccepted = true };
+    private object NewAccount => new { fullName = "Davetli Kişi", phone = "0532 111 22 33", password = DefaultPassword, termsAccepted = true };
 
     [Fact]
     public async Task Unverified_owner_cannot_invite()

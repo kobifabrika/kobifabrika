@@ -612,7 +612,7 @@ function PersonStep({
       </Field>
       <p className="text-sm text-neutral-700">
         Kişisel verileriniz randevunuz için işlenir:{" "}
-        <a href="/kvkk" target="_blank" rel="noopener" className="font-semibold text-black underline">
+        <a href={`/r/${slug}/aydinlatma`} target="_blank" rel="noopener" className="font-semibold text-black underline">
           KVKK aydınlatma metni
         </a>
         .
@@ -990,7 +990,7 @@ function RequestStep({
       </div>
       <p className="text-sm text-neutral-700">
         Kişisel verileriniz randevunuz için işlenir:{" "}
-        <a href="/kvkk" target="_blank" rel="noopener" className="font-semibold text-black underline">
+        <a href={`/r/${slug}/aydinlatma`} target="_blank" rel="noopener" className="font-semibold text-black underline">
           KVKK aydınlatma metni
         </a>
         .

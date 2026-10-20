@@ -50,7 +50,7 @@ public abstract class ApiTestBase(SqlServerFixture db) : IAsyncLifetime
             email,
             phone = "0532 123 45 67",
             password = DefaultPassword,
-            kvkkAccepted = true,
+            termsAccepted = true,
         }, Ct);
         await EnsureSuccessAsync(response);
         var me = await response.Content.ReadFromJsonAsync<JsonElement>(Json, Ct);
@@ -102,7 +102,7 @@ public abstract class ApiTestBase(SqlServerFixture db) : IAsyncLifetime
             fullName = $"{role} Kişi",
             phone = "0532 111 22 33",
             password = DefaultPassword,
-            kvkkAccepted = true,
+            termsAccepted = true,
         }, Ct);
         await EnsureSuccessAsync(response);
         var me = await response.Content.ReadFromJsonAsync<JsonElement>(Json, Ct);

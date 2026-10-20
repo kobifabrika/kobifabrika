@@ -1,5 +1,6 @@
 // Basit dosya kilidi: iki E2E sunucusu (SMS kapalı/açık çift) aynı anda başlarken aynı projeyi aynı anda derlemesin.
-// Kilit dosyası özel oluşturulur (wx); 15 dakikadan eski kilit (çöken önceki koşu) silinir.
+// Kilit dosyası özel oluşturulur (wx); süreç hangi yolla çıkarsa çıksın (process.exit dahil) silinir; yine de kalmışsa
+// 15 dakikadan eskisi (çöken önceki koşu) silinir.
 import { mkdirSync, openSync, closeSync, rmSync, statSync } from "node:fs";
 import path from "node:path";
 
@@ -20,9 +21,12 @@ export async function withLock(file, fn) {
       await new Promise((r) => setTimeout(r, 1000));
     }
   }
+  const release = () => rmSync(file, { force: true });
+  process.once("exit", release);
   try {
     return await fn();
   } finally {
-    rmSync(file, { force: true });
+    release();
+    process.removeListener("exit", release);
   }
 }

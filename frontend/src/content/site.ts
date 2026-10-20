@@ -1,4 +1,6 @@
-/** Tanıtım sitesi genel bilgileri. İletişim bilgileri kesinleşince burayı güncelleyin. */
+/** Tanıtım sitesi genel bilgileri. Şirket bilgisi content/company.ts'ten. */
+import { company } from "./company";
+
 
 /** Slogan: sayfa başlığı, meta açıklama, site ve giriş ekranları (karar 2026-10-15; eski "işletim sistemi" ifadesi kullanılmaz). */
 export const siteSlogan = "KOBİ'nin dijital fabrikası";
@@ -14,9 +16,8 @@ export const siteSocial: readonly { key: SocialKey; label: string; href: string 
 ];
 
 export const siteContact = {
-  company: "KobiFabrika Yazılım A.Ş.",
-  // TASLAK: destek adresi henüz kesin değil.
-  email: "destek@kobifabrika.com",
+  company: company.name,
+  email: company.email,
 };
 
 /** Üst menüdeki sayfa içi bağlantılar. */
