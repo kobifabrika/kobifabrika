@@ -69,7 +69,8 @@ export default function HomePage() {
 
       {/* 1) Giriş: koyu lacivert, başlık, çağrı, gerçek ekranlar */}
       <section aria-labelledby="baslik" className="dark bg-navy-950 text-white">
-        <div className={cn(container, "kf-fade pt-12 pb-16 sm:pt-20 lg:pb-24")}>
+        {/* Belirme animasyonu yok: ilk ekranın en büyük öğesi (çağrı düğmesi) geç "boyanmış" sayılıyordu (Lighthouse LCP). */}
+        <div className={cn(container, "pt-12 pb-16 sm:pt-20 lg:pb-24")}>
           <p className="text-sm font-semibold text-cyan">{siteSlogan}</p>
           <h1 id="baslik" className="mt-4 max-w-4xl text-[2.4rem] leading-[1.04] font-bold tracking-[-0.035em] sm:text-6xl lg:text-7xl">
             Kasan, veresiyen, randevun ve personelin tek uygulamada.
@@ -98,7 +99,6 @@ export default function HomePage() {
 
           <div className="mt-14 flex items-end gap-6 lg:mt-16">
             <LaptopFrame
-              priority
               className="hidden flex-1 md:block [&_figcaption]:text-neutral-300"
               src="/site/bugun-masaustu.webp"
               alt="KobiFabrika Bugün ekranı: günün randevuları, yarının randevuları, satış ve tahsilat kartları."

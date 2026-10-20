@@ -17,6 +17,7 @@ export default function PricingPage() {
         TL, sabit ve komisyonsuz. Kalfa ve Usta&apos;yı 14 gün bütün özellikleriyle ücretsiz dene; kredi kartı istemez.
       </PageIntro>
       <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6 sm:py-16">
+        <h2 className="sr-only">Paketler</h2>
         <Pricing />
         <h2 className="mt-16 text-2xl font-bold">Sık sorulanlar</h2>
         <div className="mt-4">

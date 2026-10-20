@@ -88,7 +88,7 @@ kopar, sahipsiz Next dev sunucusu `write EPIPE` ile bozulur (sayfalar dakikalarc
 - **KVKK ve İYS:** SMS/e-posta izni olmayan müşteriye pazarlama mesajı gönderilmez. Her pazarlama mesajında çıkış seçeneği olur.
 - **Yetki:** 4 rol: Owner (Sahip), Manager (Yönetici), Staff (Personel), Accountant (Mali Müşavir, salt okunur). Maaş bilgisini sadece Owner görür.
 - **Gizli bilgiler** `.env` / user-secrets'ta; koda ve git'e asla girmez.
-- **Tasarım:** Renkler ve kurallar `docs/04-tasarim.md`. Sadece 3 renk: siyah, beyaz, vurgu mavisi #00b0ff (+ renksiz griler; kırmızı sadece hata/silme). Mavi beyaz zeminde yazı rengi olarak kullanılmaz; gradyan, gölgeli kart, emoji yok.
+- **Tasarım:** Renkler ve kurallar `docs/04-tasarim.md`: siyah, beyaz, vurgu mavisi #00b0ff (ana düğme, yazı siyah), koyu lacivert #000a1d (koyu yüzeyler), link mavisi #006ea6; #00385a ve #00fdff sadece koyu zeminde (+ renksiz griler; kırmızı sadece hata/silme). #00b0ff ve #00fdff beyaz zeminde yazı rengi olarak kullanılmaz; gradyan, gölgeli kart, emoji yok.
 - **URL'ler:** Frontend yolları Türkçe (`/panel/musteriler`, `/giris`), API yolları İngilizce (`/api/customers`).
 - **Mobil:** En küçük yazı 12px, input yazısı 16px, dokunma alanı en az 44px. Her ekranı 375px genişlikte kontrol et.
 - Küçük, okunur commit'ler; mesajlar Türkçe ve emir kipinde ("Müşteri listesini ekle").
@@ -107,7 +107,11 @@ kopar, sahipsiz Next dev sunucusu `write EPIPE` ile bozulur (sayfalar dakikalarc
 
 ## Güncel durum
 
-- Sprint: **8 (pilot yayını)** sürüyor: 8A yayın öncesi kesiti (paket/pilot, SMS'siz çalışma, e-posta kuyruğu, süper admin, hukuki, site ve panel tasarımı, tur), 8B canlı ortam sunucu alınınca. Kararlar `docs/karar-gunlugu.md` 2026-10-17 (Sprint 8 planı). Sprint 7 bitti (Actions #22/#23 yeşil).
+- Sprint: **8 (pilot yayını)** sürüyor: 8A yayın öncesi kesiti kodda tamam (paket/pilot, SMS'siz çalışma, e-posta kuyruğu, süper admin `/platform`, hukuki taslaklar, site ve panel yenilemesi, tur ve `docs/pilot-test-raporu.md`); 8B canlı ortam sunucu alınınca. Kararlar `docs/karar-gunlugu.md` 2026-10-17 … 2026-10-21.
+- SMS tek ayar `Messaging:SmsEnabled` (pilotta kapalı). Panelde SMS ekranları `me.platform.smsEnabled`'a bakar; randevu bildirimi kanalı sadece `AppointmentNotifier` seçer (SMS → e-posta), WhatsApp mesajı POST ile önceden hazırlanır (`whatsapp-message`), dokunma kaydı keepalive (`whatsapp-notices`). E-posta sadece `EmailQueue` ile (OutboundEmails + Hangfire). Paket/limit sadece `IPlanAccess`.
+- E2E iki çift: varsayılan SMS kapalı (5180/3100), başlığında `@sms` olan senaryolar SMS açık çiftte (5181/3101, "-sms" projeleri). Testte API/web adresi `e2e/support/target.ts`'ten (sabit `apiUrl` kullanma). Kodsuz online randevu E2E'si göndermeden 3,5 sn bekler (bot tuzağı).
+- Renkler: ana düğme mavi + siyah yazı, koyu yüzey #000a1d, link/seçili #006ea6 (`text-link`; kapsama göre `text-link-text`). #00385a ve #00fdff sadece koyu zeminde. Logo sadece koyu zeminde (`Logo`), beyazda `Wordmark`. Kurallar `docs/04-tasarim.md`, test `contrast.test.ts`.
+- Şirket bilgisi `content/company.ts` + backend `Company:*`; hukuki metinler `content/legal.ts` (Kullanım koşulları/Veri işleme sözleşmesi sürümü değişince backend `LegalVersions` da). Site metinleri `content/site.ts`, fiyatlar `content/plans.ts`, yardım `content/help.ts`; demo görüntüleri `npm run demo:shots`, ikonlar `npm run marka`.
 - Mesai sadece `TimeClock`, izin sadece `LeaveService` ile yazılır (personel satırı kilidi; açık mesai `UX_TimeEntries_Open`). Maaş personel yanıtında yok: `/api/staff/{id}/salary` (Sahip yazar, Sahip + Mali Müşavir görür). Onaylı izin = `StaffTimeOff` (Leave, LeaveRequestId); yıllık izin bakiyesi `LeaveBalanceEntries` toplamı. Slogan `content/site.ts` → `siteSlogan`.
 - Prim sadece `CommissionService` ile ve sadece `SaleService` içinden (satışta tahakkuk, iptalde iptal ayına eksi kayıt; `Commissions` yalnızca eklenir). Kural seçimi Domain `CommissionRuleResolver`, tutar `CommissionCalculator` (taban `NetAmount`). Satır personeli `DocumentLineRequest.staffMemberId` (boş = personelsiz; varsayılanı istemci gönderir). Personel sadece kendi primini görür (`/api/commissions/me`).
 - Pencere/alt sayfa telefonda ilk alana odaklanmaz (`lib/focus.ts`, `DialogContent`/`SheetContent`); pencere içinde `autoFocus` gerekiyorsa `autoFocus={useIsDesktop()}`.

@@ -5,7 +5,7 @@ import { useMutation } from "@tanstack/react-query";
 import { MailCheck } from "lucide-react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import { toast } from "sonner";
 import { useForm, useWatch } from "react-hook-form";
 import { z } from "zod";
@@ -104,9 +104,19 @@ function CheckEmail({ me }: { me: Me }) {
   );
 }
 
+/** Fiyat sayfasından seçilen paket (sadece bu bant adres parametresini okur: form sunucuda çizilir, LCP erken). */
+function ChosenPlan() {
+  const chosen = requestedPlan(useSearchParams());
+  if (!chosen) return null;
+  return (
+    <p className="border-l-2 border-brand bg-neutral-50 px-4 py-3 text-sm text-black">
+      Seçtiğiniz paket: <span className="font-semibold">{chosen.plan.name}</span>
+      {chosen.plan.monthlyPrice > 0 && ` (${chosen.period === "yillik" ? "yıllık" : "aylık"}) · 14 gün ücretsiz deneyin`}
+    </p>
+  );
+}
+
 function RegisterForm({ onRegistered }: { onRegistered: (me: Me) => void }) {
-  const params = useSearchParams();
-  const chosen = requestedPlan(params);
   const [error, setError] = useState<string | null>(null);
   const {
     register,
@@ -122,6 +132,7 @@ function RegisterForm({ onRegistered }: { onRegistered: (me: Me) => void }) {
 
   const onSubmit = handleSubmit(async (values) => {
     setError(null);
+    const chosen = requestedPlan(new URLSearchParams(window.location.search));
     try {
       onRegistered(
         await unwrap(
@@ -141,12 +152,9 @@ function RegisterForm({ onRegistered }: { onRegistered: (me: Me) => void }) {
 
   return (
     <form className="mt-8 flex flex-col gap-5" onSubmit={onSubmit} noValidate>
-      {chosen && (
-        <p className="border-l-2 border-brand bg-neutral-50 px-4 py-3 text-sm text-black">
-          Seçtiğiniz paket: <span className="font-semibold">{chosen.plan.name}</span>
-          {chosen.plan.monthlyPrice > 0 && ` (${chosen.period === "yillik" ? "yıllık" : "aylık"}) · 14 gün ücretsiz deneyin`}
-        </p>
-      )}
+      <Suspense>
+        <ChosenPlan />
+      </Suspense>
       <Field label="Ad soyad" error={errors.fullName?.message}>
         <Input autoComplete="name" placeholder="Adınız ve soyadınız" {...register("fullName")} />
       </Field>

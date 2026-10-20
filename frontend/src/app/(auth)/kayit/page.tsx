@@ -9,9 +9,11 @@ export const metadata: Metadata = { title: "Üye ol", description: "KobiFabrika'
 
 export default function RegisterPage() {
   return (
-    <Suspense>
-      <RedirectIfSignedIn />
+    <>
+      <Suspense>
+        <RedirectIfSignedIn />
+      </Suspense>
       <RegisterView />
-    </Suspense>
+    </>
   );
 }

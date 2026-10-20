@@ -47,7 +47,8 @@ function saveBody(a: Automation, patch: Partial<Automation> = {}) {
 
 /** Kampanyalar → Otomasyonlar: her biri aç/kapa, kısa açıklama, son 30 gün SMS ve kredi, Düzenle. */
 export function AutomationList() {
-  const { role } = useSession();
+  const { role, me } = useSession();
+  const sms = me.platform.smsEnabled;
   const queryClient = useQueryClient();
   const list = useAutomations();
   const toggle = useMutation({
@@ -71,10 +72,17 @@ export function AutomationList() {
 
   return (
     <div className="flex flex-col gap-3">
-      <p className="text-sm text-neutral-700">
-        Otomasyonlar varsayılan kapalıdır. Pazarlama mesajları sadece SMS izni olan müşterilere, 09:00-21:00 arası ve aynı kişiye günde en fazla bir
-        kez gider.
-      </p>
+      {sms ? (
+        <p className="text-sm text-neutral-700">
+          Otomasyonlar varsayılan kapalıdır. Pazarlama mesajları sadece SMS izni olan müşterilere, 09:00-21:00 arası ve aynı kişiye günde en fazla
+          bir kez gider.
+        </p>
+      ) : (
+        <p className="border-l-2 border-brand bg-neutral-50 px-4 py-3 text-sm text-neutral-700">
+          Otomasyonlar SMS ile çalışır; SMS pilot döneminde kapalı olduğu için şimdilik açılamaz. Mesaj metinlerini hazırlayabilirsiniz. E-posta
+          ile otomasyonlar yakında.
+        </p>
+      )}
       <ul className="flex flex-col divide-y divide-border border-y border-border" aria-label="Otomasyonlar">
         {list.data.map((a) => (
           <li key={a.type} className="flex flex-col gap-3 py-4 sm:flex-row sm:items-center sm:justify-between">
@@ -90,7 +98,7 @@ export function AutomationList() {
               <label className="flex min-h-11 items-center gap-2 text-sm text-black">
                 <Switch
                   checked={a.isEnabled}
-                  disabled={!manage || toggle.isPending}
+                  disabled={!manage || !sms || toggle.isPending}
                   onCheckedChange={(on) => toggle.mutate({ a, on })}
                   aria-label={`${automationNames[a.type]} açık`}
                 />
@@ -140,7 +148,7 @@ export function AutomationEditor() {
 }
 
 function EditorForm({ automation }: { automation: Automation }) {
-  const { role } = useSession();
+  const { role, me } = useSession();
   const router = useRouter();
   const queryClient = useQueryClient();
   const readOnly = !can(role, "manageMarketing");
@@ -186,7 +194,12 @@ function EditorForm({ automation }: { automation: Automation }) {
       </div>
 
       <label className="flex min-h-11 items-center gap-3 text-base font-semibold text-black">
-        <Switch checked={form.isEnabled} disabled={readOnly} onCheckedChange={(on) => set({ isEnabled: on })} aria-label="Otomasyon açık" />
+        <Switch
+          checked={form.isEnabled}
+          disabled={readOnly || !me.platform.smsEnabled}
+          onCheckedChange={(on) => set({ isEnabled: on })}
+          aria-label="Otomasyon açık"
+        />
         {form.isEnabled ? "Açık" : "Kapalı"}
       </label>
 

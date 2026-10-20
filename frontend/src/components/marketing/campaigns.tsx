@@ -43,6 +43,7 @@ function when(c: Campaign) {
 
 /** Kampanyalar sekmesi: kampanya listesi (masaüstü tablo, telefonda kart). */
 export function CampaignList() {
+  const sms = useSession().me.platform.smsEnabled;
   const list = useInfiniteQuery({
     queryKey: [...campaignsKey, "list"],
     initialPageParam: 1,
@@ -65,7 +66,9 @@ export function CampaignList() {
       ) : items.length === 0 ? (
         <EmptyState icon={<Megaphone aria-hidden className="size-8" />} title="Henüz kampanya yok">
           <p className="text-sm text-neutral-600">
-            Bir segment seçip izinli müşterilerinize SMS gönderin. İzni olmayan ve çıkış yapan müşteriler kendiliğinden elenir.
+            {sms
+              ? "Bir segment seçip izinli müşterilerinize SMS gönderin. İzni olmayan ve çıkış yapan müşteriler kendiliğinden elenir."
+              : "E-posta ve WhatsApp kampanyaları yakında burada. Şimdilik müşteri listenizi Müşteriler'den süzüp dışa aktarabilirsiniz."}
           </p>
         </EmptyState>
       ) : (

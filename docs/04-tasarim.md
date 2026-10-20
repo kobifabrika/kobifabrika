@@ -43,7 +43,7 @@ Slogan: **"KOBİ'nin dijital fabrikası"** (sayfa başlığı, meta açıklama, 
 - Sıra: giriş (koyu, gerçek ekran görüntüsü laptop + telefon çerçevesinde) → kimler için (kendi SVG çizgi ikonları) → özellikler (para, müşteri, ekip) → farkımız (koyu) → nasıl çalışır (3 adım, büyük numaralar) → fiyatlar (Aylık/Yıllık) → SSS → son çağrı (koyu).
 - Ana çağrı her yerde **"Ücretsiz dene"**; telefonda sayfanın altında sabit. Sayfalar: `/fiyatlar`, `/sss`, `/hakkimizda`, `/iletisim`, `/yardim`, hukuki metinler.
 - Görseller demo işletmenin gerçek ekranları (`npm run demo:shots`, WebP), `next/image` ile; her görselde ne gösterdiğini anlatan alt metin; çerçeveler kendi CSS'imiz. Stok fotoğraf, uydurma yorum/sayı yok.
-- Hafif belirme yalnızca giriş bölümünde (`.kf-fade`, `prefers-reduced-motion`'a uyar).
+- Animasyon yok: giriş bölümündeki belirme de kaldırıldı (ilk ekranın en büyük öğesi geç boyanmış sayılıyordu; Lighthouse LCP, 2026-10-21).
 
 ## Tasarım ilkeleri (site ve panel)
 
@@ -56,7 +56,7 @@ Rakip incelemesi: `docs/rakip-site-notlari.md`.
 - **Metin esnafın dilinde,** somut ve kısa: "Veresiye defterini kapat", "Gelmeyen müşteriyi geri çağır". Kalıp sözler yok: "devrim", "akıllı", "yapay zekâ destekli", "işinizi bir üst seviyeye taşıyın".
 - **Yasak:** gradyan, neon ışıma, cam/blur kart, yüzen/eğik 3D kart, emoji, her bölümde ikon yağmuru, her şeyin ortalanması, her kartın aynı yuvarlak köşe + gölge alması, sayaç animasyonu, uydurma müşteri yorumu/logo/kullanıcı sayısı.
 - İkonlar tek renk (siyah; siyah zeminde beyaz/gri) ve az; liste maddelerinde ✓ yeterli.
-- **Animasyon en az:** sadece sitenin ilk bölümünde hafif belirme (`.kf-fade`), `prefers-reduced-motion: no-preference` iken.
+- **Animasyon yok** (sitede de; açılır pencerelerin kendi geçişleri dışında).
 - Köşe yuvarlaklığı 6px (`--radius`); büyük yüzeylerde (çerçeve, tablo) köşe yok ya da az.
 - Paket fiyatları ve limitleri sitede `frontend/src/content/plans.ts`, uygulamada Plans tablosu (süper admin); ikisi birlikte güncellenir.
 
