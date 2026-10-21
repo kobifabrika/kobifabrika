@@ -6,8 +6,8 @@ export default defineConfig({
     environment: "jsdom",
     setupFiles: ["./vitest.setup.ts"],
     include: ["src/**/*.test.{ts,tsx}"],
-    // findBy/waitFor sınırı 10 sn (vitest.setup.ts); eskiden test sınırıyla (5 sn) eşitti, yük altında (Actions) test, bekleme bitmeden
-    // yük altında (Actions) test bekleme bitmeden düşüyordu (import-wizard, 2026-10-21).
+    // findBy/waitFor sınırı 10 sn (vitest.setup.ts); eskiden test sınırıyla (5 sn) eşitti ve yük altında (Actions) test,
+    // bekleme bitmeden düşüyordu (import-wizard, 2026-10-21).
     testTimeout: 15_000,
   },
 });
