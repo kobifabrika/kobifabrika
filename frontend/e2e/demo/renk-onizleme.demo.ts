@@ -15,7 +15,8 @@ import { seedIsilti } from "./seed";
  * Uygulama koduna dokunmaz: docs/tasarim-secenekleri/kaynak/tema-*.css sayfaya enjekte edilir (token'ların üstüne yazar).
  * Her seçenek (ve karşılaştırma için mevcut hali) için 4 ekran × masaüstü (1440×900) ve telefon (375×812, 2x):
  * site ana sayfa üst bölümü, fiyatlar, panel Bugün, online randevu. Çıktı docs/tasarim-secenekleri/<seçenek>/ ve
- * karsilastirma.webp. Seçim yapılınca bu betik ve kaynak/ klasörü silinebilir.
+ * karsilastirma.webp; seçeneklerin açıklaması ve renk kodları docs/tasarim-secenekleri/README.md. Seçim yapılınca bu betik ve
+ * kaynak/ klasörü silinebilir.
  */
 const out = path.resolve(frontendDir, "..", "docs", "tasarim-secenekleri");
 const themes = [
