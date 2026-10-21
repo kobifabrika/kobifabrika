@@ -21,7 +21,7 @@ const photos = [
   { file: "kafe-siparis.webp", id: 4921154, crop: [300, 0, 4546, 3864], width: 2400 },
   // Sektör kartları: en fazla ~460 px (sm, 2 kolon) → 1600 px (4:3).
   // Berber: dikeyden 4:3; berber ve müşterinin yüzü kadrajda.
-  { file: "berber.webp", id: 7697224, crop: [0, 770, 2697, 2023], width: 1600 },
+  { file: "berber-makine.webp", id: 7697224, crop: [0, 770, 2697, 2023], width: 1600 },
   { file: "guzellik.webp", id: 20309789, crop: [496, 0, 3968, 2976], width: 1600 },
   { file: "pilates.webp", id: 9288101, crop: [667, 0, 5333, 4000], width: 1600 },
   // Kafe ve restoran: dolu salonda tabak taşıyan garson (ilk ekrandan farklı sahne).

@@ -74,7 +74,7 @@ export const primaryCta = { href: "/kayit", label: "Ücretsiz dene" };
  */
 export const sectors: { photo: string; alt: string; title: string; text: string }[] = [
   {
-    photo: "/site/foto/berber.webp",
+    photo: "/site/foto/berber-makine.webp",
     alt: "Berber dükkânında müşterisinin saçını makineyle kesen berber.",
     title: "Kuaför ve berber",
     text: "Randevu takvimi, online randevu linki, gelmeyen müşteriye hatırlatma.",

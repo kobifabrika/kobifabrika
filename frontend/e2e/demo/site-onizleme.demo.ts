@@ -87,7 +87,9 @@ test("site önizlemesi: bütün sayfalar 1440 (2x), 1366 ve 375 px (2x); panel B
     const page = await context.newPage();
     for (const [url, name] of pages) {
       await page.goto(url);
-      await capture(page, device, name, toDocs.has(name) ? name : undefined);
+      // Telefonda Chromium'un tam sayfa görüntüsü ilk ekran fotoğrafını boş bırakıyor (sayfada görünür); pencere uzatılır.
+      await capture(page, device, name, toDocs.has(name) ? name : undefined, device === "telefon-375");
+      if (device === "telefon-375") await page.setViewportSize(options.viewport);
     }
     await context.close();
   }

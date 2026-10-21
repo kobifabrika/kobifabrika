@@ -17,7 +17,7 @@ Kurallar (karar 2026-10-21, kalite turu aynı gün):
 | Dosya | Nerede | Sahne | Pexels sayfası | Fotoğrafçı | Düzenleme |
 |---|---|---|---|---|---|
 | `kafe-siparis.webp` | İlk ekran | Kafenin dış masasında iki müşteriden sipariş alan önlüklü garson | https://www.pexels.com/photo/waiter-getting-the-customer-s-orders-4921154/ | RDNE Stock project | Soldaki bitki kısmen kırpıldı (4:3,4), 2400 px |
-| `berber.webp` | Kuaför ve berber | Müşterisinin saçını makineyle kesen berber | https://www.pexels.com/photo/a-barber-holding-a-hair-clipper-7697224/ | RDNE Stock project | Dikeyden 4:3 kırpma (iki yüz kadrajda) |
+| `berber-makine.webp` | Kuaför ve berber | Müşterisinin saçını makineyle kesen berber | https://www.pexels.com/photo/a-barber-holding-a-hair-clipper-7697224/ | RDNE Stock project | Dikeyden 4:3 kırpma (iki yüz kadrajda) |
 | `guzellik.webp` | Güzellik ve bakım | Müşterisine makyaj yapmaya hazırlanan makyöz | https://www.pexels.com/photo/woman-with-cloak-on-shoulder-in-beautician-20309789/ | Tatiana Lucky | 4:3 kırpma |
 | `pilates.webp` | Pilates ve spor stüdyosu | Reformer aletinde üyesine yardım eden eğitmen | https://www.pexels.com/photo/fitness-instructor-assisting-woman-doing-pilates-9288101/ | Nicholas Fu | 4:3 kırpma |
 | `restoran.webp` | Kafe ve restoran | Dolu restoranda masalara salata tabakları taşıyan garson | https://www.pexels.com/photo/a-waiter-holding-plates-with-salad-25809274/ | Matheus Bertelli | 4:3 kırpma |
