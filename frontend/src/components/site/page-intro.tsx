@@ -2,8 +2,8 @@ import { cn } from "cn";
 import type { ReactNode } from "react";
 
 /**
- * Alt sayfaların koyu lacivert başlık bandı (ana sayfanın girişiyle aynı dil).
- * `compact`: içerik ilk ekranda görünsün diye kısa bant (Fiyatlar: paket kartları 1366×768'de de ilk ekranda).
+ * Alt sayfaların başlık bandı (2026-10-21): açık sis zemin, mürekkep yazı, mavi küçük etiket çizgisi. Renk geçişi yok (sadece
+ * ana sayfanın ilk ekranında). `compact`: içerik ilk ekranda görünsün diye kısa bant (Fiyatlar: kartlar 1366×768'de ilk ekranda).
  */
 export function PageIntro({
   label,
@@ -17,20 +17,21 @@ export function PageIntro({
   children?: ReactNode;
 }) {
   return (
-    <section className="dark bg-navy-950 text-white">
+    <section className="border-b border-slate-200 bg-mist">
       <div className={cn("mx-auto max-w-6xl px-4 sm:px-6", compact ? "py-6 sm:py-8" : "py-12 sm:py-16")}>
-        <p className="text-sm font-semibold text-cyan">{label}</p>
+        <p className="flex items-center gap-2 text-sm font-semibold text-link">
+          <span aria-hidden className="h-0.5 w-5 rounded-full bg-brand" />
+          {label}
+        </p>
         <h1
           className={cn(
-            "max-w-3xl leading-[1.05] font-bold tracking-tight",
+            "max-w-3xl leading-[1.08] font-semibold tracking-tight text-ink",
             compact ? "mt-2 text-3xl sm:text-4xl" : "mt-3 text-4xl sm:text-5xl",
           )}
         >
           {title}
         </h1>
-        {children && (
-          <div className={cn("max-w-2xl text-neutral-300", compact ? "mt-3 text-base" : "mt-5 text-lg")}>{children}</div>
-        )}
+        {children && <div className={cn("max-w-2xl text-slate", compact ? "mt-3 text-base" : "mt-5 text-lg")}>{children}</div>}
       </div>
     </section>
   );

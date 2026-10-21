@@ -52,6 +52,7 @@ test("yeni esnaf: kayıttan ilk satışa", async ({ page, newPublicPage, visit, 
   await page.getByRole("button", { name: "Devam" }).click();
   await page.getByRole("button", { name: "Kurulumu bitir" }).click();
   await expect(page).toHaveURL(/\/panel$/);
+  await expect(page).toHaveTitle("Bugün | KobiFabrika");
   await check(page, "Yeni esnaf · ilk Bugün");
 
   // 4. Personel (her gün 00:00-23:59: test saatten bağımsız olsun).

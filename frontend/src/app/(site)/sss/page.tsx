@@ -17,7 +17,7 @@ export default function FaqPage() {
       <PageIntro label="SSS" title="Sık sorulan sorular" />
       <div className="mx-auto max-w-3xl px-4 py-12 sm:px-6 sm:py-16">
         <FaqList />
-        <p className="mt-8 text-base text-neutral-700">
+        <p className="mt-8 text-base text-slate">
           Cevabını bulamadın mı?{" "}
           <Link href="/iletisim" className="font-semibold text-link underline underline-offset-4">
             Bize yaz

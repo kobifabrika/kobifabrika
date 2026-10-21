@@ -9,6 +9,9 @@ test("tanıtım sitesi: sayfalar, çağrılar, fiyat, yardım, 404 ve SEO dosyal
   await visit(page, "/", "Site · ana sayfa");
   const hero = page.getByRole("region", { name: /Kasan, veresiyen/ });
   await expect(page.getByRole("heading", { level: 1 })).toContainText("tek uygulamada");
+  // Sekme ve Open Graph başlığı (2026-10-21).
+  await expect(page).toHaveTitle("KobiFabrika | KOBİ'nin dijital fabrikası");
+  await expect(page.locator('meta[property="og:title"]')).toHaveAttribute("content", "KobiFabrika | KOBİ'nin dijital fabrikası");
   const sticky = page.locator(".fixed").getByRole("link", { name: /Ücretsiz dene/ });
   if (isDesktop(info)) {
     await expect(hero.getByRole("link", { name: "Ücretsiz dene" })).toBeVisible();
@@ -20,7 +23,11 @@ test("tanıtım sitesi: sayfalar, çağrılar, fiyat, yardım, 404 ve SEO dosyal
   // Bütün görsellerin anlamlı alt metni var.
   for (const img of await page.locator("img").all()) expect((await img.getAttribute("alt"))?.length ?? 0).toBeGreaterThan(5);
 
+  await visit(page, "/giris", "Site · giriş");
+  await expect(page).toHaveTitle("Giriş yap | KobiFabrika");
+
   await visit(page, "/fiyatlar", "Site · fiyatlar");
+  await expect(page).toHaveTitle("Fiyatlar | KobiFabrika");
   const kalfa = page.getByRole("listitem").filter({ has: page.getByRole("heading", { name: "Kalfa" }) });
   await expect(kalfa.getByText("699 TL")).toBeVisible();
   await page.getByRole("radio", { name: /Yıllık/ }).click();

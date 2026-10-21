@@ -227,3 +227,28 @@ describe("panel sol menü (koyu lacivert, aktif öğe mavi)", () => {
     expect(contrast(light("sidebar-ring"), light("sidebar-accent"))).toBeGreaterThanOrEqual(AA_NON_TEXT);
   });
 });
+
+describe("tanıtım sitesi renkleri (2026-10-21)", () => {
+  const light = ["white", "mist", "cream"].map((n) => (n === "white" ? WHITE : token(n)));
+
+  it("marka mavisi ana renk; mavi düğmede mürekkep yazı okunur", () => {
+    expect(token("brand")).toBe("#00b0ff");
+    expect(contrast(token("ink"), token("brand"))).toBeGreaterThanOrEqual(AA_TEXT);
+  });
+
+  it("mürekkep, ikincil yazı, link ve mercan yazısı beyaz, sis ve kremde okunur", () => {
+    for (const bg of light)
+      for (const fg of ["ink", "slate", "link", "coral-text"]) expect(contrast(token(fg), bg)).toBeGreaterThanOrEqual(AA_TEXT);
+  });
+
+  it("mercan beyazda yazı olamaz (sadece şerit/zemin); mercan rozetinde mürekkep yazı okunur", () => {
+    expect(contrast(token("coral"), WHITE)).toBeLessThan(AA_TEXT);
+    expect(contrast(token("ink"), token("coral-soft"))).toBeGreaterThanOrEqual(AA_TEXT);
+    expect(contrast(token("ink"), token("coral"))).toBeGreaterThanOrEqual(AA_TEXT);
+  });
+
+  it("mürekkep bantta beyaz, slate-300, mavi ve mercan yazı okunur", () => {
+    for (const fg of [WHITE, token("slate-300"), token("brand"), token("coral")])
+      expect(contrast(fg, token("ink"))).toBeGreaterThanOrEqual(AA_TEXT);
+  });
+});

@@ -1,6 +1,4 @@
 /** Tanıtım sitesi metinleri ve genel bilgileri. Şirket bilgisi content/company.ts'ten, paketler content/plans.ts'ten. */
-import type { SectorIconName } from "@/components/site/sector-icons";
-
 import { company } from "./company";
 
 /** Slogan: sayfa başlığı, meta açıklama, site ve giriş ekranları (karar 2026-10-15; eski "işletim sistemi" ifadesi kullanılmaz). */
@@ -39,15 +37,72 @@ export const siteNav = [
 /** Alt bilgideki site bağlantıları. */
 export const footerNav = [...siteNav, { href: "/iletisim", label: "İletişim" }];
 
+/** Alt bilgi kolonları (hukuki metinler `legalLinks` ile ayrıca). */
+export const footerColumns: { title: string; links: { href: string; label: string }[] }[] = [
+  {
+    title: "Ürün",
+    links: [
+      { href: "/#ozellikler", label: "Özellikler" },
+      { href: "/#kimler", label: "Kimler için" },
+      { href: "/fiyatlar", label: "Fiyatlar" },
+      { href: "/kayit", label: "Ücretsiz dene" },
+    ],
+  },
+  {
+    title: "Destek",
+    links: [
+      { href: "/yardim", label: "Yardım makaleleri" },
+      { href: "/sss", label: "Sık sorulan sorular" },
+      { href: "/iletisim", label: "İletişim ve WhatsApp" },
+    ],
+  },
+  {
+    title: "Şirket",
+    links: [
+      { href: "/hakkimizda", label: "Hakkımızda" },
+      { href: "/giris", label: "Giriş yap" },
+    ],
+  },
+];
+
 /** Ana çağrı (her yerde aynı metin). */
 export const primaryCta = { href: "/kayit", label: "Ücretsiz dene" };
 
-export const sectors: { icon: SectorIconName; title: string; text: string }[] = [
-  { icon: "kuafor", title: "Kuaför ve berber", text: "Randevu takvimi, online randevu linki, gelmeyen müşteriye hatırlatma." },
-  { icon: "guzellik", title: "Güzellik ve bakım", text: "Paket ve seans takibi, personel primi, memnuniyet anketi." },
-  { icon: "studyo", title: "Pilates ve spor stüdyosu", text: "Seans paketleri, ders saatleri, üyenin borcu ve ödemesi aynı kartta." },
-  { icon: "kafe", title: "Kafe ve restoran", text: "Hızlı satış, veresiye ve cari, kasa ve gider, personel mesaisi." },
-  { icon: "dukkan", title: "Dükkân ve mağaza", text: "Barkodla satış, stok ve kritik stok uyarısı, tedarikçi cari hesabı." },
+/**
+ * Kimler için: sektör kartları. Fotoğraflar sadece atmosfer (Pexels, docs/foto-kaynaklari.md); kişilere isim veya yorum yazılmaz,
+ * alt metin sahneyi anlatır.
+ */
+export const sectors: { photo: string; alt: string; title: string; text: string }[] = [
+  {
+    photo: "/site/foto/berber.webp",
+    alt: "Berberde saçı kesilen sakallı müşteri.",
+    title: "Kuaför ve berber",
+    text: "Randevu takvimi, online randevu linki, gelmeyen müşteriye hatırlatma.",
+  },
+  {
+    photo: "/site/foto/guzellik.webp",
+    alt: "Güzellik salonunda manikür yapılan eller.",
+    title: "Güzellik ve bakım",
+    text: "Paket ve seans takibi, personel primi, memnuniyet anketi.",
+  },
+  {
+    photo: "/site/foto/pilates.webp",
+    alt: "Pilates stüdyosunda aletlerin yanında gülümseyen eğitmen.",
+    title: "Pilates ve spor stüdyosu",
+    text: "Seans paketleri, ders saatleri, üyenin borcu ve ödemesi aynı kartta.",
+  },
+  {
+    photo: "/site/foto/kafe.webp",
+    alt: "Kafesinin tezgâhı önünde kollarını kavuşturmuş duran işletme sahibi.",
+    title: "Kafe ve restoran",
+    text: "Hızlı satış, veresiye ve cari, kasa ve gider, personel mesaisi.",
+  },
+  {
+    photo: "/site/foto/cicekci.webp",
+    alt: "Çiçekçi dükkânında tezgâhta buket hazırlayan kadın.",
+    title: "Dükkân ve mağaza",
+    text: "Barkodla satış, stok ve kritik stok uyarısı, tedarikçi cari hesabı.",
+  },
 ];
 
 export type FeatureGroup = { key: string; label: string; title: string; text: string; points: string[]; shot: string; shotAlt: string };

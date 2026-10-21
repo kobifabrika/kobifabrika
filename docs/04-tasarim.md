@@ -38,12 +38,40 @@ Slogan: **"KOBİ'nin dijital fabrikası"** (sayfa başlığı, meta açıklama, 
 - **Boş durumlar:** sade SVG çizim (`EmptyState`: lacivert çizgili boş sayfa + mavi dairede ekranın ikonu).
 - Giriş ekranları: solda koyu lacivert marka paneli (logo, slogan, şirket unvanı), sağda beyaz form; 768px altında marka paneli üstte ince bant.
 
-### Tanıtım sitesi
+### Tanıtım sitesi (yenilendi 2026-10-21: ikas + Stripe + Paraşüt yönü; panel henüz eski düzende)
 
-- Sıra: giriş (koyu, gerçek ekran görüntüsü laptop + telefon çerçevesinde) → kimler için (kendi SVG çizgi ikonları) → özellikler (para, müşteri, ekip) → farkımız (koyu) → nasıl çalışır (3 adım, büyük numaralar) → fiyatlar (Aylık/Yıllık) → SSS → son çağrı (koyu).
-- Ana çağrı her yerde **"Ücretsiz dene"**; telefonda sayfanın altında sabit. Sayfalar: `/fiyatlar`, `/sss`, `/hakkimizda`, `/iletisim`, `/yardim`, hukuki metinler.
-- Görseller demo işletmenin gerçek ekranları (`npm run demo:shots`, WebP), `next/image` ile; her görselde ne gösterdiğini anlatan alt metin; çerçeveler kendi CSS'imiz. Stok fotoğraf, uydurma yorum/sayı yok.
-- Animasyon yok: giriş bölümündeki belirme de kaldırıldı (ilk ekranın en büyük öğesi geç boyanmış sayılıyordu; Lighthouse LCP, 2026-10-21).
+Referans notları: `docs/tasarim-referanslari.md`. Kapsam: ana sayfa, fiyatlar, SSS, hakkımızda, iletişim, yardım, hukuki
+sayfalar, giriş/kayıt ekranları. Panel Emir onaylayınca aynı havaya geçer.
+
+| Token | Hex | Kullanım (sadece site) |
+|---|---|---|
+| `brand` | `#00b0ff` | **Ana renk:** ana düğme (yazı `ink`), etiket çizgisi, adım numarası, öne çıkan fiyat kartı kenarı |
+| `ink` | `#0a1f3c` | Yazı (lacivert mürekkep), seçili sekme/dönem, son çağrı bandı (üstünde beyaz, `slate-300`, mavi, mercan yazı) |
+| `slate` | `#4a5a70` | İkincil yazı (beyaz, `mist`, `cream` üstünde 5,2:1+) |
+| `slate-200` | `#e3e9f1` | Kenarlık ve ayırıcı |
+| `mist` | `#f4f8fc` | Açık mavi-gri bölüm zemini, alt bilgi, alt sayfa başlık bandı |
+| `cream` | `#fff5f0` | Sıcak açık bölüm zemini ("Telefondan yönet", giriş/kayıt marka paneli) |
+| `coral` | `#ff6b4a` | **Sıcak yardımcı renk:** nokta, şerit, ilk ekran geçişi; beyazda yazı **olamaz** |
+| `coral-soft` | `#ffe1d6` | Rozet ve ✓ dairesi zemini (yazı `ink`) |
+| `coral-text` | `#b9381c` | Beyaz/kremde mercan yazı (numara, ikincil link) |
+| `link` | `#006ea6` | Link ve vurgulu yazı (başlıktaki "tek uygulamada") |
+
+- **Üst menü** beyaz, ince çizgi, sabit: KF işareti + `Wordmark` (beyazda `Logo` kullanılmaz), az menü, "Giriş yap", mavi
+  "Ücretsiz dene". Telefonda Menü sağda, "Ücretsiz dene" altta sabit (beyaz şerit).
+- **İlk ekran:** tek yerde **ölçülü renk geçişi** (`hero-glow`: sis → beyaz, sağ üstte düşük yoğunluklu mavi ve mercan); sola
+  hizalı büyük başlık (Schibsted Grotesk 600), iki düğme, ✓'li dört güvence; sağda esnaf fotoğrafı + telefondaki gerçek ekran.
+  Başka hiçbir bölümde geçiş yok.
+- **Bölümler:** kimler için (fotoğraflı sektör kartları) → özellikler (Para · Müşteri · Ekip sekmeleri, çerçevede gerçek ekran;
+  `FeatureTabs`) → telefondan yönet (krem bant, fotoğraf + online randevu ekranı) → farkımız → nasıl çalışır (sis bant) →
+  fiyatlar → SSS → son çağrı (mürekkep bant + fotoğraf) → kolonlu alt bilgi (sis zemin; Ürün, Destek, Şirket, Hukuki).
+- **Fotoğraf:** Pexels (lisans ve kaynaklar `docs/foto-kaynaklari.md`), sadece atmosfer: kişiye isim, yorum, "kullanıcımız"
+  yazılmaz; görünür marka/logo yok; WebP, `next/image`, sahneyi anlatan alt metin. Müşteri yorumu bölümü yok (pilot yorumları
+  gelince eklenir). Ürün ekranları demo işletmenin gerçek görüntüleri (`npm run demo:shots`), `BrowserFrame`/`PhoneFrame` içinde.
+- **Kart ve gölge:** köşe 16 px (`rounded-2xl`; fotoğraflar 24 px), ince `slate-200` kenarlık; sadece ürün çerçeveleri, öne çıkan
+  fiyat kartı ve büyük fotoğraflarda **çok hafif yumuşak gölge** (`softShadow`). Neon, ışıma, cam/blur yok.
+- **Düğmeler:** ana düğme mavi + mürekkep yazı; ikincil beyaz + ince kenarlık; dönem ve modül sekmeleri hap biçimi (seçili `ink`).
+- **Hitap** sitede "sen", giriş/kayıt ekranlarında "siz". Animasyon yok (açılır pencerelerin kendi geçişleri dışında).
+- **Sekme başlığı:** "Sayfa | KobiFabrika"; ana sayfa ve Open Graph "KobiFabrika | KOBİ'nin dijital fabrikası".
 
 ## Tasarım ilkeleri (site ve panel)
 
@@ -51,10 +79,10 @@ Rakip incelemesi: `docs/rakip-site-notlari.md`.
 
 - Ağırlıklı beyaz zemin, siyah yazı, bol boşluk, güçlü tipografi hiyerarşisi, **sola hizalı** düzen.
 - **Mavi ölçülü:** her bölümde bir ana mavi öğe (ana düğme ya da vurgu); link mavisi #006ea6 yazı ve seçili durumlar için.
-- Bölümleri ayırmak için **gölge yerine ince çizgi** (`border-black` güçlü ayrım, `border-neutral-200` hafif). Kartlarda gölge yok.
+- Bölümleri ayırmak için **gölge yerine ince çizgi** (`border-black` güçlü ayrım, `border-neutral-200` hafif). Kartlarda gölge yok (sitede ürün çerçevesi, öne çıkan fiyat kartı ve büyük fotoğrafta çok hafif yumuşak gölge serbest).
 - **Ürünü göster:** sitedeki ekranlar demo işletmenin ("Işıltı Kuaför") gerçek ekran görüntüleri, kendi laptop ve telefon çerçevelerimizde; altında "Örnek ekran" yazar.
 - **Metin esnafın dilinde,** somut ve kısa: "Veresiye defterini kapat", "Gelmeyen müşteriyi geri çağır". Kalıp sözler yok: "devrim", "akıllı", "yapay zekâ destekli", "işinizi bir üst seviyeye taşıyın".
-- **Yasak:** gradyan, neon ışıma, cam/blur kart, yüzen/eğik 3D kart, emoji, her bölümde ikon yağmuru, her şeyin ortalanması, her kartın aynı yuvarlak köşe + gölge alması, sayaç animasyonu, uydurma müşteri yorumu/logo/kullanıcı sayısı.
+- **Yasak:** gradyan (tek istisna: sitenin ilk ekranındaki ölçülü `hero-glow`), neon ışıma, cam/blur kart, yüzen/eğik 3D kart, emoji, her bölümde ikon yağmuru, her şeyin ortalanması, her kartın aynı yuvarlak köşe + gölge alması, sayaç animasyonu, uydurma müşteri yorumu/logo/kullanıcı sayısı.
 - İkonlar tek renk (siyah; siyah zeminde beyaz/gri) ve az; liste maddelerinde ✓ yeterli.
 - **Animasyon yok** (sitede de; açılır pencerelerin kendi geçişleri dışında).
 - Köşe yuvarlaklığı 6px (`--radius`); büyük yüzeylerde (çerçeve, tablo) köşe yok ya da az.

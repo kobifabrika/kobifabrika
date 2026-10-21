@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 
 import { PageIntro } from "@/components/site/page-intro";
@@ -26,7 +27,7 @@ export default function AboutPage() {
         KobiFabrika; kuaförün, kafenin, stüdyonun ve dükkânın günlük işini tek uygulamada toplamak için kuruldu.
       </PageIntro>
       <div className="mx-auto max-w-3xl px-4 py-12 sm:px-6 sm:py-16">
-        <div className="flex flex-col gap-5 text-lg leading-8 text-neutral-700">
+        <div className="flex flex-col gap-5 text-lg leading-8 text-slate">
           <p>
             Küçük işletmeler bugün iki ayrı program kullanıyor: biri parayı tutuyor, öbürü randevuyu. Müşteri iki ayrı listede, borç
             defterde, hatırlatma telefonun notlarında. Biz bunları tek yere topluyoruz.
@@ -36,16 +37,34 @@ export default function AboutPage() {
             taşıyoruz.
           </p>
         </div>
-        <h2 className="mt-12 text-2xl font-bold">Nasıl çalışıyoruz</h2>
+        <div className="mt-10 grid grid-cols-2 gap-3 sm:gap-4">
+          <Image
+            src="/site/foto/pilates.webp"
+            alt="Pilates stüdyosunda aletlerin yanında gülümseyen eğitmen."
+            width={1000}
+            height={750}
+            sizes="(min-width: 768px) 380px, 46vw"
+            className="aspect-[4/3] h-auto w-full rounded-2xl object-cover"
+          />
+          <Image
+            src="/site/foto/cicekci.webp"
+            alt="Çiçekçi dükkânında tezgâhta buket hazırlayan kadın."
+            width={1000}
+            height={750}
+            sizes="(min-width: 768px) 380px, 46vw"
+            className="aspect-[4/3] h-auto w-full rounded-2xl object-cover"
+          />
+        </div>
+        <h2 className="mt-12 text-2xl font-semibold">Nasıl çalışıyoruz</h2>
         <ul className="mt-6 grid gap-4 sm:grid-cols-2">
           {principles.map((p) => (
-            <li key={p.title} className="rounded-lg border-t-4 border-t-link bg-neutral-50 p-5">
+            <li key={p.title} className="rounded-2xl border-t-4 border-t-brand bg-mist p-5">
               <h3 className="text-lg font-semibold">{p.title}</h3>
-              <p className="mt-1 text-base leading-7 text-neutral-700">{p.text}</p>
+              <p className="mt-1 text-base leading-7 text-slate">{p.text}</p>
             </li>
           ))}
         </ul>
-        <p className="mt-12 text-sm text-neutral-600">{company.name}</p>
+        <p className="mt-12 text-sm text-slate">{company.name}</p>
         <Button asChild size="lg" className="mt-6">
           <Link href={primaryCta.href}>{primaryCta.label}</Link>
         </Button>

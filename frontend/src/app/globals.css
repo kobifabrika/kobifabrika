@@ -46,6 +46,17 @@
   --color-neutral-800: #262626; /* siyah zeminde hover/aktif olmayan yüzey, kenarlık */
   --color-neutral-900: #141414; /* siyah zeminde kart */
 
+  /* Tanıtım sitesi (2026-10-21, ikas + Stripe + Paraşüt yönü; panelde kullanılmaz). Kurallar docs/04 → "Tanıtım sitesi". */
+  --color-ink: #0a1f3c; /* site yazısı ve koyu bant (lacivert mürekkep) */
+  --color-slate: #4a5a70; /* sitede ikincil yazı (beyaz, sis ve kremde 5,2:1+) */
+  --color-slate-200: #e3e9f1; /* site kenarlığı */
+  --color-slate-300: #c6d2e1; /* mürekkep zemininde ikincil yazı */
+  --color-mist: #f4f8fc; /* açık mavi-gri bölüm zemini */
+  --color-cream: #fff5f0; /* sıcak açık bölüm zemini */
+  --color-coral: #ff6b4a; /* sıcak yardımcı renk: şerit, rozet zemini, ilk ekran geçişi; beyazda yazı olamaz */
+  --color-coral-soft: #ffe1d6; /* mercan rozet zemini (yazı mürekkep) */
+  --color-coral-text: #b9381c; /* beyaz ve kremde mercan yazı (5,4:1) */
+
   /* Sadece hata ve silme */
   --color-danger-50: #fef2f2;
   --color-danger-600: #b91c1c;
@@ -221,4 +232,16 @@
   &::-webkit-scrollbar {
     display: none;
   }
+}
+
+/*
+ * Tanıtım sitesi ilk ekranı: ölçülü, yumuşak renk geçişi (marka mavisi + mercan, düşük yoğunluk). Sadece ana sayfanın ilk
+ * ekranında kullanılır (docs/04 → "Tanıtım sitesi"); neon/ışıma yok, yazı her zaman düz zeminde okunur kontrastta.
+ */
+@utility hero-glow {
+  background-color: #ffffff;
+  background-image:
+    radial-gradient(55% 65% at 92% 0%, rgb(0 176 255 / 0.2), transparent 70%),
+    radial-gradient(40% 50% at 100% 55%, rgb(255 107 74 / 0.14), transparent 70%),
+    linear-gradient(180deg, #f4f8fc 0%, #ffffff 70%);
 }
