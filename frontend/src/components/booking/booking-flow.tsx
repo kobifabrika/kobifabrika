@@ -175,6 +175,8 @@ export function BookingFlow({ slug }: { slug: string }) {
       aside={
         step !== "onay" && choice.service ? (
           <div className="sticky top-6 border border-border p-4">{summary}</div>
+        ) : step === "hizmet" ? (
+          <HowItWorks />
         ) : undefined
       }
     >
@@ -290,6 +292,24 @@ export function BookingFlow({ slug }: { slug: string }) {
         <Confirmation slug={slug} business={b} created={created} emailGiven={!!person.email.trim()} />
       )}
     </BookingShell>
+  );
+}
+
+/** Masaüstünde ilk adımda sağ kolon: adımlar ve sonrası (hizmet seçilince yerini özet alır). */
+function HowItWorks() {
+  return (
+    <div className="sticky top-6 flex flex-col gap-3 border border-border p-4 text-sm">
+      <p className="font-semibold text-black">Nasıl çalışır?</p>
+      <ol className="flex list-decimal flex-col gap-1 pl-5 text-neutral-700">
+        <li>Hizmeti seçin</li>
+        <li>Personeli seçin veya &quot;Fark etmez&quot; deyin</li>
+        <li>Gün ve saati seçin</li>
+        <li>Adınızı ve telefonunuzu yazın</li>
+      </ol>
+      <p className="text-neutral-700">
+        Talebiniz işletmeye iletilir. Randevunuzu sonradan görüntüleyip iptal edebilirsiniz.
+      </p>
+    </div>
   );
 }
 

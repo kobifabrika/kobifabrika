@@ -53,38 +53,40 @@ export function BottomNav() {
         {tab(tabs[0])}
         {tab(tabs[1])}
 
-        <Sheet open={quickOpen} onOpenChange={setQuickOpen}>
-          <SheetTrigger asChild>
-            <button type="button" className={cn(tabClass, "text-black")} aria-label="Hızlı işlem">
-              <span className="flex size-12 items-center justify-center rounded-full bg-primary text-primary-foreground">
-                <Plus aria-hidden className="size-7" />
-              </span>
-            </button>
-          </SheetTrigger>
-          <SheetContent side="bottom" className="rounded-t-xl pb-[calc(1rem+env(safe-area-inset-bottom))]">
-            <SheetHeader>
-              <SheetTitle>Hızlı işlem</SheetTitle>
-              <SheetDescription>Ne yapmak istiyorsunuz?</SheetDescription>
-            </SheetHeader>
-            <div className="grid grid-cols-2 gap-3 px-4">
-              {actions.map(({ label, href, icon: Icon }) => (
-                <Link
-                  key={label}
-                  href={href}
-                  onClick={() => setQuickOpen(false)}
-                  className="flex min-h-20 flex-col items-start justify-center gap-2 rounded-lg border border-border bg-neutral-50 px-4 text-sm font-semibold text-black hover:border-black"
-                >
-                  <Icon aria-hidden className="size-6 text-black" />
-                  {label}
-                </Link>
-              ))}
-            </div>
-          </SheetContent>
-        </Sheet>
+        {/* Salt okunur rolde (Mali Müşavir) hızlı işlem yok: düğme de yok. */}
+        {actions.length > 0 && (
+          <Sheet open={quickOpen} onOpenChange={setQuickOpen}>
+            <SheetTrigger asChild>
+              <button type="button" className={cn(tabClass, "text-black")} aria-label="Hızlı işlem">
+                <span className="flex size-12 items-center justify-center rounded-full bg-primary text-primary-foreground">
+                  <Plus aria-hidden className="size-7" />
+                </span>
+              </button>
+            </SheetTrigger>
+            <SheetContent side="bottom" className="rounded-t-xl pb-[calc(1rem+env(safe-area-inset-bottom))]">
+              <SheetHeader>
+                <SheetTitle>Hızlı işlem</SheetTitle>
+                <SheetDescription>Ne yapmak istiyorsunuz?</SheetDescription>
+              </SheetHeader>
+              <div className="grid grid-cols-2 gap-3 px-4">
+                {actions.map(({ label, href, icon: Icon }) => (
+                  <Link
+                    key={label}
+                    href={href}
+                    onClick={() => setQuickOpen(false)}
+                    className="flex min-h-20 flex-col items-start justify-center gap-2 rounded-lg border border-border bg-neutral-50 px-4 text-sm font-semibold text-black hover:border-black"
+                  >
+                    <Icon aria-hidden className="size-6 text-black" />
+                    {label}
+                  </Link>
+                ))}
+              </div>
+            </SheetContent>
+          </Sheet>
+        )}
 
         {tab(tabs[2])}
         {tab(tabs[3])}
-
       </div>
     </nav>
   );

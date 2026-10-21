@@ -35,4 +35,11 @@ describe("BottomNav", () => {
     const labels = Array.from(nav.querySelectorAll("a, button")).map((el) => el.getAttribute("aria-label") ?? el.textContent?.trim());
     expect(labels).toEqual(["Bugün", "Ürün", "Hızlı işlem", "Satış", "Müşteri"]);
   });
+
+  it("Mali Müşavir'de hızlı işlem düğmesi yok (salt okunur, işlem listesi boş)", () => {
+    renderWithSession(<BottomNav />, { role: "Accountant" });
+
+    expect(screen.queryByRole("button", { name: "Hızlı işlem" })).not.toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Bugün" })).toBeInTheDocument();
+  });
 });

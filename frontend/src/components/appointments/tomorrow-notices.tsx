@@ -5,11 +5,13 @@ import { Check, MessageCircle } from "lucide-react";
 import Link from "next/link";
 
 import { QueryError } from "@/components/feedback/query-error";
+import { useSession } from "@/components/providers/session-provider";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { api, unwrap } from "@/lib/api/client";
 import type { TomorrowNotice } from "@/lib/api/types";
 import { istanbulParts } from "@/lib/format";
+import { can } from "@/lib/permissions";
 
 import { appointmentsKey } from "./appointment-bits";
 import { recordWhatsApp } from "./whatsapp-notice";
@@ -19,10 +21,11 @@ export const tomorrowKey = [...appointmentsKey, "tomorrow"] as const;
 /**
  * "Yarının randevuları" (SMS'siz pilot): her satırda WhatsApp hatırlatma linki; dokununca "Hatırlatıldı ✓ 18:42". Liste POST ile
  * gelir (hatırlatmadaki iptal linki token'ı üretilebilir). SMS hatırlatması açıksa (smsReminders) kart gösterilmez.
- * Mali Müşavir listeyi görür, düğme yok (whatsappUrl null).
+ * Mali Müşavir listeyi görür; hatırlatma sayacı, açıklama ve düğme sütunu yok (whatsappUrl null).
  */
 export function TomorrowNotices() {
   const queryClient = useQueryClient();
+  const remind = can(useSession().role, "writeAppointments");
   const query = useQuery({
     queryKey: tomorrowKey,
     queryFn: () => unwrap(api.POST("/api/appointments/tomorrow-notices")),
@@ -42,7 +45,7 @@ export function TomorrowNotices() {
           Yarının randevuları
           <span className="text-sm font-normal text-neutral-600 tabular-nums">({items.length})</span>
         </CardTitle>
-        {items.length > 0 && (
+        {remind && items.length > 0 && (
           <span className="text-sm text-neutral-700 tabular-nums">
             Hatırlatılan {reminded}/{items.length}
           </span>
@@ -53,14 +56,17 @@ export function TomorrowNotices() {
           <p className="text-sm text-neutral-600">Yarın için randevu yok.</p>
         ) : (
           <>
-            <p className="text-sm text-neutral-600">
-              Müşterilere WhatsApp&apos;tan hatırlatma gönderin; mesaj hazır gelir.
-            </p>
+            {remind && (
+              <p className="text-sm text-neutral-600">
+                Müşterilere WhatsApp&apos;tan hatırlatma gönderin; mesaj hazır gelir.
+              </p>
+            )}
             <ul className="flex flex-col divide-y divide-border">
               {items.map((item) => (
                 <NoticeRow
                   key={item.id}
                   item={item}
+                  remind={remind}
                   onSent={() => void queryClient.invalidateQueries({ queryKey: tomorrowKey })}
                 />
               ))}
@@ -72,7 +78,7 @@ export function TomorrowNotices() {
   );
 }
 
-function NoticeRow({ item, onSent }: { item: TomorrowNotice; onSent: () => void }) {
+function NoticeRow({ item, remind, onSent }: { item: TomorrowNotice; remind: boolean; onSent: () => void }) {
   return (
     <li className="flex flex-wrap items-center gap-x-3 gap-y-1 py-2">
       <Link
@@ -92,7 +98,7 @@ function NoticeRow({ item, onSent }: { item: TomorrowNotice; onSent: () => void 
           </span>
         </span>
       </Link>
-      {item.remindedAt ? (
+      {!remind ? null : item.remindedAt ? (
         <span className="flex min-h-11 items-center gap-1 text-sm text-black tabular-nums">
           <Check aria-hidden className="size-4" />
           Hatırlatıldı {istanbulParts(item.remindedAt).time}

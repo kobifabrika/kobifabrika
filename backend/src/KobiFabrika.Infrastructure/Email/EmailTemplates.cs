@@ -176,6 +176,8 @@ public static class EmailTemplates
         }
 
         var callUs = sender.Phone is { } phone ? $" Değişiklik için işletmeyi arayın: {phone}." : "";
+        // Zaten "işletmeyle iletişime geçin" diyen dipnotlarda telefon cümlenin içine girer (tekrar etmez).
+        string Contact(string lead) => sender.Phone is { } p ? $"{lead} işletmeyi arayın: {p}." : $"{lead} işletmeyle iletişime geçin.";
         var (subject, title, body, button, link, footnote) = kind switch
         {
             AppointmentEmailKind.Requested => (
@@ -201,19 +203,21 @@ public static class EmailTemplates
                 "Randevu saatiniz değişti",
                 $"{sender.Name} randevunuzu yeni saate aldı. Güncel bilgiler aşağıda.",
                 "Randevumu gör", manageLink,
-                "Yeni saat size uymuyorsa işletmeyle iletişime geçin." + callUs),
+                Contact("Yeni saat size uymuyorsa")),
             AppointmentEmailKind.Cancelled => (
                 $"{sender.Name}: randevunuz iptal edildi",
                 "Randevunuz iptal edildi",
                 $"{day} {time} tarihli randevunuz iptal edildi.",
                 bookingLink is null ? null : "Yeni randevu al", bookingLink,
-                "Bir yanlışlık olduğunu düşünüyorsanız işletmeyle iletişime geçin." + callUs),
+                Contact("Bir yanlışlık olduğunu düşünüyorsanız")),
             _ => (
                 $"{sender.Name}: randevu talebiniz onaylanamadı",
                 "Randevu talebiniz onaylanamadı",
                 $"{sender.Name}, {day} {time} için randevu talebinizi onaylayamadı.",
                 bookingLink is null ? null : "Başka saat seç", bookingLink,
-                "Başka bir saat için tekrar randevu alabilir veya işletmeyi arayabilirsiniz." + callUs),
+                sender.Phone is { } tel
+                    ? $"Başka bir saat için tekrar randevu alabilir veya işletmeyi arayabilirsiniz: {tel}."
+                    : "Başka bir saat için tekrar randevu alabilir veya işletmeyle iletişime geçebilirsiniz."),
         };
 
         return Build(to, subject, title, $"Merhaba {contactName},", body, button, link, footnote, sender, details);

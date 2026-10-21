@@ -18,6 +18,7 @@ import { TabNav } from "@/components/ui/scroll-row";
 import { Textarea } from "@/components/ui/textarea";
 import { api, errorMessage, fieldErrors, unwrap } from "@/lib/api/client";
 import { platformActionNames, roleNames, type AdminBusinessDetail, type Role } from "@/lib/api/types";
+import { displayPhone } from "@/lib/contacts";
 import { formatDate, formatDateTime, formatRelative } from "@/lib/format";
 
 import { adminKey } from "./platform-overview";
@@ -164,7 +165,7 @@ function SummaryTab({ detail }: { detail: AdminBusinessDetail }) {
         <CardContent className="px-4">
           <dl className="flex flex-col gap-2">
             <Row label="Sahip">{s.ownerName ? `${s.ownerName} · ${s.ownerEmail}` : "—"}</Row>
-            <Row label="Telefon">{detail.phone ?? "—"}</Row>
+            <Row label="Telefon">{detail.phone ? displayPhone(detail.phone) : "—"}</Row>
             <Row label="Şehir">{[detail.district, s.city].filter(Boolean).join(", ") || "—"}</Row>
             <Row label="Kayıt">{formatDate(s.createdAt)}</Row>
             <Row label="Son giriş">{s.lastLoginAt ? formatRelative(s.lastLoginAt) : "—"}</Row>
@@ -294,7 +295,7 @@ function UsersTab({ id }: { id: string }) {
           <span className="text-xs text-neutral-600">
             {u.email}
             {!u.emailConfirmed && " (doğrulanmadı)"}
-            {u.phone && ` · ${u.phone}`}
+            {u.phone && ` · ${displayPhone(u.phone)}`}
           </span>
           <span className="text-xs text-neutral-600">
             Katıldı {formatDate(u.joinedAt)} · son giriş {u.lastLoginAt ? formatRelative(u.lastLoginAt) : "yok"}

@@ -190,7 +190,12 @@ export function TimeGrid({
             {/* Saat ekseni */}
             <div className="sticky left-0 z-10 border-r border-border bg-white" style={{ height }}>
               {hours.map((m) => (
-                <span key={m} className="absolute right-1 -translate-y-1/2 text-xs text-neutral-600 tabular-nums" style={{ top: (m - bounds.start) * PX_PER_MIN }}>
+                // İlk etiket çizginin altında: ortalansa yarısı yapışkan başlığın altında kalırdı.
+                <span
+                  key={m}
+                  className={cn("absolute right-1 text-xs text-neutral-600 tabular-nums", m === bounds.start ? "translate-y-0.5" : "-translate-y-1/2")}
+                  style={{ top: (m - bounds.start) * PX_PER_MIN }}
+                >
                   {m < DAY_MINUTES ? hhmm(m) : ""}
                 </span>
               ))}
