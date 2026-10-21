@@ -86,7 +86,7 @@ function InviteCard() {
       <CardContent>
         {!verified && (
           <div className="mb-4">
-            <FormMessage tone="info">Davet göndermek için önce e-posta adresini doğrula (sayfanın üstündeki uyarı).</FormMessage>
+            <FormMessage tone="info">Davet göndermek için önce e-posta adresinizi doğrulayın (sayfanın üstündeki uyarı).</FormMessage>
           </div>
         )}
         <form className="flex flex-col gap-4" onSubmit={onSubmit} noValidate>
@@ -231,7 +231,7 @@ function MembersCard() {
                   <div className="flex min-w-0 flex-col gap-0.5">
                     <span className="flex items-center gap-2 text-sm font-semibold text-black">
                       {m.fullName}
-                      {m.isYou && <Badge className="bg-neutral-100 text-black">Sen</Badge>}
+                      {m.isYou && <Badge className="bg-neutral-100 text-black">Siz</Badge>}
                     </span>
                     <span className="truncate text-sm text-neutral-600">{m.email}</span>
                   </div>
@@ -277,7 +277,7 @@ function MembersCard() {
           <DialogHeader>
             <DialogTitle>Ekipten çıkarılsın mı?</DialogTitle>
             <DialogDescription>
-              {removing?.fullName} bu işletmeye artık erişemez. Gerekirse yeniden davet edebilirsin.
+              {removing?.fullName} bu işletmeye artık erişemez. Gerekirse yeniden davet edebilirsiniz.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>

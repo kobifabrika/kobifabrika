@@ -43,7 +43,7 @@ Durum: **bakıldı** (sorun yok) · **düzeltildi** · **açık** (pilot sonras�
 | Mali Müşavir | Bugün | düzeltildi | "Yarının randevuları"nda her satırda "Cep telefonu yok", WhatsApp açıklaması ve "Hatırlatılan 0/5" görünüyordu; salt okunur rolde liste kalır, hatırlatma kısmı yok. |
 | Mali Müşavir | Alt menü (telefon) | düzeltildi | "+" düğmesi boş "Hızlı işlem" penceresi açıyordu; işlem yoksa düğme yok (Vitest + E2E). |
 | Mali Müşavir | Kampanyalar, Otomasyonlar, raporlar, cari/kasa, satışlar | bakıldı | Salt okunur, düğmeler yok. |
-| Mali Müşavir | Personel kartı | açık | Devre dışı form olarak görünüyor; okunur bir özet görünümü daha iyi olur. |
+| Mali Müşavir | Personel kartı | düzeltildi | Bilgiler, Çalışma saatleri ve Hizmetler devre dışı form yerine okunur özet (2026-10-21, E2E). |
 | Herkes (SMS kapalı) | Otomasyonlar | düzeltildi | "Son 30 gün: 0 SMS · 0 kredi" satırı SMS kapalıyken gizli; anahtarlar kilitli ve açıklamalı (E2E). |
 | Süper admin | Özet, İşletmeler, işletme ayrıntısı, kullanıcılar, kredi, notlar, geri bildirim | düzeltildi | Telefonlar ham `+902125554433` yerine `0212 555 44 33`. "Son giriş" kayıttan sonra hiç çıkış yapmayan kullanıcıda hep "yok" kalıyordu; kayıt ve davetle kayıt ilk giriş sayılıyor. |
 | Müşteri | Online randevu (telefon) | düzeltildi | Adım geçişleri sunucuya gidip başlığı (title) bir an boşaltıyordu (Actions'ta axe buldu); adımlar yerel history ile, daha hızlı. |
@@ -51,8 +51,8 @@ Durum: **bakıldı** (sorun yok) · **düzeltildi** · **açık** (pilot sonras�
 | Müşteri | Aydınlatma, bulunamadı, site, kayıt, giriş, 404 | bakıldı | |
 | Müşteri e-postaları | Randevu iptal / ret / saat değişti | düzeltildi | Dipnotta "işletmeyle iletişime geçin. Değişiklik için işletmeyi arayın: …" tekrarı; telefon tek cümlede. |
 | Müşteri e-postaları | Randevu hatırlatma | düzeltildi | "Işıltı Kuaför randevunuzu hatırlatırız" → "Işıltı Kuaför olarak Saç kesimi randevunuzu hatırlatırız." |
-| Müşteri e-postaları | Ekstre, tahsilat, teklif | açık | Altta işletmenin telefonu/adresi yok (sadece adı); vade hatırlatma ve randevu e-postalarında var. |
-| Panel geneli | Hitap | açık | Panel çoğunlukla "siz" ("İşletmenizde bugün olanlar"), bazı sistem metinleri "sen" ("Bu sayfayı görme yetkin yok"); tek hitaba karar verilmeli. |
+| Müşteri e-postaları | Ekstre, tahsilat, teklif | düzeltildi | Altta işletmenin telefonu ve adresi (varsa); gönderen bilgisi tek yerden `EmailSenders.For` (2026-10-21, entegrasyon testi). |
+| Panel geneli | Hitap | düzeltildi (2026-10-21: panel, giriş/kayıt, kurulum, e-postalar "siz"; site "sen"; `hitap.test.ts`) | Panel çoğunlukla "siz" ("İşletmenizde bugün olanlar"), bazı sistem metinleri "sen" ("Bu sayfayı görme yetkin yok"); tek hitaba karar verilmeli. |
 | Test | `import-wizard.test.tsx` (Vitest) | açık | Yerelde tam Vitest koşusunda yük altında 5 sn sınırını aşabiliyor (tek başına 1,5 sn; Actions #31'de geçti). |
 
 Actions'ta bulunan (2026-10-20 gecesi): `sprint8a-yeni-esnaf` İstanbul saatiyle 00:00-01:00 arası koşunca randevuyu gece yarısını aşan bir saate taşımaya çalışıyordu (API haklı olarak reddetti); test saat seçimi düzeltildi, kural gevşetilmedi.

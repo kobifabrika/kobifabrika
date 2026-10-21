@@ -90,9 +90,6 @@ public sealed class AppointmentNotifier(
                 b.BookingEnabled && (b.Modules & Domain.Businesses.BusinessModules.Appointments) != 0))
             .FirstAsync(ct);
 
-    private static string? AddressOf(BusinessInfo b) =>
-        string.Join(", ", new[] { b.Address, b.District, b.City }.Where(x => !string.IsNullOrWhiteSpace(x))) is { Length: > 0 } a ? a : null;
-
     /// <summary>Müşterinin online randevu sayfası (yeni randevu için); sayfa kapalıysa null.</summary>
     private string? BookingLink(BusinessInfo b) => b.BookingOpen ? app.Value.Link($"/r/{b.Slug}") : null;
 
@@ -146,8 +143,8 @@ public sealed class AppointmentNotifier(
             _ => EmailTemplates.AppointmentEmailKind.Rejected,
         };
         var manage = emailKind is EmailTemplates.AppointmentEmailKind.Cancelled or EmailTemplates.AppointmentEmailKind.Rejected ? null : await Link();
-        var sender = new EmailSender(business.Name, app.Value.ApiLink(business.LogoUrl), business.Phone is { } bp ? FormatPhone(bp) : null,
-            AddressOf(business));
+        var sender = EmailSenders.For(business.Name, app.Value.ApiLink(business.LogoUrl), business.Phone, business.Address, business.District,
+            business.City);
         var now = clock.GetUtcNow().UtcDateTime;
         var message = EmailTemplates.Appointment(emailKind, to, sender, a.DisplayName, a.StartAt, a.Service, a.Staff, manage,
             BookingLink(business), now);

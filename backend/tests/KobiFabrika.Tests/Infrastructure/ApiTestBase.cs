@@ -2,6 +2,7 @@ using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using KobiFabrika.Infrastructure.Email;
 using Microsoft.AspNetCore.WebUtilities;
 
 namespace KobiFabrika.Tests.Infrastructure;
@@ -122,6 +123,29 @@ public abstract class ApiTestBase(SqlServerFixture db) : IAsyncLifetime
 
     protected async Task<HttpResponseMessage> LoginAsync(HttpClient client, string email, string password = DefaultPassword, bool rememberMe = false) =>
         await client.PostAsJsonAsync("/api/auth/login", new { email, password, rememberMe }, Ct);
+
+    /// <summary>İşletmenin telefonunu ve adresini ayarlar (Ayarlar → İşletme); müşteriye giden e-postaların alt bilgisinde görünür.</summary>
+    protected async Task SetBusinessContactAsync(HttpClient client)
+    {
+        var business = await GetJsonAsync(client, "/api/business");
+        await EnsureSuccessAsync(await client.PutAsJsonAsync("/api/business", new
+        {
+            name = business.GetProperty("name").GetString(),
+            sector = business.GetProperty("sector").GetString(),
+            phone = "0532 000 11 22",
+            address = "Moda Cd. 1",
+            city = "İstanbul",
+            district = "Kadıköy",
+        }, Ct));
+    }
+
+    /// <summary>Müşteriye giden e-postanın altında işletmenin telefonu ve adresi (HTML ve düz metin).</summary>
+    protected static void ShouldHaveBusinessContactFooter(EmailMessage mail)
+    {
+        const string contact = "0532 000 11 22 · Moda Cd. 1, Kadıköy, İstanbul";
+        mail.TextBody.ShouldContain(contact);
+        mail.HtmlBody.ShouldContain(contact);
+    }
 
     protected async Task<JsonElement> GetJsonAsync(HttpClient client, string url)
     {

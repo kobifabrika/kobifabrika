@@ -9,7 +9,6 @@ import {
   FileSpreadsheet,
   PackagePlus,
   Search,
-  UserPlus,
   UserRound,
   Users,
   type LucideIcon,
@@ -79,12 +78,6 @@ export function CommandMenu() {
       links.push({ label: "Yeni ürün/hizmet", href: "/panel/urunler/yeni", icon: PackagePlus, keywords: "ürün hizmet ekle katalog" });
     if (can(role, "writeContacts")) {
       links.push({
-        label: "Yeni müşteri",
-        href: "/panel/musteriler/yeni",
-        icon: UserPlus,
-        keywords: "müşteri ekle kayıt",
-      });
-      links.push({
         label: "Excel'den müşteri aktar",
         href: "/panel/musteriler/ice-aktar",
         icon: FileSpreadsheet,
@@ -114,7 +107,8 @@ export function CommandMenu() {
         keywords: "ayarlar log kayıt",
       });
     links.push({ label: "Hesabım", href: "/panel/hesabim", icon: UserRound, keywords: "profil şifre" });
-    return links;
+    // Aynı adres bir kez (liste anahtarı ve cmdk değeri adres; hızlı işlemle elle eklenen çakışınca React uyarı veriyordu).
+    return links.filter((link, i) => links.findIndex((l) => l.href === link.href) === i);
   }, [role, business.modules]);
 
   const matchedPages = useMemo(() => {

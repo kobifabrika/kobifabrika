@@ -42,80 +42,80 @@ public static class EmailTemplates
 
     public static EmailMessage ConfirmEmail(string to, string fullName, string link) => Build(
         to,
-        "E-posta adresini doğrula",
-        "E-posta adresini doğrula",
+        "E-posta adresinizi doğrulayın",
+        "E-posta adresinizi doğrulayın",
         $"Merhaba {fullName},",
-        "KobiFabrika hesabını oluşturduğun için teşekkürler. E-posta adresini doğrulamak için aşağıdaki düğmeye dokun.",
+        "KobiFabrika hesabınızı oluşturduğunuz için teşekkürler. E-posta adresinizi doğrulamak için aşağıdaki düğmeye dokunun.",
         "E-postamı doğrula",
         link,
-        "Bağlantı 24 saat geçerlidir. Bu hesabı sen oluşturmadıysan bu e-postayı yok sayabilirsin.");
+        "Bağlantı 24 saat geçerlidir. Bu hesabı siz oluşturmadıysanız bu e-postayı yok sayabilirsiniz.");
 
     public static EmailMessage ResetPassword(string to, string fullName, string link) => Build(
         to,
-        "Şifreni sıfırla",
-        "Şifreni sıfırla",
+        "Şifrenizi sıfırlayın",
+        "Şifrenizi sıfırlayın",
         $"Merhaba {fullName},",
-        "Şifreni sıfırlamak için bir istek aldık. Yeni şifre belirlemek için aşağıdaki düğmeye dokun.",
+        "Şifrenizi sıfırlamak için bir istek aldık. Yeni şifre belirlemek için aşağıdaki düğmeye dokunun.",
         "Yeni şifre belirle",
         link,
-        "Bağlantı 2 saat geçerlidir. Bu isteği sen yapmadıysan şifren değişmez; bu e-postayı yok sayabilirsin.");
+        "Bağlantı 2 saat geçerlidir. Bu isteği siz yapmadıysanız şifreniz değişmez; bu e-postayı yok sayabilirsiniz.");
 
     public static EmailMessage Invitation(string to, string businessName, string invitedBy, string roleName, string link) => Build(
         to,
-        $"{businessName} seni KobiFabrika'ya davet etti",
-        "Ekibe davet edildin",
+        $"{businessName} sizi KobiFabrika'ya davet etti",
+        "Ekibe davet edildiniz",
         "Merhaba,",
-        $"{invitedBy}, seni {businessName} işletmesine {roleName} olarak davet etti. Daveti kabul etmek için aşağıdaki düğmeye dokun.",
+        $"{invitedBy}, sizi {businessName} işletmesine {roleName} olarak davet etti. Daveti kabul etmek için aşağıdaki düğmeye dokunun.",
         "Daveti kabul et",
         link,
         "Davet 7 gün geçerlidir ve tek kullanımlıktır.");
 
     public static EmailMessage PasswordChanged(string to, string fullName) => Build(
         to,
-        "Şifren değiştirildi",
-        "Şifren değiştirildi",
+        "Şifreniz değiştirildi",
+        "Şifreniz değiştirildi",
         $"Merhaba {fullName},",
-        "KobiFabrika hesabının şifresi az önce değiştirildi. Diğer cihazlardaki oturumların kapatıldı.",
+        "KobiFabrika hesabınızın şifresi az önce değiştirildi. Diğer cihazlardaki oturumlarınız kapatıldı.",
         null,
         null,
-        "Bu değişikliği sen yapmadıysan hemen \"Şifremi unuttum\" ile yeni şifre belirle ve bize yaz.");
+        "Bu değişikliği siz yapmadıysanız hemen \"Şifremi unuttum\" ile yeni şifre belirleyin ve bize yazın.");
 
     /// <summary>Deneme bitiyor / bitti (işletme sahibine).</summary>
     public static EmailMessage TrialNotice(string to, string fullName, string businessName, bool ended, DateTime endsAtUtc, string link) => Build(
         to,
         ended ? $"{businessName}: deneme süresi bitti" : $"{businessName}: deneme süresi {LongDate(endsAtUtc)} tarihinde bitiyor",
-        ended ? "Deneme süren bitti" : "Deneme süren bitmek üzere",
+        ended ? "Deneme süreniz bitti" : "Deneme süreniz bitmek üzere",
         $"Merhaba {fullName},",
         ended
-            ? "14 günlük deneme süren bitti; hesabın ücretsiz Çırak paketiyle devam ediyor. Verilerin silinmedi. Kampanya, otomasyon ve online randevu gibi özellikler Kalfa ve Usta paketlerinde açılır."
-            : $"14 günlük deneme süren {LongDate(endsAtUtc)} tarihinde bitiyor. Sonra hesabın ücretsiz Çırak paketiyle devam eder; verilerin silinmez. Paketini seçmek için aşağıdaki düğmeye dokun.",
+            ? "14 günlük deneme süreniz bitti; hesabınız ücretsiz Çırak paketiyle devam ediyor. Verileriniz silinmedi. Kampanya, otomasyon ve online randevu gibi özellikler Kalfa ve Usta paketlerinde açılır."
+            : $"14 günlük deneme süreniz {LongDate(endsAtUtc)} tarihinde bitiyor. Sonra hesabınız ücretsiz Çırak paketiyle devam eder; verileriniz silinmez. Paketinizi seçmek için aşağıdaki düğmeye dokunun.",
         "Paketleri gör",
         link,
-        "Online ödeme yakında. Paket değişikliği için KobiFabrika destekle WhatsApp'tan veya e-postayla iletişime geçebilirsin.");
+        "Online ödeme yakında. Paket değişikliği için KobiFabrika destekle WhatsApp'tan veya e-postayla iletişime geçebilirsiniz.");
 
-    /// <summary>İşletmenin müşterisine giden ekstre linki.</summary>
-    public static EmailMessage Statement(string to, string businessName, string contactName, string range, string link) => Build(
+    /// <summary>İşletmenin müşterisine giden ekstre linki (altta işletmenin telefonu ve adresi, varsa).</summary>
+    public static EmailMessage Statement(string to, EmailSender sender, string contactName, string range, string link) => Build(
         to,
-        $"{businessName} cari hesap ekstreniz",
+        $"{sender.Name} cari hesap ekstreniz",
         "Cari hesap ekstreniz hazır",
         $"Merhaba {contactName},",
-        $"{businessName} işletmesindeki cari hesabınızın {range} dönemi ekstresi hazır. Görmek ve PDF olarak indirmek için aşağıdaki düğmeye dokunun.",
+        $"{sender.Name} işletmesindeki cari hesabınızın {range} dönemi ekstresi hazır. Görmek ve PDF olarak indirmek için aşağıdaki düğmeye dokunun.",
         "Ekstreyi gör",
         link,
         "Bağlantı 30 gün geçerlidir. Sorunuz varsa bu e-postayı yanıtlayarak işletmeye yazabilirsiniz.",
-        new EmailSender(businessName));
+        sender);
 
-    /// <summary>İşletmenin müşterisine giden tahsilat linki (IBAN ve "Ödedim").</summary>
-    public static EmailMessage PaymentRequest(string to, string businessName, string contactName, string amount, string link) => Build(
+    /// <summary>İşletmenin müşterisine giden tahsilat linki (IBAN ve "Ödedim"; altta işletmenin telefonu ve adresi).</summary>
+    public static EmailMessage PaymentRequest(string to, EmailSender sender, string contactName, string amount, string link) => Build(
         to,
-        $"{businessName} ödeme bilgileri",
+        $"{sender.Name} ödeme bilgileri",
         "Ödeme bilgileri",
         $"Merhaba {contactName},",
-        $"{businessName} işletmesine {amount} ödemeniz için banka bilgileri aşağıdaki bağlantıda. Ödemeyi yaptıktan sonra sayfadaki \"Ödedim\" düğmesine dokunun.",
+        $"{sender.Name} işletmesine {amount} ödemeniz için banka bilgileri aşağıdaki bağlantıda. Ödemeyi yaptıktan sonra sayfadaki \"Ödedim\" düğmesine dokunun.",
         "Ödeme bilgilerini gör",
         link,
         "Bağlantı 30 gün geçerlidir. Sorunuz varsa bu e-postayı yanıtlayarak işletmeye yazabilirsiniz.",
-        new EmailSender(businessName));
+        sender);
 
     /// <summary>Vadesi gelen alacak hatırlatması (bilgilendirme; izin aranmaz).</summary>
     public static EmailMessage DueReminder(string to, EmailSender sender, string contactName, string amount, string? link) => Build(
@@ -129,16 +129,17 @@ public static class EmailTemplates
         "Ödemeyi yaptıysanız bu e-postayı dikkate almayın. Sorunuz varsa bu e-postayı yanıtlayarak işletmeye yazabilirsiniz.",
         sender);
 
-    public static EmailMessage Quote(string to, string businessName, string contactName, string quoteNo, string total, string validUntil, string link) => Build(
+    /// <summary>Teklif linki (altta işletmenin telefonu ve adresi, varsa).</summary>
+    public static EmailMessage Quote(string to, EmailSender sender, string contactName, string quoteNo, string total, string validUntil, string link) => Build(
         to,
-        $"{businessName} teklifi: {quoteNo}",
+        $"{sender.Name} teklifi: {quoteNo}",
         $"Teklif {quoteNo}",
         $"Merhaba {contactName},",
-        $"{businessName} size {total} tutarında bir teklif gönderdi. Teklifi aşağıdaki bağlantıdan inceleyip onaylayabilir veya reddedebilirsiniz.",
+        $"{sender.Name} size {total} tutarında bir teklif gönderdi. Teklifi aşağıdaki bağlantıdan inceleyip onaylayabilir veya reddedebilirsiniz.",
         "Teklifi gör",
         link,
         $"Teklif {validUntil} tarihine kadar geçerlidir. Sorunuz varsa bu e-postayı yanıtlayarak işletmeye yazabilirsiniz.",
-        new EmailSender(businessName));
+        sender);
 
     // --- Randevu (müşteriye; bilgilendirme) ---
 

@@ -37,7 +37,7 @@ export function InvitationView() {
 
   const joined = (result: Me) => {
     queryClient.setQueryData(meQueryKey, result);
-    toast.success(`${result.business?.name ?? "Ekip"} ekibine katıldın.`);
+    toast.success(`${result.business?.name ?? "Ekip"} ekibine katıldınız.`);
     router.replace("/panel");
   };
 
@@ -64,7 +64,7 @@ export function InvitationView() {
     <div className="mt-6 flex flex-col gap-6">
       <div className="rounded-lg border border-border bg-neutral-50 p-4">
         <p className="text-sm text-neutral-600">
-          <span className="font-semibold text-black">{invitation.invitedBy}</span> seni davet etti:
+          <span className="font-semibold text-black">{invitation.invitedBy}</span> sizi davet etti:
         </p>
         <p className="mt-1 text-xl font-bold text-black">{invitation.businessName}</p>
         <p className="mt-2 text-sm text-black">
@@ -176,7 +176,7 @@ function LoginAndAccept({ token, email, onJoined }: { token: string; email: stri
         }
       }}
     >
-      <p className="text-sm text-neutral-600">Bu e-postayla bir hesabın var. Daveti kabul etmek için giriş yap.</p>
+      <p className="text-sm text-neutral-600">Bu e-postayla bir hesabınız var. Daveti kabul etmek için giriş yapın.</p>
       <Field label="E-posta">
         <Input type="email" value={email} readOnly className="bg-neutral-100" />
       </Field>
@@ -229,7 +229,7 @@ function RegisterAndAccept({ token, email, onJoined }: { token: string; email: s
 
   return (
     <form className="flex flex-col gap-5" onSubmit={onSubmit} noValidate>
-      <p className="text-sm text-neutral-600">Hesabını oluştur; ekibe hemen katılırsın.</p>
+      <p className="text-sm text-neutral-600">Hesabınızı oluşturun; ekibe hemen katılırsınız.</p>
       <Field label="E-posta" hint="Davet bu adrese gönderildi.">
         <Input type="email" value={email} readOnly className="bg-neutral-100" />
       </Field>

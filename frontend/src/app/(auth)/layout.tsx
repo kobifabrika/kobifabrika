@@ -17,7 +17,7 @@ export default function AuthLayout({ children }: LayoutProps<"/">) {
         </Link>
         <p className="hidden max-w-sm text-center text-base text-sidebar-foreground md:mt-5 md:block">
           <span className="block text-xl font-semibold text-white">{siteSlogan}</span>
-          <span className="mt-2 block">Paranı takip eden, müşteri getiren, personelini yöneten tek uygulama.</span>
+          <span className="mt-2 block">Paranızı takip eden, müşteri getiren, personelinizi yöneten tek uygulama.</span>
         </p>
         <div className="hidden text-center text-xs text-sidebar-foreground/80 md:absolute md:inset-x-12 md:bottom-8 md:block">
           <p className="font-semibold tracking-wider">{company.name}</p>

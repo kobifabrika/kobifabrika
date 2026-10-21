@@ -47,7 +47,7 @@ export function BusinessSettings() {
 
   return (
     <div className="flex flex-col gap-6">
-      {readOnly && <FormMessage tone="info">Mali müşavir olarak ayarları sadece görüntüleyebilirsin.</FormMessage>}
+      {readOnly && <FormMessage tone="info">Mali müşavir olarak ayarları sadece görüntüleyebilirsiniz.</FormMessage>}
       <InfoCard business={business.data} readOnly={readOnly} />
       <SlugCard business={business.data} readOnly={readOnly} />
       <PaymentInfoCard business={business.data} readOnly={readOnly} />
@@ -256,7 +256,7 @@ function SlugCard({ business, readOnly }: { business: Business; readOnly: boolea
   return (
     <SettingsCard
       title="Randevu linki"
-      description="Müşterilerin online randevu alacağı adres. Değiştirirsen eski link çalışmaz."
+      description="Müşterilerin online randevu alacağı adres. Değiştirirseniz eski link çalışmaz."
     >
       <div className="flex flex-col gap-4">
         <Field
@@ -308,7 +308,7 @@ function ModulesCard({ business, readOnly }: { business: Business; readOnly: boo
   return (
     <SettingsCard
       title="Modüller"
-      description="Şablonuna göre bazı modüller kapalı başlar; ihtiyacın varsa buradan açabilirsin."
+      description="Şablonunuza göre bazı modüller kapalı başlar; ihtiyacınız varsa buradan açabilirsiniz."
     >
       <ul className="flex flex-col divide-y divide-border">
         {rows.map((row) => (

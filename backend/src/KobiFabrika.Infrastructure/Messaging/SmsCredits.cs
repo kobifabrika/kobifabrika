@@ -86,7 +86,7 @@ public sealed class SmsCredits(AppDbContext db, ITenantContext tenant, INotifica
 
         try
         {
-            await TopUpAsync(SmsCredit.WelcomeCredits, SmsCreditKind.Welcome, "Hoş geldin kredisi", ct);
+            await TopUpAsync(SmsCredit.WelcomeCredits, SmsCreditKind.Welcome, "Hoş geldiniz kredisi", ct);
             return true;
         }
         catch (DbUpdateException ex) when (ex.InnerException is SqlException { Number: 2601 or 2627 })

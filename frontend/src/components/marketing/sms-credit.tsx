@@ -111,7 +111,7 @@ export function SmsSettings() {
   return (
     <div className="flex flex-col gap-4">
       {role === "Accountant" && (
-        <p className="text-sm text-neutral-600">Mali Müşavir olarak bu sayfayı görüntüleyebilirsin; değiştiremezsin.</p>
+        <p className="text-sm text-neutral-600">Mali Müşavir olarak bu sayfayı görüntüleyebilirsiniz; değiştiremezsiniz.</p>
       )}
       {credit.isPending ? (
         <p role="status" className="text-sm text-neutral-600">

@@ -332,7 +332,7 @@ public static class QuoteEndpoints
 
         var business = await db.Businesses.AsNoTracking().FirstAsync(b => b.Id == member.BusinessId, ct);
         var url = options.Value.Link($"/teklif/{token}");
-        var sent = sendEmail && await email.TrySendAsync(EmailTemplates.Quote(contact.Email!, business.Name, contact.DisplayName, quote.No,
+        var sent = sendEmail && await email.TrySendAsync(EmailTemplates.Quote(contact.Email!, EmailSenders.For(business, options.Value), contact.DisplayName, quote.No,
             ShareLinks.Money(quote.Total), quote.ValidUntil.ToString("dd.MM.yyyy"), url), ct);
         var response = (await LoadAsync(db, member, id, clock, ct))!;
         return TypedResults.Ok(new QuoteLinkResponse(response, url,

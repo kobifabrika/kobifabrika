@@ -20,6 +20,7 @@ import { StaffHours } from "./staff-hours";
 import { LeaveBalanceCard } from "./staff-leave-balance";
 import { StaffSalaryTab } from "./staff-salary";
 import { StaffServices } from "./staff-services";
+import { StaffHoursSummary, StaffInfoSummary, StaffServicesSummary } from "./staff-summary";
 import { StaffTimeOffs } from "./staff-time-offs";
 
 const allTabs = [
@@ -89,9 +90,10 @@ export function StaffDetail({ id }: { id: string }) {
       </div>
       {s.title && <p className="-mt-3 text-sm text-neutral-600">{s.title}</p>}
       <TabNav label="Personel kartı" active={tab} tabs={tabs.map((t) => ({ ...t, href: `/panel/personel/${id}?sekme=${t.key}` }))} />
-      {tab === "bilgiler" && <StaffForm key={s.id + String(s.isActive)} staff={s} readOnly={!manage} />}
-      {tab === "saatler" && <StaffHours staffId={id} readOnly={!manage} />}
-      {tab === "hizmetler" && <StaffServices staff={s} readOnly={!manage} />}
+      {/* Düzenleyemeyen rol (Mali Müşavir) devre dışı form yerine okunur özet görür. */}
+      {tab === "bilgiler" && (manage ? <StaffForm key={s.id + String(s.isActive)} staff={s} /> : <StaffInfoSummary staff={s} />)}
+      {tab === "saatler" && (manage ? <StaffHours staffId={id} readOnly={false} /> : <StaffHoursSummary staffId={id} />)}
+      {tab === "hizmetler" && (manage ? <StaffServices staff={s} readOnly={false} /> : <StaffServicesSummary staff={s} />)}
       {tab === "kapali" && <StaffTimeOffs staffId={id} readOnly={!manage} />}
       {tab === "izin" && <LeaveBalanceCard staffId={id} manage={can(role, "manageStaffTime")} />}
       {tab === "maas" && <StaffSalaryTab staffId={id} staffName={s.fullName} />}

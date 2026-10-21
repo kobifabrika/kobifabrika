@@ -53,7 +53,7 @@ test("davet, personel kaydı, rol kısıtları ve ekipten çıkarma", async ({
   // Mali Müşavir: ayarları salt okunur görür, müşteri ekleyemez.
   const accountant = await pageAs(await addMember(owner, "Accountant", "Mehmet Müşavir"));
   await visit(accountant, "/panel/ayarlar", "Mali Müşavir · Ayarlar");
-  await expect(accountant.getByText("Mali müşavir olarak ayarları sadece görüntüleyebilirsin.")).toBeVisible();
+  await expect(accountant.getByText("Mali müşavir olarak ayarları sadece görüntüleyebilirsiniz.")).toBeVisible();
   await expect(accountant.getByLabel("İşletme adı")).toBeDisabled();
   await visit(accountant, "/panel/musteriler", "Mali Müşavir · Müşteriler");
   await expect(accountant.getByRole("link", { name: "Yeni müşteri" })).toHaveCount(0);

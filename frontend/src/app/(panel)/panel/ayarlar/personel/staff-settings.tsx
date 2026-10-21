@@ -40,7 +40,7 @@ export function StaffSettings() {
   const readOnly = !can(role, "manageStaffTime");
   return (
     <div className="flex flex-col gap-4">
-      {role === "Accountant" && <p className="text-sm text-neutral-600">Mali Müşavir olarak bu ayarları görüntüleyebilirsin; değiştiremezsin.</p>}
+      {role === "Accountant" && <p className="text-sm text-neutral-600">Mali Müşavir olarak bu ayarları görüntüleyebilirsiniz; değiştiremezsiniz.</p>}
       <OvertimeCard readOnly={readOnly} />
       <LeaveTypesCard readOnly={readOnly} />
     </div>

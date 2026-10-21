@@ -44,7 +44,7 @@ export function ErrorView({
         </>
       }
     >
-      <p>Sayfa açılırken beklenmeyen bir hata oluştu. Tekrar dene; sorun sürerse bize yaz, birlikte bakalım.</p>
+      <p>Sayfa açılırken beklenmeyen bir hata oluştu. Tekrar deneyin; sorun sürerse bize yazın, birlikte bakalım.</p>
       {error.digest && <p className="mt-2 text-sm text-neutral-600">Hata kodu: {error.digest}</p>}
     </StatusPage>
   );

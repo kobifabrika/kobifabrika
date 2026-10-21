@@ -179,7 +179,7 @@ internal sealed class MembershipAuthorizationHandler(CurrentMember member, Platf
                     }
                     else
                     {
-                        Fail(context, "email_not_confirmed", "Bu işlem için önce e-postanı doğrulamalısın.");
+                        Fail(context, "email_not_confirmed", "Bu işlem için önce e-postanızı doğrulamanız gerekiyor.");
                     }
 
                     break;

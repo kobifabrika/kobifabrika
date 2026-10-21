@@ -60,6 +60,11 @@ Rakip incelemesi: `docs/rakip-site-notlari.md`.
 - Köşe yuvarlaklığı 6px (`--radius`); büyük yüzeylerde (çerçeve, tablo) köşe yok ya da az.
 - Paket fiyatları ve limitleri sitede `frontend/src/content/plans.ts`, uygulamada Plans tablosu (süper admin); ikisi birlikte güncellenir.
 
+## Hitap ve sayı alanları (2026-10-21)
+
+- **Hitap:** panel, giriş/kayıt/davet, kurulum, müşteriye açık sayfalar (online randevu, ekstre, teklif, anket) ve bütün e-postalar **"siz"** ("Kaydedin", "E-postanızı doğrulayın"). Tanıtım sitesi "sen". Düğme etiketleri kısa emir ("Kaydet", "Gönder") her iki hitapta da geçerli. `src/lib/hitap.test.ts` kesin "sen" kalıplarını yakalar.
+- **Sayı alanları:** para, miktar, gün, yüzde alanları `NumberInput` (`components/ui/number-input.tsx`): harf girilemez, ondalık ayırıcı virgül (nokta virgüle döner), telefonda sayısal klavye. `type="number"` kullanılmaz (Safari harf kabul eder, tekerlek değeri değiştirir).
+
 ## Tipografi
 
 - **Başlık:** Schibsted Grotesk (`next/font/google`, kendi sunucumuzdan; `latin` + `latin-ext`). `h1`–`h3` ve `font-heading` sınıfı. Kalın (700), sıkı satır aralığı, hafif negatif harf aralığı.

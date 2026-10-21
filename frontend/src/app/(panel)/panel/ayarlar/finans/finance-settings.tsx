@@ -39,7 +39,7 @@ export function FinanceSettings() {
   const { role } = useSession();
   return (
     <div className="flex flex-col gap-4">
-      {role === "Accountant" && <p className="text-sm text-neutral-600">Mali Müşavir olarak bu ayarları görüntüleyebilirsin; değiştiremezsin.</p>}
+      {role === "Accountant" && <p className="text-sm text-neutral-600">Mali Müşavir olarak bu ayarları görüntüleyebilirsiniz; değiştiremezsiniz.</p>}
       <DefaultAccountsCard readOnly={!can(role, "manageFinance")} />
       <DueSettingsCard readOnly={!can(role, "manageBusiness")} />
       <CategoriesCard readOnly={!can(role, "manageFinance")} />
@@ -153,7 +153,7 @@ function DueSettingsCard({ readOnly }: { readOnly: boolean }) {
           <span className="flex flex-col">
             <span className="text-sm font-semibold text-black">Otomatik vade bildirimi</span>
             <span className="text-sm text-neutral-600">
-              {"Her sabah 09:00'da vadesi o gün gelen alacaklar için sana ve yöneticilere bildirim gelir. Müşteriye otomatik SMS ileride eklenecek."}
+              {"Her sabah 09:00'da vadesi o gün gelen alacaklar için size ve yöneticilere bildirim gelir. Müşteriye otomatik SMS ileride eklenecek."}
             </span>
           </span>
           <Switch

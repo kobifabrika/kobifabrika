@@ -32,12 +32,12 @@ export function VerifyEmail() {
   if (!userId || !token || verify.isError) {
     const message = verify.isError ? (fieldErrors(verify.error).token ?? errorMessage(verify.error)) : "Bağlantı eksik veya bozuk.";
     return (
-      <Result ok={false} title="E-posta doğrulanamadı" text={`${message} Panelde "Tekrar gönder" ile yeni bağlantı isteyebilirsin.`} />
+      <Result ok={false} title="E-posta doğrulanamadı" text={`${message} Panelde "Tekrar gönder" ile yeni bağlantı isteyebilirsiniz.`} />
     );
   }
 
   if (verify.isSuccess) {
-    return <Result ok title="E-postan doğrulandı" text="Teşekkürler! Artık ekip arkadaşlarını davet edebilirsin." />;
+    return <Result ok title="E-postanız doğrulandı" text="Teşekkürler! Artık ekip arkadaşlarınızı davet edebilirsiniz." />;
   }
 
   return (

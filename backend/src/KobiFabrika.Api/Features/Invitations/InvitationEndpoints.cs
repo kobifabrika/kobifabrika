@@ -225,7 +225,7 @@ public sealed class InvitationAcceptor(IServiceScopeFactory scopes)
             $"{user.FullName}, {invitation.Role.DisplayName()} olarak davetinizi kabul etti.",
             "/panel/ayarlar/ekip");
         notifications.Notify(user.Id, NotificationTypes.JoinedTeam,
-            $"{businessName} ekibine hoş geldin",
+            $"{businessName} ekibine hoş geldiniz",
             $"Rolün: {invitation.Role.DisplayName()}.",
             "/panel");
 

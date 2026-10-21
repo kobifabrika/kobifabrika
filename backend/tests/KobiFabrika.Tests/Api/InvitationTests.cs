@@ -25,7 +25,7 @@ public sealed class InvitationTests(SqlServerFixture db) : ApiTestBase(db)
         var problem = await ProblemAsync(await InviteAsync(owner, UniqueEmail()), HttpStatusCode.Forbidden);
 
         problem.GetProperty("code").GetString().ShouldBe("email_not_confirmed");
-        problem.GetProperty("detail").GetString().ShouldBe("Bu işlem için önce e-postanı doğrulamalısın.");
+        problem.GetProperty("detail").GetString().ShouldBe("Bu işlem için önce e-postanızı doğrulamanız gerekiyor.");
     }
 
     [Fact]
@@ -37,7 +37,7 @@ public sealed class InvitationTests(SqlServerFixture db) : ApiTestBase(db)
         (await InviteAsync(owner, email, "Manager")).StatusCode.ShouldBe(HttpStatusCode.Created);
 
         var message = Factory.Emails.To(email).ShouldHaveSingleItem();
-        message.Subject.ShouldBe("Davet Kuaförü seni KobiFabrika'ya davet etti");
+        message.Subject.ShouldBe("Davet Kuaförü sizi KobiFabrika'ya davet etti");
         message.TextBody.ShouldContain("Yönetici olarak davet etti");
 
         var preview = await GetJsonAsync(NewClient(), $"/api/invitations/{InvitationTokenFor(email)}");

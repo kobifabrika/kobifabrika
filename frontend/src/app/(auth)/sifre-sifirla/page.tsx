@@ -9,7 +9,7 @@ export default function ResetPasswordPage() {
   return (
     <>
       <h1 className="text-3xl font-bold tracking-tight text-black">Yeni şifre belirle</h1>
-      <p className="mt-2 text-sm text-neutral-600">Şifren değişince diğer cihazlardaki oturumların kapanır.</p>
+      <p className="mt-2 text-sm text-neutral-600">Şifreniz değişince diğer cihazlardaki oturumlarınız kapanır.</p>
       <Suspense>
         <ResetForm />
       </Suspense>

@@ -180,6 +180,7 @@ public sealed class PaymentRequestTests(SqlServerFixture db) : ApiTestBase(db)
     public async Task Sharing_again_returns_the_same_link_and_email_is_sent_in_business_name()
     {
         var (owner, contactId) = await SetupAsync();
+        await SetBusinessContactAsync(owner.Client);
         var (id, token, link) = await CreateLinkAsync(owner.Client, contactId, 100m, sendEmail: true);
         link.GetProperty("emailSent").GetBoolean().ShouldBeTrue();
         link.GetProperty("isNewLink").GetBoolean().ShouldBeTrue();
@@ -189,6 +190,7 @@ public sealed class PaymentRequestTests(SqlServerFixture db) : ApiTestBase(db)
         mail.TextBody.ShouldContain("100,00 TL");
         mail.TextBody.ShouldContain($"/odeme/{token}");
         mail.TextBody.ShouldContain("KobiFabrika ile gönderildi");
+        ShouldHaveBusinessContactFooter(mail);
 
         Factory.Clock.Advance(TimeSpan.FromDays(10));
         var shared = await ShareAsync(owner.Client, id, sendEmail: true);

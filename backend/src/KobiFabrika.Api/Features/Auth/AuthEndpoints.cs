@@ -171,7 +171,7 @@ public static class AuthEndpoints
         {
             return TypedResults.Problem(
                 statusCode: StatusCodes.Status401Unauthorized,
-                detail: "Çok fazla hatalı deneme. 5 dakika sonra tekrar dene.",
+                detail: "Çok fazla hatalı deneme. 5 dakika sonra tekrar deneyin.",
                 extensions: new Dictionary<string, object?> { ["code"] = "locked_out" });
         }
 

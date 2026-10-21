@@ -267,8 +267,7 @@ public static class ReceivableEndpoints
         var (url, _) = business.Iban is null
             ? (null, false)
             : await EnsurePaymentLinkAsync(db, ledger, protector, options.Value, audit, clock, contactId, amount, ct);
-        var sender = new EmailSender(business.Name, options.Value.ApiLink(business.LogoUrl),
-            business.Phone is { } p ? Infrastructure.Messaging.AppointmentNotifier.FormatPhone(p) : null);
+        var sender = EmailSenders.For(business, options.Value);
         await email.TrySendAsync(EmailTemplates.DueReminder(contact.Email.Trim(), sender, contact.DisplayName,
             amount.ToString("#,##0.00", Tr) + " TL", url), ct, "due-reminder");
 

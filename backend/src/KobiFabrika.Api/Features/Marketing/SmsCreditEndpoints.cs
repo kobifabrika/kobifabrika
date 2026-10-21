@@ -103,7 +103,7 @@ public static class SmsCreditEndpoints
     public static readonly IReadOnlyDictionary<SmsCreditKind, string> KindLabels = new Dictionary<SmsCreditKind, string>
     {
         [SmsCreditKind.TopUp] = "Yükleme",
-        [SmsCreditKind.Welcome] = "Hoş geldin kredisi",
+        [SmsCreditKind.Welcome] = "Hoş geldiniz kredisi",
         [SmsCreditKind.Send] = "Gönderim",
         [SmsCreditKind.Refund] = "İade",
         [SmsCreditKind.Adjustment] = "Düzeltme",

@@ -116,9 +116,11 @@ public sealed partial class QuoteTests(SqlServerFixture db) : ApiTestBase(db)
     public async Task Share_returns_the_same_link_and_public_page_shows_quote()
     {
         var (owner, contactId, productId) = await ShopAsync();
+        await SetBusinessContactAsync(owner.Client);
         var id = (await CreateQuoteAsync(owner.Client, Body(contactId, [SaleTests.Line(productId)]))).GetProperty("id").GetGuid();
 
         var first = await PostAsync(owner.Client, $"/api/quotes/{id}/share", new { sendEmail = true });
+        ShouldHaveBusinessContactFooter(Factory.Emails.To("ayse@ornek.com").Single());
         first.GetProperty("isNewLink").GetBoolean().ShouldBeTrue();
         first.GetProperty("emailSent").GetBoolean().ShouldBeTrue();
         first.GetProperty("quote").GetProperty("status").GetString().ShouldBe("Sent");

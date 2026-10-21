@@ -106,7 +106,7 @@ Tahmini, yarı zamanlı. Toplam yaklaşık 15-18 hafta. Her sprint sonunda: buil
 - [x] SMS'siz çalışma: `Messaging:SmsEnabled=false`; randevu bildirimleri e-postayla, WhatsApp düğmeleri, "Yarının randevuları" + "Hatırlatıldı", anket linki WhatsApp'tan, vade hatırlatma e-postası; online randevu kodsuz (işletme onaylar, e-posta isteğe bağlı, bot tuzağı ve hız sınırları)
 - [x] E-posta altyapısı (kod; Brevo hesabı ve DNS 8B'de): Brevo (SMTP), `bildirim@kobifabrika.com`, Reply-To işletme, Hangfire kuyruğu (OutboundEmails), logolu sade şablonlar
 - [x] Destek ve yardım: Yardım menüsü (WhatsApp +90 535 977 93 82, destek@kobifabrika.com, makaleler), geri bildirim (metin + isteğe bağlı ekran görüntüsü), 4 temel yardım makalesi
-- [x] Hukuki metin taslakları (son güncelleme tarihli): KVKK aydınlatma, gizlilik, çerez, kullanım koşulları, veri işleme sözleşmesi, işletmenin müşterileri için aydınlatma şablonu; şirket bilgisi tek ayardan ("KobiFabrika (kuruluş aşamasında)")
+- [x] Hukuki metin taslakları (son güncelleme tarihli): KVKK aydınlatma, gizlilik, çerez, kullanım koşulları, veri işleme sözleşmesi, işletmenin müşterileri için aydınlatma şablonu; şirket bilgisi tek ayardan (şimdilik sadece "KobiFabrika"; 2026-10-21)
 - [x] Tanıtım sitesi yeniden tasarımı (5 marka rengi), "Işıltı Kuaför" demo ekran görüntüleri, fiyat/SSS/hakkımızda/iletişim/yardım/hukuki sayfalar, SEO (başlık, açıklama, OG görseli, sitemap, robots)
 - [x] Panel ve giriş ekranları renk yenilemesi (#000a1d koyu yüzeyler, #006ea6 link/seçili, #00b0ff ana düğme; Bugün kartlarında renkli ikon ve şerit, boş durum çizimleri)
 - [x] Baştan sona tur: her rol ve ekran masaüstü + 375 px, `docs/pilot-test-raporu.md`; online randevu sayfası ve müşteri e-postalarına ayrı özen

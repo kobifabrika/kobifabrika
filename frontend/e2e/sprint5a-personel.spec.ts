@@ -81,8 +81,16 @@ test("personel: ekleme, öğle aralı saatler, hizmetler, kapalı zaman, tatil v
   const accountantPage = await pageAs(accountant);
   await accountantPage.goto(`/panel/personel/${staffId}`);
   await check(accountantPage, "Personel kartı · Mali Müşavir");
-  await expect(accountantPage.getByLabel("Ad soyad")).toBeDisabled();
+  // Devre dışı form değil, okunur özet (2026-10-21).
+  await expect(accountantPage.getByRole("textbox")).toHaveCount(0);
+  await expect(accountantPage.getByRole("definition").filter({ hasText: "Kuaför" })).toBeVisible();
   await expect(accountantPage.getByRole("button", { name: "Kaydet" })).toHaveCount(0);
+  await accountantPage.getByRole("link", { name: "Çalışma saatleri", exact: true }).click();
+  await expect(accountantPage.getByText("09:00–12:00, 13:00–18:00")).toBeVisible();
+  await check(accountantPage, "Personel kartı · Mali Müşavir · saatler");
+  await accountantPage.getByRole("link", { name: "Hizmetler", exact: true }).click();
+  await expect(accountantPage.getByRole("checkbox")).toHaveCount(0);
+  await expect(accountantPage.getByRole("listitem").filter({ hasText: " dk" })).toHaveCount(1);
 
   const staff = await addMember(owner, "Staff", "Personel Ece");
   const staffPage = await pageAs(staff);

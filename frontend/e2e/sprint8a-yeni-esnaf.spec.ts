@@ -15,7 +15,7 @@ async function checkout(page: Page, info: TestInfo): Promise<Locator> {
 }
 
 /**
- * Sprint 8A "yeni esnaf" (SMS kapalı, pilotun gerçek hali): fiyat sayfasından kayıt (?paket=kalfa) → "E-postanı kontrol et" →
+ * Sprint 8A "yeni esnaf" (SMS kapalı, pilotun gerçek hali): fiyat sayfasından kayıt (?paket=kalfa) → "E-postanızı kontrol edin" →
  * doğrulama (Mailpit) → kurulum sihirbazı (kuaför) → personel → hizmet → online randevuyu aç → müşteri kodsuz randevu talebi
  * (e-postalı; "alındı" e-postası) → Sahip onaylar (WhatsApp düğmesi, "onaylandı" e-postası) → randevu tamamlandı → satışa çevir
  * (nakit) → kasa bakiyesi → Bugün. Online randevu ileri bir saate alınır; "Tamamlandı" saat gelince işaretlenebildiği için
@@ -35,10 +35,10 @@ test("yeni esnaf: kayıttan ilk satışa", async ({ page, newPublicPage, visit, 
   await page.getByLabel("Şifre", { exact: true }).fill(PASSWORD);
   await page.locator("#terms").check();
   await page.getByRole("button", { name: "Hesap oluştur" }).click();
-  await expect(page.getByRole("heading", { name: "E-postanı kontrol et" })).toBeVisible();
-  const verify = await linkFromEmail(email, /E-posta adresini doğrula/, "/e-posta-dogrula");
+  await expect(page.getByRole("heading", { name: "E-postanızı kontrol edin" })).toBeVisible();
+  const verify = await linkFromEmail(email, /E-posta adresinizi doğrulayın/, "/e-posta-dogrula");
   await page.goto(verify);
-  await expect(page.getByText("E-postan doğrulandı")).toBeVisible();
+  await expect(page.getByText("E-postanız doğrulandı")).toBeVisible();
 
   // 3. Kurulum sihirbazı.
   await page.goto("/kurulum");

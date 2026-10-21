@@ -112,7 +112,7 @@ function WizardSteps({ initial }: { initial: SetupState }) {
     try {
       const next = await unwrap(api.POST("/api/setup/complete"));
       queryClient.setQueryData(meQueryKey, next);
-      toast.success("Kurulum tamam. Hoş geldin!");
+      toast.success("Kurulum tamam. Hoş geldiniz!");
       router.replace("/panel");
     } catch (e) {
       setError(errorMessage(e));
@@ -138,8 +138,8 @@ function WizardSteps({ initial }: { initial: SetupState }) {
       {step === 0 && (
         <section className="flex flex-col gap-4">
           <div>
-            <h1 className="text-2xl font-bold tracking-tight text-black">İşletmeni tanıyalım</h1>
-            <p className="mt-1 text-sm text-neutral-600">Sektörün menüyü ve varsayılan ayarları belirler; sonra değiştirebilirsin.</p>
+            <h1 className="text-2xl font-bold tracking-tight text-black">İşletmenizi tanıyalım</h1>
+            <p className="mt-1 text-sm text-neutral-600">Sektörünüz menüyü ve varsayılan ayarları belirler; sonra değiştirebilirsiniz.</p>
           </div>
           <form id="business-form" onSubmit={saveBusiness} noValidate>
             <BusinessFields
@@ -155,7 +155,7 @@ function WizardSteps({ initial }: { initial: SetupState }) {
       {step === 1 && (
         <section className="flex flex-col gap-4">
           <div>
-            <h1 className="text-2xl font-bold tracking-tight text-black">Çalışma saatlerin</h1>
+            <h1 className="text-2xl font-bold tracking-tight text-black">Çalışma saatleriniz</h1>
             <p className="mt-1 text-sm text-neutral-600">Online randevu ve takvim bu saatlere göre çalışır.</p>
           </div>
           <WorkingHoursEditor value={hours} onChange={setHours} />
@@ -165,8 +165,8 @@ function WizardSteps({ initial }: { initial: SetupState }) {
       {step === 2 && (
         <section className="flex flex-col gap-4">
           <div>
-            <h1 className="text-2xl font-bold tracking-tight text-black">Logon var mı?</h1>
-            <p className="mt-1 text-sm text-neutral-600">Tekliflerde ve randevu sayfanda görünür. İstersen bu adımı atlayabilirsin.</p>
+            <h1 className="text-2xl font-bold tracking-tight text-black">Logonuz var mı?</h1>
+            <p className="mt-1 text-sm text-neutral-600">Tekliflerde ve randevu sayfanızda görünür. İsterseniz bu adımı atlayabilirsiniz.</p>
           </div>
           <LogoUpload logoUrl={logoUrl} endpoint="/api/setup/logo" onChange={setLogoUrl} />
         </section>

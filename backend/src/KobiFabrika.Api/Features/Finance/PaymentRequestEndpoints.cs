@@ -133,20 +133,21 @@ public static class PaymentRequestEndpoints
         audit.Log(AuditAction.PaymentRequestCreated, nameof(PaymentRequest), paymentRequest.Id, new { contactId = contact.Id, amount });
         await db.SaveChangesAsync(ct);
 
-        var link = await LinkAsync(db, paymentRequest.Id, token, true, contact, business.Name, request.SendEmail, email, options, clock, ct);
+        var link = await LinkAsync(db, paymentRequest.Id, token, true, contact, business, request.SendEmail, email, options, clock, ct);
         return TypedResults.Created($"/api/payment-requests/{paymentRequest.Id}", link);
     }
 
     private static async Task<PaymentRequestLinkResponse> LinkAsync(
-        AppDbContext db, Guid id, string token, bool isNew, Contact contact, string businessName, bool sendEmail, EmailDispatch email,
-        IOptions<AppOptions> options, TimeProvider clock, CancellationToken ct)
+        AppDbContext db, Guid id, string token, bool isNew, Contact contact, Domain.Businesses.Business business, bool sendEmail,
+        EmailDispatch email, IOptions<AppOptions> options, TimeProvider clock, CancellationToken ct)
     {
         var response = await LoadAsync(db, id, clock, ct);
         var url = options.Value.Link($"/odeme/{token}");
         var sent = sendEmail && await email.TrySendAsync(
-            EmailTemplates.PaymentRequest(contact.Email!, businessName, contact.DisplayName, ShareLinks.Money(response.Amount), url), ct);
+            EmailTemplates.PaymentRequest(contact.Email!, EmailSenders.For(business, options.Value), contact.DisplayName,
+                ShareLinks.Money(response.Amount), url), ct);
         return new PaymentRequestLinkResponse(
-            response, url, ShareLinks.WhatsApp(contact.Phone, ShareLinks.PaymentMessage(contact.DisplayName, businessName, response.Amount, url)), sent, isNew);
+            response, url, ShareLinks.WhatsApp(contact.Phone, ShareLinks.PaymentMessage(contact.DisplayName, business.Name, response.Amount, url)), sent, isNew);
     }
 
     private static Task<Results<Ok<PaymentRequestLinkResponse>, ProblemHttpResult>> Share(
@@ -201,8 +202,8 @@ public static class PaymentRequestEndpoints
             await db.SaveChangesAsync(ct);
         }
 
-        var businessName = await db.Businesses.Where(b => b.Id == member.BusinessId).Select(b => b.Name).FirstAsync(ct);
-        return TypedResults.Ok(await LinkAsync(db, id, token, isNew, contact, businessName, sendEmail, email, options, clock, ct));
+        var business = await db.Businesses.AsNoTracking().FirstAsync(b => b.Id == member.BusinessId, ct);
+        return TypedResults.Ok(await LinkAsync(db, id, token, isNew, contact, business, sendEmail, email, options, clock, ct));
     }
 
     private static ProblemHttpResult NotFound() => Problems.NotFound("Tahsilat linki bulunamadı.");

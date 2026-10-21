@@ -33,7 +33,7 @@ test("kredi yükle, kampanya gönder, çıkış linki @sms", async ({ owner, own
   await expect(page.getByTestId("sms-balance")).toHaveText("150");
   const history = page.getByRole("list", { name: "Kredi hareketleri" });
   await expect(history.getByText("Yükleme")).toBeVisible();
-  await expect(history.getByText("Hoş geldin kredisi")).toBeVisible();
+  await expect(history.getByText("Hoş geldiniz kredisi")).toBeVisible();
   await page.getByRole("button", { name: "Kredi yükle" }).first().click();
   const dialog = page.getByRole("dialog");
   await expect(dialog.getByRole("link", { name: /WhatsApp ile destek/ })).toHaveAttribute("href", /^https:\/\/wa\.me\/905359779382\?text=/);

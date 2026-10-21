@@ -259,7 +259,7 @@ export type PublicOptOut = Schemas["PublicOptOutResponse"];
 
 export const smsCreditKindNames: Record<SmsCreditKind, string> = {
   TopUp: "Yükleme",
-  Welcome: "Hoş geldin kredisi",
+  Welcome: "Hoş geldiniz kredisi",
   Send: "Gönderim",
   Refund: "İade",
   Adjustment: "Düzeltme",

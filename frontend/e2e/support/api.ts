@@ -66,7 +66,7 @@ export class ApiUser {
 
   async confirmEmail() {
     if (this.emailConfirmed) return;
-    const link = new URL(await linkFromEmail(this.email, /E-posta adresini doğrula/, "/e-posta-dogrula"));
+    const link = new URL(await linkFromEmail(this.email, /E-posta adresinizi doğrulayın/, "/e-posta-dogrula"));
     await this.post("/api/auth/confirm-email", {
       userId: link.searchParams.get("u"),
       token: link.searchParams.get("t"),

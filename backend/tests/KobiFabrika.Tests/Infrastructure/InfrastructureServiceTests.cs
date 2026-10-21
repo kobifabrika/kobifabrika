@@ -45,7 +45,7 @@ public sealed class InfrastructureServiceTests
         var message = EmailTemplates.Invitation(
             "a@b.com", "<Şık> Kuaför", "Emir Kaya", "Personel", "http://localhost:3000/davet/abc?x=1&y=2");
 
-        message.Subject.ShouldBe("<Şık> Kuaför seni KobiFabrika'ya davet etti");
+        message.Subject.ShouldBe("<Şık> Kuaför sizi KobiFabrika'ya davet etti");
         message.HtmlBody.ShouldContain("&lt;Şık&gt; Kuaför");
         message.HtmlBody.ShouldNotContain("<Şık>");
         message.HtmlBody.ShouldContain("http://localhost:3000/davet/abc?x=1&amp;y=2");

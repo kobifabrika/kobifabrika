@@ -16,7 +16,7 @@ export default function PanelNotFound() {
         </Button>
       }
     >
-      Kayıt silinmiş ya da bağlantı eksik kopyalanmış olabilir. Menüden istediğin ekrana geçebilirsin.
+      Kayıt silinmiş ya da bağlantı eksik kopyalanmış olabilir. Menüden istediğiniz ekrana geçebilirsiniz.
     </StatusPage>
   );
 }

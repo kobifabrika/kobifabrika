@@ -35,6 +35,15 @@ describe("CommandMenu (Ctrl+K)", () => {
     expect(push).toHaveBeenCalledWith("/panel/ayarlar/calisma-saatleri");
   });
 
+  it("her sayfa bir kez listelenir (aynı adres iki kez yok)", async () => {
+    renderWithSession(<CommandMenu />);
+    fireEvent.keyDown(window, { key: "k", ctrlKey: true });
+    await screen.findByPlaceholderText(/sayfa ara/);
+    expect(screen.getAllByRole("option", { name: /Yeni müşteri/ })).toHaveLength(1);
+    const values = screen.getAllByRole("option").map((o) => o.getAttribute("data-value"));
+    expect(new Set(values).size).toBe(values.length);
+  });
+
   it("API araması 2 karakterden sonra çağrılır; sonuç yoksa mesaj gösterir", async () => {
     renderWithSession(<CommandMenu />);
 

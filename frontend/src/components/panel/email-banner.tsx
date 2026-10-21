@@ -43,7 +43,7 @@ export function EmailBanner() {
         <p className="flex items-start gap-2 text-sm text-black">
           <MailWarning aria-hidden className="mt-0.5 size-5 shrink-0" />
           <span>
-            <strong>E-postanı doğrula.</strong> {me.user.email} adresine bir bağlantı gönderdik. Ekip daveti için doğrulama
+            <strong>E-postanızı doğrulayın.</strong> {me.user.email} adresine bir bağlantı gönderdik. Ekip daveti için doğrulama
             gerekiyor.
           </span>
         </p>

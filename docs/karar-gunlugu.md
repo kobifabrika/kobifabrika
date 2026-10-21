@@ -2,6 +2,18 @@
 
 En yeni en üstte. Notion'daki "Proje Planı ve Kararlar" sayfasıyla aynı kararlar; teknik kararlar burada daha ayrıntılı.
 
+- **2026-10-21 (tasarım turu düzeltmeleri, Emir'in gezisi):**
+  - **Şirket bilgisi:** "(kuruluş aşamasında)" hiçbir yerde görünmez; unvan şimdilik sadece **KobiFabrika**, iletişim destek@kobifabrika.com (`content/company.ts`, backend `Company:EmailFooter`). KVKK metninde "Veri sorumlusu" bölümü dolu (ad, iletişim, site; adres/MERSİS şirket kurulunca). **Avukata sorulacak:** şirket kurulmadan veri sorumlusu olarak marka adının yazılması yeterli mi, kurucunun adı/adresi yazılmalı mı; şirket kurulunca unvan, adres, MERSİS eklenir ve `LegalVersions` artırılır. Metin içeriği değişmediği için sürüm artırılmadı.
+  - **Fiyatlar:** başlık bandı kısa (`PageIntro compact`); kartta düğme fiyatın hemen altında, limitler ve özellikler sonra. Paket düğmeleri 1920×1080 ve 1366×768'de ilk ekranda (E2E ölçer).
+  - **Panel menüsü:** üstte işletmenin logosu (yuvarlak köşeli, küçük; yoksa sadece ad) ve adı; KobiFabrika logosu altta küçük ve soluk (`NavFooter`, sol menü ve telefon Menü aynı). Üst çubuk 8 px ince (56/48 px), "Yeni" düğmesi `px-4`.
+  - **Bildirimler** telefonda kenarlardan 16 px eşit boşluklu (Radix `collisionPadding`), masaüstünde zilin altında sağa hizalı (E2E ölçer).
+  - **Sayı alanları** tek bileşen `NumberInput` (`lib/number-input.ts`): harf, boşluk, TL girilemez; tek ondalık ayırıcı virgül, klavyeden nokta virgüle döner; yapıştırılan "1.500,00" binlikli okunur; tam sayı alanları (gün, adet, dakika) sadece rakam; telefonda `inputMode` decimal/numeric (eksi girilebilen izin bakiyesi düzeltmesinde tam klavye, iOS sayısal klavyede eksi yok). `type="number"` kullanılmaz.
+  - **Konsol:** komut menüsünde "Yeni müşteri" iki kez (aynı key). E2E production derlemesine karşı koştuğu için React'in geliştirme uyarılarını hiç görmüyordu. Vitest artık konsol hatası/uyarısında testi düşürür (`vitest.setup.ts`; jsdom'a özgü grafik boyutu uyarısı hariç); rol turu `E2E_WEB_DEV=1` ile `next dev`'e karşı koşup uyarıları da toplar, arama/zil/Menü'yü açar.
+  - **Hitap:** panel, giriş/kayıt/davet, kurulum, müşteri sayfaları ve bütün e-postalar **"siz"**; tanıtım sitesi "sen" kalabilir. `hitap.test.ts` kaynakta kesin "sen" kalıplarını arar. Eski "Hoş geldin kredisi" kayıtları migration ile "Hoş geldiniz kredisi".
+  - **Mali Müşavir personel kartı:** devre dışı form yerine okunur özet (Bilgiler, Çalışma saatleri, Hizmetler).
+  - **E-postalar:** ekstre, tahsilat linki, teklif ve vade hatırlatma altında işletmenin telefonu ve adresi (varsa); gönderen tek yerden (`EmailSenders.For`).
+  - **Renk yönü:** Emir "soğuk" buldu; 3 seçenek (A gece mavisi + altın, B ferah beyaz + mercan, C krem + antrasit) `docs/tasarim-secenekleri/` altında önizlendi (sadece öneri, uygulanmadı; Emir seçecek).
+
 - **2026-10-21 (Sprint 8A kapanış, A10 tur):**
   - 8A yayın öncesi kesiti kapandı: Actions #31 yeşil (`412e9a7`). Tur: 139 ekran × masaüstü + 375 px, otomatik kontrol 0 bulgu, gözle bulunanlar düzeltildi; açık kalanlar `docs/pilot-test-raporu.md`.
   - **Online randevu adımları** `router.push` yerine yerel `history.pushState/replaceState` (Next useSearchParams ile eşlenir): adım değişimi sunucuya gitmez, metadata yeniden akmaz; başlık bir an boşalmıyor (axe Actions'ta yakalamıştı).

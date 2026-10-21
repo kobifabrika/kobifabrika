@@ -23,7 +23,7 @@ const schema = z.object({
 type Values = z.infer<typeof schema>;
 
 const notices: Record<string, string> = {
-  "sifre-yenilendi": "Şifren yenilendi. Yeni şifrenle giriş yapabilirsin.",
+  "sifre-yenilendi": "Şifreniz yenilendi. Yeni şifrenizle giriş yapabilirsiniz.",
 };
 
 export function LoginForm() {

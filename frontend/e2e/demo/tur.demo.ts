@@ -15,6 +15,9 @@ import { seedIsilti } from "./seed";
  * Personel, Mali Müşavir, Süper admin) her ekranı masaüstünde (1280) ve telefonda (375) açar; tam sayfa görüntü
  * test-results/tur/<rol>-<cihaz>/ altına, otomatik bulgular (375 px yatay taşma, axe ciddi/kritik, 4xx/5xx, konsol hatası)
  * test-results/tur/bulgular.json'a yazılır. Görüntüleri insan gözü inceler; sonuç docs/pilot-test-raporu.md.
+ * Konsol uyarıları da bulgudur. `E2E_WEB_DEV=1` ile frontend `next dev` çalışır: React'in sadece geliştirme derlemesinde verdiği
+ * uyarılar (aynı key, kontrolsüz input…) da yakalanır (2026-10-21; production derlemesinde bunlar hiç yazılmaz).
+ * Her rolün ilk ekranında arama (Ctrl+K), zil ve telefonda Menü de açılır (içerikleri sadece açılınca render edilir).
  */
 const out = path.join(frontendDir, "test-results", "tur");
 const devices = {
@@ -34,12 +37,18 @@ async function tour(browser: Browser, role: string, user: ApiUser | null, screen
     await page.clock.setFixedTime(new Date(`${istanbulDay()}T11:40:00+03:00`));
     let current = { screen: "", url: "" };
     const note = (issue: string) => findings.push({ role, device, ...current, issue });
-    page.on("console", (m) => m.type() === "error" && !/Failed to load resource/.test(m.text()) && note(`Konsol: ${m.text().slice(0, 200)}`));
+    page.on("console", (m) => {
+      if (m.type() !== "error" && m.type() !== "warning") return;
+      if (/Failed to load resource|\[HMR\]|\[Fast Refresh\]|Download the React DevTools/.test(m.text())) return;
+      note(`Konsol (${m.type()}): ${m.text().slice(0, 300)}`);
+    });
+    page.on("pageerror", (e) => note(`JS hatası: ${e.message.slice(0, 300)}`));
     page.on("response", (r) => r.status() >= 500 && note(`HTTP ${r.status()} ${r.url()}`));
     for (const [i, [url, screen]] of screens.entries()) {
       current = { screen, url };
       await page.goto(url);
       await settle(page);
+      if (i === 0 && user) await openOverlays(page, device);
       if (device === "telefon") {
         const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
         if (overflow > 0) note(`375 px'te ${overflow} px yatay taşma`);
@@ -56,6 +65,20 @@ async function tour(browser: Browser, role: string, user: ApiUser | null, screen
   // Her rolden sonra yazılır: tur yarıda kalsa da o ana kadarki bulgular kalır.
   mkdirSync(out, { recursive: true });
   writeFileSync(path.join(out, "bulgular.json"), JSON.stringify(findings, null, 2));
+}
+
+/** Arama (Ctrl+K, masaüstü), Bildirimler ve telefonda Menü: açılıp kapanır, konsol dinleyicisi içeriklerini de görür. */
+async function openOverlays(page: Page, device: string) {
+  const toggle = async (open: () => Promise<void>) => {
+    await open().catch(() => undefined);
+    await page.waitForTimeout(500);
+    await page.keyboard.press("Escape");
+    await page.waitForTimeout(200);
+  };
+  if (device === "masaustu") await toggle(() => page.keyboard.press("Control+k"));
+  await toggle(() => page.getByRole("button", { name: /^Bildirimler/ }).click({ timeout: 3000 }));
+  if (device === "telefon") await toggle(() => page.getByRole("button", { name: "Menü" }).click({ timeout: 3000 }));
+  else await toggle(() => page.getByRole("button", { name: "Hızlı işlem" }).click({ timeout: 3000 }));
 }
 
 async function settle(page: Page) {

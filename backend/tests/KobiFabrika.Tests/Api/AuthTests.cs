@@ -25,7 +25,7 @@ public sealed class AuthTests(SqlServerFixture db) : ApiTestBase(db)
         me.GetProperty("business").ValueKind.ShouldBe(JsonValueKind.Null);
 
         var email = Factory.Emails.To(user.Email).ShouldHaveSingleItem();
-        email.Subject.ShouldBe("E-posta adresini doğrula");
+        email.Subject.ShouldBe("E-posta adresinizi doğrulayın");
         email.TextBody.ShouldContain("http://localhost:3000/e-posta-dogrula?u=");
 
         // Kayıtta: KVKK bilgilendirmesi, Kullanım koşulları ve Veri işleme sözleşmesi (sürümleriyle); yeniden onay istenmez.
@@ -224,7 +224,7 @@ public sealed class AuthTests(SqlServerFixture db) : ApiTestBase(db)
         }, Ct);
         reset.StatusCode.ShouldBe(HttpStatusCode.NoContent);
 
-        Factory.Emails.To(user.Email).Last().Subject.ShouldBe("Şifren değiştirildi");
+        Factory.Emails.To(user.Email).Last().Subject.ShouldBe("Şifreniz değiştirildi");
         (await LoginAsync(NewClient(), user.Email)).StatusCode.ShouldBe(HttpStatusCode.Unauthorized);
         (await LoginAsync(NewClient(), user.Email, "YeniSifre99")).StatusCode.ShouldBe(HttpStatusCode.OK);
 

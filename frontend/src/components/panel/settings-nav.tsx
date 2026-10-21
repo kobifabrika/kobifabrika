@@ -45,8 +45,8 @@ export function RequirePermission({ permission, children }: { permission: Permis
     <Card>
       <CardContent className="flex flex-col items-center gap-3 py-10 text-center">
         <ShieldAlert aria-hidden className="size-10 text-neutral-400" />
-        <p className="text-base font-semibold text-black">Bu sayfayı görme yetkin yok</p>
-        <p className="text-sm text-neutral-600">Gerekirse işletme sahibinden yetki iste.</p>
+        <p className="text-base font-semibold text-black">Bu sayfayı görme yetkiniz yok</p>
+        <p className="text-sm text-neutral-600">Gerekirse işletme sahibinden yetki isteyin.</p>
       </CardContent>
     </Card>
   );

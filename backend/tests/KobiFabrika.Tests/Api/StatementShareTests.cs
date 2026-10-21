@@ -63,6 +63,7 @@ public sealed class StatementShareTests(SqlServerFixture db) : ApiTestBase(db)
     public async Task Statement_is_emailed_in_business_name()
     {
         var (owner, id) = await SetupAsync();
+        await SetBusinessContactAsync(owner.Client);
 
         var share = await ShareAsync(owner.Client, id, new { channel = "Email" });
 
@@ -71,6 +72,7 @@ public sealed class StatementShareTests(SqlServerFixture db) : ApiTestBase(db)
         mail.Subject.ShouldBe("Şık Kuaför cari hesap ekstreniz");
         mail.TextBody.ShouldContain(share.GetProperty("url").GetString()!);
         mail.HtmlBody.ShouldContain("KobiFabrika ile gönderildi");
+        ShouldHaveBusinessContactFooter(mail);
     }
 
     [Fact]

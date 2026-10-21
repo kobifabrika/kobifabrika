@@ -67,9 +67,11 @@ public static class StatementShareEndpoints
         await db.SaveChangesAsync(ct);
 
         var url = options.Value.Link($"/ekstre/{token}");
-        var businessName = await db.Businesses.Where(b => b.Id == contact.BusinessId).Select(b => b.Name).FirstAsync(ct);
+        var business = await db.Businesses.AsNoTracking().FirstAsync(b => b.Id == contact.BusinessId, ct);
+        var businessName = business.Name;
         var sent = request.Channel == ShareChannel.Email && await email.TrySendAsync(
-            EmailTemplates.Statement(contact.Email!, businessName, contact.DisplayName, ShareLinks.Range(request.From, to), url), ct);
+            EmailTemplates.Statement(contact.Email!, EmailSenders.For(business, options.Value), contact.DisplayName,
+                ShareLinks.Range(request.From, to), url), ct);
 
         return TypedResults.Ok(new StatementShareResponse(
             share.Id, url, ShareLinks.WhatsApp(contact.Phone, ShareLinks.StatementMessage(contact.DisplayName, businessName, url)),

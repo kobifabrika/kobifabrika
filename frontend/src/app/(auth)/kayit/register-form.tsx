@@ -41,7 +41,7 @@ export function requestedPlan(params: URLSearchParams): { plan: (typeof plans)[n
 /**
  * Kayıt ekranı: işletme adı burada sorulmaz, kurulum sihirbazında sorulur; kayıt olan kişi işletmenin sahibi olur. Fiyat
  * sayfasından gelindiyse seçilen paket gösterilir ve kayda yazılır (ödeme yok, deneme bitince Sahip seçer). Kayıttan sonra
- * "E-postanı kontrol et" ekranı: doğrulama bağlantısı, tekrar gönder, gelmezse ne yapmalı ve kuruluma devam.
+ * "E-postanızı kontrol edin" ekranı: doğrulama bağlantısı, tekrar gönder, gelmezse ne yapmalı ve kuruluma devam.
  */
 export function RegisterView() {
   const [registered, setRegistered] = useState<Me | null>(null);
@@ -75,18 +75,18 @@ function CheckEmail({ me }: { me: Me }) {
     <section aria-labelledby="eposta-kontrol" className="flex flex-col gap-5">
       <MailCheck aria-hidden className="size-10 text-link" />
       <h1 id="eposta-kontrol" className="text-3xl font-bold tracking-tight text-black">
-        E-postanı kontrol et
+        E-postanızı kontrol edin
       </h1>
       <p className="text-base text-neutral-700">
         <span className="font-semibold break-all text-black">{me.user.email}</span> adresine bir doğrulama bağlantısı gönderdik.
-        Bağlantıya dokununca hesabın doğrulanır.
+        Bağlantıya dokununca hesabınız doğrulanır.
       </p>
       <ol className="flex flex-col gap-2 border-l-2 border-brand bg-neutral-50 px-4 py-3 text-sm text-neutral-700">
-        <li>1. E-posta kutunu aç; &quot;E-posta adresini doğrula&quot; konulu e-postayı bul.</li>
-        <li>2. Birkaç dakikada gelmezse İstenmeyen (Spam) ve Promosyonlar klasörüne bak.</li>
-        <li>3. Hâlâ yoksa aşağıdan tekrar gönder.</li>
+        <li>1. E-posta kutunuzu açın; &quot;E-posta adresinizi doğrulayın&quot; konulu e-postayı bulun.</li>
+        <li>2. Birkaç dakikada gelmezse İstenmeyen (Spam) ve Promosyonlar klasörüne bakın.</li>
+        <li>3. Hâlâ yoksa aşağıdan tekrar gönderin.</li>
       </ol>
-      <p className="text-sm text-neutral-600">Beklemene gerek yok: işletmeni şimdi kurabilir, e-postayı sonra doğrulayabilirsin.</p>
+      <p className="text-sm text-neutral-600">Beklemenize gerek yok: işletmenizi şimdi kurabilir, e-postayı sonra doğrulayabilirsiniz.</p>
       <Button size="lg" className="w-full" onClick={() => afterAuth(me)}>
         İşletmemi kurmaya başla
       </Button>
@@ -94,11 +94,11 @@ function CheckEmail({ me }: { me: Me }) {
         {resend.isSuccess ? "Tekrar gönderildi" : "E-postayı tekrar gönder"}
       </Button>
       <p className="text-sm text-neutral-600">
-        E-posta adresini yanlış mı yazdın?{" "}
+        E-posta adresinizi yanlış mı yazdınız?{" "}
         <a href="mailto:destek@kobifabrika.com" className="font-semibold text-link underline">
           destek@kobifabrika.com
         </a>{" "}
-        adresine yazabilirsin.
+        adresine yazabilirsiniz.
       </p>
     </section>
   );

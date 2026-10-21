@@ -17,18 +17,18 @@ test("kayıt, doğrulama, kurulum sihirbazı, çıkış/giriş ve şifre sıfır
   await page.getByLabel("Şifre", { exact: true }).fill(PASSWORD);
   await page.locator("#terms").check();
   await page.getByRole("button", { name: "Hesap oluştur" }).click();
-  // Kayıttan sonra "E-postanı kontrol et": adres, ne yapmalı, tekrar gönder, kuruluma devam.
-  await expect(page.getByRole("heading", { name: "E-postanı kontrol et" })).toBeVisible();
+  // Kayıttan sonra "E-postanızı kontrol edin": adres, ne yapmalı, tekrar gönder, kuruluma devam.
+  await expect(page.getByRole("heading", { name: "E-postanızı kontrol edin" })).toBeVisible();
   await expect(page.getByText(email)).toBeVisible();
-  await check(page, "Kayıt · e-postanı kontrol et");
+  await check(page, "Kayıt · e-postanızı kontrol edin");
   await page.getByRole("button", { name: "İşletmemi kurmaya başla" }).click();
   await expect(page).toHaveURL(/\/kurulum/);
-  await expect(page.getByRole("heading", { name: "İşletmeni tanıyalım" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "İşletmenizi tanıyalım" })).toBeVisible();
 
   // E-posta doğrulama linki (Mailpit)
-  const verify = await linkFromEmail(email, /E-posta adresini doğrula/, "/e-posta-dogrula");
+  const verify = await linkFromEmail(email, /E-posta adresinizi doğrulayın/, "/e-posta-dogrula");
   await page.goto(verify);
-  await expect(page.getByText("E-postan doğrulandı")).toBeVisible();
+  await expect(page.getByText("E-postanız doğrulandı")).toBeVisible();
   await check(page, "E-posta doğrulandı");
 
   // Çıkıp giriş ekranından tekrar girince sihirbaz kaldığı yerden açılır.
@@ -82,14 +82,14 @@ test("kayıt, doğrulama, kurulum sihirbazı, çıkış/giriş ve şifre sıfır
   await page.getByLabel("E-posta").fill(email);
   await page.getByRole("button", { name: "Sıfırlama bağlantısı gönder" }).click();
   await expect(page.getByText(/sıfırlama bağlantısı gönderdik/)).toBeVisible();
-  const reset = await linkFromEmail(email, /Şifreni sıfırla/, "/sifre-sifirla");
+  const reset = await linkFromEmail(email, /Şifrenizi sıfırlayın/, "/sifre-sifirla");
   await page.goto(reset);
   await page.getByLabel("Yeni şifre", { exact: true }).fill("YeniSifre99");
   await page.getByLabel("Yeni şifre (tekrar)").fill("YeniSifre99");
   await check(page, "Yeni şifre");
   await page.getByRole("button", { name: "Şifremi yenile" }).click();
   await expect(page).toHaveURL(/\/giris\?bilgi=sifre-yenilendi/);
-  await expect(page.getByText("Şifren yenilendi.")).toBeVisible();
+  await expect(page.getByText("Şifreniz yenilendi.")).toBeVisible();
 
   await login(page, email, "YeniSifre99");
   await expect(page).toHaveURL(/\/panel$/);

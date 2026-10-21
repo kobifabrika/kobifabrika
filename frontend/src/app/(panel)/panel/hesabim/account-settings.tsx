@@ -46,7 +46,7 @@ function ProfileCard() {
       await unwrap(api.PUT("/api/auth/profile", { body: values }));
       await queryClient.invalidateQueries({ queryKey: meQueryKey });
       form.reset(values);
-      toast.success("Bilgilerin kaydedildi.");
+      toast.success("Bilgileriniz kaydedildi.");
     } catch (e) {
       const fields = fieldErrors(e);
       for (const [name, message] of Object.entries(fields)) {
@@ -75,7 +75,7 @@ function ProfileCard() {
                 </span>
               ) : (
                 <span className="flex items-center gap-1 text-neutral-600">
-                  <MailWarning aria-hidden className="size-4" /> Doğrulanmadı — sayfanın üstünden yeni bağlantı isteyebilirsin.
+                  <MailWarning aria-hidden className="size-4" /> Doğrulanmadı — sayfanın üstünden yeni bağlantı isteyebilirsiniz.
                 </span>
               )
             }
@@ -117,7 +117,7 @@ function PasswordCard() {
     try {
       await unwrap(api.POST("/api/auth/change-password", { body: { currentPassword, newPassword } }));
       form.reset();
-      toast.success("Şifren değiştirildi. Diğer cihazlardaki oturumların kapanacak.");
+      toast.success("Şifreniz değiştirildi. Diğer cihazlardaki oturumlarınız kapanacak.");
     } catch (e) {
       const fields = fieldErrors(e);
       if (fields.currentPassword) form.setError("currentPassword", { message: fields.currentPassword });
