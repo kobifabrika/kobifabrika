@@ -5,6 +5,7 @@ import { expect, test, type Page } from "@playwright/test";
 import sharp from "sharp";
 
 import { frontendDir } from "../scripts/env.mjs";
+import { platformAdmin } from "../support/api";
 import { istanbulDay } from "../support/finance";
 
 import { seedIsilti } from "./seed";
@@ -12,8 +13,9 @@ import { seedIsilti } from "./seed";
 /**
  * Tanıtım sitesi önizlemesi (`npx playwright test -c playwright.demo.config.ts site-onizleme`): bütün site sayfaları masaüstü
  * 1440 px (2x) ve 1366 px (1x), telefon 375 px (2x) tam sayfa görüntü → test-results/site-onizleme/ (fotoğrafların netliğini
- * yakından incelemek için, repoya girmez). Ana sayfa, Özellikler, Fiyatlar, Giriş ve panelin Bugün ekranı (Işıltı Kuaför)
- * ayrıca docs/tasarim-onizleme/ altına yazılır (WebP; masaüstü 1440, telefon 750 px genişliğe küçültülür).
+ * yakından incelemek için, repoya girmez). Ana sayfa, Özellikler, Fiyatlar, Giriş; panelin Bugün, takvim, müşteriler, hızlı satış,
+ * ayarlar ekranları ve telefonda açık Menü (Işıltı Kuaför); /platform ve online randevu sayfası ayrıca docs/tasarim-onizleme/
+ * altına yazılır (WebP; masaüstü 1440, telefon 750 px genişliğe küçültülür). Logo, koyu ton ve panel düzeni bunlardan incelenir.
  */
 const out = path.join(frontendDir, "test-results", "site-onizleme");
 const docs = path.resolve(frontendDir, "..", "docs", "tasarim-onizleme");
@@ -31,6 +33,7 @@ const pages: [string, string][] = [
   ["/giris", "giris"],
   ["/kayit", "kayit"],
   ["/sifremi-unuttum", "sifremi-unuttum"],
+  ["/olmayan-sayfa", "404"],
 ];
 const toDocs = new Set(["ana-sayfa", "ozellikler", "fiyatlar", "giris"]);
 const devices = {
@@ -80,7 +83,7 @@ async function capture(page: Page, device: Device, name: string, docsName?: stri
   }
 }
 
-test("site önizlemesi: bütün sayfalar 1440 (2x), 1366 ve 375 px (2x); panel Bugün", async ({ browser }) => {
+test("site önizlemesi: bütün sayfalar 1440 (2x), 1366 ve 375 px (2x); panel, platform, online randevu", async ({ browser }) => {
   test.setTimeout(900_000);
   for (const [device, options] of Object.entries(devices) as [Device, (typeof devices)[Device]][]) {
     const context = await browser.newContext({ ...options, locale: "tr-TR", timezoneId: "Europe/Istanbul" });
@@ -94,15 +97,50 @@ test("site önizlemesi: bütün sayfalar 1440 (2x), 1366 ve 375 px (2x); panel B
     await context.close();
   }
 
-  // Panel Bugün ekranı: demo işletme, gün ortası.
-  const { owner } = await seedIsilti();
+  // Panel ekranları: demo işletme, gün ortası.
+  const { owner, slug, today } = await seedIsilti();
+  const panel: [string, string, (page: Page) => Promise<void>][] = [
+    ["/panel", "panel-bugun", (page) => expect(page.getByRole("region", { name: "Hızlı işlemler" })).toBeVisible({ timeout: 15_000 })],
+    [`/panel/randevular?tarih=${today}`, "panel-takvim", (page) => expect(page.getByRole("heading", { level: 1 })).toBeVisible()],
+    ["/panel/musteriler", "panel-musteriler", (page) => expect(page.getByRole("heading", { level: 1 })).toBeVisible()],
+    ["/panel/satislar/yeni", "panel-hizli-satis", (page) => expect(page.getByRole("heading", { level: 1 })).toBeVisible()],
+    ["/panel/ayarlar", "panel-ayarlar", (page) => expect(page.getByRole("heading", { level: 1 })).toBeVisible()],
+  ];
   for (const device of ["masaustu-1440", "telefon-375"] as const) {
     const context = await owner.browserContext(browser, { ...devices[device], locale: "tr-TR", timezoneId: "Europe/Istanbul" });
     const page = await context.newPage();
     await page.clock.setFixedTime(new Date(`${istanbulDay()}T11:40:00+03:00`));
-    await page.goto("/panel");
-    await expect(page.getByRole("region", { name: "Hızlı işlemler" })).toBeVisible({ timeout: 15_000 });
-    await capture(page, device, "panel-bugun", "panel-bugun", true);
+    for (const [url, name, ready] of panel) {
+      await page.goto(url);
+      await ready(page);
+      await capture(page, device, name, name, true);
+      await page.setViewportSize(devices[device].viewport);
+    }
+    if (device === "telefon-375") {
+      await page.goto("/panel");
+      await page.getByRole("button", { name: "Menü" }).click();
+      await expect(page.getByRole("dialog")).toBeVisible();
+      await page.waitForTimeout(500);
+      await capture(page, device, "panel-menu", "panel-menu");
+    }
     await context.close();
+  }
+
+  // Süper admin (/platform) ve online randevu sayfası (müşteriye açık).
+  const admin = await platformAdmin();
+  for (const device of ["masaustu-1440", "telefon-375"] as const) {
+    const context = await admin.browserContext(browser, { ...devices[device], locale: "tr-TR", timezoneId: "Europe/Istanbul" });
+    const page = await context.newPage();
+    await page.goto("/platform");
+    await expect(page.getByRole("heading", { level: 1 })).toBeVisible({ timeout: 15_000 });
+    await capture(page, device, "platform", "platform", device === "telefon-375");
+    await context.close();
+
+    const pub = await browser.newContext({ ...devices[device], locale: "tr-TR", timezoneId: "Europe/Istanbul" });
+    const booking = await pub.newPage();
+    await booking.goto(`/r/${slug}`);
+    await expect(booking.getByRole("heading", { level: 1 })).toBeVisible({ timeout: 15_000 });
+    await capture(booking, device, "online-randevu", "online-randevu", device === "telefon-375");
+    await pub.close();
   }
 });
