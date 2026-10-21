@@ -48,7 +48,7 @@ test("yeni esnaf: kayıttan ilk satışa", async ({ page, newPublicPage, visit, 
   await page.getByLabel("İl", { exact: true }).selectOption("İstanbul");
   await page.getByLabel("İlçe").selectOption("Kadıköy");
   await page.getByRole("button", { name: "Devam" }).click();
-  await expect(page.getByRole("heading", { name: "Çalışma saatlerin" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Çalışma saatleriniz" })).toBeVisible();
   await page.getByRole("button", { name: "Devam" }).click();
   await page.getByRole("button", { name: "Kurulumu bitir" }).click();
   await expect(page).toHaveURL(/\/panel$/);

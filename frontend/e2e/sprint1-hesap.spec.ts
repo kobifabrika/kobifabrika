@@ -52,11 +52,11 @@ test("kayıt, doğrulama, kurulum sihirbazı, çıkış/giriş ve şifre sıfır
   await page.getByLabel("İlçe").selectOption("Kadıköy");
   await page.getByRole("button", { name: "Devam" }).click();
 
-  await expect(page.getByRole("heading", { name: "Çalışma saatlerin" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Çalışma saatleriniz" })).toBeVisible();
   await check(page, "Kurulum 2 · çalışma saatleri");
   await page.getByRole("button", { name: "Devam" }).click();
 
-  await expect(page.getByRole("heading", { name: "Logon var mı?" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Logonuz var mı?" })).toBeVisible();
   await check(page, "Kurulum 3 · logo");
   await page.getByRole("button", { name: "Kurulumu bitir" }).click();
 

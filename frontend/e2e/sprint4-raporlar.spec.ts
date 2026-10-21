@@ -67,5 +67,5 @@ test("raporlar: dört rapor, aralık, Excel ve yetki", async ({ owner, ownerPage
   const menu = await mainMenu(staffPage, info);
   await expect(menu.getByRole("link", { name: "Raporlar" })).toHaveCount(0);
   await staffPage.goto("/panel/raporlar");
-  await expect(staffPage.getByText("Bu sayfayı görme yetkin yok")).toBeVisible();
+  await expect(staffPage.getByText("Bu sayfayı görme yetkiniz yok")).toBeVisible();
 });

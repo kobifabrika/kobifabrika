@@ -44,7 +44,7 @@ test("davet, personel kaydı, rol kısıtları ve ekipten çıkarma", async ({
   await expect(menu.getByRole("link", { name: "Raporlar" })).toHaveCount(0);
   await closeMenu(staff, info);
   await staff.goto("/panel/ayarlar");
-  await expect(staff.getByText("Bu sayfayı görme yetkin yok")).toBeVisible();
+  await expect(staff.getByText("Bu sayfayı görme yetkiniz yok")).toBeVisible();
 
   // Sahip ekipte yeni üyeyi görür.
   await ownerPage.reload();

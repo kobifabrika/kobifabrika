@@ -98,7 +98,7 @@ test("Personel bakiyeleri göremez", async ({ owner, pageAs, guard }) => {
   const staff = await pageAs(await addMember(owner, "Staff"));
 
   await staff.goto("/panel/cari-kasa");
-  await expect(staff.getByText("Bu sayfayı görme yetkin yok")).toBeVisible();
+  await expect(staff.getByText("Bu sayfayı görme yetkiniz yok")).toBeVisible();
 
   await staff.goto(`/panel/musteriler/${contact.id}`);
   await expect(staff.getByRole("heading", { name: "Gizli Bakiye" })).toBeVisible();
