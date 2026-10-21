@@ -29,9 +29,7 @@ export function NavList({ onNavigate }: { onNavigate?: () => void }) {
     <nav aria-label="Ana menü" className="flex flex-col gap-6">
       {visibleNavGroups(role, business.modules).map((group) => (
         <div key={group.title}>
-          <p className="mb-2 px-3 text-xs font-semibold tracking-wider text-neutral-400 uppercase">
-            {group.title}
-          </p>
+          <p className="mb-2 px-3 text-xs font-semibold tracking-wider text-neutral-400 uppercase">{group.title}</p>
           <ul className="flex flex-col gap-1">
             {group.items.map(({ slug, label, icon: Icon }) => {
               const active = isActive(pathname, slug);
@@ -42,7 +40,7 @@ export function NavList({ onNavigate }: { onNavigate?: () => void }) {
                     onClick={onNavigate}
                     aria-current={active ? "page" : undefined}
                     className={cn(
-                      "flex min-h-11 items-center gap-3 rounded-md px-3 text-sm transition-colors outline-sidebar-ring",
+                      "flex min-h-11 items-center gap-3 rounded-md px-3 text-sm outline-sidebar-ring transition-colors",
                       active
                         ? "bg-sidebar-primary font-semibold text-sidebar-primary-foreground"
                         : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-white",
@@ -50,7 +48,10 @@ export function NavList({ onNavigate }: { onNavigate?: () => void }) {
                   >
                     <Icon
                       aria-hidden
-                      className={cn("size-5 shrink-0", active ? "text-sidebar-primary-foreground" : "text-sidebar-foreground")}
+                      className={cn(
+                        "size-5 shrink-0",
+                        active ? "text-sidebar-primary-foreground" : "text-sidebar-foreground",
+                      )}
                     />
                     <span className="flex-1">{label}</span>
                     {slug === "stok" && lowStock > 0 && (
@@ -73,13 +74,14 @@ export function NavList({ onNavigate }: { onNavigate?: () => void }) {
 }
 
 /**
- * Menünün alt satırı: küçük ve soluk KobiFabrika logosu (koyu zeminde), geliştirmede altında API durumu.
- * Masaüstü sol menüde ve telefondaki "Menü" panelinde aynı (2026-10-21: menünün üstünde işletme, KobiFabrika altta).
+ * Menünün alt satırı: küçük, keskin KobiFabrika logosu (SVG, saydamlık yok; 12 px yükseklik), geliştirmede altında API durumu,
+ * ikisi aynı sol kenarda. Masaüstü sol menüde ve telefondaki "Menü" panelinde aynı (2026-10-21: menünün üstünde işletme,
+ * KobiFabrika altta).
  */
 export function NavFooter() {
   return (
-    <div className="flex flex-col gap-2 border-t border-sidebar-border px-6 py-4">
-      <Logo className="h-3.5 opacity-60" />
+    <div className="flex flex-col items-start gap-2 border-t border-sidebar-border px-6 py-4">
+      <Logo className="h-3" />
       <ApiStatus className="text-sidebar-foreground" />
     </div>
   );

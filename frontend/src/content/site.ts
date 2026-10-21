@@ -27,7 +27,7 @@ export const siteContact = {
 
 /** Üst menü. */
 export const siteNav = [
-  { href: "/#ozellikler", label: "Özellikler" },
+  { href: "/ozellikler", label: "Özellikler" },
   { href: "/fiyatlar", label: "Fiyatlar" },
   { href: "/sss", label: "SSS" },
   { href: "/yardim", label: "Yardım" },
@@ -42,7 +42,7 @@ export const footerColumns: { title: string; links: { href: string; label: strin
   {
     title: "Ürün",
     links: [
-      { href: "/#ozellikler", label: "Özellikler" },
+      { href: "/ozellikler", label: "Özellikler" },
       { href: "/#kimler", label: "Kimler için" },
       { href: "/fiyatlar", label: "Fiyatlar" },
       { href: "/kayit", label: "Ücretsiz dene" },
@@ -75,25 +75,25 @@ export const primaryCta = { href: "/kayit", label: "Ücretsiz dene" };
 export const sectors: { photo: string; alt: string; title: string; text: string }[] = [
   {
     photo: "/site/foto/berber.webp",
-    alt: "Berberde saçı kesilen sakallı müşteri.",
+    alt: "Berberde makasla saçı kesilen sakallı müşteri.",
     title: "Kuaför ve berber",
     text: "Randevu takvimi, online randevu linki, gelmeyen müşteriye hatırlatma.",
   },
   {
     photo: "/site/foto/guzellik.webp",
-    alt: "Güzellik salonunda manikür yapılan eller.",
+    alt: "Güzellik salonunda müşterisine makyaj yapmaya hazırlanan makyöz.",
     title: "Güzellik ve bakım",
     text: "Paket ve seans takibi, personel primi, memnuniyet anketi.",
   },
   {
     photo: "/site/foto/pilates.webp",
-    alt: "Pilates stüdyosunda aletlerin yanında gülümseyen eğitmen.",
+    alt: "Pilates stüdyosunda reformer aletinde çalışan üyesine yardım eden eğitmen.",
     title: "Pilates ve spor stüdyosu",
     text: "Seans paketleri, ders saatleri, üyenin borcu ve ödemesi aynı kartta.",
   },
   {
     photo: "/site/foto/kafe.webp",
-    alt: "Kafesinin tezgâhı önünde kollarını kavuşturmuş duran işletme sahibi.",
+    alt: "Kafenin tezgâhında elinde süt potu ve fincanla gülümseyen barista.",
     title: "Kafe ve restoran",
     text: "Hızlı satış, veresiye ve cari, kasa ve gider, personel mesaisi.",
   },
@@ -105,7 +105,15 @@ export const sectors: { photo: string; alt: string; title: string; text: string 
   },
 ];
 
-export type FeatureGroup = { key: string; label: string; title: string; text: string; points: string[]; shot: string; shotAlt: string };
+export type FeatureGroup = {
+  key: string;
+  label: string;
+  title: string;
+  text: string;
+  points: string[];
+  shot: string;
+  shotAlt: string;
+};
 
 /** Özellikler: para, müşteri, ekip. Görseller demo işletmenin gerçek ekranları (npm run demo:shots). */
 export const featureGroups: FeatureGroup[] = [
@@ -114,7 +122,12 @@ export const featureGroups: FeatureGroup[] = [
     label: "Para",
     title: "Veresiye defterini kapat.",
     text: "Kim ne aldı, ne ödedi, ne kadar borcu kaldı; her müşterinin hesabı ayrı. Vadesi gelene WhatsApp'tan tek dokunuşla hatırlat.",
-    points: ["Kasa, banka, gelir ve gider", "Veresiye, vade ve tahsilat linki", "Satış, teklif, stok ve fiş", "Mali müşavire Excel"],
+    points: [
+      "Kasa, banka, gelir ve gider",
+      "Veresiye, vade ve tahsilat linki",
+      "Satış, teklif, stok ve fiş",
+      "Mali müşavire Excel",
+    ],
     shot: "/site/cari-masaustu.webp",
     shotAlt: "KobiFabrika cari ve kasa ekranı: müşterilerin bakiyeleri, vadesi gelen alacaklar ve hatırlat düğmesi.",
   },
@@ -123,7 +136,12 @@ export const featureGroups: FeatureGroup[] = [
     label: "Müşteri",
     title: "Boş koltuk kalmasın.",
     text: "Müşteri randevusunu senin linkinden kendisi alır, sen onaylarsın. Yarının randevularını tek tek WhatsApp'tan hatırlatırsın; gelmeyeni geri çağırırsın.",
-    points: ["Personel bazında takvim", "Online randevu linki", "Yarının randevuları ve hatırlatma", "Gelmeyen müşteri ve kaybedilme riski"],
+    points: [
+      "Personel bazında takvim",
+      "Online randevu linki",
+      "Yarının randevuları ve hatırlatma",
+      "Gelmeyen müşteri ve kaybedilme riski",
+    ],
     shot: "/site/takvim-masaustu.webp",
     shotAlt: "KobiFabrika randevu takvimi: personel kolonlarında günün randevuları.",
   },
@@ -138,13 +156,78 @@ export const featureGroups: FeatureGroup[] = [
   },
 ];
 
+/**
+ * Özellikler sayfası (/ozellikler, 2026-10-21): modül başına ayrıntılı liste. Sadece ürünün bugün yaptıkları; SMS pilotta kapalı
+ * olduğu için SMS'e dayanan özellikler yazılmaz (FAQ'deki "SMS yakında" ile aynı dil).
+ */
+export const featureDetails: Record<string, { title: string; text: string }[]> = {
+  para: [
+    {
+      title: "Satış ve fiş",
+      text: "Ürün ve hizmeti seç, nakit, kart, havale ya da veresiye kaydet; stok ve kasa kendiliğinden güncellenir.",
+    },
+    {
+      title: "Veresiye ve cari",
+      text: "Her müşterinin ve tedarikçinin borcu, ödemesi ve ekstresi ayrı; ekstreyi linkle gönderirsin.",
+    },
+    {
+      title: "Vade ve tahsilat",
+      text: "Vadesi gelen ve geciken alacaklar tek listede; WhatsApp'tan hazır mesajla hatırlatırsın.",
+    },
+    {
+      title: "Kasa, banka, gelir ve gider",
+      text: "Nakit kasa ve banka hesapları, kira ve fatura gibi giderler; gün sonu ne kaldığını görürsün.",
+    },
+    { title: "Teklif", text: "Müşterine PDF teklif hazırla, onaylanınca tek dokunuşla satışa çevir." },
+    { title: "Stok", text: "Barkodla ürün, stok hareketi, kritik stok uyarısı ve sayım." },
+    {
+      title: "Raporlar ve Excel",
+      text: "Satış, tahsilat, gider ve personel raporları; mali müşavirine Excel olarak verirsin.",
+    },
+  ],
+  musteri: [
+    {
+      title: "Randevu takvimi",
+      text: "Personel kolonlarında gün ve hafta görünümü; bilgisayarda sürükleyip taşırsın, çakışmayı uygulama engeller.",
+    },
+    {
+      title: "Online randevu linki",
+      text: "Müşterin hizmeti ve saati kendisi seçer, sen onaylarsın. Linki Instagram ve Google kaydına koyarsın.",
+    },
+    {
+      title: "Yarının randevuları",
+      text: "Ertesi günün listesi Bugün ekranında; her müşteriye WhatsApp'tan tek dokunuşla hatırlatma.",
+    },
+    { title: "Müşteri kartı", text: "Geçmiş randevular, satışlar, borç, notlar ve iletişim izni tek kartta." },
+    { title: "Paket ve seans", text: "10 seanslık paket sat, her gelişte seans düşer; kalan seans müşteri kartında." },
+    {
+      title: "Geri kazanma",
+      text: "Uzun süredir gelmeyen ve kaybedilme riski olan müşteriler listelenir; geri çağırırsın.",
+    },
+    {
+      title: "Memnuniyet anketi",
+      text: "Hizmetten sonra kısa anket; memnun müşteriyi Google yorumuna yönlendirirsin.",
+    },
+  ],
+  ekip: [
+    { title: "Mesai", text: "Personel mesaiye telefondan başlar ve bitirir; fazla mesai raporda." },
+    { title: "İzin", text: "İzin talebi, onay ve yıllık izin bakiyesi; onaylı izin takvimde görünür." },
+    { title: "Prim", text: "Satıştan prim kendiliğinden hesaplanır; personel sadece kendi primini görür." },
+    { title: "Rol ve yetki", text: "Sahip, Yönetici, Personel ve Mali Müşavir; maaşı sadece işletme sahibi görür." },
+    { title: "Personel kartı", text: "Çalışma saatleri, verdiği hizmetler, maaş ve izin geçmişi tek kartta." },
+  ],
+};
+
 export const differentiators = [
   { title: "Tek uygulama, iki iş", text: "Para takibi ve müşteri kazanma aynı yerde; iki program, iki abonelik yok." },
   { title: "Telefonda çalışır", text: "Uygulama indirmeden tarayıcıdan açılır; ana ekrana eklersin." },
   { title: "TL, sabit fiyat", text: "Fiyat TL; kur farkı yok, satışından komisyon almayız." },
   { title: "Veri senin", text: "Paket bitse de verin silinmez; istediğin zaman Excel'e aktarırsın." },
   { title: "Aracısız destek", text: "Panelden WhatsApp ile doğrudan ekibe yazarsın; bayi ve çağrı merkezi yok." },
-  { title: "Mali müşavir ücretsiz", text: "Mali müşavirin salt okunur kullanıcı olarak girer, kullanıcı sayına girmez." },
+  {
+    title: "Mali müşavir ücretsiz",
+    text: "Mali müşavirin salt okunur kullanıcı olarak girer, kullanıcı sayına girmez.",
+  },
 ];
 
 export const steps = [
@@ -168,7 +251,7 @@ export const faqs: { q: string; a: string }[] = [
   },
   {
     q: "Müşterilerime randevu hatırlatması nasıl gider?",
-    a: "Bugün ekranındaki \"Yarının randevuları\" listesinden her müşteriye WhatsApp'tan hazır mesajla hatırlatırsınız; müşterinin e-postası varsa hatırlatma e-postası kendiliğinden gider. SMS ile otomatik hatırlatma yakında.",
+    a: 'Bugün ekranındaki "Yarının randevuları" listesinden her müşteriye WhatsApp\'tan hazır mesajla hatırlatırsınız; müşterinin e-postası varsa hatırlatma e-postası kendiliğinden gider. SMS ile otomatik hatırlatma yakında.',
   },
   {
     q: "Verilerim güvende mi?",

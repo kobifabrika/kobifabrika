@@ -12,12 +12,14 @@ import { seedIsilti } from "./seed";
 
 /**
  * "Işıltı Kuaför" demo işletmesi ve ekran görüntüleri. Bütün veriler uydurmadır: adlar yaygın Türkçe adlardan, telefonlar
- * +90 5xx test aralığından rastgele (E2E yardımcısı uniquePhone). Görüntüler WebP: masaüstü 1280×800 (1x), telefon 375×812 (2x).
+ * +90 5xx test aralığından rastgele (E2E yardımcısı uniquePhone). Görüntüler WebP (kalite 88): masaüstü 1280×800 ve telefon
+ * 375×812, ikisi de 2x yoğunlukta (retina ekranda ve büyütülmüş çerçevede net). Panel tasarımı değişince `npm run demo:shots`
+ * ile hepsi yeniden üretilir (README → "Site ve yardım ekran görüntüleri").
  */
 const site = path.join(frontendDir, "public", "site");
 const help = path.join(frontendDir, "public", "yardim");
 
-const desktop = { viewport: { width: 1280, height: 800 }, deviceScaleFactor: 1 };
+const desktop = { viewport: { width: 1280, height: 800 }, deviceScaleFactor: 2 };
 const phone = { viewport: { width: 375, height: 812 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true };
 
 async function shot(page: Page, file: string) {
@@ -26,7 +28,9 @@ async function shot(page: Page, file: string) {
   await page.evaluate(() => document.fonts.ready);
   await page.waitForTimeout(400); // giriş animasyonları
   mkdirSync(path.dirname(file), { recursive: true });
-  await sharp(await page.screenshot()).webp({ quality: 82 }).toFile(file);
+  await sharp(await page.screenshot())
+    .webp({ quality: 88 })
+    .toFile(file);
 }
 
 async function open(browser: Browser, user: ApiUser | null, device: typeof desktop | typeof phone) {

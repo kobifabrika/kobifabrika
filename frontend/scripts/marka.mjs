@@ -1,8 +1,9 @@
 // Marka görsellerini kaynak dosyalardan üretir: `npm run marka`.
 // Kaynaklar public/marka/ altında: logo.png (siyah zeminde "KOBI FABRIKA" yazısı) ve isaret.svg ("KF" işareti).
+// Kontrol için 16, 32 ve 180 px görüntülerin 8 kat büyütülmüş hali test-results/marka/ altına yazılır (repoya girmez).
 // sharp ayrı bağımlılık değil, Next.js ile (görsel optimizasyonu) gelir.
 // Logo 16-48 px'te okunmadığı için favicon ve uygulama ikonları işaretten üretilir (docs/karar-gunlugu.md, 2026-10-20).
-import { readFileSync, writeFileSync } from "node:fs";
+import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -53,27 +54,7 @@ writeFileSync(
     .toBuffer(),
 );
 
-// Logo: siyah zemin kırpılır ve saydama çevrilir (yazı rengi = piksel / en parlak kanal). Koyu zeminde kullanılır.
-const { data, info } = await sharp(path.join(marka, "logo.png"))
-  .trim({ background: "#000000", threshold: 10 })
-  .ensureAlpha()
-  .raw()
-  .toBuffer({ resolveWithObject: true });
-for (let i = 0; i < data.length; i += 4) {
-  const a = Math.max(data[i], data[i + 1], data[i + 2]);
-  if (a === 0) {
-    data[i + 3] = 0;
-    continue;
-  }
-  data[i] = Math.round((data[i] * 255) / a);
-  data[i + 1] = Math.round((data[i + 1] * 255) / a);
-  data[i + 2] = Math.round((data[i + 2] * 255) / a);
-  data[i + 3] = a;
-}
-const yazi = sharp(data, { raw: { width: info.width, height: info.height, channels: 4 } });
-// Sitede/girişte 2x yoğunlukta en fazla ~280 px genişlik gösterilir.
-await yazi.clone().resize({ width: 640 }).webp({ quality: 90 }).toFile(path.join(marka, "logo-yazi.webp"));
-await yazi.clone().resize({ width: 640 }).png().toFile(path.join(marka, "logo-yazi.png"));
+// Logo: sitede ve panelde vektör public/marka/logo-yazi.svg (logo.png'den bir kez izlendi, 2026-10-21; burada üretilmez).
 // E-posta: istemciler WebP ve saydamlığı her zaman desteklemez; siyah zeminli, 2x (gösterim 200×37 px; sharp önce boyutlar
 // sonra kenar ekler: 464×87).
 await sharp(path.join(marka, "logo.png"))
@@ -83,5 +64,18 @@ await sharp(path.join(marka, "logo.png"))
   .png()
   .toFile(path.join(marka, "logo-eposta.png"));
 
-const meta = await sharp(path.join(marka, "logo-yazi.png")).metadata();
-console.log(`Marka görselleri üretildi. Logo yazısı ${meta.width}x${meta.height} (oran ${(meta.width / meta.height).toFixed(2)}).`);
+console.log("Marka görselleri üretildi.");
+
+// Yakından kontrol: 16, 32 ve 180 px ikonlar en yakın komşu ile 8 kat büyütülür.
+const kontrol = path.join(root, "test-results", "marka");
+mkdirSync(kontrol, { recursive: true });
+for (const [ad, size, svg] of [
+  ["favicon-16", 16, isaret],
+  ["favicon-32", 32, isaret],
+  ["apple-180", 180, isaretKare],
+]) {
+  const png = await render(svg, size);
+  await sharp(png)
+    .resize(size * 8, size * 8, { kernel: "nearest" })
+    .toFile(path.join(kontrol, `${ad}-8x.png`));
+}

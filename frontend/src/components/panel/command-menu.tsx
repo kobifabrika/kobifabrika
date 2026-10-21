@@ -75,7 +75,12 @@ export function CommandMenu() {
       links.push({ label: action.label, href: action.href, icon: action.icon, keywords: action.keywords });
     }
     if (can(role, "manageCatalog"))
-      links.push({ label: "Yeni ürün/hizmet", href: "/panel/urunler/yeni", icon: PackagePlus, keywords: "ürün hizmet ekle katalog" });
+      links.push({
+        label: "Yeni ürün/hizmet",
+        href: "/panel/urunler/yeni",
+        icon: PackagePlus,
+        keywords: "ürün hizmet ekle katalog",
+      });
     if (can(role, "writeContacts")) {
       links.push({
         label: "Excel'den müşteri aktar",
@@ -135,7 +140,7 @@ export function CommandMenu() {
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="hidden h-11 w-full max-w-md items-center gap-2 rounded-lg border border-border bg-muted px-3 text-left text-sm text-muted-foreground hover:border-primary lg:flex"
+        className="hidden h-9 w-full max-w-md items-center gap-2 rounded-lg border border-border bg-muted px-3 text-left text-sm text-muted-foreground hover:border-primary lg:flex"
       >
         <Search aria-hidden className="size-4" />
         <span className="flex-1">Müşteri, ürün, satış veya sayfa ara…</span>
@@ -187,8 +192,8 @@ export function CommandMenu() {
               )}
             </CommandList>
             <p className="flex items-center gap-1 border-t border-border px-3 py-2 text-xs text-neutral-600">
-              <Search aria-hidden className="size-3.5" /> Müşteri (ad, telefon), ürün (ad, barkod) veya satış numarasıyla
-              arayın.
+              <Search aria-hidden className="size-3.5" /> Müşteri (ad, telefon), ürün (ad, barkod) veya satış
+              numarasıyla arayın.
             </p>
           </CommandPrimitive>
         </DialogContent>

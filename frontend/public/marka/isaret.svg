@@ -1,7 +1,8 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="KobiFabrika">
   <rect width="512" height="512" rx="72" fill="#000000"/>
-  <!-- Harfler karenin genişliğinin yaklaşık %57'si (2026-10-21: daha fazla boşluk); yazı tipine bağlı kalmasın diye çokgen. -->
-  <g transform="translate(256 256) scale(0.75) translate(-257 -256)">
+  <!-- Harfler karenin genişliğinin yaklaşık %50'si (2026-10-21: F'nin kolları uzun, K ile F arasında boşluk); yazı tipine bağlı
+       kalmasın diye çokgen. Çizim alanı x 64-520, y 100-412; ortalanıp 0,564 ile küçültülür (257 × 176). -->
+  <g transform="translate(256 256) scale(0.564) translate(-292 -256)">
     <!-- K (beyaz): dikey gövde + iki kol -->
     <g fill="#ffffff">
       <rect x="64" y="100" width="76" height="312"/>
@@ -10,9 +11,9 @@
     </g>
     <!-- F (mavi #00b0ff) -->
     <g fill="#00b0ff">
-      <rect x="326" y="100" width="76" height="312"/>
-      <rect x="326" y="100" width="124" height="68"/>
-      <rect x="326" y="226" width="110" height="64"/>
+      <rect x="342" y="100" width="76" height="312"/>
+      <rect x="342" y="100" width="178" height="68"/>
+      <rect x="342" y="226" width="156" height="64"/>
     </g>
   </g>
 </svg>

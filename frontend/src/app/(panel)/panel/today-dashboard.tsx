@@ -87,6 +87,7 @@ function StatCard({
  * Bugün ekranı (Europe/Istanbul günü; tek uç: /api/dashboard/today). Personel kendi satışlarını ve kritik stoğu görür;
  * tahsilat, bakiye ve alacak kartları ona gelmez (API null döner). Randevular modülü açıksa "Bugünün randevuları" en üstte
  * (Personel kendi randevularını görür), SMS kapalıyken altında "Yarının randevuları" (WhatsApp hatırlatma); ardından "Aktif personel" (yöneticiler ve Mali Müşavir) veya Personel rolünde "Mesaim".
+ * Hızlı işlem düğmeleri özet kartlarının hemen altında, dördü aynı görünümde (2026-10-21: mavi "Satış yap" seçili sanılıyordu).
  */
 export function TodayDashboard() {
   const { role } = useSession();
@@ -95,15 +96,17 @@ export function TodayDashboard() {
 
   return (
     <>
-      <QuickActions onCollect={() => setCollecting(true)} />
       {data.isPending ? (
         <p role="status" className="text-sm text-neutral-600">
           Yükleniyor…
         </p>
       ) : data.isError ? (
-        <QueryError error={data.error} onRetry={data.refetch} />
+        <>
+          <QueryError error={data.error} onRetry={data.refetch} />
+          <QuickActions onCollect={() => setCollecting(true)} />
+        </>
       ) : (
-        <DashboardBody data={data.data} />
+        <DashboardBody data={data.data} quickActions={<QuickActions onCollect={() => setCollecting(true)} />} />
       )}
       {collecting && can(role, "manageFinance") && (
         <CollectionDialog open onOpenChange={(v) => !v && setCollecting(false)} />
@@ -121,7 +124,7 @@ function QuickActions({ onCollect }: { onCollect: () => void }) {
   return (
     <section aria-label="Hızlı işlemler" className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">
       {book && (
-        <Button asChild size="lg" variant={sell ? "outline" : "default"}>
+        <Button asChild size="lg" variant="outline">
           <Link href="/panel/randevular?yeni=1">
             <CalendarPlus aria-hidden />
             Randevu ver
@@ -129,7 +132,7 @@ function QuickActions({ onCollect }: { onCollect: () => void }) {
         </Button>
       )}
       {sell && (
-        <Button asChild size="lg">
+        <Button asChild size="lg" variant="outline">
           <Link href="/panel/satislar/yeni">
             <ReceiptText aria-hidden />
             Satış yap
@@ -154,7 +157,7 @@ function QuickActions({ onCollect }: { onCollect: () => void }) {
   );
 }
 
-function DashboardBody({ data }: { data: Dashboard }) {
+function DashboardBody({ data, quickActions }: { data: Dashboard; quickActions: ReactNode }) {
   const { role } = useSession();
   const { sales, receivables, stock } = data;
   const dueTotal = receivables ? receivables.dueToday + receivables.overdue : 0;
@@ -206,11 +209,18 @@ function DashboardBody({ data }: { data: Dashboard }) {
           </StatCard>
         )}
         {stock.enabled && (
-          <StatCard label="Kritik stok" icon={Boxes} tone="ink" value={`${stock.low} ürün`} href="/panel/stok?filtre=kritik">
+          <StatCard
+            label="Kritik stok"
+            icon={Boxes}
+            tone="ink"
+            value={`${stock.low} ürün`}
+            href="/panel/stok?filtre=kritik"
+          >
             {stock.negative > 0 && <span className="text-xs text-neutral-700">{stock.negative} ürün eksi stokta</span>}
           </StatCard>
         )}
       </section>
+      {quickActions}
 
       <div className="grid gap-4 lg:grid-cols-3">
         <Card className="lg:col-span-2">

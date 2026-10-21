@@ -12,7 +12,8 @@
     "format": "prettier --write .",
     "gen:api": "openapi-typescript http://localhost:5080/openapi/v1.json -o src/lib/api/schema.d.ts",
     "marka": "node scripts/marka.mjs",
-    "demo:shots": "playwright test -c playwright.demo.config.ts"
+    "site:foto": "node scripts/site-foto.mjs",
+    "demo:shots": "playwright test -c playwright.demo.config.ts isilti"
   },
   "dependencies": {
     "@dnd-kit/core": "6.3.1",

@@ -33,7 +33,11 @@ export function NotificationBell() {
     enabled: open,
   });
 
-  const refresh = () => Promise.all([queryClient.invalidateQueries({ queryKey: countKey }), queryClient.invalidateQueries({ queryKey: listKey })]);
+  const refresh = () =>
+    Promise.all([
+      queryClient.invalidateQueries({ queryKey: countKey }),
+      queryClient.invalidateQueries({ queryKey: listKey }),
+    ]);
 
   const markRead = useMutation({
     mutationFn: (id: string) => unwrap(api.POST("/api/notifications/{id}/read", { params: { path: { id } } })),
@@ -59,14 +63,14 @@ export function NotificationBell() {
         <Button
           variant="ghost"
           size="icon"
-          className="relative text-foreground"
+          className="relative text-foreground lg:size-9"
           aria-label={unread > 0 ? `Bildirimler, ${unread} okunmamış` : "Bildirimler"}
         >
           <Bell aria-hidden className="size-5" />
           {unread > 0 && (
             <span
               aria-hidden
-              className="absolute top-1 right-1 flex min-w-5 items-center justify-center rounded-full bg-danger-600 px-1 text-xs leading-5 font-bold text-white tabular-nums"
+              className="absolute top-1 right-1 flex min-w-5 items-center justify-center rounded-full bg-danger-600 px-1 text-xs leading-5 font-bold text-white tabular-nums lg:top-0 lg:right-0"
             >
               {unread > 99 ? "99+" : unread}
             </span>
