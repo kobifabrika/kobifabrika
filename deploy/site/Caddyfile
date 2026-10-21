@@ -19,7 +19,7 @@ kobifabrika.com {
 	reverse_proxy web:3000
 }
 
-www.kobifabrika.com {
+www.kobifabrika.com, http://www.kobifabrika.com {
 	redir https://kobifabrika.com{uri} permanent
 }
 
