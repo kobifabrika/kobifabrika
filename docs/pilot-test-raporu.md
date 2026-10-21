@@ -53,6 +53,6 @@ Durum: **bakıldı** (sorun yok) · **düzeltildi** · **açık** (pilot sonras�
 | Müşteri e-postaları | Randevu hatırlatma | düzeltildi | "Işıltı Kuaför randevunuzu hatırlatırız" → "Işıltı Kuaför olarak Saç kesimi randevunuzu hatırlatırız." |
 | Müşteri e-postaları | Ekstre, tahsilat, teklif | düzeltildi | Altta işletmenin telefonu ve adresi (varsa); gönderen bilgisi tek yerden `EmailSenders.For` (2026-10-21, entegrasyon testi). |
 | Panel geneli | Hitap | düzeltildi (2026-10-21: panel, giriş/kayıt, kurulum, e-postalar "siz"; site "sen"; `hitap.test.ts`) | Panel çoğunlukla "siz" ("İşletmenizde bugün olanlar"), bazı sistem metinleri "sen" ("Bu sayfayı görme yetkin yok"); tek hitaba karar verilmeli. |
-| Test | `import-wizard.test.tsx` (Vitest) | açık | Yerelde tam Vitest koşusunda yük altında 5 sn sınırını aşabiliyor (tek başına 1,5 sn; Actions #31'de geçti). |
+| Test | `import-wizard.test.tsx` (Vitest) | düzeltildi (2026-10-21: Vitest test sınırı 15 sn; bekleme sınırıyla eşitti) | Yerelde tam Vitest koşusunda yük altında 5 sn sınırını aşabiliyor (tek başına 1,5 sn; Actions #31'de geçti). |
 
 Actions'ta bulunan (2026-10-20 gecesi): `sprint8a-yeni-esnaf` İstanbul saatiyle 00:00-01:00 arası koşunca randevuyu gece yarısını aşan bir saate taşımaya çalışıyordu (API haklı olarak reddetti); test saat seçimi düzeltildi, kural gevşetilmedi.
