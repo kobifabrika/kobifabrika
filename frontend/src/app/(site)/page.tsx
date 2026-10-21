@@ -48,7 +48,7 @@ function SectionHeading({
   title: ReactNode;
   text?: string;
   center?: boolean;
-  /** Defter (mürekkep) zemininde: etiket mavi, başlık beyaz, metin slate-300. */
+  /** Koyu (#000a1d) zeminde: etiket mavi, başlık beyaz, metin neutral-300. */
   onInk?: boolean;
 }) {
   return (
@@ -66,7 +66,7 @@ function SectionHeading({
       <h2 id={id} className="mt-3 text-3xl leading-[1.1] font-semibold tracking-tight sm:text-[2.75rem]">
         {title}
       </h2>
-      {text && <p className={cn("mt-4 text-lg leading-8", onInk ? "text-slate-300" : "text-slate")}>{text}</p>}
+      {text && <p className={cn("mt-4 text-lg leading-8", onInk ? "text-neutral-300" : "text-neutral-600")}>{text}</p>}
     </div>
   );
 }
@@ -117,7 +117,7 @@ export default function HomePage() {
       <HashRedirect hash="#ozellikler" to="/ozellikler" />
 
       {/* 1) Giriş: ölçülü renk geçişi, başlık, çağrı, esnaf fotoğrafı + telefondaki gerçek ekran */}
-      <section aria-labelledby="baslik" className="border-b border-slate-200 hero-glow">
+      <section aria-labelledby="baslik" className="border-b border-neutral-200 hero-glow">
         <div
           className={cn(
             container,
@@ -125,21 +125,21 @@ export default function HomePage() {
           )}
         >
           <div>
-            <p className="inline-flex items-center rounded-full border border-slate-200 bg-white px-3 py-1 text-sm font-semibold text-ink">
+            <p className="inline-flex items-center rounded-full border border-neutral-200 bg-white px-3 py-1 text-sm font-semibold text-navy-950">
               {siteSlogan}
             </p>
             <h1
               id="baslik"
-              className="mt-5 text-[2.35rem] leading-[1.05] font-semibold tracking-[-0.03em] text-ink sm:text-6xl lg:text-[4.1rem]"
+              className="mt-5 text-[2.35rem] leading-[1.05] font-semibold tracking-[-0.03em] text-navy-950 sm:text-6xl lg:text-[4.1rem]"
             >
               Kasan, veresiyen, randevun ve personelin tek uygulamada.
             </h1>
-            <p className="mt-6 max-w-xl text-lg leading-8 text-slate sm:text-xl">
+            <p className="mt-6 max-w-xl text-lg leading-8 text-neutral-600 sm:text-xl">
               Esnaf ve küçük işletme için: telefondan kullanılır, 10 dakikada kurulur. Müşterin randevusunu kendisi
               alır, borcu tek dokunuşla hatırlatılır.
             </p>
             <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
-              <Button asChild size="lg" className="h-12 px-7 text-base text-ink">
+              <Button asChild size="lg" className="h-12 px-7 text-base">
                 <Link href={primaryCta.href}>
                   {primaryCta.label} <ArrowRight aria-hidden data-icon="inline-end" />
                 </Link>
@@ -148,12 +148,12 @@ export default function HomePage() {
                 asChild
                 size="lg"
                 variant="outline"
-                className="h-12 border-slate-200 bg-white px-7 text-base text-ink"
-              >
+                className="h-12 border-neutral-200 bg-white px-7 text-base"
+             >
                 <Link href="/fiyatlar">Fiyatları gör</Link>
               </Button>
             </div>
-            <ul className="mt-7 grid gap-x-6 gap-y-2 text-sm text-ink sm:grid-cols-2">
+            <ul className="mt-7 grid gap-x-6 gap-y-2 text-sm text-navy-950 sm:grid-cols-2">
               {assurances.map((t) => (
                 <li key={t} className="flex items-center gap-2">
                   <Check aria-hidden className="size-4 shrink-0 text-link" strokeWidth={2.75} /> {t}
@@ -197,7 +197,7 @@ export default function HomePage() {
           />
           <ul className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
             {sectors.map((s) => (
-              <li key={s.title} className="flex flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white">
+              <li key={s.title} className="flex flex-col overflow-hidden rounded-2xl border border-neutral-200 bg-white">
                 <Image
                   src={s.photo}
                   alt={s.alt}
@@ -209,14 +209,14 @@ export default function HomePage() {
                 />
                 <div className="p-5">
                   <h3 className="text-lg font-semibold">{s.title}</h3>
-                  <p className="mt-1 text-[15px] leading-6 text-slate">{s.text}</p>
+                  <p className="mt-1 text-[15px] leading-6 text-neutral-600">{s.text}</p>
                 </div>
               </li>
             ))}
-            <li className="flex flex-col justify-between gap-6 rounded-2xl bg-ink p-6 text-white">
+            <li className="flex flex-col justify-between gap-6 rounded-2xl bg-navy-950 p-6 text-white">
               <div>
                 <h3 className="text-lg font-semibold">İşin listede yok mu?</h3>
-                <p className="mt-1 text-[15px] leading-6 text-slate-300">
+                <p className="mt-1 text-[15px] leading-6 text-neutral-300">
                   Terzi, oto yıkama, dershane, veteriner… Satışı, müşterisi ve personeli olan her işletme için çalışır.
                 </p>
               </div>
@@ -232,7 +232,7 @@ export default function HomePage() {
       </section>
 
       {/* 3) Modüller: Para · Müşteri · Ekip (kısa hali; ayrıntısı /ozellikler) */}
-      <section aria-labelledby="ozellikler-ozet" className="border-y border-slate-200 bg-white">
+      <section aria-labelledby="ozellikler-ozet" className="border-y border-neutral-200 bg-white">
         <div className={cn(container, "py-20 sm:py-24")}>
           <SectionHeading
             id="ozellikler-ozet"
@@ -252,8 +252,8 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* 4) Telefondan yönet: defter (mürekkep) bandı */}
-      <section aria-labelledby="telefondan" className="bg-ink text-white">
+      {/* 4) Telefondan yönet: koyu (#000a1d) bant */}
+      <section aria-labelledby="telefondan" className="bg-navy-950 text-white">
         <div className={cn(container, "grid items-center gap-12 py-20 sm:py-24 lg:grid-cols-2")}>
           <div className="relative mx-auto w-full max-w-[440px] pr-12 pb-8 lg:mx-0">
             <Image
@@ -293,12 +293,12 @@ export default function HomePage() {
                 },
               ].map(({ icon: Icon, title, text }) => (
                 <li key={title} className="flex gap-4">
-                  <span className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-brand text-ink">
+                  <span className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-brand text-navy-950">
                     <Icon aria-hidden className="size-5" />
                   </span>
                   <div>
                     <h3 className="text-lg font-semibold">{title}</h3>
-                    <p className="mt-1 text-base leading-7 text-slate-300">{text}</p>
+                    <p className="mt-1 text-base leading-7 text-neutral-300">{text}</p>
                   </div>
                 </li>
               ))}
@@ -313,12 +313,12 @@ export default function HomePage() {
           <SectionHeading id="farkimiz" label="Farkımız" title="Esnafın derdini dinleyerek yaptık." />
           <ol className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {differentiators.map((d, i) => (
-              <li key={d.title} className="rounded-2xl border border-slate-200 bg-white p-6">
+              <li key={d.title} className="rounded-2xl border border-neutral-200 bg-white p-6">
                 <p className="font-heading text-sm font-semibold text-coral-text tabular-nums">
                   {String(i + 1).padStart(2, "0")}
                 </p>
                 <h3 className="mt-2 text-lg font-semibold">{d.title}</h3>
-                <p className="mt-1 text-[15px] leading-6 text-slate">{d.text}</p>
+                <p className="mt-1 text-[15px] leading-6 text-neutral-600">{d.text}</p>
               </li>
             ))}
           </ol>
@@ -326,17 +326,17 @@ export default function HomePage() {
       </section>
 
       {/* 6) Nasıl çalışır */}
-      <section aria-labelledby="nasil" className="border-y border-slate-200 bg-mist">
+      <section aria-labelledby="nasil" className="border-y border-neutral-200 bg-neutral-100">
         <div className={cn(container, "py-20 sm:py-24")}>
           <SectionHeading id="nasil" label="Nasıl çalışır" title="Üç adımda başla." />
           <ol className="mt-12 grid gap-5 lg:grid-cols-3">
             {steps.map((s, i) => (
               <li key={s.title} className="rounded-2xl bg-white p-6">
-                <p className="flex size-11 items-center justify-center rounded-full bg-brand font-heading text-lg font-semibold text-ink tabular-nums">
+                <p className="flex size-11 items-center justify-center rounded-full bg-brand font-heading text-lg font-semibold text-navy-950 tabular-nums">
                   {i + 1}
                 </p>
                 <h3 className="mt-4 text-xl font-semibold">{s.title}</h3>
-                <p className="mt-2 text-base leading-7 text-slate">{s.text}</p>
+                <p className="mt-2 text-base leading-7 text-neutral-600">{s.text}</p>
               </li>
             ))}
           </ol>
@@ -359,7 +359,7 @@ export default function HomePage() {
       </section>
 
       {/* 8) SSS */}
-      <section aria-labelledby="sss" className="border-t border-slate-200">
+      <section aria-labelledby="sss" className="border-t border-neutral-200">
         <div className={cn(container, "grid gap-10 py-20 sm:py-24 lg:grid-cols-[1fr_1.6fr]")}>
           <div>
             <SectionHeading id="sss" label="SSS" title="Sık sorulan sorular" />
@@ -374,9 +374,9 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* 9) Son çağrı: mürekkep bant + fotoğraf */}
+      {/* 9) Son çağrı: koyu (#000a1d) bant + fotoğraf */}
       <section aria-labelledby="son-cagri" className={cn(container, "pb-20 sm:pb-24")}>
-        <div className="grid overflow-hidden rounded-3xl bg-ink text-white lg:grid-cols-[1.2fr_1fr]">
+        <div className="grid overflow-hidden rounded-3xl bg-navy-950 text-white lg:grid-cols-[1.2fr_1fr]">
           <div className="p-8 sm:p-12">
             <h2
               id="son-cagri"
@@ -384,11 +384,11 @@ export default function HomePage() {
             >
               Defteri bugün kapat.
             </h2>
-            <p className="mt-5 max-w-md text-lg text-slate-300">
+            <p className="mt-5 max-w-md text-lg text-neutral-300">
               10 dakikada kur, Çırak paketiyle ücretsiz kullan. Kredi kartı istemez.
             </p>
             <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-6">
-              <Button asChild size="lg" className="h-12 px-7 text-base text-ink">
+              <Button asChild size="lg" className="h-12 px-7 text-base">
                 <Link href={primaryCta.href}>
                   {primaryCta.label} <ArrowRight aria-hidden data-icon="inline-end" />
                 </Link>

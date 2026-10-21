@@ -3,7 +3,7 @@
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, type ReactNode } from "react";
 
-import { Wordmark } from "@/components/brand/wordmark";
+import { Logo } from "@/components/brand/logo";
 import { QueryError } from "@/components/feedback/query-error";
 import { SessionProvider, useMeQuery } from "@/components/providers/session-provider";
 import { ApiError } from "@/lib/api/client";
@@ -51,7 +51,7 @@ export function PanelGate({ children }: { children: ReactNode }) {
 function FullScreenMessage({ children }: { children: ReactNode }) {
   return (
     <div className="flex min-h-screen flex-col items-center justify-center gap-3 bg-background px-4 text-center">
-      <Wordmark className="text-2xl" />
+      <Logo surface="light" priority />
       {children}
     </div>
   );

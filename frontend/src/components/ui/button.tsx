@@ -8,9 +8,8 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
+        // Ana düğme site ve panelde aynı: mavi zemin + #000a1d yazı (docs/04 → bileşen eşleme).
         default: "bg-primary text-primary-foreground hover:bg-primary/80",
-        // Vurgu mavisi: tanıtım sitesinin ana çağrı butonu (yazı siyah; docs/04-tasarim.md).
-        accent: "bg-brand text-black hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black",
         outline:
           "border-border bg-background hover:bg-muted hover:text-foreground aria-expanded:bg-muted aria-expanded:text-foreground dark:border-input dark:bg-transparent dark:hover:bg-muted",
         secondary:

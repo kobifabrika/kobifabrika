@@ -48,7 +48,7 @@ export function ScrollRow({
 
 const chipClass = "min-h-11 shrink-0 rounded-full border px-4 text-sm font-medium whitespace-nowrap";
 
-/** Filtre çipi: seçili siyah, seçili değil çerçeveli (aria-pressed). */
+/** Filtre çipi (sitenin hap sekmeleriyle aynı): seçili #000a1d zemin + beyaz yazı, seçili değil çerçeveli (aria-pressed). */
 export function Chip({
   active,
   className,
@@ -60,7 +60,7 @@ export function Chip({
       aria-pressed={active}
       className={cn(
         chipClass,
-        active ? "border-link bg-link text-white" : "border-border bg-background text-black hover:border-black",
+        active ? "border-navy-950 bg-navy-950 text-white" : "border-border bg-background text-black hover:border-navy-950",
         className,
       )}
       {...props}
@@ -76,7 +76,7 @@ export function ChipLink({ active, className, ...props }: { active: boolean } & 
       className={cn(
         chipClass,
         "inline-flex items-center",
-        active ? "border-link bg-link text-white" : "border-border bg-background text-black hover:border-black",
+        active ? "border-navy-950 bg-navy-950 text-white" : "border-border bg-background text-black hover:border-navy-950",
         className,
       )}
       {...props}
@@ -86,7 +86,7 @@ export function ChipLink({ active, className, ...props }: { active: boolean } & 
 
 export type TabItem = { key: string; label: string; href: string };
 
-/** Sekme satırı: alt çizgi mavi, telefonda yatay kaydırma (Ayarlar, müşteri kartı, Cari ve Kasa, Raporlar…). */
+/** Sekme satırı (sitenin üst menüsüyle aynı): seçili koyu yazı + mavi alt çizgi, telefonda yatay kaydırma (Ayarlar, müşteri kartı, Cari ve Kasa, Raporlar…). */
 export function TabNav({ tabs, active, label }: { tabs: TabItem[]; active: string; label: string }) {
   return (
     <ScrollRow as="nav" aria-label={label} activeKey={active} innerClassName="gap-1 border-b border-border">
@@ -98,7 +98,7 @@ export function TabNav({ tabs, active, label }: { tabs: TabItem[]; active: strin
           aria-current={t.key === active ? "page" : undefined}
           className={cn(
             "-mb-px flex min-h-11 shrink-0 items-center border-b-2 px-3 text-sm font-semibold whitespace-nowrap",
-            t.key === active ? "border-link text-link" : "border-transparent text-neutral-600 hover:text-black",
+            t.key === active ? "border-brand text-navy-950" : "border-transparent text-neutral-600 hover:text-navy-950",
           )}
         >
           {t.label}

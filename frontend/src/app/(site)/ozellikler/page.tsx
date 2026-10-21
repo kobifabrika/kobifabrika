@@ -29,13 +29,13 @@ export default function FeaturesPage() {
         Paranı takip eder, müşteri getirir, ekibini yönetir. Telefonda da bilgisayarda da aynı hesap.
       </PageIntro>
 
-      <nav aria-label="Modüller" className="border-b border-slate-200 bg-white">
+      <nav aria-label="Modüller" className="border-b border-neutral-200 bg-white">
         <ul className={cn(container, "flex gap-2 overflow-x-auto py-3")}>
           {featureGroups.map((g) => (
             <li key={g.key}>
               <a
                 href={`#${g.key}`}
-                className="flex min-h-11 shrink-0 items-center rounded-full border border-slate-200 px-5 text-[15px] font-semibold text-ink hover:border-ink"
+                className="flex min-h-11 shrink-0 items-center rounded-full border border-neutral-200 px-5 text-[15px] font-semibold text-navy-950 hover:border-navy-950"
               >
                 {g.label}
               </a>
@@ -44,7 +44,7 @@ export default function FeaturesPage() {
           <li>
             <a
               href="#telefon"
-              className="flex min-h-11 shrink-0 items-center rounded-full border border-slate-200 px-5 text-[15px] font-semibold whitespace-nowrap text-ink hover:border-ink"
+              className="flex min-h-11 shrink-0 items-center rounded-full border border-neutral-200 px-5 text-[15px] font-semibold whitespace-nowrap text-navy-950 hover:border-navy-950"
             >
               Telefonda
             </a>
@@ -57,7 +57,7 @@ export default function FeaturesPage() {
           key={g.key}
           id={g.key}
           aria-labelledby={`baslik-${g.key}`}
-          className={cn("scroll-mt-20", i % 2 === 1 && "bg-mist")}
+          className={cn("scroll-mt-20", i % 2 === 1 && "bg-neutral-100")}
         >
           <div className={cn(container, "py-16 sm:py-20")}>
             <div className="grid items-center gap-10 lg:grid-cols-[1fr_1.35fr] lg:gap-14">
@@ -72,9 +72,9 @@ export default function FeaturesPage() {
                 >
                   {g.title}
                 </h2>
-                <p className="mt-4 max-w-md text-lg leading-8 text-slate">{g.text}</p>
+                <p className="mt-4 max-w-md text-lg leading-8 text-neutral-600">{g.text}</p>
               </div>
-              <div className={cn("rounded-2xl p-3 sm:p-6", i % 2 === 1 ? "bg-white" : "bg-mist")}>
+              <div className={cn("rounded-2xl p-3 sm:p-6", i % 2 === 1 ? "bg-white" : "bg-neutral-100")}>
                 <BrowserFrame src={g.shot} alt={g.shotAlt} />
               </div>
             </div>
@@ -82,11 +82,11 @@ export default function FeaturesPage() {
               {(featureDetails[g.key] ?? []).map((f) => (
                 <li key={f.title} className="flex gap-3">
                   <span className="mt-0.5 flex size-6 shrink-0 items-center justify-center rounded-full bg-coral-soft">
-                    <Check aria-hidden className="size-3.5 text-ink" strokeWidth={3} />
+                    <Check aria-hidden className="size-3.5 text-navy-950" strokeWidth={3} />
                   </span>
                   <div>
                     <h3 className="text-lg font-semibold">{f.title}</h3>
-                    <p className="mt-1 text-[15px] leading-6 text-slate">{f.text}</p>
+                    <p className="mt-1 text-[15px] leading-6 text-neutral-600">{f.text}</p>
                   </div>
                 </li>
               ))}
@@ -105,7 +105,7 @@ export default function FeaturesPage() {
             <h2 id="baslik-telefon" className="mt-3 text-3xl leading-[1.1] font-semibold tracking-tight sm:text-4xl">
               Uygulama indirmeden, telefondan.
             </h2>
-            <p className="mt-4 max-w-md text-lg leading-8 text-slate">
+            <p className="mt-4 max-w-md text-lg leading-8 text-neutral-600">
               Tarayıcıdan açılır, ana ekrana eklersin. Müşterin de randevusunu kendi telefonundan, uygulama indirmeden
               alır.
             </p>
@@ -126,13 +126,13 @@ export default function FeaturesPage() {
       </section>
 
       <section aria-labelledby="son-cagri" className={cn(container, "py-16 sm:py-20")}>
-        <div className="rounded-3xl bg-ink p-8 text-white sm:p-12">
+        <div className="rounded-3xl bg-navy-950 p-8 text-white sm:p-12">
           <h2 id="son-cagri" className="max-w-xl text-3xl leading-[1.1] font-semibold tracking-tight sm:text-4xl">
             Hepsini 10 dakikada kur.
           </h2>
-          <p className="mt-4 max-w-md text-lg text-slate-300">Çırak paketi süresiz ücretsiz, kredi kartı istemez.</p>
+          <p className="mt-4 max-w-md text-lg text-neutral-300">Çırak paketi süresiz ücretsiz, kredi kartı istemez.</p>
           <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-6">
-            <Button asChild size="lg" className="h-12 px-7 text-base text-ink">
+            <Button asChild size="lg" className="h-12 px-7 text-base">
               <Link href={primaryCta.href}>
                 {primaryCta.label} <ArrowRight aria-hidden data-icon="inline-end" />
               </Link>

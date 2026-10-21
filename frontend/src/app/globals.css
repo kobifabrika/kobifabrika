@@ -5,19 +5,21 @@
 @custom-variant dark (&:is(.dark *));
 
 /*
- * KobiFabrika tema token'ları — kaynak: docs/04-tasarim.md
+ * KobiFabrika tema token'ları — TEK KAYNAK (site, panel, platform, müşteriye açık sayfalar). Kurallar: docs/04-tasarim.md.
+ * CSS dışında renk gereken yerler (Open Graph görseli, manifest, tarayıcı tema rengi) src/lib/theme/colors.ts'ten okur; o dosya
+ * buradaki değerlerle aynı tutulur (colors.test.ts). Backend e-posta/PDF sabitleri de aynı değerlerde (EmailTemplates, StatementPdf).
  *
- * Marka paleti (karar 2026-10-17, panel yenilemesi): siyah, beyaz, vurgu mavisi #00b0ff (ana düğme, wordmark'taki "Fabrika"),
- * koyu lacivert #000a1d (koyu yüzeyler: sol menü, üst çubuk, koyu bölümler), lacivert #00385a (sadece koyu zeminde: kart, hover),
- * link mavisi #006ea6 (beyazda link, seçili sekme/çip, açık anahtar), camgöbeği #00fdff (sadece koyu zeminde vurgu). Arası gri
- * tonlar serbest. Kırmızı sadece hata ve silme. Başarı için yeşil yok: siyah/mavi + ✓ ikonu. Gradyan, gölge, emoji yok.
- * Tailwind'in hazır renk paleti kapatıldı (--color-*: initial); ör. `text-red-500` üretilmez.
+ * Marka paleti (2026-10-21, site + panel bütünlüğü): siyah, beyaz, ana koyu renk #000a1d (navy-950: sol menü, üst çubuk, sitenin
+ * koyu bantları, giriş paneli, alt bilgi dışı koyu yüzeyler, sitede yazı), vurgu mavisi #00b0ff (ana düğme, logodaki "Fabrika"),
+ * link mavisi #006ea6 (beyazda link, seçili sekme/çip), #00385a ve #00fdff (sadece koyu zeminde). Griler sitenin mavi-gri ailesi
+ * (neutral-*: ikincil yazı #4a5a70, kenarlık #e3e9f1, açık zemin #f4f8fc). Mercan sadece tanıtım sitesinde. Kırmızı sadece
+ * hata ve silme. Tailwind'in hazır renk paleti kapatıldı (--color-*: initial); ör. `text-red-500` üretilmez.
  *
- * KONTRAST KURALLARI (src/lib/theme/contrast.test.ts bunları doğrular):
- * - Beyaz zeminde yazı/link: siyah, neutral-600 ve koyusu, link mavisi #006ea6 (5,5:1).
+ * KONTRAST KURALLARI (src/lib/theme/contrast.test.ts bunları doğrular; logo bu kurallardan muaf):
+ * - Beyaz/açık zeminde yazı/link: siyah, navy-950, neutral-600 ve koyusu, link mavisi #006ea6 (5,5:1).
  * - brand (#00b0ff) ve cyan (#00fdff) beyaz zeminde YAZI OLARAK KULLANILMAZ; brand çizgi, ikon, şerit, düğme zemini olabilir.
  * - Koyu zeminde (#000a1d, #00385a) beyaz, neutral-300, brand ve cyan yazı olabilir.
- * - brand düğme → yazı siyah. Lacivert/siyah düğme → yazı beyaz.
+ * - brand düğme → yazı navy-950. Lacivert düğme → yazı beyaz.
  */
 @theme {
   --color-*: initial;
@@ -28,40 +30,34 @@
   --color-current: currentColor;
 
   /* Marka renkleri */
-  --color-brand: #00b0ff; /* vurgu mavisi: ana düğme (yazı siyah), şerit, ikon */
+  --color-brand: #00b0ff; /* vurgu mavisi: ana düğme (yazı navy-950), şerit, ikon, logodaki "Fabrika" */
   --color-link: #006ea6; /* beyazda link ve seçili öğe (yazı olabilir) */
-  --color-navy-950: #000a1d; /* koyu yüzey */
+  --color-navy-950: #000a1d; /* ana koyu renk: koyu yüzeyler, sitede yazı, logodaki "Kobi" (açık zeminde) */
   --color-navy-800: #00385a; /* sadece koyu zeminde: kart, hover */
   --color-cyan: #00fdff; /* sadece koyu zeminde vurgu */
 
-  /* Nötr griler (renk tonu yok) */
-  --color-neutral-50: #fafafa;
-  --color-neutral-100: #f2f2f2; /* ikincil yüzey, hover */
-  --color-neutral-200: #e5e5e5; /* kenarlık, ayırıcı çizgi */
-  --color-neutral-300: #d4d4d4; /* siyah zeminde ikincil metin */
-  --color-neutral-400: #8f8f8f; /* beyaz zeminde input kenarlığı (3:1); siyah zeminde soluk metin */
-  --color-neutral-500: #707070;
-  --color-neutral-600: #525252; /* beyaz zeminde ikincil metin */
-  --color-neutral-700: #3a3a3a;
-  --color-neutral-800: #262626; /* siyah zeminde hover/aktif olmayan yüzey, kenarlık */
-  --color-neutral-900: #141414; /* siyah zeminde kart */
+  /* Griler: sitenin mavi-gri ailesi (2026-10-21; önceden renksiz griydi) */
+  --color-neutral-50: #f9fafd; /* en açık yüzey (tablo başlığı, satır hover) */
+  --color-neutral-100: #f4f8fc; /* açık zemin: sitede bölüm/alt bilgi, panelde ikincil yüzey ve hover */
+  --color-neutral-200: #e3e9f1; /* kenarlık, ayırıcı çizgi */
+  --color-neutral-300: #c6d2e1; /* koyu zeminde ikincil yazı ve ikon */
+  --color-neutral-400: #8490a2; /* beyaz zeminde input kenarlığı (3:1); koyu zeminde soluk yazı */
+  --color-neutral-500: #637186;
+  --color-neutral-600: #4a5a70; /* beyaz ve açık zeminde ikincil yazı */
+  --color-neutral-700: #303b49; /* beyazda gövde yazısı (ikincilden koyu) */
 
-  /* Tanıtım sitesi (2026-10-21, ikas + Stripe + Paraşüt yönü; panelde kullanılmaz). Kurallar docs/04 → "Tanıtım sitesi". */
-  --color-ink: #0a1f3c; /* site yazısı ve koyu bant (lacivert mürekkep) */
-  --color-slate: #4a5a70; /* sitede ikincil yazı (beyaz, sis ve kremde 5,2:1+) */
-  --color-slate-200: #e3e9f1; /* site kenarlığı */
-  --color-slate-300: #c6d2e1; /* mürekkep zemininde ikincil yazı */
-  --color-mist: #f4f8fc; /* açık mavi-gri bölüm zemini */
+  /* Tanıtım sitesine özel sıcak renk (panelde kullanılmaz). Kurallar docs/04 → "Tanıtım sitesi". */
   --color-cream: #fff5f0; /* sıcak açık bölüm zemini */
   --color-coral: #ff6b4a; /* sıcak yardımcı renk: şerit, rozet zemini, ilk ekran geçişi; beyazda yazı olamaz */
-  --color-coral-soft: #ffe1d6; /* mercan rozet zemini (yazı mürekkep) */
+  --color-coral-soft: #ffe1d6; /* mercan rozet zemini (yazı navy-950) */
   --color-coral-text: #b9381c; /* beyaz ve kremde mercan yazı (5,4:1) */
 
   /* Sadece hata ve silme */
   --color-danger-50: #fef2f2;
   --color-danger-600: #b91c1c;
 
-  /* Tipografi: gövde sistem fontu; başlık Bricolage Grotesque (src/app/layout.tsx, next/font). 12px'in altı yok. */
+  /* Tipografi (site ve panel aynı): başlık Schibsted Grotesk (src/app/layout.tsx, next/font, tek yerde bir kez yüklenir; h1–h3
+     ve font-heading), gövde sistem fontu. Logo da aynı fontun ExtraBold'undan (vektör). 12px'in altı yok. */
   --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   --font-heading: var(--font-display, var(--font-sans));
   --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
@@ -121,8 +117,8 @@
   --card-foreground: var(--color-black);
   --popover: var(--color-white);
   --popover-foreground: var(--color-black);
-  --primary: var(--color-brand); /* ana düğme mavi, yazı siyah */
-  --primary-foreground: var(--color-black);
+  --primary: var(--color-brand); /* ana düğme mavi, yazı navy-950 (site ile aynı) */
+  --primary-foreground: var(--color-navy-950);
   --secondary: var(--color-neutral-100);
   --secondary-foreground: var(--color-black);
   --muted: var(--color-neutral-100);
@@ -141,19 +137,19 @@
   --chart-4: var(--color-neutral-300);
   --chart-5: var(--color-neutral-700);
 
-  /* Koyu lacivert sol menü ve üst çubuk; aktif menü mavi zemin + siyah yazı, hover lacivert */
+  /* Koyu sol menü ve üst çubuk tek bant (#000a1d); aktif menü mavi zemin + koyu yazı, hover lacivert; ayırıcı soluk beyaz çizgi */
   --sidebar: var(--color-navy-950);
   --sidebar-foreground: var(--color-neutral-300);
   --sidebar-primary: var(--color-brand);
-  --sidebar-primary-foreground: var(--color-black);
+  --sidebar-primary-foreground: var(--color-navy-950);
   --sidebar-accent: var(--color-navy-800);
   --sidebar-accent-foreground: var(--color-white);
-  --sidebar-border: var(--color-navy-800);
+  --sidebar-border: color-mix(in srgb, var(--color-white) 12%, var(--color-navy-950));
   --sidebar-ring: var(--color-brand);
 }
 
 /*
- * Koyu kapsam (#000a1d): panelin üst çubuğu, sitedeki koyu bölümler, kimlik ekranlarının marka paneli.
+ * Koyu kapsam (#000a1d): panelin üst çubuğu, sitedeki koyu bantlar, giriş/kayıt marka paneli, platform ve durum sayfası başlığı.
  * Kapsayıcıya `dark` sınıfı verilir; içindeki shadcn bileşenleri ve semantik sınıflar (bg-card, text-foreground,
  * text-muted-foreground, text-primary…) kendiliğinden siyah zemine döner. Burada mavi yazı/link olabilir.
  * Kontrast: src/lib/theme/contrast.test.ts bu bloktaki değerleri de doğrular.
@@ -167,8 +163,8 @@
   --card-foreground: var(--color-white);
   --popover: var(--color-navy-800);
   --popover-foreground: var(--color-white);
-  --primary: var(--color-brand); /* buton zemini (yazı siyah) */
-  --primary-foreground: var(--color-black);
+  --primary: var(--color-brand); /* buton zemini (yazı navy-950) */
+  --primary-foreground: var(--color-navy-950);
   --secondary: var(--color-navy-800);
   --secondary-foreground: var(--color-white);
   --muted: var(--color-navy-800);
@@ -239,9 +235,9 @@
  * ekranında kullanılır (docs/04 → "Tanıtım sitesi"); neon/ışıma yok, yazı her zaman düz zeminde okunur kontrastta.
  */
 @utility hero-glow {
-  background-color: #ffffff;
+  background-color: var(--color-white);
   background-image:
-    radial-gradient(55% 65% at 92% 0%, rgb(0 176 255 / 0.2), transparent 70%),
-    radial-gradient(40% 50% at 100% 55%, rgb(255 107 74 / 0.14), transparent 70%),
-    linear-gradient(180deg, #f4f8fc 0%, #ffffff 70%);
+    radial-gradient(55% 65% at 92% 0%, color-mix(in srgb, var(--color-brand) 20%, transparent), transparent 70%),
+    radial-gradient(40% 50% at 100% 55%, color-mix(in srgb, var(--color-coral) 14%, transparent), transparent 70%),
+    linear-gradient(180deg, var(--color-neutral-100) 0%, var(--color-white) 70%);
 }

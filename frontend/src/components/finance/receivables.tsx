@@ -79,8 +79,8 @@ export function ReceivablesTab() {
               className={cn(
                 "flex min-h-14 flex-col items-start justify-center border px-3 py-2 text-left",
                 t.key === active.key
-                  ? "border-link bg-link text-white"
-                  : "border-border bg-white text-black hover:border-black",
+                  ? "border-navy-950 bg-navy-950 text-white"
+                  : "border-border bg-white text-black hover:border-navy-950",
               )}
             >
               <span className="text-sm font-semibold">

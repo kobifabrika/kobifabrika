@@ -51,7 +51,8 @@ describe("/odeme/[token]", () => {
     expect(await screen.findByText("Şık Kuaför")).toBeInTheDocument();
     expect(screen.getByText("1.250,50 TL")).toBeInTheDocument();
     expect(screen.getByText("TR40 0006 2000 0000 0000 0000 01")).toBeInTheDocument();
-    expect(screen.getByText("KobiFabrika ile gönderildi")).toBeInTheDocument();
+    expect(screen.getByRole("contentinfo")).toHaveTextContent("ile gönderildi");
+    expect(screen.getByRole("img", { name: "KobiFabrika" })).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole("button", { name: "IBAN: kopyala" }));
     await waitFor(() => expect(writeText).toHaveBeenCalledWith("TR400006200000000000000001"));

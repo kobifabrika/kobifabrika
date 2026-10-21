@@ -23,8 +23,10 @@ test("tanıtım sitesi: sayfalar, çağrılar, fiyat, yardım, 404 ve SEO dosyal
   // Bütün görsellerin anlamlı alt metni var.
   for (const img of await page.locator("img").all()) expect((await img.getAttribute("alt"))?.length ?? 0).toBeGreaterThan(5);
 
-  // Üst menüde sadece "KobiFabrika" yazısı (KF işareti yok, 2026-10-21); "Özellikler" ayrı sayfa, eski /#ozellikler oraya yönlenir.
-  await expect(page.getByRole("banner").getByRole("link", { name: "KobiFabrika ana sayfa" }).locator("svg, img")).toHaveCount(0);
+  // Üst menüde ve alt bilgide tek logo (açık zemin SVG; KF işareti yok, 2026-10-21); "Özellikler" ayrı sayfa, eski /#ozellikler oraya yönlenir.
+  const brand = page.getByRole("banner").getByRole("link", { name: "KobiFabrika ana sayfa" }).getByRole("img", { name: "KobiFabrika" });
+  await expect(brand).toHaveAttribute("src", "/marka/logo-acik.svg");
+  await expect(page.getByRole("contentinfo").getByRole("img", { name: "KobiFabrika" })).toHaveAttribute("src", "/marka/logo-acik.svg");
   await expect(page.getByRole("contentinfo").getByRole("link", { name: "Özellikler" })).toHaveAttribute("href", "/ozellikler");
   await visit(page, "/ozellikler", "Site · özellikler");
   await expect(page).toHaveTitle("Özellikler | KobiFabrika");
@@ -36,8 +38,11 @@ test("tanıtım sitesi: sayfalar, çağrılar, fiyat, yardım, 404 ve SEO dosyal
 
   await visit(page, "/giris", "Site · giriş");
   await expect(page).toHaveTitle("Giriş yap | KobiFabrika");
-  // Sol marka paneli koyu mürekkep zeminde yazı, slogan ve güvenceler; fotoğraf yok (2026-10-21).
-  await expect(page.locator("section").first().locator("img")).toHaveCount(0);
+  // Sol marka paneli ana koyu renkte (#000a1d): koyu zemin logosu, slogan ve güvenceler; fotoğraf yok (2026-10-21).
+  const brandPanel = page.locator("section").first();
+  await expect(brandPanel).toHaveCSS("background-color", "rgb(0, 10, 29)");
+  await expect(brandPanel.locator("img")).toHaveCount(1);
+  await expect(brandPanel.getByRole("img", { name: "KobiFabrika" })).toHaveAttribute("src", "/marka/logo-koyu.svg");
   if (isDesktop(info)) await expect(page.getByText("Kredi kartı istemez")).toBeVisible();
 
   await visit(page, "/fiyatlar", "Site · fiyatlar");

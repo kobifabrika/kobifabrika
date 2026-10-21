@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 
-import { Wordmark } from "@/components/brand/wordmark";
+import { Logo } from "@/components/brand/logo";
 
 import { LogoutLink } from "./logout-link";
 import { SetupWizard } from "./setup-wizard";
@@ -12,7 +12,7 @@ export default function SetupPage() {
   return (
     <div className="min-h-screen bg-background">
       <header className="flex h-14 items-center justify-between border-b border-border bg-white px-4">
-        <Wordmark className="text-xl" />
+        <Logo surface="light" priority className="h-4" />
         <LogoutLink />
       </header>
       <main className="mx-auto w-full max-w-xl px-4 pt-6">

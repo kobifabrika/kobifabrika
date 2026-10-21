@@ -48,7 +48,7 @@ export function MobileMenu() {
         <SheetTrigger asChild>
           <button
             type="button"
-            className="flex size-11 items-center justify-center rounded-md text-white hover:bg-navy-800 lg:hidden"
+            className="flex size-11 items-center justify-center rounded-lg text-white hover:bg-white/10 lg:hidden"
             aria-label="Menü"
           >
             <Menu aria-hidden className="size-6" />
@@ -71,7 +71,7 @@ export function MobileMenu() {
           <div className="flex-1 overflow-y-auto">
             <section aria-label="Hesap" className="border-b border-sidebar-border px-3 py-4">
               <div className="flex items-center gap-3 px-3 pb-3">
-                <span className="flex size-11 shrink-0 items-center justify-center rounded-full bg-navy-800 text-sm font-bold text-white">
+                <span className="flex size-11 shrink-0 items-center justify-center rounded-full bg-neutral-300 text-sm font-bold text-navy-950">
                   {initials(me.user.fullName)}
                 </span>
                 <span className="flex min-w-0 flex-col">

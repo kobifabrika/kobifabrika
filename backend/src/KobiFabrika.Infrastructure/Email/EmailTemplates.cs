@@ -29,15 +29,16 @@ public static class EmailTemplates
     public static string CompanyLine { get; set; } = "KobiFabrika · destek@kobifabrika.com";
 
     /// <summary>
-    /// Sistem e-postalarının üstündeki logo (siyah zeminli PNG, 200 px gösterim). Görseller engellenirse alt metin "KobiFabrika"
-    /// okunur. Açılışta App:FrontendUrl'den ayarlanır.
+    /// Sistem e-postalarının üstündeki logo (açık zemin logosu, beyaz zeminli 2x PNG, 180 × 25 px gösterim; `npm run marka`).
+    /// Görseller engellenirse alt metin "KobiFabrika" okunur. Açılışta App:FrontendUrl'den ayarlanır.
     /// </summary>
     public static string? LogoUrl { get; set; }
 
-    private const string Ink = "#000000";
+    // Renkler frontend token'larıyla aynı (globals.css: navy-950, neutral-600, neutral-200, brand; docs/04).
     private const string Navy = "#000a1d";
-    private const string Muted = "#525252";
-    private const string Line = "#e5e5e5";
+    private const string Ink = Navy;
+    private const string Muted = "#4a5a70";
+    private const string Line = "#e3e9f1";
     private const string Accent = "#00b0ff";
 
     public static EmailMessage ConfirmEmail(string to, string fullName, string link) => Build(
@@ -249,8 +250,8 @@ public static class EmailTemplates
 
         var header = sender is null
             ? LogoUrl is { } logoUrl
-                ? $"""<p style="margin:0 0 20px"><img src="{E(logoUrl)}" alt="KobiFabrika" width="200" height="37" style="display:block;width:200px;height:auto;border:0;border-radius:4px;background:#000000;color:#ffffff;font-size:18px;font-weight:800"></p>"""
-                : $"""<p style="margin:0 0 20px;font-size:22px;font-weight:800;letter-spacing:-0.3px;color:{Ink}">Kobi<span style="border-bottom:3px solid {Accent}">Fabrika</span></p>"""
+                ? $"""<p style="margin:0 0 20px"><img src="{E(logoUrl)}" alt="KobiFabrika" width="180" height="25" style="display:block;width:180px;height:auto;border:0;color:{Navy};font-size:18px;font-weight:800"></p>"""
+                : $"""<p style="margin:0 0 20px;font-size:22px;font-weight:800;letter-spacing:-0.5px;color:{Navy}">Kobi<span style="color:{Accent}">Fabrika</span></p>"""
             : $"""
               <table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 0 20px"><tr>
                 {(sender.LogoUrl is { } logo ? $"""<td style="padding-right:12px;vertical-align:middle"><img src="{E(logo)}" alt="" width="40" height="40" style="display:block;width:40px;height:40px;border-radius:6px;object-fit:contain"></td>""" : "")}
@@ -301,7 +302,7 @@ public static class EmailTemplates
             <!doctype html>
             <html lang="tr">
             <head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="light"><title>{E(subject)}</title></head>
-            <body style="margin:0;padding:0;background:#f4f4f4;font-family:-apple-system,'Segoe UI',Roboto,Arial,sans-serif;color:{Ink};-webkit-text-size-adjust:100%">
+            <body style="margin:0;padding:0;background:#f4f8fc;font-family:-apple-system,'Segoe UI',Roboto,Arial,sans-serif;color:{Ink};-webkit-text-size-adjust:100%">
               <div style="max-width:560px;margin:0 auto;padding:24px 16px">
                 {header}
                 <div style="background:#ffffff;border:1px solid {Line};border-radius:6px;padding:24px 20px">

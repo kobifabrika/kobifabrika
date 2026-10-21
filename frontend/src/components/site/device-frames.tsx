@@ -6,7 +6,7 @@ import Image from "next/image";
  * çok hafif yumuşak gölge. Görüntüler demo işletmenin ("Işıltı Kuaför") ekranları, 2x yoğunlukta: `npm run demo:shots`. next/image
  * ekran genişliğine ve yoğunluğuna uygun boyut sunar (kalite 85: ekrandaki yazı net kalsın); alt metin ekranda ne olduğunu anlatır.
  */
-export const softShadow = "shadow-[0_1px_2px_rgb(10_31_60/0.06),0_18px_40px_-18px_rgb(10_31_60/0.28)]";
+export const softShadow = "shadow-[0_1px_2px_color-mix(in_srgb,var(--color-navy-950)_6%,transparent),0_18px_40px_-18px_color-mix(in_srgb,var(--color-navy-950)_28%,transparent)]";
 
 export function BrowserFrame({
   src,
@@ -23,11 +23,11 @@ export function BrowserFrame({
 }) {
   return (
     <figure className={cn("min-w-0", className)}>
-      <div className={cn("overflow-hidden rounded-xl border border-slate-200 bg-white", softShadow)}>
-        <div aria-hidden className="flex h-7 items-center gap-1.5 border-b border-slate-200 bg-mist px-3">
-          <span className="size-2.5 rounded-full bg-slate-200" />
-          <span className="size-2.5 rounded-full bg-slate-200" />
-          <span className="size-2.5 rounded-full bg-slate-200" />
+      <div className={cn("overflow-hidden rounded-xl border border-neutral-200 bg-white", softShadow)}>
+        <div aria-hidden className="flex h-7 items-center gap-1.5 border-b border-neutral-200 bg-neutral-100 px-3">
+          <span className="size-2.5 rounded-full bg-neutral-200" />
+          <span className="size-2.5 rounded-full bg-neutral-200" />
+          <span className="size-2.5 rounded-full bg-neutral-200" />
         </div>
         <Image
           src={src}
@@ -39,7 +39,7 @@ export function BrowserFrame({
           className="block h-auto w-full"
         />
       </div>
-      {caption && <figcaption className="mt-3 text-xs text-slate">Örnek ekran: demo işletme</figcaption>}
+      {caption && <figcaption className="mt-3 text-xs text-neutral-600">Örnek ekran: demo işletme</figcaption>}
     </figure>
   );
 }
@@ -59,7 +59,7 @@ export function PhoneFrame({
 }) {
   return (
     <figure className={cn("w-[200px] shrink-0 sm:w-[240px]", className)}>
-      <div className={cn("overflow-hidden rounded-[2rem] border-[7px] border-ink bg-white", softShadow)}>
+      <div className={cn("overflow-hidden rounded-[2rem] border-[7px] border-navy-950 bg-white", softShadow)}>
         <Image
           src={src}
           alt={alt}
@@ -71,7 +71,7 @@ export function PhoneFrame({
           className="block h-auto w-full"
         />
       </div>
-      {caption && <figcaption className="mt-3 text-xs text-slate">Örnek ekran: telefonda</figcaption>}
+      {caption && <figcaption className="mt-3 text-xs text-neutral-600">Örnek ekran: telefonda</figcaption>}
     </figure>
   );
 }

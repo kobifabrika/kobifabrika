@@ -2,11 +2,12 @@
 
 import type { ReactNode } from "react";
 
+import { Logo } from "@/components/brand/logo";
 import { fileUrl } from "@/lib/api/client";
 
 /**
  * İşletmenin müşterisinin açtığı sayfaların çerçevesi: sade beyaz zemin, üstte işletme logosu ve adı.
- * KobiFabrika sadece en altta küçük "KobiFabrika ile gönderildi" yazısıyla görünür.
+ * KobiFabrika sadece en altta küçük "[logo] ile gönderildi" satırıyla görünür.
  */
 export function PublicShell({
   businessName,
@@ -44,7 +45,9 @@ export function PublicShell({
         )}
         {children}
       </main>
-      <footer className="px-4 pb-6 text-center text-xs text-neutral-600">KobiFabrika ile gönderildi</footer>
+      <footer className="flex items-center justify-center gap-1 px-4 pb-6 text-xs text-neutral-600">
+        <Logo surface="light" className="h-2.5" /> ile gönderildi
+      </footer>
     </div>
   );
 }

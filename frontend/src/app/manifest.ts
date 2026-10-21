@@ -1,5 +1,7 @@
 import type { MetadataRoute } from "next";
 
+import { colors } from "@/lib/theme/colors";
+
 /** Ana ekrana ekleme (telefonda "Uygulama gibi" açılır). İkonlar `npm run marka` ile public/marka/isaret.svg'den üretilir. */
 export default function manifest(): MetadataRoute.Manifest {
   return {
@@ -9,8 +11,8 @@ export default function manifest(): MetadataRoute.Manifest {
     lang: "tr",
     start_url: "/panel",
     display: "standalone",
-    background_color: "#ffffff",
-    theme_color: "#000000",
+    background_color: colors.white,
+    theme_color: colors["navy-950"],
     icons: [
       { src: "/marka/icon-192.png", sizes: "192x192", type: "image/png" },
       { src: "/icon.png", sizes: "512x512", type: "image/png", purpose: "any" },

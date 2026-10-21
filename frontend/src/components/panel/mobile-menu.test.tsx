@@ -26,6 +26,7 @@ describe("MobileMenu", () => {
     fireEvent.click(screen.getByRole("button", { name: "Menü" }));
     const dialog = await screen.findByRole("dialog", { name: "Şık Kuaför" });
     const brand = within(dialog).getByRole("img", { name: "KobiFabrika" });
+    expect(brand).toHaveAttribute("src", "/marka/logo-koyu.svg");
     const nav = within(dialog).getByRole("navigation", { name: "Ana menü" });
     // Belge sırasında KobiFabrika logosu ana menüden sonra gelir.
     expect(nav.compareDocumentPosition(brand) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();

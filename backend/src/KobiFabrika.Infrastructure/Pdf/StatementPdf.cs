@@ -46,8 +46,8 @@ public interface IPdfRenderer
 internal sealed partial class QuestPdfRenderer : IPdfRenderer
 {
     private static readonly CultureInfo Tr = CultureInfo.GetCultureInfo("tr-TR");
-    private const string Gray = "#525252";
-    private const string Line = "#d4d4d4";
+    private const string Gray = "#4a5a70";
+    private const string Line = "#c6d2e1";
 
     public static string Money(decimal value) => value.ToString("N2", Tr) + " TL";
 

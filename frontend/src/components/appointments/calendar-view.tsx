@@ -326,8 +326,8 @@ export function CalendarView() {
               className={cn(
                 "min-h-11 border px-3 text-sm font-semibold first:rounded-l-lg last:rounded-r-lg",
                 view === v
-                  ? "border-link bg-link text-white"
-                  : "border-border bg-white text-black hover:border-black",
+                  ? "border-navy-950 bg-navy-950 text-white"
+                  : "border-border bg-white text-black hover:border-navy-950",
               )}
             >
               {v === "gun" ? "Gün" : "Hafta"}
@@ -368,7 +368,7 @@ export function CalendarView() {
               onClick={() => setParams({ personel: s.id })}
               className={cn(
                 "flex min-h-11 shrink-0 items-center gap-2 rounded-lg border px-3 text-sm font-semibold",
-                selected?.id === s.id ? "border-link bg-link text-white" : "border-border bg-white text-black",
+                selected?.id === s.id ? "border-navy-950 bg-navy-950 text-white" : "border-border bg-white text-black",
               )}
             >
               <StaffSwatch color={s.color} />

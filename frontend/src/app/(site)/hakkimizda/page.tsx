@@ -27,7 +27,7 @@ export default function AboutPage() {
         KobiFabrika; kuaförün, kafenin, stüdyonun ve dükkânın günlük işini tek uygulamada toplamak için kuruldu.
       </PageIntro>
       <div className="mx-auto max-w-3xl px-4 py-12 sm:px-6 sm:py-16">
-        <div className="flex flex-col gap-5 text-lg leading-8 text-slate">
+        <div className="flex flex-col gap-5 text-lg leading-8 text-neutral-600">
           <p>
             Küçük işletmeler bugün iki ayrı program kullanıyor: biri parayı tutuyor, öbürü randevuyu. Müşteri iki ayrı listede, borç
             defterde, hatırlatma telefonun notlarında. Biz bunları tek yere topluyoruz.
@@ -58,13 +58,13 @@ export default function AboutPage() {
         <h2 className="mt-12 text-2xl font-semibold">Nasıl çalışıyoruz</h2>
         <ul className="mt-6 grid gap-4 sm:grid-cols-2">
           {principles.map((p) => (
-            <li key={p.title} className="rounded-2xl border-t-4 border-t-brand bg-mist p-5">
+            <li key={p.title} className="rounded-2xl border-t-4 border-t-brand bg-neutral-100 p-5">
               <h3 className="text-lg font-semibold">{p.title}</h3>
-              <p className="mt-1 text-base leading-7 text-slate">{p.text}</p>
+              <p className="mt-1 text-base leading-7 text-neutral-600">{p.text}</p>
             </li>
           ))}
         </ul>
-        <p className="mt-12 text-sm text-slate">{company.name}</p>
+        <p className="mt-12 text-sm text-neutral-600">{company.name}</p>
         <Button asChild size="lg" className="mt-6">
           <Link href={primaryCta.href}>{primaryCta.label}</Link>
         </Button>

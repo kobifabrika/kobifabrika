@@ -27,7 +27,7 @@ export function FeatureTabs({ groups }: { groups: FeatureGroup[] }) {
             onClick={() => setActive(g.key)}
             className={cn(
               "min-h-11 shrink-0 rounded-full border px-5 text-[15px] font-semibold transition-colors",
-              active === g.key ? "border-ink bg-ink text-white" : "border-slate-200 bg-white text-ink hover:border-ink",
+              active === g.key ? "border-navy-950 bg-navy-950 text-white" : "border-neutral-200 bg-white text-navy-950 hover:border-navy-950",
             )}
           >
             {g.label}
@@ -45,19 +45,19 @@ export function FeatureTabs({ groups }: { groups: FeatureGroup[] }) {
         >
           <div>
             <h3 className="text-3xl leading-tight font-semibold tracking-tight sm:text-4xl">{g.title}</h3>
-            <p className="mt-4 max-w-md text-base leading-7 text-slate">{g.text}</p>
+            <p className="mt-4 max-w-md text-base leading-7 text-neutral-600">{g.text}</p>
             <ul className="mt-6 flex flex-col gap-3">
               {g.points.map((p) => (
                 <li key={p} className="flex items-center gap-3 text-base">
                   <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-coral-soft">
-                    <Check aria-hidden className="size-3.5 text-ink" strokeWidth={3} />
+                    <Check aria-hidden className="size-3.5 text-navy-950" strokeWidth={3} />
                   </span>
                   {p}
                 </li>
               ))}
             </ul>
           </div>
-          <div className="rounded-2xl bg-mist p-3 sm:p-6">
+          <div className="rounded-2xl bg-neutral-100 p-3 sm:p-6">
             <BrowserFrame src={g.shot} alt={g.shotAlt} />
           </div>
         </div>

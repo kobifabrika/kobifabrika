@@ -23,12 +23,12 @@ export default function ContactPage() {
       </PageIntro>
       <div className="mx-auto grid max-w-6xl gap-6 px-4 py-12 sm:px-6 sm:py-16 md:grid-cols-2">
         {whatsapp && (
-          <section aria-labelledby="whatsapp" className="flex flex-col gap-3 rounded-2xl border border-slate-200 bg-white p-6">
+          <section aria-labelledby="whatsapp" className="flex flex-col gap-3 rounded-2xl border border-neutral-200 bg-white p-6">
             <MessageCircle aria-hidden className="size-8 text-link" />
             <h2 id="whatsapp" className="text-xl font-semibold">
               WhatsApp
             </h2>
-            <p className="text-base text-slate tabular-nums">{supportWhatsappDisplay}</p>
+            <p className="text-base text-neutral-600 tabular-nums">{supportWhatsappDisplay}</p>
             <Button asChild size="lg" className="self-start">
               <a href={whatsapp} target="_blank" rel="noopener noreferrer">
                 WhatsApp&apos;tan yaz
@@ -36,12 +36,12 @@ export default function ContactPage() {
             </Button>
           </section>
         )}
-        <section aria-labelledby="eposta" className="flex flex-col gap-3 rounded-2xl border border-slate-200 bg-white p-6">
+        <section aria-labelledby="eposta" className="flex flex-col gap-3 rounded-2xl border border-neutral-200 bg-white p-6">
           <Mail aria-hidden className="size-8 text-link" />
           <h2 id="eposta" className="text-xl font-semibold">
             E-posta
           </h2>
-          <p className="text-base break-all text-slate">{company.email}</p>
+          <p className="text-base break-all text-neutral-600">{company.email}</p>
           <Button asChild size="lg" variant="outline" className="self-start">
             <a href={`mailto:${company.email}`}>E-posta gönder</a>
           </Button>
@@ -57,7 +57,7 @@ export default function ContactPage() {
                   href={s.href}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex min-h-11 items-center gap-2 rounded-md border border-slate-200 px-4 text-sm font-semibold hover:border-ink"
+                  className="flex min-h-11 items-center gap-2 rounded-md border border-neutral-200 px-4 text-sm font-semibold hover:border-navy-950"
                 >
                   <SocialIcon name={s.key} className="size-5" /> {s.label}
                 </a>

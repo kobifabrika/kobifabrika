@@ -3,6 +3,7 @@
 import { MapPin, Phone } from "lucide-react";
 import type { ReactNode } from "react";
 
+import { Logo } from "@/components/brand/logo";
 import { fileUrl } from "@/lib/api/client";
 
 /** Google Haritalar arama linki (adres + ilçe + il). */
@@ -76,7 +77,9 @@ export function BookingShell({
           {aside && <aside className="hidden lg:block">{aside}</aside>}
         </div>
       </div>
-      <footer className="px-4 pb-6 text-center text-xs text-neutral-600">KobiFabrika ile online randevu</footer>
+      <footer className="flex items-center justify-center gap-1 px-4 pb-6 text-xs text-neutral-600">
+        <Logo surface="light" className="h-2.5" /> ile online randevu
+      </footer>
     </div>
   );
 }

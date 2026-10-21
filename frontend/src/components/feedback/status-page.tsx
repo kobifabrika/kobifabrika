@@ -52,7 +52,7 @@ export function StatusPage({
       <header className="dark bg-navy-950">
         <div className="mx-auto flex h-16 max-w-6xl items-center px-4 sm:px-6">
           <Link href="/" className="flex min-h-11 items-center rounded-md" aria-label="KobiFabrika ana sayfa">
-            <Logo className="h-5" />
+            <Logo surface="dark" priority />
           </Link>
         </div>
       </header>

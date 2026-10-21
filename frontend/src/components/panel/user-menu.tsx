@@ -34,7 +34,7 @@ export function UserMenu() {
     <DropdownMenu>
       <DropdownMenuTrigger
         aria-label={`Kullanıcı menüsü: ${me.user.fullName}`}
-        className="hidden size-9 items-center justify-center rounded-full bg-navy-800 text-sm font-bold text-white lg:flex"
+        className="hidden size-9 items-center justify-center rounded-full bg-neutral-300 text-sm font-bold text-navy-950 hover:bg-white lg:flex"
       >
         {initials(me.user.fullName)}
       </DropdownMenuTrigger>

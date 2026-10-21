@@ -47,7 +47,7 @@ export function HelpMenu() {
       <DropdownMenu>
         <DropdownMenuTrigger
           aria-label="Yardım"
-          className="hidden size-9 items-center justify-center rounded-md text-white hover:bg-navy-800 lg:flex"
+          className="hidden size-9 items-center justify-center rounded-lg text-white hover:bg-white/10 lg:flex"
         >
           <CircleHelp aria-hidden className="size-5" />
         </DropdownMenuTrigger>

@@ -74,14 +74,14 @@ export function NavList({ onNavigate }: { onNavigate?: () => void }) {
 }
 
 /**
- * Menünün alt satırı: küçük, keskin KobiFabrika logosu (SVG, saydamlık yok; 12 px yükseklik), geliştirmede altında API durumu,
+ * Menünün alt satırı: küçük KobiFabrika logosu (koyu zemin, 14 px yükseklik), geliştirmede altında API durumu,
  * ikisi aynı sol kenarda. Masaüstü sol menüde ve telefondaki "Menü" panelinde aynı (2026-10-21: menünün üstünde işletme,
  * KobiFabrika altta).
  */
 export function NavFooter() {
   return (
     <div className="flex flex-col items-start gap-2 border-t border-sidebar-border px-6 py-4">
-      <Logo className="h-3" />
+      <Logo surface="dark" className="h-3.5" />
       <ApiStatus className="text-sidebar-foreground" />
     </div>
   );
@@ -91,7 +91,8 @@ export function NavFooter() {
 export function Sidebar() {
   return (
     <aside className="fixed inset-y-0 left-0 z-30 hidden w-64 flex-col overflow-hidden border-r border-sidebar-border bg-sidebar text-sidebar-foreground lg:flex">
-      <div className="border-b border-sidebar-border px-3 py-3">
+      {/* Üst çubukla tek bant: aynı zemin, aynı yükseklik (52 px), alt çizgi aynı hizada ve aynı soluk renkte. */}
+      <div className="flex h-[52px] shrink-0 items-center border-b border-sidebar-border px-3">
         <BusinessSwitcher variant="sidebar" />
       </div>
       <div className="relative flex-1 overflow-y-auto px-3 py-6">

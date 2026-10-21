@@ -140,17 +140,17 @@ export function CommandMenu() {
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="hidden h-9 w-full max-w-md items-center gap-2 rounded-lg border border-border bg-muted px-3 text-left text-sm text-muted-foreground hover:border-primary lg:flex"
+        className="hidden h-9 w-full max-w-md items-center gap-2 rounded-lg border border-white/15 bg-white/10 px-3 text-left text-sm text-neutral-300 transition-colors outline-none hover:bg-white/15 focus-visible:border-brand focus-visible:ring-1 focus-visible:ring-brand lg:flex"
       >
         <Search aria-hidden className="size-4" />
         <span className="flex-1">Müşteri, ürün, satış veya sayfa ara…</span>
-        <kbd className="rounded border border-border bg-background px-1.5 text-xs text-muted-foreground">Ctrl K</kbd>
+        <kbd className="rounded border border-white/20 px-1.5 font-sans text-xs text-neutral-300">Ctrl K</kbd>
       </button>
       <button
         type="button"
         onClick={() => setOpen(true)}
         aria-label="Ara"
-        className="flex size-11 items-center justify-center rounded-md text-foreground hover:bg-muted lg:hidden"
+        className="flex size-11 items-center justify-center rounded-lg text-foreground hover:bg-white/10 lg:hidden"
       >
         <Search aria-hidden className="size-5" />
       </button>

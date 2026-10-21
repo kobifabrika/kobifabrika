@@ -5,6 +5,7 @@ import { QueryProvider } from "@/components/providers/query-provider";
 import { Toaster } from "@/components/ui/sonner";
 import { siteUrl } from "@/content/seo";
 import { homeTitle, siteDescription } from "@/content/site";
+import { colors } from "@/lib/theme/colors";
 
 import "./globals.css";
 
@@ -31,7 +32,7 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
-  themeColor: "#000a1d",
+  themeColor: colors["navy-950"],
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

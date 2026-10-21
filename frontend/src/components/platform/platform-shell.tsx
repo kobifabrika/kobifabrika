@@ -75,7 +75,7 @@ export function PlatformShell({ children }: { children: ReactNode }) {
       <header className="dark sticky top-0 z-20 border-b border-sidebar-border bg-background text-foreground">
         <div className="mx-auto flex h-14 max-w-6xl items-center justify-between gap-3 px-4 lg:h-16 lg:px-8">
           <Link href="/platform" className="flex min-h-11 items-center gap-2">
-            <Logo priority className="h-4 sm:h-5" />
+            <Logo surface="dark" priority className="h-4 sm:h-5" />
             <span className="rounded border border-neutral-600 px-1.5 py-0.5 text-xs font-semibold text-white">
               Süper admin
             </span>

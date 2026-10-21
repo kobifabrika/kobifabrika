@@ -47,12 +47,18 @@ describe("palet: siyah, beyaz, mavi, lacivert (docs/04-tasarim.md, karar 2026-10
     expect(css).not.toMatch(/--color-(success|warning|brand-\d+)/);
   });
 
-  it("nötrler renksiz gri (R = G = B)", () => {
-    for (const n of [50, 100, 200, 300, 400, 500, 600, 700, 800, 900]) {
-      const hex = token(`neutral-${n}`);
-      expect(hex.slice(1, 3)).toBe(hex.slice(3, 5));
-      expect(hex.slice(3, 5)).toBe(hex.slice(5, 7));
-    }
+  it("griler sitenin mavi-gri ailesi; açıktan koyuya sıralı (2026-10-21)", () => {
+    expect(token("neutral-100")).toBe("#f4f8fc");
+    expect(token("neutral-200")).toBe("#e3e9f1");
+    expect(token("neutral-300")).toBe("#c6d2e1");
+    expect(token("neutral-600")).toBe("#4a5a70");
+    const scale = [50, 100, 200, 300, 400, 500, 600, 700].map((n) => luminance(token(`neutral-${n}`)));
+    for (let i = 1; i < scale.length; i++) expect(scale[i]).toBeLessThan(scale[i - 1]);
+  });
+
+  it("site ve panel tek palet: sitenin eski ayrı token'ları (ink, slate, mist) ve eski koyu ton yok", () => {
+    expect(css).not.toMatch(/--color-(ink|slate|mist)/);
+    expect(css.toLowerCase()).not.toContain("#0a1f3c");
   });
 
   it("Tailwind'in hazır paleti kapalı", () => {
@@ -76,8 +82,9 @@ describe("kontrast kuralları", () => {
       expect(contrast(fg, token(bg))).toBeGreaterThanOrEqual(AA_TEXT);
   });
 
-  it("mavi düğme + siyah yazı; lacivert ve link zemininde beyaz yazı", () => {
+  it("mavi düğme + koyu yazı; lacivert ve link zemininde beyaz yazı", () => {
     expect(contrast(BLACK, token("brand"))).toBeGreaterThanOrEqual(AA_TEXT);
+    expect(contrast(token("navy-950"), token("brand"))).toBeGreaterThanOrEqual(AA_TEXT);
     expect(contrast(WHITE, token("navy-950"))).toBeGreaterThanOrEqual(AA_TEXT);
     expect(contrast(WHITE, token("link"))).toBeGreaterThanOrEqual(AA_TEXT);
   });
@@ -139,11 +146,11 @@ const light = (name: string) => variable(":root", name);
 const dark = (name: string) => variable(".dark", name);
 
 describe("beyaz kapsam: panel içeriği, giriş ekranları, site", () => {
-  it("zemin beyaz, yazı siyah, ana düğme mavi + siyah yazı, link mavisi, odak halkası lacivert", () => {
+  it("zemin beyaz, yazı siyah, ana düğme mavi + koyu (#000a1d) yazı, link mavisi, odak halkası lacivert", () => {
     expect(light("background")).toBe(WHITE);
     expect(light("foreground")).toBe(BLACK);
     expect(light("primary")).toBe(token("brand"));
-    expect(light("primary-foreground")).toBe(BLACK);
+    expect(light("primary-foreground")).toBe(token("navy-950"));
     expect(light("link")).toBe(token("link"));
     expect(light("ring")).toBe(token("navy-950"));
   });
@@ -177,10 +184,10 @@ describe("beyaz kapsam: panel içeriği, giriş ekranları, site", () => {
 describe("koyu kapsam (.dark): üst çubuk, sitedeki koyu bölümler", () => {
   const surfaces = ["background", "card", "popover", "muted"] as const;
 
-  it("zemin koyu lacivert, birincil renk mavi + siyah yazı, link mavi, odak halkası mavi", () => {
+  it("zemin #000a1d, birincil renk mavi + koyu yazı, link mavi, odak halkası mavi", () => {
     expect(dark("background")).toBe(token("navy-950"));
     expect(dark("primary")).toBe(token("brand"));
-    expect(dark("primary-foreground")).toBe(BLACK);
+    expect(dark("primary-foreground")).toBe(token("navy-950"));
     expect(dark("link")).toBe(token("brand"));
     expect(dark("ring")).toBe(token("brand"));
   });
@@ -222,55 +229,66 @@ describe("panel sol menü (koyu lacivert, aktif öğe mavi)", () => {
     expect(contrast(light("sidebar-accent-foreground"), light("sidebar-accent"))).toBeGreaterThanOrEqual(AA_TEXT);
   });
 
+  it("sol menü ve üst çubuk tek bant: aynı zemin; ayırıcı çizgi soluk (mavi değil)", () => {
+    expect(light("sidebar")).toBe(dark("background"));
+    const line = light("sidebar-border");
+    expect(contrast(line, light("sidebar"))).toBeLessThan(AA_NON_TEXT);
+    expect(contrast(line, light("sidebar"))).toBeGreaterThan(1.2);
+    expect(line).not.toBe(token("navy-800"));
+  });
+
   it("odak halkası menüde en az 3:1", () => {
     expect(contrast(light("sidebar-ring"), light("sidebar"))).toBeGreaterThanOrEqual(AA_NON_TEXT);
     expect(contrast(light("sidebar-ring"), light("sidebar-accent"))).toBeGreaterThanOrEqual(AA_NON_TEXT);
   });
 });
 
-describe("tanıtım sitesi renkleri (2026-10-21)", () => {
-  const light = ["white", "mist", "cream"].map((n) => (n === "white" ? WHITE : token(n)));
+describe("tanıtım sitesi (site ve panel aynı palet, 2026-10-21)", () => {
+  const lightBgs = [WHITE, token("neutral-100"), token("cream")];
 
-  it("marka mavisi ana renk; mavi düğmede mürekkep yazı okunur", () => {
-    expect(token("brand")).toBe("#00b0ff");
-    expect(contrast(token("ink"), token("brand"))).toBeGreaterThanOrEqual(AA_TEXT);
+  it("ana koyu renk (#000a1d), ikincil yazı, link ve mercan yazısı beyaz, açık zemin ve kremde okunur", () => {
+    for (const bg of lightBgs)
+      for (const fg of ["navy-950", "neutral-600", "link", "coral-text"]) expect(contrast(token(fg), bg)).toBeGreaterThanOrEqual(AA_TEXT);
+    expect(contrast(token("navy-950"), WHITE)).toBeGreaterThanOrEqual(7);
   });
 
-  it("mürekkep, ikincil yazı, link ve mercan yazısı beyaz, sis ve kremde okunur", () => {
-    for (const bg of light)
-      for (const fg of ["ink", "slate", "link", "coral-text"]) expect(contrast(token(fg), bg)).toBeGreaterThanOrEqual(AA_TEXT);
-  });
-
-  it("mercan beyazda yazı olamaz (sadece şerit/zemin); mercan rozetinde mürekkep yazı okunur", () => {
+  it("mercan beyazda yazı olamaz (sadece şerit/zemin); mercan rozetinde koyu yazı okunur", () => {
     expect(contrast(token("coral"), WHITE)).toBeLessThan(AA_TEXT);
-    expect(contrast(token("ink"), token("coral-soft"))).toBeGreaterThanOrEqual(AA_TEXT);
-    expect(contrast(token("ink"), token("coral"))).toBeGreaterThanOrEqual(AA_TEXT);
+    expect(contrast(token("navy-950"), token("coral-soft"))).toBeGreaterThanOrEqual(AA_TEXT);
+    expect(contrast(token("navy-950"), token("coral"))).toBeGreaterThanOrEqual(AA_TEXT);
   });
 
-  it("mürekkep bantta beyaz, slate-300, mavi ve mercan yazı okunur", () => {
-    for (const fg of [WHITE, token("slate-300"), token("brand"), token("coral")])
-      expect(contrast(fg, token("ink"))).toBeGreaterThanOrEqual(AA_TEXT);
+  it("koyu bantlarda (Telefondan yönet, İşin listede yok mu?, son çağrı, giriş paneli) beyaz, neutral-300, mavi ve mercan yazı okunur", () => {
+    for (const fg of [WHITE, token("neutral-300"), token("neutral-400"), token("brand"), token("coral")])
+      expect(contrast(fg, token("navy-950"))).toBeGreaterThanOrEqual(AA_TEXT);
+  });
+
+  it("koyu zemindeki ikon kutusu: mavi kutu zeminden ayrışır, içindeki koyu ikon okunur", () => {
+    expect(contrast(token("brand"), token("navy-950"))).toBeGreaterThanOrEqual(AA_NON_TEXT);
+    expect(contrast(token("navy-950"), token("brand"))).toBeGreaterThanOrEqual(AA_TEXT);
+  });
+
+  it("link mavisi ve mercan yazısı koyu zeminde kullanılmaz (yetersiz)", () => {
+    expect(contrast(token("link"), token("navy-950"))).toBeLessThan(AA_TEXT);
+    expect(contrast(token("coral-text"), token("navy-950"))).toBeLessThan(AA_TEXT);
   });
 });
 
-describe("defter rengi (mürekkep #0a1f3c; karar 2026-10-21)", () => {
-  it("defter rengi sabit; ana sayfa başlığı beyazda AAA düzeyinde okunur", () => {
-    expect(token("ink")).toBe("#0a1f3c");
-    expect(contrast(token("ink"), WHITE)).toBeGreaterThanOrEqual(7);
+/**
+ * Logo kontrast kuralından muaf (docs/04): açık zemin logosunda "Fabrika" marka mavisi (#00b0ff, beyazda 2,1:1). Muafiyet
+ * sadece iki logo dosyası için; renkleri token'larla aynı olmalı.
+ */
+describe("logo (kontrast kuralından muaf)", () => {
+  const svg = (name: string) => readFileSync(join(process.cwd(), "public/marka", name), "utf8");
+  const fills = (name: string) => [...svg(name).matchAll(/fill="(#[0-9a-f]{6})"/g)].map((m) => m[1]);
+
+  it("açık zemin: Kobi #000a1d, Fabrika marka mavisi; koyu zemin: Kobi beyaz, Fabrika marka mavisi", () => {
+    expect(fills("logo-acik.svg")).toEqual([token("navy-950"), token("brand")]);
+    expect(fills("logo-koyu.svg")).toEqual([WHITE, token("brand")]);
   });
 
-  it("defter zemininde (giriş/kayıt paneli, Telefondan yönet, İşin listede yok mu?) yazı, etiket ve link okunur", () => {
-    for (const fg of [WHITE, token("slate-300"), token("brand")])
-      expect(contrast(fg, token("ink"))).toBeGreaterThanOrEqual(AA_TEXT);
-  });
-
-  it("defter zeminindeki ikon kutusu: mavi kutu zeminden ayrışır, içindeki mürekkep ikon okunur", () => {
-    expect(contrast(token("brand"), token("ink"))).toBeGreaterThanOrEqual(AA_NON_TEXT);
-    expect(contrast(token("ink"), token("brand"))).toBeGreaterThanOrEqual(AA_TEXT);
-  });
-
-  it("link mavisi ve mercan yazısı defter zemininde kullanılmaz (yetersiz)", () => {
-    expect(contrast(token("link"), token("ink"))).toBeLessThan(AA_TEXT);
-    expect(contrast(token("coral-text"), token("ink"))).toBeLessThan(AA_TEXT);
+  it("muafiyet bilinçli: Fabrika mavisi beyazda yazı kontrastını sağlamaz, koyu zeminde sağlar", () => {
+    expect(contrast(token("brand"), WHITE)).toBeLessThan(AA_TEXT);
+    expect(contrast(token("brand"), token("navy-950"))).toBeGreaterThanOrEqual(AA_TEXT);
   });
 });
