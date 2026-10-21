@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { cacheLife } from "next/cache";
+import { connection } from "next/server";
 import { Suspense } from "react";
 
 import { BookingRoute } from "@/components/booking/booking-route";
@@ -28,11 +29,25 @@ export async function generateMetadata({ params }: PageProps<"/r/[slug]">): Prom
   };
 }
 
+/**
+ * Başlık adresteki işletmeye göre (generateMetadata params okur); sayfa bu yüzden istek anında render edilir. İşaretçi olmadan
+ * Next geliştirmede "URL data in generateMetadata" hatası verir.
+ */
+async function RequestTime() {
+  await connection();
+  return null;
+}
+
 /** İşletmenin herkese açık online randevu sayfası (kobifabrika.com/r/{slug}). Oturum gerekmez. */
 export default function BookingPage() {
   return (
-    <Suspense>
-      <BookingRoute />
-    </Suspense>
+    <>
+      <Suspense>
+        <RequestTime />
+      </Suspense>
+      <Suspense>
+        <BookingRoute />
+      </Suspense>
+    </>
   );
 }

@@ -13,6 +13,8 @@ const eslintConfig = defineConfig([
     ".next/**",
     ".next-e2e/**",
     ".next-e2e-sms/**",
+    ".next-e2e-dev/**",
+    ".next-e2e-sms-dev/**",
     "playwright-report/**",
     "test-results/**",
     "e2e/.run/**",

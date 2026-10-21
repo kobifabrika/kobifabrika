@@ -6,7 +6,23 @@ import Image from "next/image";
  * Kuaför") ekranları: `npm run demo:shots`. next/image WebP/AVIF ve ekran genişliğine uygun boyut sunar; alt metin ekranda ne
  * olduğunu anlatır.
  */
-export function LaptopFrame({ src, alt, className, priority = false }: { src: string; alt: string; className?: string; priority?: boolean }) {
+/**
+ * `eager`: ilk ekrandaki görsel (masaüstünde LCP) tembel yüklenmez; telefonda gizli olduğu için `sizes` orada 1 px'lik en küçük
+ * kaynağı seçtirir (önyükleme yok, telefondaki LCP telefon çerçevesi).
+ */
+export function LaptopFrame({
+  src,
+  alt,
+  className,
+  priority = false,
+  eager = false,
+}: {
+  src: string;
+  alt: string;
+  className?: string;
+  priority?: boolean;
+  eager?: boolean;
+}) {
   return (
     <figure className={cn("min-w-0", className)}>
       <div className="rounded-t-xl border-[10px] border-b-0 border-navy-950 bg-navy-950">
@@ -16,7 +32,8 @@ export function LaptopFrame({ src, alt, className, priority = false }: { src: st
           width={1280}
           height={800}
           priority={priority}
-          sizes="(min-width: 1024px) 720px, (min-width: 768px) 90vw, 100vw"
+          loading={eager && !priority ? "eager" : undefined}
+          sizes={eager ? "(min-width: 1024px) 720px, (min-width: 768px) 90vw, 1px" : "(min-width: 1024px) 720px, (min-width: 768px) 90vw, 100vw"}
           className="block h-auto w-full rounded-t-sm bg-white"
         />
       </div>

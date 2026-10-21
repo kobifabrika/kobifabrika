@@ -1,0 +1,62 @@
+/*
+ * B · Ferah beyaz + mercan. Koyu bantlar kalkar: üst menü, giriş bölümü, sol menü beyaz/çok açık mavi; yazı koyu mürekkep
+ * (#0b1526). Ana düğme marka mavisi #00b0ff (yazı koyu), küçük vurgular mercan (#ff6a4d zemin, #c2412d yazı).
+ * Logo beyazda okunsun diye koyu yazılı sürümü (önizleme için SVG). Sadece önizleme.
+ */
+:root {
+  --ink: #0b1526;
+  --color-navy-950: #ffffff;
+  --color-navy-800: #eef3f8;
+  --color-cyan: #c2412d;
+  --foreground: var(--ink);
+  --card: #ffffff;
+  --border: #e6ebf1;
+  --muted-foreground: #4a5566;
+  --color-neutral-600: #4a5566;
+  --sidebar: #ffffff;
+  --sidebar-foreground: #3b4656;
+  --sidebar-primary: #e5f6ff;
+  --sidebar-primary-foreground: #005f8f;
+  --sidebar-accent: #f3f7fb;
+  --sidebar-accent-foreground: var(--ink);
+  --sidebar-border: #e6ebf1;
+  --sidebar-ring: #006ea6;
+  --ring: #006ea6;
+}
+body { color: var(--ink); }
+.dark {
+  color-scheme: light;
+  --background: #ffffff;
+  --foreground: var(--ink);
+  --card: #f6f9fc;
+  --card-foreground: var(--ink);
+  --popover: #ffffff;
+  --popover-foreground: var(--ink);
+  --secondary: #eef3f8;
+  --secondary-foreground: var(--ink);
+  --muted: #eef3f8;
+  --muted-foreground: #4a5566;
+  --accent: #eef3f8;
+  --accent-foreground: var(--ink);
+  --border: #e6ebf1;
+  --ring: #006ea6;
+  --link: #006ea6;
+  --color-white: var(--ink);
+  --color-neutral-300: #4a5566;
+  --color-neutral-400: #6b7685;
+}
+.dark .text-brand { color: #006ea6; }
+aside .text-white, aside .hover\:text-white:hover, [data-slot="sheet-content"] .text-white { color: var(--ink); }
+header.dark { border-bottom: 1px solid #e6ebf1; }
+section.dark.bg-navy-950 { background-image: linear-gradient(180deg, #eaf6ff 0%, #ffffff 85%); }
+footer.dark { background: #f6f9fc; }
+[data-slot="card"], main li.rounded-lg.border { box-shadow: 0 1px 2px rgb(11 21 38 / 0.05), 0 6px 20px rgb(11 21 38 / 0.05); }
+main li.border-link { border-color: #ff6a4d !important; }
+main li span.bg-link { background: #ff6a4d; color: var(--ink); }
+/* Logo: beyaz zeminde koyu "KOBI" + mavi "FABRIKA" (önizleme). */
+img[src*="logo-yazi"] {
+  content: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 640 62'%3E%3Ctext x='0' y='52' font-family='Arial Black,Arial,sans-serif' font-weight='900' font-size='64' letter-spacing='4'%3E%3Ctspan fill='%230b1526'%3EKOBI%3C/tspan%3E%3Ctspan fill='%2300b0ff' dx='18'%3EFABRIKA%3C/tspan%3E%3C/text%3E%3C/svg%3E");
+}
+/* Seçili Aylık/Yıllık: koyu mürekkep zemin, beyaz yazı. */
+[role="radiogroup"] [aria-checked="true"].bg-navy-950 { background: var(--ink); color: #ffffff; }
+[role="radiogroup"].border-navy-950 { border-color: var(--ink); }

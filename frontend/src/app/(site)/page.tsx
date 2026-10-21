@@ -99,6 +99,7 @@ export default function HomePage() {
 
           <div className="mt-14 flex items-end gap-6 lg:mt-16">
             <LaptopFrame
+              eager
               className="hidden flex-1 md:block [&_figcaption]:text-neutral-300"
               src="/site/bugun-masaustu.webp"
               alt="KobiFabrika Bugün ekranı: günün randevuları, yarının randevuları, satış ve tahsilat kartları."
