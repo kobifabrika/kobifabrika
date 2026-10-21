@@ -2,6 +2,8 @@
 
 En yeni en üstte. Notion'daki "Proje Planı ve Kararlar" sayfasıyla aynı kararlar; teknik kararlar burada daha ayrıntılı.
 
+- **2026-10-21 (renk yönü):** A (gece mavisi + altın), B (ferah beyaz + mercan), C (krem + antrasit) **reddedildi**; hiçbiri uygulanmadı, önizleme betiği ve `docs/tasarim-secenekleri/` kaldırıldı. Yeni yön: tanıtım sitesi ikas + Stripe + Paraşüt karışımı (premium, canlı, sıcak, insanlı); bu turda sadece site, panel onaydan sonra.
+
 - **2026-10-21 (tasarım turu düzeltmeleri, Emir'in gezisi):**
   - **Şirket bilgisi:** "(kuruluş aşamasında)" hiçbir yerde görünmez; unvan şimdilik sadece **KobiFabrika**, iletişim destek@kobifabrika.com (`content/company.ts`, backend `Company:EmailFooter`). KVKK metninde "Veri sorumlusu" bölümü dolu (ad, iletişim, site; adres/MERSİS şirket kurulunca). **Avukata sorulacak:** şirket kurulmadan veri sorumlusu olarak marka adının yazılması yeterli mi, kurucunun adı/adresi yazılmalı mı; şirket kurulunca unvan, adres, MERSİS eklenir ve `LegalVersions` artırılır. Metin içeriği değişmediği için sürüm artırılmadı.
   - **Fiyatlar:** başlık bandı kısa (`PageIntro compact`); kartta düğme fiyatın hemen altında, limitler ve özellikler sonra. Paket düğmeleri 1920×1080 ve 1366×768'de ilk ekranda (E2E ölçer).
