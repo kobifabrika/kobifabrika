@@ -11,12 +11,13 @@ import { SectorIcon } from "@/components/site/sector-icons";
 import { Button } from "@/components/ui/button";
 import { company } from "@/content/company";
 import { plans } from "@/content/plans";
-import { differentiators, featureGroups, primaryCta, sectors, siteDescription, siteSlogan, steps } from "@/content/site";
+import { homeTitle, differentiators, featureGroups, primaryCta, sectors, siteDescription, siteSlogan, steps } from "@/content/site";
 
 // Tasarım: docs/04-tasarim.md → "Tanıtım sitesi" (5 renk; karar 2026-10-17). Koyu bölümler #000a1d / #00385a; beyazda mavi yazı yok.
 
 export const metadata: Metadata = {
-  title: { absolute: `KobiFabrika — ${siteSlogan}` },
+  title: { absolute: homeTitle },
+  openGraph: { title: homeTitle, description: siteDescription },
   description: siteDescription,
   alternates: { canonical: "/" },
 };

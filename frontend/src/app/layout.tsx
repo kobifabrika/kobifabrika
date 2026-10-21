@@ -4,7 +4,7 @@ import { Schibsted_Grotesk } from "next/font/google";
 import { QueryProvider } from "@/components/providers/query-provider";
 import { Toaster } from "@/components/ui/sonner";
 import { siteUrl } from "@/content/seo";
-import { siteDescription } from "@/content/site";
+import { homeTitle, siteDescription } from "@/content/site";
 
 import "./globals.css";
 
@@ -17,13 +17,14 @@ const display = Schibsted_Grotesk({
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
+  // Sekme başlığı "Sayfa | KobiFabrika"; ana sayfa "KobiFabrika | KOBİ'nin dijital fabrikası" (2026-10-21).
   title: {
-    default: "KobiFabrika — KOBİ'nin dijital fabrikası",
-    template: "%s · KobiFabrika",
+    default: homeTitle,
+    template: "%s | KobiFabrika",
   },
   description: siteDescription,
   applicationName: "KobiFabrika",
-  openGraph: { type: "website", locale: "tr_TR", siteName: "KobiFabrika" },
+  openGraph: { type: "website", locale: "tr_TR", siteName: "KobiFabrika", title: homeTitle },
   twitter: { card: "summary_large_image" },
 };
 

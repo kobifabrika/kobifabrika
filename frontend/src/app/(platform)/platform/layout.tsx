@@ -7,7 +7,7 @@ import { PlatformShell } from "@/components/platform/platform-shell";
 export const instant = false;
 
 export const metadata: Metadata = {
-  title: { default: "Süper admin", template: "%s · Süper admin · KobiFabrika" },
+  title: { default: "Süper admin", template: "%s | Süper admin | KobiFabrika" },
   robots: { index: false },
 };
 

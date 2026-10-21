@@ -6,6 +6,9 @@ import { company } from "./company";
 /** Slogan: sayfa başlığı, meta açıklama, site ve giriş ekranları (karar 2026-10-15; eski "işletim sistemi" ifadesi kullanılmaz). */
 export const siteSlogan = "KOBİ'nin dijital fabrikası";
 
+/** Ana sayfa sekme ve Open Graph başlığı. */
+export const homeTitle = `KobiFabrika | ${siteSlogan}`;
+
 export const siteDescription =
   "Esnafın kasası, veresiyesi, randevusu ve personeli tek uygulamada. Telefondan kullanılır, 10 dakikada kurulur, Çırak paketi ücretsiz.";
 
