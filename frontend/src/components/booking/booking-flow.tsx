@@ -114,8 +114,9 @@ export function BookingFlow({ slug }: { slug: string }) {
 
   const go = (next: BookingStep, replace = false) => {
     const url = next === "hizmet" ? pathname : `${pathname}?adim=${next}`;
-    if (replace) router.replace(url, { scroll: false });
-    else router.push(url, { scroll: false });
+    // Yerel history: useSearchParams ile eşlenir, sunucuya gidip metadata'yı (başlık) yeniden akıtmaz.
+    if (replace) window.history.replaceState(null, "", url);
+    else window.history.pushState(null, "", url);
     window.scrollTo({ top: 0 });
   };
 

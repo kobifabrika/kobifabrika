@@ -120,3 +120,26 @@ test("online randevu kodsuz, WhatsApp bildirimi ve yarının randevuları", asyn
   await expect(ownerPage.getByText(/Pilot döneminde telefon SMS koduyla doğrulanmadığı için/)).toBeVisible();
   await expect(ownerPage.getByRole("link", { name: "SMS", exact: true })).toHaveCount(0);
 });
+
+/**
+ * SMS kapalıyken Kampanyalar: boş durum SMS demez; otomasyon anahtarları açıklamayla kilitli (listede ve düzenlemede),
+ * metin yine düzenlenip kaydedilebilir.
+ */
+test("SMS kapalıyken kampanya boş durumu ve kilitli otomasyonlar", async ({ ownerPage: page, visit }) => {
+  await visit(page, "/panel/kampanyalar", "SMS kapalı · Kampanyalar (boş)");
+  await expect(page.getByText("Henüz kampanya yok")).toBeVisible();
+  await expect(page.getByText(/E-posta ve WhatsApp kampanyaları yakında/)).toBeVisible();
+  await expect(page.getByText(/izinli müşterilerinize SMS gönderin/)).toHaveCount(0);
+
+  await visit(page, "/panel/kampanyalar?sekme=otomasyonlar", "SMS kapalı · Otomasyonlar");
+  await expect(page.getByText(/SMS pilot döneminde kapalı olduğu için şimdilik açılamaz/)).toBeVisible();
+  const list = page.getByRole("list", { name: "Otomasyonlar" });
+  await expect(list.getByRole("switch", { name: "Memnuniyet anketi açık" })).toBeDisabled();
+  await expect(list.getByRole("switch", { name: "Doğum günü açık" })).toBeDisabled();
+
+  await page.getByRole("link", { name: "Randevu sonrası teşekkür: düzenle" }).click();
+  await expect(page.getByRole("heading", { name: "Randevu sonrası teşekkür" })).toBeVisible();
+  await expect(page.getByRole("switch", { name: "Otomasyon açık" })).toBeDisabled();
+  await page.getByRole("button", { name: "Kaydet" }).click();
+  await expect(toast(page, "Otomasyon kaydedildi.")).toBeVisible();
+});

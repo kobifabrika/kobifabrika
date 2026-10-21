@@ -53,6 +53,9 @@ async function tour(browser: Browser, role: string, user: ApiUser | null, screen
     }
     await context.close();
   }
+  // Her rolden sonra yazılır: tur yarıda kalsa da o ana kadarki bulgular kalır.
+  mkdirSync(out, { recursive: true });
+  writeFileSync(path.join(out, "bulgular.json"), JSON.stringify(findings, null, 2));
 }
 
 async function settle(page: Page) {

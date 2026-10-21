@@ -193,7 +193,7 @@ public static class EmailTemplates
             AppointmentEmailKind.Reminder => (
                 $"{sender.Name}: randevu hatırlatması ({when})",
                 $"Randevunuz {when}",
-                $"{sender.Name} randevunuzu hatırlatırız.",
+                $"{sender.Name} olarak {service} randevunuzu hatırlatırız. Ayrıntılar aşağıda.",
                 "Randevumu gör", manageLink,
                 "Gelemeyecekseniz lütfen randevunuzu iptal edin; saat başka bir müşteriye açılsın." + callUs),
             AppointmentEmailKind.Moved => (

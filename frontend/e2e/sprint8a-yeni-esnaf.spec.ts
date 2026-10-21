@@ -118,8 +118,11 @@ test("yeni esnaf: kayıttan ilk satışa", async ({ page, newPublicPage, visit, 
   await page.keyboard.press("Escape");
 
   // 9. Müşteri erken geldi: randevu bugünün geçmiş bir saatine alınır, Tamamlandı.
+  // Randevu gece yarısını aşamaz: 00:00-01:00 arası koşuda bugünün 00:00'ı (İstanbul UTC+3) kullanılır.
   const past = new Date(Date.now() - 60 * 60_000);
   past.setUTCMinutes(Math.floor(past.getUTCMinutes() / 5) * 5, 0, 0);
+  const istanbulMidnight = new Date(`${istanbulDay(new Date())}T00:00:00+03:00`);
+  if (past < istanbulMidnight) past.setTime(istanbulMidnight.getTime());
   const detail = (await (await api.get(`${apiBase}/api/appointments/${online.id}`)).json()) as { staffMemberId: string; productId: string };
   expect(
     (
