@@ -22,7 +22,7 @@ export function QuickActionsMenu() {
     <DropdownMenu>
       <DropdownMenuTrigger
         aria-label="Hızlı işlem"
-        className="hidden h-11 items-center gap-2 rounded-lg bg-primary px-3 text-sm font-semibold text-primary-foreground lg:flex"
+        className="hidden h-11 items-center gap-2 rounded-lg bg-primary px-4 text-sm font-semibold text-primary-foreground lg:flex"
       >
         <Plus aria-hidden className="size-4" />
         Yeni

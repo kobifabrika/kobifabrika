@@ -8,7 +8,7 @@ import { Notice, selectClass } from "@/components/contacts/contact-bits";
 import { Field } from "@/components/forms/field";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
+import { NumberInput } from "@/components/ui/number-input";
 import { stockWarning, type CartAction, type CartLine } from "@/lib/cart";
 import { formatMoney } from "@/lib/format";
 import { allowsFraction, formatQuantity, parseQuantity, validateQuantity, type CalcLine, type Discount, type DiscountType } from "@/lib/sales";
@@ -54,8 +54,7 @@ export function DiscountInput({
             { value: "Percent", label: "%" },
           ]}
         />
-        <Input
-          inputMode="decimal"
+        <NumberInput
           value={text}
           onChange={(e) => onText(e.target.value)}
           placeholder={type === "Percent" ? "ör. 10" : "ör. 25,00"}
@@ -232,10 +231,10 @@ function LineDialog({
           noValidate
         >
           <Field label={`Miktar (${formatQuantity(1, line.unit).replace(/^1 /, "")})`} error={errors.quantity}>
-            <Input inputMode="decimal" value={quantity} onChange={(e) => setQuantity(e.target.value)} autoFocus={isDesktop} />
+            <NumberInput value={quantity} onChange={(e) => setQuantity(e.target.value)} autoFocus={isDesktop} />
           </Field>
           <Field label="Birim fiyat (TL)" error={errors.price}>
-            <Input inputMode="decimal" value={price} onChange={(e) => setPrice(e.target.value)} />
+            <NumberInput value={price} onChange={(e) => setPrice(e.target.value)} />
           </Field>
           <DiscountInput
             label="Satır indirimi"

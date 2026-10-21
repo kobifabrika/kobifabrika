@@ -20,6 +20,7 @@ import { useSession } from "@/components/providers/session-provider";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
+import { NumberInput } from "@/components/ui/number-input";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { ApiError, api, errorMessage, fieldErrors, unwrap } from "@/lib/api/client";
@@ -382,7 +383,7 @@ export function ContactForm({ contact, supplier = false }: { contact?: Contact; 
           <p className="text-sm text-neutral-600">Defterden devreden borç/alacak varsa girin.</p>
           <div className="grid gap-4 sm:grid-cols-2">
             <Field label="Tutar (TL)" error={errors.openingAmount?.message}>
-              <Input inputMode="decimal" placeholder="0,00" {...register("openingAmount")} />
+              <NumberInput placeholder="0,00" {...register("openingAmount")} />
             </Field>
             <Field label="Kim kime borçlu?">
               <select className={selectClass} {...register("openingDirection")}>

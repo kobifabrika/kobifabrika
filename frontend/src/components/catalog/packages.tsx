@@ -15,6 +15,7 @@ import { useSession } from "@/components/providers/session-provider";
 import { useServices } from "@/components/staff/staff-services";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { NumberInput } from "@/components/ui/number-input";
 import { Switch } from "@/components/ui/switch";
 import { api, errorMessage, fieldErrors, unwrap } from "@/lib/api/client";
 import type { ServicePackage } from "@/lib/api/types";
@@ -168,7 +169,7 @@ export function PackageForm({ initial }: { initial?: ServicePackage }) {
     const s = Number(sessions);
     if (!Number.isInteger(s) || s < 1 || s > 500) next.sessionCount = "Seans sayısı 1 ile 500 arasında olmalı.";
     const p = parseMoneyInput(price);
-    if (!p || p.value < 0 || p.decimals > 2) next.price = "Fiyatı rakamla girin (ör. 3.000,00).";
+    if (!p || p.value < 0 || p.decimals > 2) next.price = "Fiyatı rakamla girin (ör. 3000,00).";
     const v = Number(validity);
     if (!Number.isInteger(v) || v < 1 || v > 1095) next.validityDays = "Geçerlilik 1 ile 1095 gün arasında olmalı.";
     setErrors(next);
@@ -194,14 +195,14 @@ export function PackageForm({ initial }: { initial?: ServicePackage }) {
       </Field>
       <div className="grid grid-cols-2 gap-4">
         <Field label="Seans sayısı" error={errors.sessionCount}>
-          <Input type="number" inputMode="numeric" min={1} max={500} value={sessions} onChange={(e) => setSessions(e.target.value)} />
+          <NumberInput kind="integer" min={1} max={500} value={sessions} onChange={(e) => setSessions(e.target.value)} />
         </Field>
         <Field label="Geçerlilik (gün)" error={errors.validityDays} hint="Satış gününden itibaren.">
-          <Input type="number" inputMode="numeric" min={1} max={1095} value={validity} onChange={(e) => setValidity(e.target.value)} />
+          <NumberInput kind="integer" min={1} max={1095} value={validity} onChange={(e) => setValidity(e.target.value)} />
         </Field>
       </div>
       <Field label="Fiyat (KDV dahil)" error={errors.price} hint="KDV oranı hizmetinki.">
-        <Input inputMode="decimal" value={price} onChange={(e) => setPrice(e.target.value)} placeholder="3.000,00" />
+        <NumberInput value={price} onChange={(e) => setPrice(e.target.value)} placeholder="3000,00" />
       </Field>
       <label className="flex min-h-11 items-center gap-3 text-sm text-black">
         <Switch checked={active} onCheckedChange={setActive} />

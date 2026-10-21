@@ -13,6 +13,7 @@ import { Field, FormMessage } from "@/components/forms/field";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { NumberInput } from "@/components/ui/number-input";
 import { Switch } from "@/components/ui/switch";
 import { TabNav } from "@/components/ui/scroll-row";
 import { Textarea } from "@/components/ui/textarea";
@@ -233,9 +234,8 @@ function SummaryTab({ detail }: { detail: AdminBusinessDetail }) {
             </p>
             <div className="flex flex-wrap items-end gap-2">
               <Field label="Gün">
-                <Input
-                  type="number"
-                  inputMode="numeric"
+                <NumberInput
+                  kind="integer"
                   min={1}
                   max={365}
                   className="w-24"
@@ -347,7 +347,7 @@ function CreditTab({ detail }: { detail: AdminBusinessDetail }) {
         SMS gönderimi pilot döneminde kapalı; yüklenen kredi SMS açılınca kullanılır.
       </p>
       <Field label="Kredi" error={errors.amount}>
-        <Input type="number" inputMode="numeric" min={1} value={amount} onChange={(e) => setAmount(e.target.value)} />
+        <NumberInput kind="integer" min={1} value={amount} onChange={(e) => setAmount(e.target.value)} />
       </Field>
       <Field label="Not" error={errors.note}>
         <Input maxLength={200} value={note} onChange={(e) => setNote(e.target.value)} />

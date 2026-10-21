@@ -57,7 +57,7 @@ export function BusinessSwitcher({ variant, className }: { variant: Variant; cla
         <img
           src={logo}
           alt=""
-          className={cn("shrink-0 rounded bg-white object-contain", variant === "sidebar" ? "size-8" : "size-7")}
+          className={cn("shrink-0 rounded-md bg-white object-contain", variant === "sidebar" ? "size-8" : "size-7")}
         />
       )}
       <span className="min-w-0 flex-1 truncate text-left text-base font-semibold text-white">{business.name}</span>

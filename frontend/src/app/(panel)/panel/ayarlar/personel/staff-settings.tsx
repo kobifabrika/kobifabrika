@@ -14,6 +14,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { NumberInput } from "@/components/ui/number-input";
 import { Switch } from "@/components/ui/switch";
 import { api, errorMessage, fieldErrors, unwrap } from "@/lib/api/client";
 import { LEGAL_NOTE, type LeaveType } from "@/lib/api/types";
@@ -83,8 +84,7 @@ function OvertimeCard({ readOnly }: { readOnly: boolean }) {
         <form onSubmit={submit} noValidate className="flex flex-col gap-3">
           <div className="flex flex-wrap items-end gap-3">
             <Field label="Haftalık eşik (saat)" error={error ?? undefined} className="w-44">
-              <Input
-                inputMode="decimal"
+              <NumberInput
                 value={hours ?? settings.data.overtimeWeeklyHours.toLocaleString("tr-TR")}
                 onChange={(e) => setHours(e.target.value)}
                 disabled={readOnly}

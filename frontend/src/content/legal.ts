@@ -22,7 +22,7 @@ export type LegalDoc = {
 };
 
 const updated = "20 Ekim 2026";
-const controller = `${company.name} ("KobiFabrika")`;
+const controller = company.name === company.brand ? company.name : `${company.name} ("${company.brand}")`;
 
 /** Alt işleyenler ve yurt dışı aktarım (KVKK m.9): gizlilik, KVKK ve veri işleme sözleşmesinde aynı liste. */
 export const subProcessors: { name: string; purpose: string; location: string }[] = [
@@ -48,7 +48,20 @@ const kvkk: LegalDoc = {
   updated,
   intro: `Bu metin, 6698 sayılı Kişisel Verilerin Korunması Kanunu ("KVKK") m.10 uyarınca ${controller} tarafından; kobifabrika.com sitesini ziyaret edenler ile KobiFabrika uygulamasına kayıt olan işletme sahipleri ve çalışanları için hazırlanmıştır. İşletmelerin kendi müşterilerine ait veriler için veri sorumlusu ilgili işletmedir; bu konu Veri işleme sözleşmesinde düzenlenir.`,
   sections: [
-    { heading: "Veri sorumlusu", paragraphs: [`${controller}. İletişim: ${company.email}.`] },
+    {
+      heading: "Veri sorumlusu",
+      paragraphs: [
+        [
+          `Veri sorumlusu: ${controller}.`,
+          `İletişim ve KVKK başvuruları: ${company.email}.`,
+          `İnternet sitesi: ${company.website.replace("https://", "")}.`,
+          company.address && `Adres: ${company.address}.`,
+          company.mersis && `MERSİS no: ${company.mersis}.`,
+        ]
+          .filter(Boolean)
+          .join(" "),
+      ],
+    },
     {
       heading: "İşlenen kişisel veriler",
       items: [

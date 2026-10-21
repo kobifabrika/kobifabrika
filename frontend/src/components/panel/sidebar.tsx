@@ -72,22 +72,30 @@ export function NavList({ onNavigate }: { onNavigate?: () => void }) {
   );
 }
 
-/** Masaüstünde (lg ve üstü) sabit siyah sol menü: wordmark, altında işletme adı; aktif öğe mavi zemin + siyah yazı. */
+/**
+ * Menünün alt satırı: küçük ve soluk KobiFabrika logosu (koyu zeminde), geliştirmede altında API durumu.
+ * Masaüstü sol menüde ve telefondaki "Menü" panelinde aynı (2026-10-21: menünün üstünde işletme, KobiFabrika altta).
+ */
+export function NavFooter() {
+  return (
+    <div className="flex flex-col gap-2 border-t border-sidebar-border px-6 py-4">
+      <Logo className="h-3.5 opacity-60" />
+      <ApiStatus className="text-sidebar-foreground" />
+    </div>
+  );
+}
+
+/** Masaüstünde (lg ve üstü) sabit koyu sol menü: üstte işletmenin logosu ve adı; aktif öğe mavi zemin + siyah yazı. */
 export function Sidebar() {
   return (
     <aside className="fixed inset-y-0 left-0 z-30 hidden w-64 flex-col overflow-hidden border-r border-sidebar-border bg-sidebar text-sidebar-foreground lg:flex">
-      <div className="flex flex-col gap-3 border-b border-sidebar-border px-3 pt-4 pb-3">
-        <Link href="/panel" className="self-start rounded-md px-3 outline-sidebar-ring" aria-label="KobiFabrika — Bugün">
-          <Logo className="h-5" />
-        </Link>
+      <div className="border-b border-sidebar-border px-3 py-3">
         <BusinessSwitcher variant="sidebar" />
       </div>
       <div className="relative flex-1 overflow-y-auto px-3 py-6">
         <NavList />
       </div>
-      <div className="border-t border-sidebar-border px-6 py-4">
-        <ApiStatus className="text-sidebar-foreground" />
-      </div>
+      <NavFooter />
     </aside>
   );
 }

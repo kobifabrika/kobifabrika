@@ -20,6 +20,7 @@ import { Field, FormMessage } from "@/components/forms/field";
 import { useSession } from "@/components/providers/session-provider";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { NumberInput } from "@/components/ui/number-input";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { ApiError, api, errorMessage, fieldErrors, problemCode, unwrap } from "@/lib/api/client";
@@ -239,12 +240,11 @@ export function ProductForm({ product }: { product?: Product }) {
       <div className="flex flex-col gap-3">
         <div className="grid gap-5 sm:grid-cols-2">
           <Field label="Satış fiyatı (TL)" error={errors.salePrice} hint={preview}>
-            <Input inputMode="decimal" placeholder="0,00" value={form.salePrice} onChange={(e) => set("salePrice", e.target.value)} />
+            <NumberInput placeholder="0,00" value={form.salePrice} onChange={(e) => set("salePrice", e.target.value)} />
           </Field>
           {showPurchase && (
             <Field label="Alış fiyatı (TL)" error={errors.purchasePrice} hint="İsteğe bağlı. Personel göremez.">
-              <Input
-                inputMode="decimal"
+              <NumberInput
                 placeholder="0,00"
                 value={form.purchasePrice}
                 onChange={(e) => set("purchasePrice", e.target.value)}
@@ -279,7 +279,7 @@ export function ProductForm({ product }: { product?: Product }) {
 
       {!isProduct && (
         <Field label="Süre (dakika)" error={errors.durationMinutes} hint="Randevu için hizmetin süresi.">
-          <Input inputMode="numeric" value={form.durationMinutes} onChange={(e) => set("durationMinutes", e.target.value)} />
+          <NumberInput kind="integer" value={form.durationMinutes} onChange={(e) => set("durationMinutes", e.target.value)} />
         </Field>
       )}
 
@@ -294,12 +294,11 @@ export function ProductForm({ product }: { product?: Product }) {
             <div className="grid gap-5 sm:grid-cols-2">
               {!product && (
                 <Field label="Mevcut stok" error={errors.initialStock} hint="Açılış stoğu olarak girilir.">
-                  <Input inputMode="decimal" value={form.initialStock} onChange={(e) => set("initialStock", e.target.value)} />
+                  <NumberInput value={form.initialStock} onChange={(e) => set("initialStock", e.target.value)} />
                 </Field>
               )}
               <Field label="Kritik stok seviyesi" error={errors.criticalStockLevel} hint="Stok bu sayıya inince bildirim gelir.">
-                <Input
-                  inputMode="decimal"
+                <NumberInput
                   value={form.criticalStockLevel}
                   onChange={(e) => set("criticalStockLevel", e.target.value)}
                 />

@@ -22,6 +22,7 @@ import { TotalsSummary } from "@/components/sales/totals";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { NumberInput } from "@/components/ui/number-input";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { API_URL, api, errorMessage, unwrap } from "@/lib/api/client";
 import { paymentMethodNames, type Product, type Sale, type ServicePackage } from "@/lib/api/types";
@@ -463,7 +464,7 @@ function FreeLineDialog({ onClose, onAdd }: { onClose: () => void; onAdd: (l: { 
             <Input value={name} onChange={(e) => setName(e.target.value)} maxLength={200} autoFocus={isDesktop} />
           </Field>
           <Field label="Fiyat (TL)" error={errors.price}>
-            <Input inputMode="decimal" value={price} onChange={(e) => setPrice(e.target.value)} />
+            <NumberInput value={price} onChange={(e) => setPrice(e.target.value)} />
           </Field>
           <Field label="KDV oranı">
             <select className="h-11 rounded-lg border border-input px-3 text-base" value={vat} onChange={(e) => setVat(e.target.value)}>

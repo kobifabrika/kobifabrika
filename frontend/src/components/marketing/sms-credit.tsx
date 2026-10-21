@@ -12,7 +12,7 @@ import { Field } from "@/components/forms/field";
 import { useSession } from "@/components/providers/session-provider";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
+import { NumberInput } from "@/components/ui/number-input";
 import { supportEmail, supportWhatsappLink } from "@/content/support";
 import { API_URL, api, errorMessage, fieldErrors, unwrap } from "@/lib/api/client";
 import { smsCreditKindNames, type SmsCreditSummary } from "@/lib/api/types";
@@ -192,8 +192,8 @@ function BalanceCard({ summary: c, readOnly }: { summary: SmsCreditSummary; read
             error={error ?? undefined}
             className="w-56"
           >
-            <Input
-              inputMode="numeric"
+            <NumberInput
+              kind="integer"
               value={value}
               disabled={readOnly}
               onChange={(e) => setThreshold(e.target.value)}

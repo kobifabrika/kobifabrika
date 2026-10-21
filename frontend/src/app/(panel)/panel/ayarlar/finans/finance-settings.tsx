@@ -15,6 +15,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { NumberInput } from "@/components/ui/number-input";
 import { Switch } from "@/components/ui/switch";
 import { api, errorMessage, fieldErrors, unwrap } from "@/lib/api/client";
 import type { CashAccountType, ExpenseCategory, ExpenseCategoryKind } from "@/lib/api/types";
@@ -140,7 +141,7 @@ function DueSettingsCard({ readOnly }: { readOnly: boolean }) {
       <div className="flex flex-col gap-5">
         <div className="flex flex-wrap items-end gap-3">
           <Field label="Varsayılan vade (gün)" error={error ?? undefined} className="w-40">
-            <Input inputMode="numeric" value={value} disabled={readOnly} onChange={(e) => setDays(e.target.value)} />
+            <NumberInput kind="integer" value={value} disabled={readOnly} onChange={(e) => setDays(e.target.value)} />
           </Field>
           {!readOnly && (
             <Button variant="outline" onClick={submitDays} disabled={save.isPending || days === null}>

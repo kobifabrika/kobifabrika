@@ -27,6 +27,27 @@ test("tanıtım sitesi: sayfalar, çağrılar, fiyat, yardım, 404 ve SEO dosyal
   await expect(kalfa.getByText("583 TL")).toBeVisible();
   await expect(kalfa.getByText("Yılda 6.990 TL (2 ay hediye)")).toBeVisible();
   await expect(kalfa.getByRole("link", { name: "14 gün ücretsiz dene" })).toHaveAttribute("href", "/kayit?paket=kalfa&donem=yillik");
+  // Paket düğmeleri ilk ekranda (2026-10-21): masaüstünde 1920×1080 ve 1366×768'de üçü de, telefonda kart başına düğme fiyatın altında.
+  const cards = page.getByRole("list").filter({ has: page.getByRole("heading", { name: "Kalfa" }) }).first().locator(":scope > li");
+  await expect(cards).toHaveCount(3);
+  if (isDesktop(info)) {
+    for (const size of [{ width: 1920, height: 1080 }, { width: 1366, height: 768 }]) {
+      await page.setViewportSize(size);
+      await page.evaluate(() => window.scrollTo(0, 0));
+      for (const card of await cards.all()) await expect(card.getByRole("link")).toBeInViewport({ ratio: 1 });
+    }
+    await page.setViewportSize({ width: 1280, height: 800 });
+  } else {
+    await page.evaluate(() => window.scrollTo(0, 0));
+    await expect(cards.first().getByRole("link")).toBeInViewport({ ratio: 1 });
+  }
+  for (const card of await cards.all()) {
+    const price = await card.locator("p.font-heading").boundingBox();
+    const cta = await card.getByRole("link").boundingBox();
+    const features = await card.getByRole("listitem").first().boundingBox();
+    expect(cta!.y).toBeGreaterThan(price!.y);
+    expect(features!.y).toBeGreaterThan(cta!.y);
+  }
 
   await visit(page, "/sss", "Site · SSS");
   await page.getByText("Pilot dönemi ne demek?").click();

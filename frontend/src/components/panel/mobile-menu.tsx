@@ -15,14 +15,13 @@ import {
 import Link from "next/link";
 import { useState } from "react";
 
-import { Logo } from "@/components/brand/logo";
-import { ApiStatus } from "@/components/panel/api-status";
 import { FeedbackDialog, useSupportLinks } from "@/components/panel/help-menu";
 import { useSwitchBusiness } from "@/components/panel/business-switcher";
-import { NavList } from "@/components/panel/sidebar";
+import { NavFooter, NavList } from "@/components/panel/sidebar";
 import { initials } from "@/components/panel/user-menu";
 import { useLogout, useSession } from "@/components/providers/session-provider";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import { fileUrl } from "@/lib/api/client";
 import { roleNames, type Role } from "@/lib/api/types";
 
 const rowClass =
@@ -30,7 +29,8 @@ const rowClass =
 
 /**
  * Telefonda sağ üstteki "Menü": kullanıcı menüsüyle birleşik tek düğme (üst çubukta ayrı hamburger + avatar 375 px'te sıkışır).
- * Açılan sağ panelde önce kullanıcı (ad, işletme · rol, Hesabım, işletme değiştir, Çıkış), sonra ana menü ve Yardım.
+ * Açılan sağ panelin başlığı işletmenin logosu ve adı; önce kullanıcı (ad, işletme · rol, Hesabım, işletme değiştir, Çıkış), sonra
+ * ana menü ve Yardım; en altta küçük KobiFabrika logosu (sol menüyle aynı).
  */
 export function MobileMenu() {
   const [open, setOpen] = useState(false);
@@ -40,6 +40,7 @@ export function MobileMenu() {
   const close = () => setOpen(false);
   const support = useSupportLinks();
   const [feedback, setFeedback] = useState(false);
+  const logo = fileUrl(business.logoUrl);
 
   return (
     <>
@@ -58,8 +59,12 @@ export function MobileMenu() {
           className="w-[85%] max-w-xs gap-0 border-sidebar-border bg-sidebar p-0 text-sidebar-foreground"
         >
           <SheetHeader className="border-b border-sidebar-border px-5 py-4">
-            <SheetTitle>
-              <Logo className="h-5" />
+            <SheetTitle className="flex min-w-0 items-center gap-2.5 pr-10">
+              {logo && (
+                // eslint-disable-next-line @next/next/no-img-element -- API'den gelen kullanıcı dosyası; next/image optimizasyonu gerekmez.
+                <img src={logo} alt="" className="size-8 shrink-0 rounded-md bg-white object-contain" />
+              )}
+              <span className="truncate text-base font-semibold text-white">{business.name}</span>
             </SheetTitle>
             <SheetDescription className="sr-only">Panel menüsü ve hesap</SheetDescription>
           </SheetHeader>
@@ -147,9 +152,7 @@ export function MobileMenu() {
               </button>
             </section>
           </div>
-          <div className="border-t border-sidebar-border px-5 py-4">
-            <ApiStatus className="text-sidebar-foreground" />
-          </div>
+          <NavFooter />
         </SheetContent>
       </Sheet>
       {feedback && <FeedbackDialog open onOpenChange={setFeedback} />}

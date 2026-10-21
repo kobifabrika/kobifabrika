@@ -4,8 +4,8 @@
  * Boş alanlar (adres, vergi) sayfalarda gösterilmez.
  */
 export const company = {
-  /** Unvan. Şirket kurulana kadar "kuruluş aşamasında". */
-  name: "KobiFabrika (kuruluş aşamasında)",
+  /** Unvan. Şirket kurulana kadar sadece marka adı (karar 2026-10-21); kurulunca tam unvan. */
+  name: "KobiFabrika",
   brand: "KobiFabrika",
   address: null as string | null,
   taxOffice: null as string | null,
@@ -19,7 +19,7 @@ export const company = {
 /** Sistem e-postalarının alt bilgisi; backend appsettings.json → Company:EmailFooter ile aynı olmalı. */
 export const companyEmailFooter = `${company.name} · ${company.email}`;
 
-/** Tek satır künye: "KobiFabrika (kuruluş aşamasında) · Adres · Vergi dairesi / no". */
+/** Tek satır künye: "Unvan · Adres · Vergi dairesi / no". */
 export function companyLine(): string {
   const tax = company.taxOffice && company.taxNumber ? `${company.taxOffice} V.D. ${company.taxNumber}` : null;
   return [company.name, company.address, tax].filter(Boolean).join(" · ");

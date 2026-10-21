@@ -17,7 +17,10 @@ import {
   type Period,
 } from "@/content/plans";
 
-/** Paket kartları: Aylık/Yıllık anahtarı (yıllıkta 2 ay hediye), limitler, özellikler, kayıt linki (?paket=&donem=). */
+/**
+ * Paket kartları: Aylık/Yıllık anahtarı (yıllıkta 2 ay hediye), kayıt linki (?paket=&donem=), limitler, özellikler.
+ * Düğme fiyatın hemen altında, özellikler ondan sonra: Fiyatlar sayfasında düğmeler ilk ekranda görünür (2026-10-21).
+ */
 export function Pricing() {
   const [period, setPeriod] = useState<Period>("aylik");
   return (
@@ -58,17 +61,17 @@ export function Pricing() {
               {plan.monthlyPrice > 0 && <span className="text-base font-medium text-neutral-600"> / ay</span>}
             </p>
             <p className="mt-1 text-sm text-neutral-600">{planPriceNote(plan, period)}</p>
-            <p className="mt-4 text-sm font-semibold text-black">{planLimits(plan)}</p>
-            <ul className="mt-4 flex flex-1 flex-col gap-3">
+            <Button asChild size="lg" variant={plan.highlighted ? "default" : "outline"} className="mt-5 w-full">
+              <Link href={signupHref(plan, period)}>{plan.cta}</Link>
+            </Button>
+            <p className="mt-6 border-t border-neutral-200 pt-5 text-sm font-semibold text-black">{planLimits(plan)}</p>
+            <ul className="mt-4 flex flex-col gap-3">
               {plan.features.map((f) => (
                 <li key={f} className="flex items-start gap-2.5 text-sm">
                   <Check aria-hidden className="mt-0.5 size-4 shrink-0 text-link" strokeWidth={2.5} /> {f}
                 </li>
               ))}
             </ul>
-            <Button asChild size="lg" variant={plan.highlighted ? "default" : "outline"} className="mt-8 w-full">
-              <Link href={signupHref(plan, period)}>{plan.cta}</Link>
-            </Button>
           </li>
         ))}
       </ul>

@@ -6,7 +6,7 @@ import type { LucideIcon } from "lucide-react";
 
 import { selectClass } from "@/components/contacts/contact-bits";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { NumberInput } from "@/components/ui/number-input";
 import { paymentMethodNames, type PaymentMethod } from "@/lib/api/types";
 import { changeDue, remaining, type PaymentDraft } from "@/lib/cart";
 import { formatMoney } from "@/lib/format";
@@ -81,8 +81,7 @@ export function PaymentForm({
                   </option>
                 ))}
             </select>
-            <Input
-              inputMode="decimal"
+            <NumberInput
               aria-label={`${i + 1}. ödeme tutarı`}
               placeholder="0,00"
               value={row.text}
@@ -168,8 +167,7 @@ export function PaymentForm({
         <div className="flex items-end gap-3">
           <label className="flex flex-1 flex-col gap-2 text-sm font-semibold text-black">
             Alınan (isteğe bağlı)
-            <Input
-              inputMode="decimal"
+            <NumberInput
               placeholder={moneyToInput(total)}
               value={value.received}
               onChange={(e) => onChange({ ...value, received: e.target.value })}

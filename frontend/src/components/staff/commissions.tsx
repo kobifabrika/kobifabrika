@@ -15,7 +15,7 @@ import { useSession } from "@/components/providers/session-provider";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
+import { NumberInput } from "@/components/ui/number-input";
 import { Switch } from "@/components/ui/switch";
 import { api, errorMessage, fieldErrors, unwrap } from "@/lib/api/client";
 import {
@@ -409,8 +409,7 @@ function RuleDialog({ rule, onClose }: { rule: CommissionRule | null; onClose: (
                 <option value="Percent">Yüzde (%)</option>
                 <option value="Fixed">Adet başına TL</option>
               </select>
-              <Input
-                inputMode="decimal"
+              <NumberInput
                 value={value}
                 onChange={(e) => setValue(e.target.value)}
                 placeholder={type === "Percent" ? "ör. 10" : "ör. 50,00"}

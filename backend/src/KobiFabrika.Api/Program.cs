@@ -181,7 +181,7 @@ builder.Services.AddOpenApi(options => options.AddDocumentTransformer((document,
 }));
 builder.Services.AddHealthChecks().AddDbContextCheck<AppDbContext>("database");
 
-// E-posta alt bilgisindeki şirket bilgisi tek ayardan (şirket kurulana kadar "kuruluş aşamasında").
+// E-posta alt bilgisindeki şirket bilgisi tek ayardan (şirket kurulana kadar sadece "KobiFabrika").
 if (builder.Configuration["Company:EmailFooter"] is { Length: > 0 } companyLine)
 {
     KobiFabrika.Infrastructure.Email.EmailTemplates.CompanyLine = companyLine;

@@ -25,8 +25,8 @@ public static class EmailTemplates
 
     private static readonly CultureInfo Tr = CultureInfo.GetCultureInfo("tr-TR");
 
-    /// <summary>Sistem e-postalarının alt bilgisi; açılışta <c>Company:*</c> ayarından (şirket kurulana kadar "kuruluş aşamasında").</summary>
-    public static string CompanyLine { get; set; } = "KobiFabrika (kuruluş aşamasında) · destek@kobifabrika.com";
+    /// <summary>Sistem e-postalarının alt bilgisi; açılışta <c>Company:*</c> ayarından (şirket kurulana kadar sadece "KobiFabrika").</summary>
+    public static string CompanyLine { get; set; } = "KobiFabrika · destek@kobifabrika.com";
 
     /// <summary>
     /// Sistem e-postalarının üstündeki logo (siyah zeminli PNG, 200 px gösterim). Görseller engellenirse alt metin "KobiFabrika"

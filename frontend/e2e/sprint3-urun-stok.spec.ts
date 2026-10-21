@@ -3,7 +3,7 @@ import path from "node:path";
 import type { Page } from "@playwright/test";
 
 import { toast } from "./support/nav";
-import { expect, test } from "./support/test";
+import { expect, isDesktop, test } from "./support/test";
 
 const fixtures = path.join(__dirname, "fixtures");
 
@@ -24,7 +24,7 @@ test("ürün ekleme, KDV dahil/hariç fiyat, stok hareketleri ve kritik stok", a
   ownerPage: page,
   visit,
   check,
-}) => {
+}, info) => {
   // KDV dahil fiyatla ürün
   await visit(page, "/panel/urunler/yeni", "Yeni ürün");
   await page.getByLabel("Ad", { exact: true }).fill("Pamuklu tişört");
@@ -70,8 +70,20 @@ test("ürün ekleme, KDV dahil/hariç fiyat, stok hareketleri ve kritik stok", a
   await visit(page, "/panel/stok?filtre=kritik", "Stok · kritik");
   await expect(page.getByText("Pamuklu tişört").filter({ visible: true }).first()).toBeVisible();
   await page.reload();
-  await page.getByRole("button", { name: /Bildirimler, \d+ okunmamış/ }).click();
+  const bell = page.getByRole("button", { name: /Bildirimler, \d+ okunmamış/ });
+  await bell.click();
   await expect(page.getByText(/Pamuklu tişört/).filter({ visible: true }).first()).toBeVisible();
+  // Pencere telefonda kenarlardan eşit boşluklu, masaüstünde zilin altında sağa hizalı (2026-10-21).
+  const box = (await page.locator("[data-radix-popper-content-wrapper]").boundingBox())!;
+  const viewport = page.viewportSize()!;
+  if (isDesktop(info)) {
+    const bellBox = (await bell.boundingBox())!;
+    expect(Math.abs(box.x + box.width - (bellBox.x + bellBox.width))).toBeLessThan(2);
+    expect(box.y).toBeGreaterThan(bellBox.y + bellBox.height - 1);
+  } else {
+    expect(Math.abs(box.x - (viewport.width - box.x - box.width))).toBeLessThan(2);
+    expect(box.x).toBeGreaterThanOrEqual(15);
+  }
 });
 
 test("Excel'den ürün içe aktarma: tekrar eden barkod atlanır", async ({ owner, ownerPage: page, visit, check }) => {

@@ -11,7 +11,7 @@ import { UserMenu } from "@/components/panel/user-menu";
 /** Panel üst çubuğu (siyah, sol menüyle aynı dil): telefonda işletme adı, arama, zil ve sağda Menü (kullanıcı menüsüyle birleşik); masaüstünde arama (Ctrl+K), (+) hızlı işlem, Yardım (?), zil, kullanıcı menüsü. */
 export function Topbar() {
   return (
-    <header className="dark sticky top-0 z-20 flex h-14 items-center justify-between gap-2 border-b border-sidebar-border bg-background px-4 text-foreground lg:h-16 lg:px-8 print:hidden">
+    <header className="dark sticky top-0 z-20 flex h-12 items-center justify-between gap-2 border-b border-sidebar-border bg-background px-4 text-foreground lg:h-14 lg:px-8 print:hidden">
       {/* Telefonda wordmark yerine işletme adı (wordmark Menü panelinde); masaüstünde ad sol menüde. */}
       <BusinessSwitcher variant="topbar" className="lg:hidden" />
       <div className="flex shrink-0 items-center justify-end gap-1 lg:flex-1 lg:justify-between">

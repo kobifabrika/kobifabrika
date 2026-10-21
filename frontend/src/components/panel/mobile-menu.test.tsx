@@ -21,6 +21,24 @@ describe("MobileMenu", () => {
     expect(within(dialog).getByRole("button", { name: /Geri bildirim gönder/ })).toBeInTheDocument();
   });
 
+  it("başlıkta işletmenin logosu ve adı, KobiFabrika logosu en altta", async () => {
+    renderWithSession(<MobileMenu />, { logoUrl: "/files/logo.png" });
+    fireEvent.click(screen.getByRole("button", { name: "Menü" }));
+    const dialog = await screen.findByRole("dialog", { name: "Şık Kuaför" });
+    const brand = within(dialog).getByRole("img", { name: "KobiFabrika" });
+    const nav = within(dialog).getByRole("navigation", { name: "Ana menü" });
+    // Belge sırasında KobiFabrika logosu ana menüden sonra gelir.
+    expect(nav.compareDocumentPosition(brand) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(dialog.querySelector('img[src$="/files/logo.png"]')).not.toBeNull();
+  });
+
+  it("logo yoksa başlıkta sadece işletme adı", async () => {
+    renderWithSession(<MobileMenu />);
+    fireEvent.click(screen.getByRole("button", { name: "Menü" }));
+    const dialog = await screen.findByRole("dialog", { name: "Şık Kuaför" });
+    expect(dialog.querySelectorAll("img")).toHaveLength(1);
+  });
+
   it("platform yöneticisine süper admin linkini gösterir", async () => {
     renderWithSession(<MobileMenu />, { platformAdmin: true });
     fireEvent.click(screen.getByRole("button", { name: "Menü" }));

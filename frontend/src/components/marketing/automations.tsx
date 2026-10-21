@@ -12,7 +12,7 @@ import { QueryError } from "@/components/feedback/query-error";
 import { Field } from "@/components/forms/field";
 import { useSession } from "@/components/providers/session-provider";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { NumberInput } from "@/components/ui/number-input";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { api, errorMessage, unwrap } from "@/lib/api/client";
@@ -232,11 +232,11 @@ function EditorForm({ automation }: { automation: Automation }) {
       {form.type === "WinBack" && (
         <div className="grid grid-cols-2 gap-3">
           <Field label="Kaç gündür gelmeyen" hint="Son ziyaretten bu kadar gün sonra.">
-            <Input inputMode="numeric" value={form.inactiveDays ?? ""} disabled={readOnly}
+            <NumberInput kind="integer" value={form.inactiveDays ?? ""} disabled={readOnly}
               onChange={(e) => set({ inactiveDays: Number(e.target.value.replace(/\D/g, "")) || null })} />
           </Field>
           <Field label="En fazla kaç günde bir" hint="Aynı müşteriye tekrar için.">
-            <Input inputMode="numeric" value={form.repeatDays ?? ""} disabled={readOnly}
+            <NumberInput kind="integer" value={form.repeatDays ?? ""} disabled={readOnly}
               onChange={(e) => set({ repeatDays: Number(e.target.value.replace(/\D/g, "")) || null })} />
           </Field>
         </div>

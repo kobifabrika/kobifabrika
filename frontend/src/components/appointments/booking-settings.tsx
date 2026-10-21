@@ -11,7 +11,7 @@ import { Field, FormMessage } from "@/components/forms/field";
 import { useSession } from "@/components/providers/session-provider";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
+import { NumberInput } from "@/components/ui/number-input";
 import { Switch } from "@/components/ui/switch";
 import { api, errorMessage, fieldErrors, unwrap } from "@/lib/api/client";
 import type { BookingSettings, BookingSettingsRequest } from "@/lib/api/types";
@@ -233,9 +233,8 @@ function BookingSettingsForm({ initial }: { initial: BookingSettings }) {
           </select>
         </Field>
         <Field label="En fazla kaç gün ilerisi" error={errors.maxDaysAhead} hint="1 ile 180 gün arası.">
-          <Input
-            type="number"
-            inputMode="numeric"
+          <NumberInput
+            kind="integer"
             min={1}
             max={180}
             disabled={readOnly}

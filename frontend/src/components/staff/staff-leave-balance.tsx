@@ -12,6 +12,7 @@ import { QueryError } from "@/components/feedback/query-error";
 import { Field, FormMessage } from "@/components/forms/field";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { NumberInput } from "@/components/ui/number-input";
 import { api, errorMessage, fieldErrors, unwrap } from "@/lib/api/client";
 import { leaveBalanceKindNames, type LeaveBalance, type LeaveBalanceKind } from "@/lib/api/types";
 import { formatDate, formatDayShort } from "@/lib/format";
@@ -163,7 +164,7 @@ function AdjustDialog({
           onChange={setKind}
         />
         <Field label="Gün" error={errors.days}>
-          <Input inputMode="decimal" value={days} onChange={(e) => setDays(e.target.value)} placeholder="14" />
+          <NumberInput allowNegative value={days} onChange={(e) => setDays(e.target.value)} placeholder="14" />
         </Field>
         <Field label="Açıklama" error={errors.note}>
           <Input value={note} onChange={(e) => setNote(e.target.value)} maxLength={200} />

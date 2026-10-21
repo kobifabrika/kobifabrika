@@ -11,6 +11,7 @@ import { useSession } from "@/components/providers/session-provider";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { NumberInput } from "@/components/ui/number-input";
 import { api, errorMessage, fieldErrors, unwrap } from "@/lib/api/client";
 import type { Product } from "@/lib/api/types";
 import { todayIstanbul } from "@/lib/format";
@@ -134,11 +135,11 @@ export function StockDialog({
           />
 
           <Field label={kind === "Adjustment" ? "Sayılan miktar" : "Miktar"} error={errors.quantity}>
-            <Input inputMode="decimal" value={quantity} onChange={(e) => setQuantity(e.target.value)} />
+            <NumberInput value={quantity} onChange={(e) => setQuantity(e.target.value)} />
           </Field>
           {kind === "In" && can(role, "viewPurchasePrice") && (
             <Field label="Birim maliyet (TL)" error={errors.unitCost} hint="İsteğe bağlı.">
-              <Input inputMode="decimal" value={unitCost} onChange={(e) => setUnitCost(e.target.value)} />
+              <NumberInput value={unitCost} onChange={(e) => setUnitCost(e.target.value)} />
             </Field>
           )}
           <Field label="Tarih" error={errors.date}>

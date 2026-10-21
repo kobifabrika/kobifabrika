@@ -20,6 +20,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { NumberInput } from "@/components/ui/number-input";
 import { Textarea } from "@/components/ui/textarea";
 import { API_URL, ApiError, api, errorMessage, fieldErrors, unwrap } from "@/lib/api/client";
 import type { Contact, PaymentRequest } from "@/lib/api/types";
@@ -94,7 +95,7 @@ export function MoneyField({
 }) {
   return (
     <Field label={label} error={error ?? undefined}>
-      <Input inputMode="decimal" placeholder="0,00" value={value} autoFocus={autoFocus} onChange={(e) => onChange(e.target.value)} />
+      <NumberInput placeholder="0,00" value={value} autoFocus={autoFocus} onChange={(e) => onChange(e.target.value)} />
     </Field>
   );
 }
