@@ -59,4 +59,5 @@ test("Bugün ekranı: kartlar, grafik, tahsilat penceresi ve rol bazlı içerik"
   await check(accountantPage, "Bugün · Mali Müşavir");
   await expect(accountantPage.getByRole("region", { name: "Özet" })).toContainText("Bugünkü tahsilat");
   await expect(accountantPage.getByRole("region", { name: "Hızlı işlemler" })).toHaveCount(0);
+  await expect(accountantPage.getByRole("button", { name: "Hızlı işlem" })).toHaveCount(0); // telefonda alt menüde boş "+" yok
 });

@@ -89,10 +89,12 @@ export function AutomationList() {
             <div className="flex min-w-0 flex-col gap-1">
               <span className="text-base font-semibold text-black">{automationNames[a.type]}</span>
               <span className="text-sm text-neutral-700">{automationDescriptions[a.type]}</span>
-              <span className="text-xs text-neutral-600 tabular-nums">
-                Son 30 gün: {number(a.sentLast30Days)} SMS · {number(a.creditsLast30Days)} kredi
-                {!a.isMarketing && " · bilgilendirme (izin aranmaz)"}
-              </span>
+              {sms && (
+                <span className="text-xs text-neutral-600 tabular-nums">
+                  Son 30 gün: {number(a.sentLast30Days)} SMS · {number(a.creditsLast30Days)} kredi
+                  {!a.isMarketing && " · bilgilendirme (izin aranmaz)"}
+                </span>
+              )}
             </div>
             <div className="flex shrink-0 items-center gap-3">
               <label className="flex min-h-11 items-center gap-2 text-sm text-black">

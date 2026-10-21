@@ -170,6 +170,7 @@ public static class InvitationEndpoints
             EmailConfirmed = true,
             PhoneNumber = Validation.NormalizePhone(request.Phone),
             CreatedAt = clock.GetUtcNow().UtcDateTime,
+            LastLoginAt = clock.GetUtcNow().UtcDateTime, // kayıt otomatik oturum açar: ilk giriş sayılır (süper admin "Son giriş")
         };
         var result = await users.CreateAsync(user, request.Password);
         if (!result.Succeeded)

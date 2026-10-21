@@ -136,6 +136,7 @@ test("SMS kapalıyken kampanya boş durumu ve kilitli otomasyonlar", async ({ ow
   const list = page.getByRole("list", { name: "Otomasyonlar" });
   await expect(list.getByRole("switch", { name: "Memnuniyet anketi açık" })).toBeDisabled();
   await expect(list.getByRole("switch", { name: "Doğum günü açık" })).toBeDisabled();
+  await expect(list.getByText(/Son 30 gün: .* SMS/)).toHaveCount(0);
 
   await page.getByRole("link", { name: "Randevu sonrası teşekkür: düzenle" }).click();
   await expect(page.getByRole("heading", { name: "Randevu sonrası teşekkür" })).toBeVisible();

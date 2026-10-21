@@ -398,9 +398,10 @@ public sealed class PlanTests(SqlServerFixture db) : MarketingTestBase(db)
         JsonDocument.Parse(detail).RootElement.GetProperty("summary").GetProperty("contacts").GetInt32().ShouldBe(1);
         var users = await GetJsonAsync(admin.Client, $"/api/admin/businesses/{businessId}/users");
         users.EnumerateArray().Single().GetProperty("role").GetString().ShouldBe("Owner");
-        users[0].GetProperty("lastLoginAt").ValueKind.ShouldBe(JsonValueKind.Null);
+        var registeredAt = users[0].GetProperty("lastLoginAt").GetDateTime(); // kayıt otomatik oturum açar: ilk giriş
         await LoginAsync(NewClient(), owner.Email);
-        (await GetJsonAsync(admin.Client, $"/api/admin/businesses/{businessId}/users"))[0].GetProperty("lastLoginAt").ValueKind.ShouldBe(JsonValueKind.String);
+        (await GetJsonAsync(admin.Client, $"/api/admin/businesses/{businessId}/users"))[0].GetProperty("lastLoginAt").GetDateTime()
+            .ShouldBeGreaterThanOrEqualTo(registeredAt);
 
         var note = await admin.Client.PostAsJsonAsync($"/api/admin/businesses/{businessId}/notes", new { body = "Telefonla arandı, kurulum anlatıldı." }, Ct);
         note.StatusCode.ShouldBe(HttpStatusCode.Created);

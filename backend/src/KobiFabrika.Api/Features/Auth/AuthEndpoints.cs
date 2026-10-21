@@ -92,6 +92,7 @@ public static class AuthEndpoints
             Email = email,
             PhoneNumber = Validation.NormalizePhone(request.Phone),
             CreatedAt = clock.GetUtcNow().UtcDateTime,
+            LastLoginAt = clock.GetUtcNow().UtcDateTime, // kayıt otomatik oturum açar: ilk giriş sayılır (süper admin "Son giriş")
             RequestedPlanCode = PlanCodes.IsValid(request.Plan) ? request.Plan : null,
             RequestedPeriod = PlanCodes.IsValid(request.Plan) && PlanPeriods.IsValid(request.Period) ? request.Period : null,
         };

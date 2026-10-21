@@ -253,7 +253,7 @@ function DashboardBody({ data }: { data: Dashboard }) {
                     />
                   }
                 />
-                <Bar dataKey="total" fill="var(--color-total)" radius={2} />
+                <Bar dataKey="total" fill="var(--color-total)" radius={2} isAnimationActive={false} />
               </BarChart>
             </ChartContainer>
           </CardContent>
