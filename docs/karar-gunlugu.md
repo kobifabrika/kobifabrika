@@ -2,6 +2,15 @@
 
 En yeni en üstte. Notion'daki "Proje Planı ve Kararlar" sayfasıyla aynı kararlar; teknik kararlar burada daha ayrıntılı.
 
+- **2026-10-21 (Sprint 8A kapanış, A10 tur):**
+  - 8A yayın öncesi kesiti kapandı: Actions #31 yeşil (`412e9a7`). Tur: 139 ekran × masaüstü + 375 px, otomatik kontrol 0 bulgu, gözle bulunanlar düzeltildi; açık kalanlar `docs/pilot-test-raporu.md`.
+  - **Online randevu adımları** `router.push` yerine yerel `history.pushState/replaceState` (Next useSearchParams ile eşlenir): adım değişimi sunucuya gitmez, metadata yeniden akmaz; başlık bir an boşalmıyor (axe Actions'ta yakalamıştı).
+  - **Son giriş:** kayıt ve davetle kayıt ilk giriş sayılır (`LastLoginAt`); süper admin pilot esnafın kullanımını görür.
+  - **Mali Müşavir:** hızlı işlem listesi boşsa alt menüde "+" yok; "Yarının randevuları"nda hatırlatma kısmı yok.
+  - **Grafik:** Bugün grafiğinde animasyon kapalı (docs/04 "animasyon yok").
+  - **Tur betiği:** bulgular her rolden sonra yazılır; müşteri e-postaları şablon koduyla ayrıca görüntülendi (Mailpit'te turdan kalan sadece sistem e-postalarıydı).
+  - Dev veritabanı (SELECT ile bakıldı): sadece Kaya Restaurant ve sahibi; temizlenecek kayıt yok.
+
 - **2026-10-21 (Sprint 8A, A7 hukuki, A8 site ve panel, kontrol listesi):**
   - **Hukuki taslaklar** (avukat öncesi, sürümlü, son güncelleme tarihli; `content/legal.ts`): KVKK aydınlatma, gizlilik, çerez, kullanım koşulları, veri işleme sözleşmesi, işletmenin müşterileri için aydınlatma şablonu; online randevu sayfası işletmenin bilgileriyle doldurulmuş şablona bağlanır (`/r/[slug]/aydinlatma`). Alt işleyenler ve yurt dışı aktarım tek listede (VDS Türkiye, Brevo AB, Cloudflare ABD, Sentry ABD; KVKK m.9 standart sözleşme). KVKK destek başvuruları destek@kobifabrika.com (ayrı kvkk@ adresi yok).
   - **Şirket bilgisi** tek kaynak `content/company.ts` ("KobiFabrika (kuruluş aşamasında)"); backend `Company:EmailFooter` ile aynı olduğunu Vitest kontrol eder.

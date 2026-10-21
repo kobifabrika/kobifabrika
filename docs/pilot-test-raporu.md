@@ -1,6 +1,6 @@
 # Pilot öncesi test raporu (Sprint 8A, A10)
 
-Tarih: 2026-10-21 · Durum: tur tamamlandı, bulgular aşağıda.
+Tarih: 2026-10-21 · Durum: tur tamamlandı, bulgular düzeltildi; Actions #31 yeşil (`412e9a7`).
 
 ## Yöntem
 
@@ -53,5 +53,6 @@ Durum: **bakıldı** (sorun yok) · **düzeltildi** · **açık** (pilot sonras�
 | Müşteri e-postaları | Randevu hatırlatma | düzeltildi | "Işıltı Kuaför randevunuzu hatırlatırız" → "Işıltı Kuaför olarak Saç kesimi randevunuzu hatırlatırız." |
 | Müşteri e-postaları | Ekstre, tahsilat, teklif | açık | Altta işletmenin telefonu/adresi yok (sadece adı); vade hatırlatma ve randevu e-postalarında var. |
 | Panel geneli | Hitap | açık | Panel çoğunlukla "siz" ("İşletmenizde bugün olanlar"), bazı sistem metinleri "sen" ("Bu sayfayı görme yetkin yok"); tek hitaba karar verilmeli. |
+| Test | `import-wizard.test.tsx` (Vitest) | açık | Yerelde tam Vitest koşusunda yük altında 5 sn sınırını aşabiliyor (tek başına 1,5 sn; Actions #31'de geçti). |
 
 Actions'ta bulunan (2026-10-20 gecesi): `sprint8a-yeni-esnaf` İstanbul saatiyle 00:00-01:00 arası koşunca randevuyu gece yarısını aşan bir saate taşımaya çalışıyordu (API haklı olarak reddetti); test saat seçimi düzeltildi, kural gevşetilmedi.
