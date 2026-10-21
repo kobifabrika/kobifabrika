@@ -41,23 +41,32 @@ function SectionHeading({
   title,
   text,
   center = false,
+  onInk = false,
 }: {
   id: string;
   label: string;
   title: ReactNode;
   text?: string;
   center?: boolean;
+  /** Defter (mürekkep) zemininde: etiket mavi, başlık beyaz, metin slate-300. */
+  onInk?: boolean;
 }) {
   return (
     <div className={cn("max-w-2xl", center && "mx-auto text-center")}>
-      <p className={cn("flex items-center gap-2 text-sm font-semibold text-link", center && "justify-center")}>
+      <p
+        className={cn(
+          "flex items-center gap-2 text-sm font-semibold",
+          onInk ? "text-brand" : "text-link",
+          center && "justify-center",
+        )}
+      >
         <span aria-hidden className="h-0.5 w-5 rounded-full bg-brand" />
         {label}
       </p>
       <h2 id={id} className="mt-3 text-3xl leading-[1.1] font-semibold tracking-tight sm:text-[2.75rem]">
         {title}
       </h2>
-      {text && <p className="mt-4 text-lg leading-8 text-slate">{text}</p>}
+      {text && <p className={cn("mt-4 text-lg leading-8", onInk ? "text-slate-300" : "text-slate")}>{text}</p>}
     </div>
   );
 }
@@ -121,9 +130,9 @@ export default function HomePage() {
             </p>
             <h1
               id="baslik"
-              className="mt-5 text-[2.35rem] leading-[1.05] font-semibold tracking-[-0.03em] sm:text-6xl lg:text-[4.1rem]"
+              className="mt-5 text-[2.35rem] leading-[1.05] font-semibold tracking-[-0.03em] text-ink sm:text-6xl lg:text-[4.1rem]"
             >
-              Kasan, veresiyen, randevun ve personelin <span className="text-link">tek uygulamada.</span>
+              Kasan, veresiyen, randevun ve personelin tek uygulamada.
             </h1>
             <p className="mt-6 max-w-xl text-lg leading-8 text-slate sm:text-xl">
               Esnaf ve küçük işletme için: telefondan kullanılır, 10 dakikada kurulur. Müşterin randevusunu kendisi
@@ -156,10 +165,10 @@ export default function HomePage() {
           <div className="relative mx-auto w-full max-w-[560px] pb-10 pl-10 sm:pl-16 lg:mx-0">
             <div className={cn("overflow-hidden rounded-3xl", softShadow)}>
               <Image
-                src="/site/foto/barista.webp"
-                alt="Kafede kahve makinesinin yanında durup telefonuna bakan çalışan."
+                src="/site/foto/kafe-siparis.webp"
+                alt="Kafenin dış masasında kahve içen iki müşteriden sipariş alan önlüklü garson."
                 width={2400}
-                height={2041}
+                height={2040}
                 // Önyükleme yok: telefonda LCP başlık; önyükleme yazı tipiyle bant genişliği yarıştırıyordu (Lighthouse, 2026-10-21).
                 loading="eager"
                 quality={85}
@@ -204,16 +213,16 @@ export default function HomePage() {
                 </div>
               </li>
             ))}
-            <li className="flex flex-col justify-between gap-6 rounded-2xl bg-cream p-6">
+            <li className="flex flex-col justify-between gap-6 rounded-2xl bg-ink p-6 text-white">
               <div>
                 <h3 className="text-lg font-semibold">İşin listede yok mu?</h3>
-                <p className="mt-1 text-[15px] leading-6 text-slate">
+                <p className="mt-1 text-[15px] leading-6 text-slate-300">
                   Terzi, oto yıkama, dershane, veteriner… Satışı, müşterisi ve personeli olan her işletme için çalışır.
                 </p>
               </div>
               <Link
                 href={primaryCta.href}
-                className="inline-flex min-h-11 items-center gap-2 font-semibold text-coral-text underline-offset-4 hover:underline"
+                className="inline-flex min-h-11 items-center gap-2 font-semibold text-brand underline-offset-4 hover:underline"
               >
                 Ücretsiz dene <ArrowRight aria-hidden className="size-4" />
               </Link>
@@ -243,8 +252,8 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* 4) Telefondan yönet: sıcak açık bant */}
-      <section aria-labelledby="telefondan" className="bg-cream">
+      {/* 4) Telefondan yönet: defter (mürekkep) bandı */}
+      <section aria-labelledby="telefondan" className="bg-ink text-white">
         <div className={cn(container, "grid items-center gap-12 py-20 sm:py-24 lg:grid-cols-2")}>
           <div className="relative mx-auto w-full max-w-[440px] pr-12 pb-8 lg:mx-0">
             <Image
@@ -264,7 +273,7 @@ export default function HomePage() {
             />
           </div>
           <div>
-            <SectionHeading id="telefondan" label="Telefondan yönet" title="Dükkân seninle cebinde." />
+            <SectionHeading id="telefondan" label="Telefondan yönet" title="Dükkân seninle cebinde." onInk />
             <ul className="mt-8 flex flex-col gap-6">
               {[
                 {
@@ -284,12 +293,12 @@ export default function HomePage() {
                 },
               ].map(({ icon: Icon, title, text }) => (
                 <li key={title} className="flex gap-4">
-                  <span className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-white text-ink">
+                  <span className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-brand text-ink">
                     <Icon aria-hidden className="size-5" />
                   </span>
                   <div>
                     <h3 className="text-lg font-semibold">{title}</h3>
-                    <p className="mt-1 text-base leading-7 text-slate">{text}</p>
+                    <p className="mt-1 text-base leading-7 text-slate-300">{text}</p>
                   </div>
                 </li>
               ))}

@@ -48,24 +48,24 @@ sayfalar, giriş/kayıt ekranları. Panel Emir onaylayınca aynı havaya geçer.
 | Token | Hex | Kullanım (sadece site) |
 |---|---|---|
 | `brand` | `#00b0ff` | **Ana renk:** ana düğme (yazı `ink`), etiket çizgisi, adım numarası, öne çıkan fiyat kartı kenarı |
-| `ink` | `#0a1f3c` | Yazı (lacivert mürekkep), seçili sekme/dönem, son çağrı bandı ve giriş/kayıt marka paneli (üstünde beyaz, `slate-300`, mavi, mercan yazı) |
+| `ink` | `#0a1f3c` | **Defter rengi.** Yazı (lacivert mürekkep), ana sayfa başlığı, seçili sekme/dönem; zemin olarak son çağrı bandı, "Telefondan yönet" bandı, "İşin listede yok mu?" kartı ve giriş/kayıt marka paneli (üstünde beyaz, `slate-300`, mavi, mercan yazı; link mavisi ve `coral-text` olmaz) |
 | `slate` | `#4a5a70` | İkincil yazı (beyaz, `mist`, `cream` üstünde 5,2:1+) |
 | `slate-200` | `#e3e9f1` | Kenarlık ve ayırıcı |
 | `mist` | `#f4f8fc` | Açık mavi-gri bölüm zemini, alt bilgi, alt sayfa başlık bandı |
-| `cream` | `#fff5f0` | Sıcak açık bölüm zemini ("Telefondan yönet") |
+| `cream` | `#fff5f0` | Sıcak açık zemin (ana sayfada 2026-10-21'den beri kullanılmıyor; diğer sayfalar) |
 | `coral` | `#ff6b4a` | **Sıcak yardımcı renk:** ilk ekran geçişi; beyazda yazı **olamaz** (slogan rozetindeki nokta 2026-10-21'de kalktı) |
 | `coral-soft` | `#ffe1d6` | Rozet ve ✓ dairesi zemini (yazı `ink`) |
 | `coral-text` | `#b9381c` | Beyaz/kremde mercan yazı (numara, ikincil link) |
-| `link` | `#006ea6` | Link ve vurgulu yazı (başlıktaki "tek uygulamada") |
+| `link` | `#006ea6` | Link ve vurgulu yazı (ana sayfa başlığı 2026-10-21'den beri tamamen `ink`) |
 
 - **Üst menü** beyaz, ince çizgi, sabit: sadece "KobiFabrika" yazısı (`SiteBrand` = `Wordmark`; KF işareti yok, beyazda `Logo`
   kullanılmaz), az menü (Özellikler `/ozellikler`, Fiyatlar, SSS, Yardım, Hakkımızda), "Giriş yap", mavi "Ücretsiz dene". Telefonda Menü sağda, "Ücretsiz dene" altta sabit (beyaz şerit).
 - **İlk ekran:** tek yerde **ölçülü renk geçişi** (`hero-glow`: sis → beyaz, sağ üstte düşük yoğunluklu mavi ve mercan); sola
-  hizalı büyük başlık (Schibsted Grotesk 600), iki düğme, ✓'li dört güvence; sağda kafe çalışanı fotoğrafı (tezgâhta telefona
-  bakan barista) + telefondaki gerçek ekran.
+  hizalı büyük başlık (Schibsted Grotesk 600), iki düğme, ✓'li dört güvence; sağda kafe fotoğrafı (dış masada müşterilerden sipariş
+  alan önlüklü garson) + telefondaki gerçek ekran. Başlığın tamamı defter renginde (`ink`).
   Başka hiçbir bölümde geçiş yok.
 - **Bölümler:** kimler için (fotoğraflı sektör kartları) → özellikler (kısa hali: Para · Müşteri · Ekip sekmeleri, çerçevede gerçek
-  ekran; `FeatureTabs`; "Bütün özellikler" → `/ozellikler`) → telefondan yönet (krem bant, fotoğraf + online randevu ekranı) → farkımız → nasıl çalışır (sis bant) →
+  ekran; `FeatureTabs`; "Bütün özellikler" → `/ozellikler`) → telefondan yönet (defter bandı, fotoğraf + online randevu ekranı; mavi ikon kutuları) → farkımız → nasıl çalışır (sis bant) →
   fiyatlar → SSS → son çağrı (mürekkep bant + fotoğraf) → kolonlu alt bilgi (sis zemin; Ürün, Destek, Şirket, Hukuki).
 - **Özellikler sayfası** `/ozellikler` ("Özellikler | KobiFabrika"): modül çipleri, modül başına başlık + çerçevede ekran + ayrıntılı
   özellik listesi (`content/site.ts` → `featureDetails`; sadece ürünün bugün yaptıkları, SMS'e dayananlar yok), telefon ekranları,

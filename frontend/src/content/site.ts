@@ -75,7 +75,7 @@ export const primaryCta = { href: "/kayit", label: "Ücretsiz dene" };
 export const sectors: { photo: string; alt: string; title: string; text: string }[] = [
   {
     photo: "/site/foto/berber.webp",
-    alt: "Berberde makasla saçı kesilen sakallı müşteri.",
+    alt: "Berber dükkânında müşterisinin saçını makineyle kesen berber.",
     title: "Kuaför ve berber",
     text: "Randevu takvimi, online randevu linki, gelmeyen müşteriye hatırlatma.",
   },
@@ -92,8 +92,8 @@ export const sectors: { photo: string; alt: string; title: string; text: string 
     text: "Seans paketleri, ders saatleri, üyenin borcu ve ödemesi aynı kartta.",
   },
   {
-    photo: "/site/foto/kafe.webp",
-    alt: "Kafenin tezgâhında elinde süt potu ve fincanla gülümseyen barista.",
+    photo: "/site/foto/restoran.webp",
+    alt: "Dolu bir restoranda masalara salata tabakları taşıyan garson.",
     title: "Kafe ve restoran",
     text: "Hızlı satış, veresiye ve cari, kasa ve gider, personel mesaisi.",
   },

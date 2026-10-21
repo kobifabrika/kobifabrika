@@ -17,13 +17,15 @@ const cache = path.join(root, "test-results", "foto-orijinal");
  * height) · width: çıktı genişliği (yükseklik orana göre).
  */
 const photos = [
-  // İlk ekran: gösterim en fazla ~520 px → 2400 px (4:3,4).
-  { file: "barista.webp", id: 5710456, crop: [900, 0, 4403, 3744], width: 2400 },
+  // İlk ekran: gösterim en fazla ~520 px → 2400 px (4:3,4). Kafe masasında sipariş alan garson; soldaki bitki kırpılır.
+  { file: "kafe-siparis.webp", id: 4921154, crop: [300, 0, 4546, 3864], width: 2400 },
   // Sektör kartları: en fazla ~460 px (sm, 2 kolon) → 1600 px (4:3).
-  { file: "berber.webp", id: 9992819, crop: [0, 1300, 4000, 3000], width: 1600 },
+  // Berber: dikeyden 4:3; berber ve müşterinin yüzü kadrajda.
+  { file: "berber.webp", id: 7697224, crop: [0, 770, 2697, 2023], width: 1600 },
   { file: "guzellik.webp", id: 20309789, crop: [496, 0, 3968, 2976], width: 1600 },
   { file: "pilates.webp", id: 9288101, crop: [667, 0, 5333, 4000], width: 1600 },
-  { file: "kafe.webp", id: 3914062, crop: [1900, 800, 4800, 3600], width: 1600 },
+  // Kafe ve restoran: dolu salonda tabak taşıyan garson (ilk ekrandan farklı sahne).
+  { file: "restoran.webp", id: 25809274, crop: [300, 0, 5973, 4480], width: 1600 },
   // Çiçekçi: üstteki el yazısı tabela kırpılır.
   { file: "cicekci.webp", id: 5409710, crop: [300, 880, 4160, 3120], width: 1600 },
   // "Telefondan yönet": ~400 px → 1600 px (4:5); pelerindeki yazı kırpılır.

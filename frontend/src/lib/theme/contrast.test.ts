@@ -252,3 +252,25 @@ describe("tanıtım sitesi renkleri (2026-10-21)", () => {
       expect(contrast(fg, token("ink"))).toBeGreaterThanOrEqual(AA_TEXT);
   });
 });
+
+describe("defter rengi (mürekkep #0a1f3c; karar 2026-10-21)", () => {
+  it("defter rengi sabit; ana sayfa başlığı beyazda AAA düzeyinde okunur", () => {
+    expect(token("ink")).toBe("#0a1f3c");
+    expect(contrast(token("ink"), WHITE)).toBeGreaterThanOrEqual(7);
+  });
+
+  it("defter zemininde (giriş/kayıt paneli, Telefondan yönet, İşin listede yok mu?) yazı, etiket ve link okunur", () => {
+    for (const fg of [WHITE, token("slate-300"), token("brand")])
+      expect(contrast(fg, token("ink"))).toBeGreaterThanOrEqual(AA_TEXT);
+  });
+
+  it("defter zeminindeki ikon kutusu: mavi kutu zeminden ayrışır, içindeki mürekkep ikon okunur", () => {
+    expect(contrast(token("brand"), token("ink"))).toBeGreaterThanOrEqual(AA_NON_TEXT);
+    expect(contrast(token("ink"), token("brand"))).toBeGreaterThanOrEqual(AA_TEXT);
+  });
+
+  it("link mavisi ve mercan yazısı defter zemininde kullanılmaz (yetersiz)", () => {
+    expect(contrast(token("link"), token("ink"))).toBeLessThan(AA_TEXT);
+    expect(contrast(token("coral-text"), token("ink"))).toBeLessThan(AA_TEXT);
+  });
+});
