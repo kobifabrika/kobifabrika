@@ -79,6 +79,9 @@ test("yeni esnaf: kayıttan ilk satışa", async ({ page, newPublicPage, visit, 
   await page.getByLabel("Süre (dakika)").fill("30");
   await page.getByRole("button", { name: "Hizmeti ekle" }).click();
   await expect(toast(page, /eklendi/)).toBeVisible();
+  // Hizmet kartı açılsın (WebKit, yarıda kesilen ürün isteğini "access control" hatası olarak bildirir).
+  await expect(page).toHaveURL(/\/panel\/urunler\/[0-9a-f-]{36}$/);
+  await expect(page.getByRole("heading", { name: "Saç kesimi" })).toBeVisible();
 
   // 6. Online randevuyu aç, linki al.
   await visit(page, "/panel/ayarlar/randevu", "Yeni esnaf · online randevu ayarı");
