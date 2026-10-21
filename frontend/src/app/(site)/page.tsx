@@ -115,7 +115,8 @@ export default function HomePage() {
                 alt="Kuaför salonunda müşterisinin saçını şekillendiren kuaför."
                 width={1400}
                 height={933}
-                priority
+                // Önyükleme yok: telefonda LCP başlık; önyükleme yazı tipiyle bant genişliği yarıştırıyordu (Lighthouse, 2026-10-21).
+                loading="eager"
                 sizes="(min-width: 1024px) 520px, 90vw"
                 className="block aspect-[4/3.4] h-auto w-full object-cover"
               />
