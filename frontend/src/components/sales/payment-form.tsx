@@ -82,6 +82,7 @@ export function PaymentForm({
                 ))}
             </select>
             <NumberInput
+              fixed={2}
               aria-label={`${i + 1}. ödeme tutarı`}
               placeholder="0,00"
               value={row.text}
@@ -168,6 +169,7 @@ export function PaymentForm({
           <label className="flex flex-1 flex-col gap-2 text-sm font-semibold text-black">
             Alınan (isteğe bağlı)
             <NumberInput
+              fixed={2}
               placeholder={moneyToInput(total)}
               value={value.received}
               onChange={(e) => onChange({ ...value, received: e.target.value })}

@@ -1,3 +1,5 @@
+import { parseNumberText } from "@/lib/number-input";
+
 /**
  * Satış ve teklif tutarları (backend Domain/Sales/SaleCalculator.cs ile aynı algoritma ve test vektörleri).
  * Fiyatlar KDV dahildir; KDV satır tutarının içinden ayrılır: KDV = tutar × oran / (100 + oran).
@@ -122,10 +124,10 @@ export function allowsFraction(unit: Unit): boolean {
 }
 
 /** Kullanıcının yazdığı miktarı çözer: "1,5", "2", "0.75". */
+/** Miktar: para alanıyla aynı okuma kuralı ("1.250,5", "12.5"); eksi kabul edilmez. */
 export function parseQuantity(text: string | null | undefined): number | null {
-  const t = (text ?? "").replace(/\s/g, "").replace(",", ".");
-  if (!/^\d+(\.\d+)?$/.test(t)) return null;
-  return Number(t);
+  const parsed = parseNumberText(text);
+  return parsed && !(text ?? "").trim().startsWith("-") ? parsed.value : null;
 }
 
 export function validateQuantity(value: number | null, unit: Unit, allowZero = false): string | null {

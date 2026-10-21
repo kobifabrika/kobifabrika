@@ -13,6 +13,7 @@ import { Field, FormMessage } from "@/components/forms/field";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { NumberInput } from "@/components/ui/number-input";
+import { parseNumberText } from "@/lib/number-input";
 import { api, errorMessage, fieldErrors, unwrap } from "@/lib/api/client";
 import { leaveBalanceKindNames, type LeaveBalance, type LeaveBalanceKind } from "@/lib/api/types";
 import { formatDate, formatDayShort } from "@/lib/format";
@@ -145,7 +146,7 @@ function AdjustDialog({
 
   const submit = (e: FormEvent) => {
     e.preventDefault();
-    const value = Number(days.replace(",", "."));
+    const value = parseNumberText(days)?.value ?? Number.NaN;
     const next: Record<string, string> = {};
     if (!days.trim() || !Number.isFinite(value) || value === 0 || value * 2 !== Math.floor(value * 2))
       next.days = "Gün sayısını yarım gün adımlarıyla girin (ör. 14 veya 2,5; düşmek için eksi).";

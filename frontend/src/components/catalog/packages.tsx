@@ -202,7 +202,7 @@ export function PackageForm({ initial }: { initial?: ServicePackage }) {
         </Field>
       </div>
       <Field label="Fiyat (KDV dahil)" error={errors.price} hint="KDV oranı hizmetinki.">
-        <NumberInput value={price} onChange={(e) => setPrice(e.target.value)} placeholder="3000,00" />
+        <NumberInput fixed={2} value={price} onChange={(e) => setPrice(e.target.value)} placeholder="3000,00" />
       </Field>
       <label className="flex min-h-11 items-center gap-3 text-sm text-black">
         <Switch checked={active} onCheckedChange={setActive} />

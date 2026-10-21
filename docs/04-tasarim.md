@@ -63,7 +63,7 @@ Rakip incelemesi: `docs/rakip-site-notlari.md`.
 ## Hitap ve sayı alanları (2026-10-21)
 
 - **Hitap:** panel, giriş/kayıt/davet, kurulum, müşteriye açık sayfalar (online randevu, ekstre, teklif, anket) ve bütün e-postalar **"siz"** ("Kaydedin", "E-postanızı doğrulayın"). Tanıtım sitesi "sen". Düğme etiketleri kısa emir ("Kaydet", "Gönder") her iki hitapta da geçerli. `src/lib/hitap.test.ts` kesin "sen" kalıplarını yakalar.
-- **Sayı alanları:** para, miktar, gün, yüzde alanları `NumberInput` (`components/ui/number-input.tsx`): harf girilemez, ondalık ayırıcı virgül (nokta virgüle döner), telefonda sayısal klavye. `type="number"` kullanılmaz (Safari harf kabul eder, tekerlek değeri değiştirir).
+- **Sayı alanları:** para, miktar, gün, yüzde alanları `NumberInput` (`components/ui/number-input.tsx`): harf girilemez; virgül ondalık, nokta binlik (virgülsüz "12.5" gibi son noktadan sonra 1-2 rakam ondalık sayılır); yazarken binlikler gruplanır, odaktan çıkınca para alanı "32.500,00" olur; telefonda sayısal klavye. `type="number"` kullanılmaz (Safari harf kabul eder, tekerlek değeri değiştirir).
 
 ## Tipografi
 

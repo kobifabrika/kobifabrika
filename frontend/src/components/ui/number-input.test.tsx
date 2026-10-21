@@ -48,7 +48,21 @@ describe("NumberInput", () => {
     expect(input).toHaveAttribute("inputmode", "decimal");
     type(input, "Ikln");
     expect(input).toHaveValue("");
-    type(input, "12a.5x0.");
+    type(input, "32.500");
+    expect(input).toHaveValue("32.500");
+    fireEvent.blur(input);
+    expect(input).toHaveValue("32.500,00");
+  });
+
+  it("yazarken binlikler noktayla gruplanır; Android noktası odaktan çıkınca ondalık", () => {
+    render(<Money />);
+    const input = screen.getByLabelText("Tutar");
+    type(input, "1250000");
+    expect(input).toHaveValue("1.250.000");
+    fireEvent.change(input, { target: { value: "" } });
+    type(input, "12.5");
+    expect(input).toHaveValue("12.5");
+    fireEvent.blur(input);
     expect(input).toHaveValue("12,50");
   });
 
@@ -60,17 +74,17 @@ describe("NumberInput", () => {
     expect(input).toHaveValue("14");
   });
 
-  it("yapıştırılan '1.500,00 TL' binlik ayırıcısız okunur", () => {
+  it("yapıştırılan '1.500,00 TL' binlikli kalır", () => {
     render(<Controlled />);
     const input = screen.getByLabelText("Alan");
     paste(input, "1.500,00 TL");
-    expect(input).toHaveValue("1500,00");
+    expect(input).toHaveValue("1.500,00");
   });
 
   it("eksi izinli alanda başta eksi girilir", () => {
     render(<Controlled allowNegative />);
     const input = screen.getByLabelText("Alan");
-    type(input, "-2.5");
+    type(input, "-2,5");
     expect(input).toHaveValue("-2,5");
   });
 
@@ -78,6 +92,7 @@ describe("NumberInput", () => {
     render(<Registered />);
     const input = screen.getByLabelText("Kayıtlı");
     type(input, "abc7.25");
+    fireEvent.blur(input);
     expect(input).toHaveValue("7,25");
   });
 });

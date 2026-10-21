@@ -55,6 +55,7 @@ export function DiscountInput({
           ]}
         />
         <NumberInput
+          fixed={type === "Amount" ? 2 : undefined}
           value={text}
           onChange={(e) => onText(e.target.value)}
           placeholder={type === "Percent" ? "ör. 10" : "ör. 25,00"}
@@ -234,7 +235,7 @@ function LineDialog({
             <NumberInput value={quantity} onChange={(e) => setQuantity(e.target.value)} autoFocus={isDesktop} />
           </Field>
           <Field label="Birim fiyat (TL)" error={errors.price}>
-            <NumberInput value={price} onChange={(e) => setPrice(e.target.value)} />
+            <NumberInput fixed={2} value={price} onChange={(e) => setPrice(e.target.value)} />
           </Field>
           <DiscountInput
             label="Satır indirimi"

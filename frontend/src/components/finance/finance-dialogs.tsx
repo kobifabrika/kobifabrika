@@ -95,7 +95,7 @@ export function MoneyField({
 }) {
   return (
     <Field label={label} error={error ?? undefined}>
-      <NumberInput placeholder="0,00" value={value} autoFocus={autoFocus} onChange={(e) => onChange(e.target.value)} />
+      <NumberInput fixed={2} placeholder="0,00" value={value} autoFocus={autoFocus} onChange={(e) => onChange(e.target.value)} />
     </Field>
   );
 }

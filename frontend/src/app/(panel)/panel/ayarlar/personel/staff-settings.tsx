@@ -15,6 +15,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { NumberInput } from "@/components/ui/number-input";
+import { parseNumberText } from "@/lib/number-input";
 import { Switch } from "@/components/ui/switch";
 import { api, errorMessage, fieldErrors, unwrap } from "@/lib/api/client";
 import { LEGAL_NOTE, type LeaveType } from "@/lib/api/types";
@@ -66,7 +67,7 @@ function OvertimeCard({ readOnly }: { readOnly: boolean }) {
 
   const submit = (e: FormEvent) => {
     e.preventDefault();
-    const value = Number((hours ?? "").replace(",", "."));
+    const value = parseNumberText(hours)?.value ?? Number.NaN;
     if (!Number.isFinite(value) || value < 1 || value > 80 || value * 2 !== Math.floor(value * 2))
       return setError("Haftalık eşik 1 ile 80 saat arasında, yarım saat adımlarıyla olmalı.");
     save.mutate(value);

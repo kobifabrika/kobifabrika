@@ -240,11 +240,12 @@ export function ProductForm({ product }: { product?: Product }) {
       <div className="flex flex-col gap-3">
         <div className="grid gap-5 sm:grid-cols-2">
           <Field label="Satış fiyatı (TL)" error={errors.salePrice} hint={preview}>
-            <NumberInput placeholder="0,00" value={form.salePrice} onChange={(e) => set("salePrice", e.target.value)} />
+            <NumberInput fixed={2} placeholder="0,00" value={form.salePrice} onChange={(e) => set("salePrice", e.target.value)} />
           </Field>
           {showPurchase && (
             <Field label="Alış fiyatı (TL)" error={errors.purchasePrice} hint="İsteğe bağlı. Personel göremez.">
               <NumberInput
+                fixed={2}
                 placeholder="0,00"
                 value={form.purchasePrice}
                 onChange={(e) => set("purchasePrice", e.target.value)}

@@ -139,7 +139,7 @@ export function StockDialog({
           </Field>
           {kind === "In" && can(role, "viewPurchasePrice") && (
             <Field label="Birim maliyet (TL)" error={errors.unitCost} hint="İsteğe bağlı.">
-              <NumberInput value={unitCost} onChange={(e) => setUnitCost(e.target.value)} />
+              <NumberInput fixed={2} value={unitCost} onChange={(e) => setUnitCost(e.target.value)} />
             </Field>
           )}
           <Field label="Tarih" error={errors.date}>

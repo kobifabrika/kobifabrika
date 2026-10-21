@@ -410,6 +410,7 @@ function RuleDialog({ rule, onClose }: { rule: CommissionRule | null; onClose: (
                 <option value="Fixed">Adet başına TL</option>
               </select>
               <NumberInput
+                fixed={type === "Fixed" ? 2 : undefined}
                 value={value}
                 onChange={(e) => setValue(e.target.value)}
                 placeholder={type === "Percent" ? "ör. 10" : "ör. 50,00"}

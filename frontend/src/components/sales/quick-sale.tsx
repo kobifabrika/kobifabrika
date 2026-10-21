@@ -464,7 +464,7 @@ function FreeLineDialog({ onClose, onAdd }: { onClose: () => void; onAdd: (l: { 
             <Input value={name} onChange={(e) => setName(e.target.value)} maxLength={200} autoFocus={isDesktop} />
           </Field>
           <Field label="Fiyat (TL)" error={errors.price}>
-            <NumberInput value={price} onChange={(e) => setPrice(e.target.value)} />
+            <NumberInput fixed={2} value={price} onChange={(e) => setPrice(e.target.value)} />
           </Field>
           <Field label="KDV oranı">
             <select className="h-11 rounded-lg border border-input px-3 text-base" value={vat} onChange={(e) => setVat(e.target.value)}>

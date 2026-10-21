@@ -1,3 +1,4 @@
+import { parseNumberText } from "@/lib/number-input";
 import { z } from "zod";
 
 /**
@@ -153,22 +154,12 @@ export const moneyMessages = {
 } as const;
 
 /**
- * Kullanıcının yazdığı tutarı çözer: "1.250,50", "1250,5", "1250.50", "1.250" (binlik), "-300".
- * Virgül varsa ondalık ayırıcıdır (Türkçe); yoksa tek nokta + 3 hane binlik sayılır.
- * Ondalık hane sayısı korunur ki "10,001" hatası yakalansın: { value, decimals }.
+ * Kullanıcının yazdığı tutarı çözer (`lib/number-input.ts` kuralı): virgül ondalık, nokta binlik; virgülsüz "12.5" (son noktadan
+ * sonra 1-2 rakam) ondalık. "1.250,50", "32.500", "1250,5", "12.5", "-300". Ondalık hane sayısı korunur ki "10,001" hatası
+ * yakalansın: { value, decimals }.
  */
 export function parseMoneyInput(text: string | null | undefined): { value: number; decimals: number } | null {
-  let t = (text ?? "").replace(/TL|₺|\s/gi, "");
-  if (!t) return null;
-  if (t.includes(",")) {
-    t = t.replace(/\./g, "").replace(",", ".");
-  } else {
-    const parts = t.split(".");
-    if (parts.length > 2 || (parts.length === 2 && parts[1].length === 3 && t.replace("-", "").length > 4))
-      t = t.replace(/\./g, "");
-  }
-  if (!/^-?\d+(\.\d+)?$/.test(t)) return null;
-  return { value: Number(t), decimals: t.split(".")[1]?.length ?? 0 };
+  return parseNumberText(text);
 }
 
 /** Kurala uymuyorsa Türkçe hata mesajı, uyuyorsa null. Boş = "Tutar girin." */

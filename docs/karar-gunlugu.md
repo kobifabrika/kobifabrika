@@ -2,6 +2,7 @@
 
 En yeni en üstte. Notion'daki "Proje Planı ve Kararlar" sayfasıyla aynı kararlar; teknik kararlar burada daha ayrıntılı.
 
+- **2026-10-21 (sayı alanları, Türkçe yazım):** Virgül her zaman ondalık, nokta binlik ayırıcı ("32.500" = 32 bin 500). Tek istisna: virgül yoksa ve son noktadan sonra 1-2 rakam varsa nokta ondalık (Android'de sadece nokta tuşu çıkan klavyeler: "12.5" = 12,5). Yazarken binlikler noktayla gruplanır, odaktan çıkınca netleşir (para alanında "32.500,00"). Tek kaynak `lib/number-input.ts` (`parseNumberText`); `parseMoneyInput` ve `parseQuantity` buradan okur. Tam sayı alanları (gün, adet, dakika) sadece rakam, gruplanmaz. Önceki "nokta yazılınca virgüle çevir" kuralı kaldırıldı.
 - **2026-10-21 (renk yönü):** A (gece mavisi + altın), B (ferah beyaz + mercan), C (krem + antrasit) **reddedildi**; hiçbiri uygulanmadı, önizleme betiği ve `docs/tasarim-secenekleri/` kaldırıldı. Yeni yön: tanıtım sitesi ikas + Stripe + Paraşüt karışımı (premium, canlı, sıcak, insanlı); bu turda sadece site, panel onaydan sonra.
 
 - **2026-10-21 (tasarım turu düzeltmeleri, Emir'in gezisi):**
