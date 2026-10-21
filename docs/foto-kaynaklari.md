@@ -4,22 +4,29 @@ Bütün fotoğraflar **Pexels**'ten, **Pexels Lisansı** ile (https://www.pexels
 zorunlu değil, düzenlenebilir. Lisansın yasakladıkları: fotoğrafı değiştirmeden satmak, kişileri olumsuz/yanıltıcı biçimde
 göstermek, fotoğraftaki kişinin bir ürünü onayladığını ima etmek.
 
-Kurallar (karar 2026-10-21):
+Kurallar (karar 2026-10-21, kalite turu aynı gün):
 - Fotoğraflar **sadece atmosfer** için. Kişilere isim, yorum ya da "kullanıcımız" ifadesi yazılmaz; alt metin sahneyi anlatır.
-- Görünür marka veya logo olan fotoğraf kullanılmaz; yazılı tabela, neon yazı ve ürün etiketi olan kısımlar kırpıldı.
-- Dosyalar `frontend/public/site/foto/` altında WebP (kırpılmış, 900-1400 px genişlik), sitede `next/image` ile.
+- Görünür marka veya logo olan fotoğraf kullanılmaz; yazılı tabela, neon yazı, pelerin/önlük yazısı olan kısımlar kırpılır.
+- **Kalite:** net, aydınlık, profesyonel; bulanık, karanlık, düşük çözünürlüklü ya da sahnelenmiş/yapay duranlar elenir. Her
+  fotoğraf Pexels'in **orijinal** boyutundan kırpılır ve gösterildiği en büyük boyutun en az 2 katı genişlikte yazılır (ilk ekran
+  2400 px, sektör kartları 1600 px, "Telefondan yönet" 1600 px, son çağrı 2400 px); WebP kalite 85. Sitede `next/image`
+  (kalite 85, ekran genişliğine göre `sizes`; retina ekranda 2x kendiliğinden seçilir).
+- Üretim tek komut: `cd frontend; npm run site:foto` (`scripts/site-foto.mjs`; liste ve kırpmalar orada, bu tabloyla aynı tutulur).
 - Unsplash denendi; arama sayfası ve API otomatik erişime kapalı olduğu için Pexels kullanıldı.
 
-| Dosya | Sahne | Pexels sayfası | Fotoğrafçı | Düzenleme |
-|---|---|---|---|---|
-| `kuafor.webp` | Kuaförde saç şekillendiren kadın | https://www.pexels.com/photo/woman-getting-a-new-haircut-7755223/ | RDNE Stock project | Alttaki yazılı pelerin kırpıldı |
-| `berber.webp` | Berberde sakallı müşteri | https://www.pexels.com/photo/bearded-man-in-a-barber-shop-9992819/ | Alex Urezkov | 4:3 kırpma |
-| `guzellik.webp` | Güzellik salonunda manikür | https://www.pexels.com/photo/closeup-shot-of-a-woman-in-a-nail-salon-receiving-a-manicure-by-a-beautician-with-nail-file-woman-getting-nail-manicure-19239100/ | Farhad Ibrahimzade | 4:3 kırpma |
-| `pilates.webp` | Pilates stüdyosunda eğitmen | https://www.pexels.com/photo/woman-exercising-on-a-pilates-tower-25599833/ | Ahmet Kurt | 4:3 kırpma |
-| `kafe.webp` | Kafesinde duran işletme sahibi | https://www.pexels.com/photo/cafe-owner-in-cozy-coffee-shop-interior-36729739/ | Vitaly Gariev | 4:3 kırpma |
-| `cicekci.webp` | Çiçekçide buket hazırlayan kadın | https://www.pexels.com/photo/happy-woman-working-in-flower-shop-5409710/ | Amina Filkins | Üstteki el yazısı tabela kırpıldı |
-| `servis.webp` | Kafede müşteriye servis | https://www.pexels.com/photo/cheerful-waitress-serving-dish-to-customer-in-cafe-4350094/ | Ketut Subiyanto | Hafif kırpma |
-| `telefon.webp` | Tezgâhta telefonla sipariş alan çalışan | https://www.pexels.com/photo/a-woman-taking-order-through-cellphone-6612701/ | Pavel Danilyuk | Arka plandaki neon yazı kırpıldı (4:5) |
+| Dosya | Nerede | Sahne | Pexels sayfası | Fotoğrafçı | Düzenleme |
+|---|---|---|---|---|---|
+| `barista.webp` | İlk ekran | Kahve makinesinin yanında telefonuna bakan kafe çalışanı | https://www.pexels.com/photo/focused-asian-woman-with-smartphone-in-cafeteria-5710456/ | Sam Lion | 4:3,4 kırpma, 2400 px |
+| `berber.webp` | Kuaför ve berber | Berberde makasla saçı kesilen sakallı müşteri | https://www.pexels.com/photo/bearded-man-in-a-barber-shop-9992819/ | Alex Urezkov | Dikeyden 4:3 kırpma |
+| `guzellik.webp` | Güzellik ve bakım | Müşterisine makyaj yapmaya hazırlanan makyöz | https://www.pexels.com/photo/woman-with-cloak-on-shoulder-in-beautician-20309789/ | Tatiana Lucky | 4:3 kırpma |
+| `pilates.webp` | Pilates ve spor stüdyosu | Reformer aletinde üyesine yardım eden eğitmen | https://www.pexels.com/photo/fitness-instructor-assisting-woman-doing-pilates-9288101/ | Nicholas Fu | 4:3 kırpma |
+| `kafe.webp` | Kafe ve restoran | Tezgâhta süt potu ve fincanla gülümseyen barista | https://www.pexels.com/photo/woman-holding-stainless-cup-and-ceramic-cup-3914062/ | Andrea Piacquadio | Soldaki menü tahtaları ve asılı çanta kırpıldı (4:3) |
+| `cicekci.webp` | Dükkân ve mağaza | Çiçekçide buket hazırlayan kadın | https://www.pexels.com/photo/happy-woman-working-in-flower-shop-5409710/ | Amina Filkins | Üstteki el yazısı tabela kırpıldı (4:3) |
+| `kuafor.webp` | Telefondan yönet | Aydınlık salonda müşterisinin saçını boyayan kuaför | https://www.pexels.com/photo/professional-hair-coloring-in-modern-salon-35225425/ | Göksun Barış Gökalp | Alttaki pelerin yazısı kırpıldı (4:5) |
+| `servis.webp` | Son çağrı | Kafede müşteriye servis | https://www.pexels.com/photo/cheerful-waitress-serving-dish-to-customer-in-cafe-4350094/ | Ketut Subiyanto | 3:2 kırpma |
 
 Elenenler: kasada tablet kullanan kadın (fotoğrafçısı bir kasa yazılımı markası, ekranda ürün görünebilir), raflarında çok sayıda
-markalı ürün olan bakkal, yeşil önlüklü zincir kafe görüntüsü, neon/tabela yazılı kafeler.
+markalı ürün olan bakkal, yeşil önlüklü zincir kafe görüntüsü, neon/tabela yazılı kafeler. 2026-10-21 kalite turunda çıkarılanlar:
+eski ilk ekran kuaför fotoğrafı (7755223; pelerin yazısı ve arkada kırmızı tabelalar), karanlık ve neon yazılı "telefonla sipariş"
+(6612701), sahnelenmiş/yapay duran "kafe sahibi" (36729739), tuhaf kadrajlı manikür yakın çekimi (19239100), kadrajı zayıf
+pilates (25599833).

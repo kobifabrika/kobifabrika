@@ -35,7 +35,7 @@ export default function AuthLayout({ children }: LayoutProps<"/">) {
           </div>
         </div>
         <p className="hidden text-xs text-slate-300 md:absolute md:inset-x-12 md:bottom-8 md:block">
-          {company.name} · Tüm hakları saklıdır.
+          <span className="mx-auto block max-w-md">{company.name} · Tüm hakları saklıdır.</span>
         </p>
       </section>
 

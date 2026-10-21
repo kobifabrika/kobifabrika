@@ -25,6 +25,13 @@ test("Bugün ekranı: kartlar, grafik, tahsilat penceresi ve rol bazlı içerik"
   await expect(page.getByText("Kasa ve banka")).toBeVisible();
   await expect(page.getByRole("link", { name: /Vadesi gelen alacak/ })).toHaveAttribute("href", "/panel/cari-kasa?sekme=vadeler");
 
+  // Hızlı işlemler özet kartlarının hemen altında, dördü aynı görünümde (2026-10-21; mavi "Satış yap" seçili sanılıyordu).
+  const quick = page.getByRole("region", { name: "Hızlı işlemler" });
+  expect((await quick.boundingBox())!.y).toBeGreaterThan((await summary.boundingBox())!.y + (await summary.boundingBox())!.height - 1);
+  const looks = await quick.locator("a, button").evaluateAll((els) => els.map((e) => getComputedStyle(e).backgroundColor));
+  expect(looks).toHaveLength(4);
+  expect(new Set(looks).size).toBe(1);
+
   // Tahsilat al: vadeler sekmesine gitmez, müşteri seçicili pencere açılır; tutar bakiyeyle dolar.
   await page.getByRole("region", { name: "Hızlı işlemler" }).getByRole("button", { name: "Tahsilat al" }).click();
   const dialog = page.getByRole("dialog");

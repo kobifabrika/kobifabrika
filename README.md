@@ -198,7 +198,9 @@ Backend'de bir endpoint ekleyip değiştirdikten sonra `npm run gen:api` çalı�
 ### Marka ve tanıtım görselleri
 
 - **Logo, favicon, uygulama ikonları:** kaynaklar `frontend/public/marka/` (`logo.png`, `isaret.svg`); `cd frontend; npm run marka` favicon.ico (16/32/48), icon.png (512), apple-icon.png (180), manifest ikonları ve logonun kırpılmış sürümlerini yeniden üretir.
-- **Site ve yardım ekran görüntüleri:** `cd frontend; npm run demo:shots` E2E ortamında (geliştirme veritabanına dokunmaz) "Işıltı Kuaför" demo işletmesini kurar ve `public/site/`, `public/yardim/` altına WebP görüntüler yazar. Docker açık olmalı.
+- **Site ve yardım ekran görüntüleri:** `cd frontend; npm run demo:shots` E2E ortamında (geliştirme veritabanına dokunmaz) "Işıltı Kuaför" demo işletmesini kurar ve güncel panelden `public/site/` (sitedeki tarayıcı ve telefon çerçeveleri, özellik bölümleri) ile `public/yardim/` altına 2x yoğunlukta WebP görüntüler yazar. **Panel tasarımı değişince bu komutu yeniden çalıştırıp çıkan görüntüleri commit'leyin.** Docker açık olmalı.
+- **Site fotoğrafları:** `cd frontend; npm run site:foto` Pexels orijinallerini indirip (önbellek `test-results/foto-orijinal/`) kırpar ve `public/site/foto/` altına WebP q85 yazar; liste ve kaynaklar `scripts/site-foto.mjs` ve `docs/foto-kaynaklari.md`.
+- **Site önizlemesi:** `cd frontend; npx playwright test -c playwright.demo.config.ts site-onizleme` bütün site sayfalarını 1440/1366/375 px'te (`test-results/site-onizleme/`) ve ana sayfa, Özellikler, Fiyatlar, Giriş, panel Bugün'ü `docs/tasarim-onizleme/` altına yazar.
 
 ## Yeni migration
 

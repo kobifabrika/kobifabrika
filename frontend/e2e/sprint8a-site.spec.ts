@@ -23,8 +23,22 @@ test("tanıtım sitesi: sayfalar, çağrılar, fiyat, yardım, 404 ve SEO dosyal
   // Bütün görsellerin anlamlı alt metni var.
   for (const img of await page.locator("img").all()) expect((await img.getAttribute("alt"))?.length ?? 0).toBeGreaterThan(5);
 
+  // Üst menüde sadece "KobiFabrika" yazısı (KF işareti yok, 2026-10-21); "Özellikler" ayrı sayfa, eski /#ozellikler oraya yönlenir.
+  await expect(page.getByRole("banner").getByRole("link", { name: "KobiFabrika ana sayfa" }).locator("svg, img")).toHaveCount(0);
+  await expect(page.getByRole("contentinfo").getByRole("link", { name: "Özellikler" })).toHaveAttribute("href", "/ozellikler");
+  await visit(page, "/ozellikler", "Site · özellikler");
+  await expect(page).toHaveTitle("Özellikler | KobiFabrika");
+  await expect(page.getByRole("heading", { level: 2, name: "Veresiye defterini kapat." })).toBeVisible();
+  await expect(page.getByRole("heading", { level: 3, name: "Online randevu linki" })).toBeAttached();
+  if (isDesktop(info)) await expect(page.getByRole("navigation", { name: "Site menüsü" }).getByRole("link", { name: "Özellikler" })).toHaveAttribute("aria-current", "page");
+  await page.goto("/#ozellikler");
+  await expect(page).toHaveURL(/\/ozellikler$/);
+
   await visit(page, "/giris", "Site · giriş");
   await expect(page).toHaveTitle("Giriş yap | KobiFabrika");
+  // Sol marka paneli koyu mürekkep zeminde yazı, slogan ve güvenceler; fotoğraf yok (2026-10-21).
+  await expect(page.locator("section").first().locator("img")).toHaveCount(0);
+  if (isDesktop(info)) await expect(page.getByText("Kredi kartı istemez")).toBeVisible();
 
   await visit(page, "/fiyatlar", "Site · fiyatlar");
   await expect(page).toHaveTitle("Fiyatlar | KobiFabrika");
@@ -83,6 +97,7 @@ test("tanıtım sitesi: sayfalar, çağrılar, fiyat, yardım, 404 ve SEO dosyal
   expect(sitemap.ok()).toBe(true);
   const xml = await sitemap.text();
   expect(xml).toContain("/fiyatlar");
+  expect(xml).toContain("/ozellikler");
   expect(xml).toContain("/yardim/ilk-kurulum");
   expect(xml).not.toContain("/panel");
   const robots = await (await request.get("/robots.txt")).text();

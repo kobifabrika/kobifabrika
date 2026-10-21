@@ -2,7 +2,7 @@
 
 Referans taslaklar: `docs/tasarim-referans/index.html` (giriş ekranı) ve `admin.html` (panel).
 Bu dosyalar sadece görsel referanstır; içlerindeki "KOBIOS" adı eski çalışma adıdır, her yerde **KobiFabrika** yazılacak.
-**Logo:** `frontend/public/marka/logo.png` (siyah kare zeminde beyaz "KOBI" + mavi "FABRIKA"). Sitede, giriş/kayıt ekranında, panelin koyu menüsünde ve sistem e-postalarında kırpılmış hali kullanılır (`components/brand/logo.tsx`, `next/image`); **sadece koyu zeminde**. Beyaz zeminde metin wordmark (`Wordmark`). Logo 16-48 px'te okunmadığı için favicon ve uygulama ikonları ayrı **işaretten**: `public/marka/isaret.svg` (siyah yuvarlak köşeli kare, beyaz "K", mavi "F"; harfler karenin yaklaşık %57'si, 2026-10-21). Sekme başlığı "Sayfa | KobiFabrika", ana sayfa ve Open Graph "KobiFabrika | KOBİ'nin dijital fabrikası" (`content/site.ts` → `homeTitle`). Yeniden üretim: `npm run marka` (README).
+**Logo:** `frontend/public/marka/logo.png` (siyah kare zeminde beyaz "KOBI" + mavi "FABRIKA"). Panelin koyu menüsünde, süper admin ve durum sayfalarında **vektör** hali `public/marka/logo-yazi.svg` (logo.png'den bir kez izlendi, 2026-10-21; `components/brand/logo.tsx`), sistem e-postalarında siyah zeminli PNG (`logo-eposta.png`); **sadece koyu zeminde**, saydamlık/soluklaştırma yok. Sitede ve giriş/kayıtta metin wordmark (`Wordmark`; beyazda `SiteBrand`, koyuda `Wordmark onDark`); KF işareti sitede kullanılmaz. Logo 16-48 px'te okunmadığı için favicon ve uygulama ikonları ayrı **işaretten**: `public/marka/isaret.svg` (siyah yuvarlak köşeli kare, beyaz "K", mavi "F"; harfler karenin yaklaşık %50'si, F'nin kolları tam, harfler arasında boşluk; 2026-10-21). `npm run marka` 16, 32 ve 180 px'in 8 kat büyütülmüş kontrol görüntüsünü `test-results/marka/`'ya yazar. Sekme başlığı "Sayfa | KobiFabrika", ana sayfa ve Open Graph "KobiFabrika | KOBİ'nin dijital fabrikası" (`content/site.ts` → `homeTitle`). Yeniden üretim: `npm run marka` (README).
 Slogan: **"KOBİ'nin dijital fabrikası"** (sayfa başlığı, meta açıklama, tanıtım sitesi, giriş ekranı marka paneli; tek kaynak `frontend/src/content/site.ts` → `siteSlogan`). Eski "işletim sistemi" ifadesi kullanılmaz (taslaklarda geçer). Sosyal medya hesapları (`siteSocial`) site alt bilgisinde ve İletişim sayfasında tek renk çizgi ikonlarla, 44 px dokunma alanı, yeni sekmede.
 
 ## Renkler (kesin — 2026-10-17, panel yenilemesi)
@@ -36,7 +36,9 @@ Slogan: **"KOBİ'nin dijital fabrikası"** (sayfa başlığı, meta açıklama, 
 - **Koyu (`.dark` sınıfı, #000a1d):** panelin üst çubuğu ve sol menüsü (`sidebar-*`: aktif öğe mavi zemin + siyah yazı, hover lacivert #00385a), sitenin üst menüsü, alt bilgisi ve koyu bölümleri, giriş ekranının marka paneli. İçindeki semantik sınıflar kendiliğinden koyu zemine döner.
 - **Bugün kartları:** üstte 4 px renkli şerit (`brand`, `link`, `navy-800`, `navy-950`) ve aynı tonda küçük ikon; yazı siyah.
 - **Boş durumlar:** sade SVG çizim (`EmptyState`: lacivert çizgili boş sayfa + mavi dairede ekranın ikonu).
-- Giriş ekranları: solda koyu lacivert marka paneli (logo, slogan, şirket unvanı), sağda beyaz form; 768px altında marka paneli üstte ince bant.
+- Giriş ekranları: solda koyu marka paneli (sitenin mürekkep rengi #0a1f3c; büyük "KobiFabrika" yazısı, slogan, üç güvence; fotoğraf yok), sağda beyaz form; 768px altında marka paneli üstte ince bant (sadece yazı).
+- **Panel üst çubuğu** masaüstünde 52 px (arama, "Yeni", yardım, zil, avatar 36 px), telefonda 48 px (düğmeler 44 px). Sol menünün altındaki KobiFabrika logosu SVG, 12 px yükseklik, API durum satırıyla aynı sol kenarda.
+- **Bugün hızlı işlemleri** (Randevu ver, Satış yap, Tahsilat al, Gider ekle) dördü aynı görünümde (çerçeveli beyaz; mavi olan seçili sanılıyordu), özet kartlarının hemen altında; telefonda da aynı sıra (alt çubuktaki + ayrıca hızlı erişim).
 
 ### Tanıtım sitesi (yenilendi 2026-10-21: ikas + Stripe + Paraşüt yönü; panel henüz eski düzende)
 
@@ -46,27 +48,33 @@ sayfalar, giriş/kayıt ekranları. Panel Emir onaylayınca aynı havaya geçer.
 | Token | Hex | Kullanım (sadece site) |
 |---|---|---|
 | `brand` | `#00b0ff` | **Ana renk:** ana düğme (yazı `ink`), etiket çizgisi, adım numarası, öne çıkan fiyat kartı kenarı |
-| `ink` | `#0a1f3c` | Yazı (lacivert mürekkep), seçili sekme/dönem, son çağrı bandı (üstünde beyaz, `slate-300`, mavi, mercan yazı) |
+| `ink` | `#0a1f3c` | Yazı (lacivert mürekkep), seçili sekme/dönem, son çağrı bandı ve giriş/kayıt marka paneli (üstünde beyaz, `slate-300`, mavi, mercan yazı) |
 | `slate` | `#4a5a70` | İkincil yazı (beyaz, `mist`, `cream` üstünde 5,2:1+) |
 | `slate-200` | `#e3e9f1` | Kenarlık ve ayırıcı |
 | `mist` | `#f4f8fc` | Açık mavi-gri bölüm zemini, alt bilgi, alt sayfa başlık bandı |
-| `cream` | `#fff5f0` | Sıcak açık bölüm zemini ("Telefondan yönet", giriş/kayıt marka paneli) |
-| `coral` | `#ff6b4a` | **Sıcak yardımcı renk:** nokta, şerit, ilk ekran geçişi; beyazda yazı **olamaz** |
+| `cream` | `#fff5f0` | Sıcak açık bölüm zemini ("Telefondan yönet") |
+| `coral` | `#ff6b4a` | **Sıcak yardımcı renk:** ilk ekran geçişi; beyazda yazı **olamaz** (slogan rozetindeki nokta 2026-10-21'de kalktı) |
 | `coral-soft` | `#ffe1d6` | Rozet ve ✓ dairesi zemini (yazı `ink`) |
 | `coral-text` | `#b9381c` | Beyaz/kremde mercan yazı (numara, ikincil link) |
 | `link` | `#006ea6` | Link ve vurgulu yazı (başlıktaki "tek uygulamada") |
 
-- **Üst menü** beyaz, ince çizgi, sabit: KF işareti + `Wordmark` (beyazda `Logo` kullanılmaz), az menü, "Giriş yap", mavi
-  "Ücretsiz dene". Telefonda Menü sağda, "Ücretsiz dene" altta sabit (beyaz şerit).
+- **Üst menü** beyaz, ince çizgi, sabit: sadece "KobiFabrika" yazısı (`SiteBrand` = `Wordmark`; KF işareti yok, beyazda `Logo`
+  kullanılmaz), az menü (Özellikler `/ozellikler`, Fiyatlar, SSS, Yardım, Hakkımızda), "Giriş yap", mavi "Ücretsiz dene". Telefonda Menü sağda, "Ücretsiz dene" altta sabit (beyaz şerit).
 - **İlk ekran:** tek yerde **ölçülü renk geçişi** (`hero-glow`: sis → beyaz, sağ üstte düşük yoğunluklu mavi ve mercan); sola
-  hizalı büyük başlık (Schibsted Grotesk 600), iki düğme, ✓'li dört güvence; sağda esnaf fotoğrafı + telefondaki gerçek ekran.
+  hizalı büyük başlık (Schibsted Grotesk 600), iki düğme, ✓'li dört güvence; sağda kafe çalışanı fotoğrafı (tezgâhta telefona
+  bakan barista) + telefondaki gerçek ekran.
   Başka hiçbir bölümde geçiş yok.
-- **Bölümler:** kimler için (fotoğraflı sektör kartları) → özellikler (Para · Müşteri · Ekip sekmeleri, çerçevede gerçek ekran;
-  `FeatureTabs`) → telefondan yönet (krem bant, fotoğraf + online randevu ekranı) → farkımız → nasıl çalışır (sis bant) →
+- **Bölümler:** kimler için (fotoğraflı sektör kartları) → özellikler (kısa hali: Para · Müşteri · Ekip sekmeleri, çerçevede gerçek
+  ekran; `FeatureTabs`; "Bütün özellikler" → `/ozellikler`) → telefondan yönet (krem bant, fotoğraf + online randevu ekranı) → farkımız → nasıl çalışır (sis bant) →
   fiyatlar → SSS → son çağrı (mürekkep bant + fotoğraf) → kolonlu alt bilgi (sis zemin; Ürün, Destek, Şirket, Hukuki).
+- **Özellikler sayfası** `/ozellikler` ("Özellikler | KobiFabrika"): modül çipleri, modül başına başlık + çerçevede ekran + ayrıntılı
+  özellik listesi (`content/site.ts` → `featureDetails`; sadece ürünün bugün yaptıkları, SMS'e dayananlar yok), telefon ekranları,
+  son çağrı. Eski `/#ozellikler` istemcide `/ozellikler`'e yönlenir (`HashRedirect`).
 - **Fotoğraf:** Pexels (lisans ve kaynaklar `docs/foto-kaynaklari.md`), sadece atmosfer: kişiye isim, yorum, "kullanıcımız"
-  yazılmaz; görünür marka/logo yok; WebP, `next/image`, sahneyi anlatan alt metin. Müşteri yorumu bölümü yok (pilot yorumları
-  gelince eklenir). Ürün ekranları demo işletmenin gerçek görüntüleri (`npm run demo:shots`), `BrowserFrame`/`PhoneFrame` içinde.
+  yazılmaz; görünür marka/logo yok; sahneyi anlatan alt metin. **Kalite:** net, aydınlık, profesyonel; orijinalinden kırpılır,
+  gösterim boyutunun en az 2 katı (ilk ekran 2400 px), WebP q85 (`npm run site:foto`); `next/image` kalite 85 ve doğru `sizes`. Müşteri yorumu bölümü yok (pilot yorumları
+  gelince eklenir). Ürün ekranları demo işletmenin güncel panelden gerçek görüntüleri, masaüstü ve telefon 2x (`npm run demo:shots`; panel
+  tasarımı değişince yeniden çalıştırılır), `BrowserFrame`/`PhoneFrame` içinde.
 - **Kart ve gölge:** köşe 16 px (`rounded-2xl`; fotoğraflar 24 px), ince `slate-200` kenarlık; sadece ürün çerçeveleri, öne çıkan
   fiyat kartı ve büyük fotoğraflarda **çok hafif yumuşak gölge** (`softShadow`). Neon, ışıma, cam/blur yok.
 - **Düğmeler:** ana düğme mavi + mürekkep yazı; ikincil beyaz + ince kenarlık; dönem ve modül sekmeleri hap biçimi (seçili `ink`).
