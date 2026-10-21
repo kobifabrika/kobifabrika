@@ -1,0 +1,33 @@
+# Geçici site sunucusu (docs/canli-ortam.md → Geçici site sunucusu): sunucuda /opt/kobifabrika-site altında.
+# web: Next.js standalone (sadece-site derlemesi, bu bilgisayarda üretilip docker load ile gelir); caddy: HTTPS (Let's Encrypt).
+# İkisi de sunucu açılınca kendiliğinden başlar (restart: unless-stopped, docker servisi açılışta etkin).
+name: kobifabrika-site
+
+services:
+  web:
+    image: kobifabrika-site:current
+    restart: unless-stopped
+    environment:
+      NODE_OPTIONS: --max-old-space-size=256
+    mem_limit: 512m
+    memswap_limit: 512m
+    cpus: 1.5
+    expose: ["3000"]
+    logging: { driver: local, options: { max-size: 10m, max-file: "3" } }
+
+  caddy:
+    image: caddy:2.10.2-alpine
+    restart: unless-stopped
+    depends_on: [web]
+    ports: ["80:80", "443:443", "443:443/udp"]
+    mem_limit: 128m
+    memswap_limit: 128m
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    logging: { driver: local, options: { max-size: 10m, max-file: "3" } }
+
+volumes:
+  caddy_data:
+  caddy_config:

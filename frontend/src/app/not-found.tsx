@@ -3,6 +3,7 @@ import Link from "next/link";
 
 import { StatusPage } from "@/components/feedback/status-page";
 import { Button } from "@/components/ui/button";
+import { isSiteOnly } from "@/content/site-mode";
 
 export const metadata: Metadata = { title: "Sayfa bulunamadı", robots: { index: false } };
 
@@ -17,9 +18,11 @@ export default function NotFound() {
           <Button asChild size="lg">
             <Link href="/">Ana sayfaya dön</Link>
           </Button>
-          <Button asChild size="lg" variant="outline">
-            <Link href="/panel">Panele git</Link>
-          </Button>
+          {!isSiteOnly() && (
+            <Button asChild size="lg" variant="outline">
+              <Link href="/panel">Panele git</Link>
+            </Button>
+          )}
         </>
       }
       links={[

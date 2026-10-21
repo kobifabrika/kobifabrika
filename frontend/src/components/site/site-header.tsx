@@ -8,11 +8,12 @@ import { useState } from "react";
 import { Logo } from "@/components/brand/logo";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
-import { primaryCta, siteNav } from "@/content/site";
+import { primaryCta, showLogin, siteNav, stickyCtaLabel } from "@/content/site";
 
 /**
  * Tanıtım sitesi üst menüsü (2026-10-21): beyaz, ince çizgili, sabit. Solda logo (açık zemin), ortada az sayıda menü, sağda
- * "Giriş yap" ve mavi "Ücretsiz dene". Telefonda logo + Menü; "Ücretsiz dene" altta sabit (StickyCta).
+ * "Giriş yap" ve mavi "Ücretsiz dene". Telefonda logo + Menü; "Ücretsiz dene" altta sabit (StickyCta). Sadece-site modunda
+ * (content/site-mode.ts) "Giriş yap" yok, çağrı "Pilot listesine katıl".
  */
 export function SiteHeader() {
   const [open, setOpen] = useState(false);
@@ -39,9 +40,11 @@ export function SiteHeader() {
         </nav>
 
         <div className="flex items-center gap-1 sm:gap-2">
-          <Link href="/giris" className="hidden min-h-11 items-center rounded-md px-3 text-[15px] font-semibold text-navy-950 hover:text-link sm:flex">
-            Giriş yap
-          </Link>
+          {showLogin && (
+            <Link href="/giris" className="hidden min-h-11 items-center rounded-md px-3 text-[15px] font-semibold text-navy-950 hover:text-link sm:flex">
+              Giriş yap
+            </Link>
+          )}
           <Button asChild className="hidden px-5 sm:inline-flex">
             <Link href={primaryCta.href}>{primaryCta.label}</Link>
           </Button>
@@ -81,11 +84,13 @@ export function SiteHeader() {
                     {primaryCta.label}
                   </Link>
                 </Button>
-                <Button asChild size="lg" variant="outline">
-                  <Link href="/giris" onClick={() => setOpen(false)}>
-                    Giriş yap
-                  </Link>
-                </Button>
+                {showLogin && (
+                  <Button asChild size="lg" variant="outline">
+                    <Link href="/giris" onClick={() => setOpen(false)}>
+                      Giriş yap
+                    </Link>
+                  </Button>
+                )}
               </div>
             </SheetContent>
           </Sheet>
@@ -100,7 +105,7 @@ export function StickyCta() {
   return (
     <div className="fixed inset-x-0 bottom-0 z-30 border-t border-neutral-200 bg-white px-4 pt-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] md:hidden">
       <Button asChild size="lg" className="w-full">
-        <Link href={primaryCta.href}>{primaryCta.label} · Çırak ücretsiz</Link>
+        <Link href={primaryCta.href}>{stickyCtaLabel}</Link>
       </Button>
     </div>
   );

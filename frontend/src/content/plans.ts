@@ -4,6 +4,8 @@
  *
  * Fiyatlar TL, KDV hariç. Yıllıkta 2 ay hediye. Pilot döneminde ücret alınmaz; online ödeme şirket kurulunca.
  */
+import { isSiteOnly, pilotCtaLabel, pilotLink } from "./site-mode";
+
 export type PlanId = "cirak" | "kalfa" | "usta";
 
 export type Plan = {
@@ -93,7 +95,13 @@ export function planLimits(plan: Plan): string {
   ].join(" · ");
 }
 
-/** Kayıt linki: /kayit?paket=kalfa&donem=yillik (Çırak'ta dönem yok). */
+/** Kayıt linki: /kayit?paket=kalfa&donem=yillik (Çırak'ta dönem yok). Sadece-site modunda paket adıyla WhatsApp pilot linki. */
 export function signupHref(plan: Plan, period: Period): string {
+  if (isSiteOnly()) return pilotLink(plan.name);
   return plan.monthlyPrice === 0 ? `/kayit?paket=${plan.id}` : `/kayit?paket=${plan.id}&donem=${period}`;
+}
+
+/** Paket düğmesinin metni (sadece-site modunda "Pilot listesine katıl"). */
+export function planCta(plan: Plan): string {
+  return isSiteOnly() ? pilotCtaLabel : plan.cta;
 }

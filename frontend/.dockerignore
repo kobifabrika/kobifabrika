@@ -1,0 +1,14 @@
+# Docker imajına girmeyenler (frontend/Dockerfile). Gizli değerler (.env*) asla imaja girmez.
+.env*
+!.env.example
+node_modules
+.next
+.next-*
+e2e
+playwright*.config.ts
+scripts
+playwright-report
+test-results
+coverage
+*.tsbuildinfo
+next-env.d.ts

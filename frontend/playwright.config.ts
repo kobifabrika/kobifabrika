@@ -1,6 +1,6 @@
 import { defineConfig, devices } from "@playwright/test";
 
-import { apiUrl, smsApiUrl, smsPairEnabled, smsWebUrl, webUrl } from "./e2e/scripts/env.mjs";
+import { apiUrl, sitePairEnabled, siteWebUrl, smsApiUrl, smsPairEnabled, smsWebUrl, webUrl } from "./e2e/scripts/env.mjs";
 
 /**
  * Uçtan uca testler (frontend/e2e). Ayrı API (5180) ve frontend (3100), ayrı veritabanı (KobiFabrika_E2E, her çalıştırmada
@@ -8,6 +8,8 @@ import { apiUrl, smsApiUrl, smsPairEnabled, smsWebUrl, webUrl } from "./e2e/scri
  *
  * İki çift (karar 2026-10-17): varsayılan çift SMS kapalı koşar (pilotun gerçek hali). Başlığında `@sms` olan senaryolar SMS açık
  * ikinci çiftte (API 5181, web 3101, KobiFabrika_E2E_Sms) "-sms" projelerinde koşar; aynı üç profil. E2E_SMS=0: SMS çifti açılmaz.
+ * `@sadece-site` senaryoları API'siz sadece-site derlemesinde (web 3102, NEXT_PUBLIC_SITE_ONLY=1) "-site" projelerinde koşar
+ * (karar 2026-10-21). E2E_SITE=0: açılmaz.
  *
  * Ortam değişkenleri: E2E_HEADED=1 tarayıcı görünür ve yavaş (izlemek için), E2E_SKIP_API_BUILD / E2E_SKIP_WEB_BUILD=1
  * derlemeyi atlar (test.ps1 önceden derler).
@@ -69,8 +71,11 @@ export default defineConfig({
     screenshot: "only-on-failure",
   },
   projects: [
-    ...profiles.map((p) => ({ name: p.name, grepInvert: /@sms/, use: p.use })),
+    ...profiles.map((p) => ({ name: p.name, grepInvert: /@sms|@sadece-site/, use: p.use })),
     ...(smsPairEnabled ? profiles.map((p) => ({ name: `${p.name}-sms`, grep: /@sms/, use: { ...p.use, baseURL: smsWebUrl } })) : []),
+    ...(sitePairEnabled
+      ? profiles.map((p) => ({ name: `${p.name}-site`, grep: /@sadece-site/, use: { ...p.use, baseURL: siteWebUrl } }))
+      : []),
   ],
   webServer: [
     server("API", "node e2e/scripts/start-api.mjs", `${apiUrl}/health`),
@@ -81,5 +86,6 @@ export default defineConfig({
           server("Web (SMS)", "node e2e/scripts/start-web.mjs --sms", smsWebUrl),
         ]
       : []),
+    ...(sitePairEnabled ? [server("Web (sadece site)", "node e2e/scripts/start-web.mjs --site", siteWebUrl)] : []),
   ],
 });

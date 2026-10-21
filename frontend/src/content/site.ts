@@ -1,5 +1,6 @@
 /** Tanıtım sitesi metinleri ve genel bilgileri. Şirket bilgisi content/company.ts'ten, paketler content/plans.ts'ten. */
 import { company } from "./company";
+import { isSiteOnly, pilotCtaLabel, pilotLink } from "./site-mode";
 
 /** Slogan: sayfa başlığı, meta açıklama, site ve giriş ekranları (karar 2026-10-15; eski "işletim sistemi" ifadesi kullanılmaz). */
 export const siteSlogan = "KOBİ'nin dijital fabrikası";
@@ -37,6 +38,17 @@ export const siteNav = [
 /** Alt bilgideki site bağlantıları. */
 export const footerNav = [...siteNav, { href: "/iletisim", label: "İletişim" }];
 
+/**
+ * Ana çağrı (her yerde aynı metin). Sadece-site modunda (content/site-mode.ts) kayıt yerine WhatsApp'tan pilot listesine katılma.
+ */
+export const primaryCta = isSiteOnly() ? { href: pilotLink(), label: pilotCtaLabel } : { href: "/kayit", label: "Ücretsiz dene" };
+
+/** Telefonda altta sabit düğmenin metni. */
+export const stickyCtaLabel = isSiteOnly() ? pilotCtaLabel : `${primaryCta.label} · Çırak ücretsiz`;
+
+/** Üst menüde ve alt bilgide "Giriş yap" (sadece-site modunda panel olmadığı için yok). */
+export const showLogin = !isSiteOnly();
+
 /** Alt bilgi kolonları (hukuki metinler `legalLinks` ile ayrıca). */
 export const footerColumns: { title: string; links: { href: string; label: string }[] }[] = [
   {
@@ -45,7 +57,7 @@ export const footerColumns: { title: string; links: { href: string; label: strin
       { href: "/ozellikler", label: "Özellikler" },
       { href: "/#kimler", label: "Kimler için" },
       { href: "/fiyatlar", label: "Fiyatlar" },
-      { href: "/kayit", label: "Ücretsiz dene" },
+      { href: primaryCta.href, label: primaryCta.label },
     ],
   },
   {
@@ -58,15 +70,10 @@ export const footerColumns: { title: string; links: { href: string; label: strin
   },
   {
     title: "Şirket",
-    links: [
-      { href: "/hakkimizda", label: "Hakkımızda" },
-      { href: "/giris", label: "Giriş yap" },
-    ],
+    links: [{ href: "/hakkimizda", label: "Hakkımızda" }, ...(showLogin ? [{ href: "/giris", label: "Giriş yap" }] : [])],
   },
 ];
 
-/** Ana çağrı (her yerde aynı metin). */
-export const primaryCta = { href: "/kayit", label: "Ücretsiz dene" };
 
 /**
  * Kimler için: sektör kartları. Fotoğraflar sadece atmosfer (Pexels, docs/foto-kaynaklari.md); kişilere isim veya yorum yazılmaz,

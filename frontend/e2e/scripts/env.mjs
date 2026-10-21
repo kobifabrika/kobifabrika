@@ -30,6 +30,15 @@ export const smsWebPort = Number(process.env.E2E_SMS_WEB_PORT || 3101);
 export const smsApiUrl = `http://localhost:${smsApiPort}`;
 export const smsWebUrl = `http://localhost:${smsWebPort}`;
 /**
+ * Sadece-site modu (NEXT_PUBLIC_SITE_ONLY=1, `@sadece-site` senaryoları; karar 2026-10-21): API'siz tek web sunucusu. API adresi
+ * bilerek boş bir port: tarayıcı oraya istek atarsa bağlantı hatası olarak yakalanır.
+ */
+export const siteWebPort = Number(process.env.E2E_SITE_WEB_PORT || 3102);
+export const siteWebUrl = `http://localhost:${siteWebPort}`;
+export const siteApiUrl = `http://localhost:${Number(process.env.E2E_SITE_API_PORT || 5182)}`;
+/** E2E_SITE=0: sadece-site sunucusunu açma. */
+export const sitePairEnabled = process.env.E2E_SITE !== "0";
+/**
  * Koşu kimliği: Playwright yapılandırması (koşucu) ilk kez okurken üretilir; sunuculara ve worker'lara ortam değişkeniyle aynen
  * geçer. Sabit adresli hesaplar (süper admin) her koşuda ve çiftte ayrı olsun: ortak Mailpit'te başka çiftin ya da önceki
  * koşunun doğrulama e-postası okunmasın.

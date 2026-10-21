@@ -209,7 +209,7 @@ try {
         }
 
         if (-not $E2E -and -not $Hizli) {
-            Write-Step 'Frontend build (production, E2E için .next-e2e ve .next-e2e-sms)'
+            Write-Step 'Frontend build (production, E2E için .next-e2e, .next-e2e-sms ve .next-e2e-site)'
             $watch = [Diagnostics.Stopwatch]::StartNew()
             $env:NEXT_DIST_DIR = '.next-e2e'
             $env:NEXT_PUBLIC_API_URL = 'http://localhost:5180'
@@ -223,7 +223,15 @@ try {
                 node node_modules/next/dist/bin/next build
                 $buildOk = $LASTEXITCODE -eq 0
             }
-            Remove-Item Env:NEXT_DIST_DIR, Env:NEXT_PUBLIC_API_URL -ErrorAction SilentlyContinue
+            # Sadece-site derlemesi (@sadece-site senaryoları): API yok, adres boş port.
+            if ($buildOk) {
+                $env:NEXT_DIST_DIR = '.next-e2e-site'
+                $env:NEXT_PUBLIC_API_URL = 'http://localhost:5182'
+                $env:NEXT_PUBLIC_SITE_ONLY = '1'
+                node node_modules/next/dist/bin/next build
+                $buildOk = $LASTEXITCODE -eq 0
+            }
+            Remove-Item Env:NEXT_DIST_DIR, Env:NEXT_PUBLIC_API_URL, Env:NEXT_PUBLIC_SITE_ONLY -ErrorAction SilentlyContinue
             $watch.Stop()
             $summary = if ($buildOk) { [pscustomobject]@{ passed = 1; failed = 0; failures = @() } } else { New-Failure 'next build' 'Derleme başarısız (çıktıya bakın).' }
             Add-Result 'Frontend build' $summary $watch.Elapsed

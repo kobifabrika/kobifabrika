@@ -2,7 +2,7 @@ import AxeBuilder from "@axe-core/playwright";
 import { test as base, expect, type Browser, type BrowserContext, type Page, type TestInfo } from "@playwright/test";
 
 import { ownerWithBusiness, type ApiUser, type Sector } from "./api";
-import { isSmsProject, setSmsTarget, target } from "./target";
+import { setTargetFromProject, target } from "./target";
 
 /**
  * Ortak test düzeneği. Her sayfada kendiliğinden:
@@ -120,10 +120,10 @@ const contextOptions = (_browser: Browser, info: TestInfo) => {
 };
 
 export const test = base.extend<Fixtures & Options, { e2eTarget: void }>({
-  // Worker başında hangi E2E çiftiyle (SMS kapalı / açık) konuşulacağı (support/target.ts).
+  // Worker başında hangi E2E çiftiyle (SMS kapalı / açık / sadece site) konuşulacağı (support/target.ts).
   e2eTarget: [
     async ({}, use, workerInfo) => {
-      setSmsTarget(isSmsProject(workerInfo.project.name));
+      setTargetFromProject(workerInfo.project.name);
       await use();
     },
     { scope: "worker", auto: true },

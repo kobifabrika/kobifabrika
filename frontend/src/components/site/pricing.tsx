@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import {
   allPlansInclude,
   formatPlanPrice,
+  planCta,
   planFootnote,
   planLimits,
   planPriceNote,
@@ -63,7 +64,7 @@ export function Pricing() {
             </p>
             <p className="mt-1 text-sm text-neutral-600">{planPriceNote(plan, period)}</p>
             <Button asChild size="lg" variant={plan.highlighted ? "default" : "outline"} className="mt-5 w-full">
-              <Link href={signupHref(plan, period)}>{plan.cta}</Link>
+              <Link href={signupHref(plan, period)}>{planCta(plan)}</Link>
             </Button>
             <p className="mt-6 border-t border-neutral-200 pt-5 text-sm font-semibold text-navy-950">{planLimits(plan)}</p>
             <ul className="mt-4 flex flex-col gap-3">

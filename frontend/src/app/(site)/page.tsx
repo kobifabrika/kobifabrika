@@ -224,7 +224,7 @@ export default function HomePage() {
                 href={primaryCta.href}
                 className="inline-flex min-h-11 items-center gap-2 font-semibold text-brand underline-offset-4 hover:underline"
               >
-                Ücretsiz dene <ArrowRight aria-hidden className="size-4" />
+                {primaryCta.label} <ArrowRight aria-hidden className="size-4" />
               </Link>
             </li>
           </ul>

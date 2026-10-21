@@ -110,6 +110,7 @@ jobs:
         run: npm run test
 
       # İki E2E çifti (SMS kapalı: 5180/3100, SMS açık @sms: 5181/3101); API adresi derlemeye gömülü olduğu için iki derleme.
+      # Üçüncüsü API'siz sadece-site derlemesi (@sadece-site: 3102; API adresi boş port).
       - name: Frontend build (E2E için)
         id: build
         if: success() || failure()
@@ -117,6 +118,7 @@ jobs:
         run: |
           NEXT_DIST_DIR=.next-e2e NEXT_PUBLIC_API_URL=http://localhost:5180 npx next build
           NEXT_DIST_DIR=.next-e2e-sms NEXT_PUBLIC_API_URL=http://localhost:5181 npx next build
+          NEXT_DIST_DIR=.next-e2e-site NEXT_PUBLIC_SITE_ONLY=1 NEXT_PUBLIC_API_URL=http://localhost:5182 npx next build
 
       - name: E2E (Playwright)
         if: (success() || failure()) && steps.build.outcome == 'success'
