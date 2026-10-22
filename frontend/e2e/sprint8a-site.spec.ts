@@ -49,6 +49,11 @@ test("tanıtım sitesi: sayfalar, çağrılar, fiyat, yardım, 404 ve SEO dosyal
   await expect(page).toHaveTitle("Fiyatlar | KobiFabrika");
   const kalfa = page.getByRole("listitem").filter({ has: page.getByRole("heading", { name: "Kalfa" }) });
   await expect(kalfa.getByText("699 TL")).toBeVisible();
+  // Tutar tek biçimde (karar 2026-10-22): binlik nokta, TL'den önce bölünmeyen boşluk; büyük fiyatta tabular rakam yok (1 ile . arası boşluk açıyordu).
+  const usta = page.getByRole("listitem").filter({ has: page.getByRole("heading", { name: "Usta" }) });
+  const ustaPrice = usta.getByText("1.299 TL", { exact: true });
+  await expect(ustaPrice).toHaveText("1.299\u00a0TL");
+  await expect(ustaPrice).toHaveCSS("font-variant-numeric", "normal");
   await page.getByRole("radio", { name: /Yıllık/ }).click();
   await expect(kalfa.getByText("583 TL")).toBeVisible();
   await expect(kalfa.getByText("Yılda 6.990 TL (2 ay hediye)")).toBeVisible();
@@ -89,6 +94,7 @@ test("tanıtım sitesi: sayfalar, çağrılar, fiyat, yardım, 404 ve SEO dosyal
   for (const slug of ["ilk-kurulum", "online-randevu-linki", "whatsapp-hatirlatma", "telefonda-kullanim"]) {
     await visit(page, `/yardim/${slug}`, `Yardım · ${slug}`);
     await expect(page.locator("article img")).toHaveAttribute("alt", /.{20,}/);
+    if (slug === "ilk-kurulum") await expect(page.getByText('"Ücretsiz dene" düğmesine dokun')).toBeVisible();
   }
 
   // 404: Türkçe ve yönlendirici.

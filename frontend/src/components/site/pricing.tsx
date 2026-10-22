@@ -58,8 +58,8 @@ export function Pricing() {
               {plan.highlighted && <span className="rounded-full bg-coral-soft px-2.5 py-0.5 text-xs font-semibold text-navy-950">Önerilen</span>}
             </div>
             <p className="mt-1 text-sm text-neutral-600">{plan.tagline}</p>
-            <p className="mt-6 font-heading text-4xl font-semibold tracking-tight tabular-nums">
-              {formatPlanPrice(plan, period)}
+            <p className="mt-6 font-heading text-4xl font-semibold tracking-tight">
+              <span>{formatPlanPrice(plan, period)}</span>
               {plan.monthlyPrice > 0 && <span className="text-base font-medium text-neutral-600"> / ay</span>}
             </p>
             <p className="mt-1 text-sm text-neutral-600">{planPriceNote(plan, period)}</p>

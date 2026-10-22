@@ -40,7 +40,7 @@ test("veresiye vadesi, vade listesi ve hatırlatma", async ({ owner, ownerPage: 
   await expect(page.getByRole("tab", { name: /Gecikmiş \(1\)/ })).toBeVisible();
   const row = page.getByRole("listitem").filter({ hasText: "Ayşe Yılmaz" });
   await expect(row).toContainText("5 gün gecikti");
-  await expect(row).toContainText("500,00 TL");
+  await expect(row).toContainText("500 TL");
   await expect(row).toContainText("Hatırlatma gönderilmedi");
 
   // İleri tarihli sekmesinde satışın vadesi
@@ -56,7 +56,7 @@ test("veresiye vadesi, vade listesi ve hatırlatma", async ({ owner, ownerPage: 
   const sms = sheet.getByRole("link", { name: "SMS" });
   await expect(sms).toHaveAttribute("href", /^sms:\+905321234567\?&body=/);
   await expect(sheet.getByRole("button", { name: "Metni kopyala" })).toBeVisible();
-  await expect(sheet.getByLabel("Mesaj metni")).toContainText("500,00 TL ödemeniz bulunuyor");
+  await expect(sheet.getByLabel("Mesaj metni")).toContainText("500 TL ödemeniz bulunuyor");
   await expect(sheet.getByLabel("Mesaj metni")).toContainText("/odeme/");
   await check(page, "Hatırlatma penceresi");
 
@@ -75,11 +75,11 @@ test("veresiye vadesi, vade listesi ve hatırlatma", async ({ owner, ownerPage: 
   await page.getByRole("dialog").getByLabel("Alınan tutar (TL)").fill("200");
   await page.getByRole("dialog").getByRole("button", { name: "Tahsilatı kaydet" }).click();
   await expect(toast(page, /Tahsilat kaydedildi/)).toBeVisible();
-  await expect(page.getByRole("listitem").filter({ hasText: "Ayşe Yılmaz" })).toContainText("300,00 TL");
+  await expect(page.getByRole("listitem").filter({ hasText: "Ayşe Yılmaz" })).toContainText("300 TL");
 
   // Müşteri zaman çizelgesi
   await visit(page, `/panel/musteriler/${contact.id}?sekme=zaman`, "Müşteri · zaman çizelgesi");
   await expect(page.getByText("Hatırlatma gönderildi (SMS)")).toBeVisible();
   await visit(page, `/panel/musteriler/${contact.id}?sekme=cari`, "Müşteri · cari (vade özeti)");
-  await expect(page.getByText(/Gecikmiş 300,00 TL/)).toBeVisible();
+  await expect(page.getByText(/Gecikmiş 300\sTL/)).toBeVisible();
 });

@@ -47,7 +47,7 @@ describe("ContactList", () => {
     const card = cards.find((c) => within(c).queryByText("Ayşe Yılmaz"))!;
     expect(within(card).getByRole("link", { name: "Ara" })).toHaveAttribute("href", "tel:+905321234567");
     expect(within(card).getByRole("link", { name: "WhatsApp" })).toHaveAttribute("href", "https://wa.me/905321234567");
-    expect(within(card).getByText("Alacak 1.250,00 TL")).toBeInTheDocument();
+    expect(within(card).getByText("Alacak 1.250 TL")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Son 30 günde eklenenler" })).toBeInTheDocument();
   });
 

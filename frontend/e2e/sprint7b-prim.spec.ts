@@ -50,7 +50,7 @@ test("prim: kural → satır personeli → rapor → iptalde eksi satır → Exc
   await page.reload();
   const rules = page.getByRole("region", { name: "Prim kuralları" });
   await expect(rules.getByText("Herkes · Ürünler")).toBeVisible();
-  await expect(rules.getByText("15,00 TL/adet")).toBeVisible();
+  await expect(rules.getByText("15 TL/adet")).toBeVisible();
   await expect(rules.getByText("Herkes · Hizmetler")).toBeVisible();
   await check(page, "Personel · prim kuralları");
 
@@ -69,11 +69,11 @@ test("prim: kural → satır personeli → rapor → iptalde eksi satır → Exc
   await payCash(page, info);
   const sale = (await owner.get<{ items: { id: string; no: string }[] }>("/api/sales")).items[0];
 
-  // Raporlar → Prim: Mehmet 15,00 TL, "Satışı giren" Sahip.
+  // Raporlar → Prim: Mehmet 15 TL, "Satışı giren" Sahip.
   await visit(page, `/panel/raporlar?rapor=prim`, "Rapor · prim");
   const report = page.getByRole("region", { name: "Prim raporu" });
   await expect(report.getByText("Mehmet Kalfa").filter({ visible: true }).first()).toBeVisible();
-  await expect(report.getByText("15,00 TL").filter({ visible: true }).first()).toBeVisible();
+  await expect(report.getByText("15 TL").filter({ visible: true }).first()).toBeVisible();
   await expect(report.getByText(sale.no).filter({ visible: true }).first()).toBeVisible();
   await expect(report.getByText(/Deneme Sahip/).filter({ visible: true }).first()).toBeVisible();
 
@@ -85,7 +85,7 @@ test("prim: kural → satır personeli → rapor → iptalde eksi satır → Exc
   await expect(toast(page, `${sale.no} iptal edildi.`)).toBeVisible();
   await visit(page, `/panel/raporlar?rapor=prim`, "Rapor · prim (iptal)");
   await expect(report.getByText("İptal").filter({ visible: true }).first()).toBeVisible();
-  await expect(report.getByText("-15,00 TL").filter({ visible: true }).first()).toBeVisible();
+  await expect(report.getByText("-15 TL").filter({ visible: true }).first()).toBeVisible();
   const commissions = await owner.get<{ total: number; items: { kind: string }[] }>(`/api/reports/commissions?month=${month()}`);
   expect(commissions.total).toBe(0);
   expect(commissions.items.map((i) => i.kind).sort()).toEqual(["Accrual", "Reversal"]);
@@ -105,7 +105,7 @@ test("prim: kural → satır personeli → rapor → iptalde eksi satır → Exc
   await createSale(owner, [line(null, 1, { description: "Masaj", unitPrice: 600, staffMemberId: ece.id })], [{ method: "Cash", amount: 600 }]);
   await visit(staffPage, "/panel/mesai-izin?sekme=prim", "Primim");
   const mine = staffPage.getByRole("region", { name: "Primim" });
-  await expect(mine.getByText("15,00 TL", { exact: true }).first()).toBeVisible();
+  await expect(mine.getByText("15 TL", { exact: true }).first()).toBeVisible();
   await expect(mine.getByText("Mehmet Kalfa")).toHaveCount(0);
   await expect(mine.getByText("1 kalem")).toBeVisible();
 });

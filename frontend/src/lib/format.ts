@@ -41,11 +41,15 @@ export function greeting(now = new Date()): string {
   return "İyi geceler";
 }
 
-const money = new Intl.NumberFormat("tr-TR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+// signDisplay "negative": -0,001 → "0" ("-0" değil).
+const money = new Intl.NumberFormat("tr-TR", { minimumFractionDigits: 2, maximumFractionDigits: 2, signDisplay: "negative" });
 
-/** 1250.5 → "1.250,50 TL". */
+/**
+ * Bütün tutarlar buradan (site, panel; PDF ve e-posta backend Domain/Common/Money.Format ile aynı kural, karar 2026-10-22):
+ * binlik nokta, kuruş varsa virgülle iki hane, TL'den önce bölünmeyen boşluk. 1299 → "1.299 TL", 1250.5 → "1.250,50 TL".
+ */
 export function formatMoney(value: number): string {
-  return `${money.format(value)} TL`;
+  return `${money.format(value).replace(/,00$/, "")}\u00a0TL`;
 }
 
 /**

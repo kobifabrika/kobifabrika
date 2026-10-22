@@ -31,7 +31,7 @@ internal sealed class SaleSearchProvider(AppDbContext db, CurrentMember member) 
             .Select(s => new SearchItem(
                 s.Id,
                 s.ContactName is null ? s.No : $"{s.No} · {s.ContactName}",
-                $"{BusinessTime.ToLocal(s.Date):dd.MM.yyyy HH:mm} · {ShareLinks.Money(s.Total)}" + (s.Status == SaleStatus.Cancelled ? " · İptal" : ""),
+                $"{BusinessTime.ToLocal(s.Date):dd.MM.yyyy HH:mm} · {Money.Format(s.Total)}" + (s.Status == SaleStatus.Cancelled ? " · İptal" : ""),
                 $"/panel/satislar/{s.Id}"))
             .ToList());
     }

@@ -1,5 +1,5 @@
 import { roleNames, type AuditAction, type AuditLogItem, type Role } from "@/lib/api/types";
-import { formatDateTime } from "@/lib/format";
+import { formatDateTime, formatMoney } from "@/lib/format";
 
 export const auditActionLabels: Record<AuditAction, string> = {
   Login: "Giriş yaptı",
@@ -128,10 +128,7 @@ const fieldLabels: Record<string, string> = {
   taxOffice: "vergi dairesi",
 };
 
-const money = (value: unknown) =>
-  typeof value === "number"
-    ? `${value.toLocaleString("tr-TR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} TL`
-    : "";
+const money = (value: unknown) => (typeof value === "number" ? formatMoney(value) : "");
 
 type Changes = Record<string, unknown>;
 

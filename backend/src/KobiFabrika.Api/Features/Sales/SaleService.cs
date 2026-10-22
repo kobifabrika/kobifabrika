@@ -68,8 +68,8 @@ public sealed class SaleService(
         {
             var diff = total - paid;
             return (null, "payments", diff > 0
-                ? $"Ödemeler toplamı satış tutarından {ShareLinks.Money(diff)} eksik."
-                : $"Ödemeler toplamı satış tutarından {ShareLinks.Money(-diff)} fazla.");
+                ? $"Ödemeler toplamı satış tutarından {Money.Format(diff)} eksik."
+                : $"Ödemeler toplamı satış tutarından {Money.Format(-diff)} fazla.");
         }
 
         if (contactId is null && requests.Any(p => p.Method == PaymentMethod.Credit))

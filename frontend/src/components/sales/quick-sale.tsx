@@ -122,7 +122,7 @@ export function QuickSale() {
     appliedAppointment.current = d.appointmentId;
     dispatch({ type: "clear" });
     dispatch({ type: "contact", contact: { id: d.contactId, name: d.contactName } });
-    // Paketten kullanılan randevu: satır 0,00 TL, açıklama "Paket: 10 seans lazer (4/10)".
+    // Paketten kullanılan randevu: satır 0 TL, açıklama "Paket: 10 seans lazer (4/10)".
     dispatch({
       type: "addDraft",
       product: draftProduct.data,

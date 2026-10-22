@@ -173,7 +173,7 @@ public static class CashAccountEndpoints
             return account.IsDefault
                 ? Problems.Conflict("default_account", "Varsayılan hesap pasife alınamaz. Önce başka bir hesabı varsayılan yapın.")
                 : Problems.Conflict("balance_not_zero",
-                    $"Hesabın bakiyesi {ShareLinks.Money(account.Balance)}. Pasife almak için önce bakiyeyi sıfırlayın (transfer veya ters kayıtla).",
+                    $"Hesabın bakiyesi {Money.Format(account.Balance)}. Pasife almak için önce bakiyeyi sıfırlayın (transfer veya ters kayıtla).",
                     new Dictionary<string, object?> { ["balance"] = account.Balance });
         }
 

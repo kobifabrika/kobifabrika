@@ -56,5 +56,5 @@ test("online randevu ayarları: kapalı sayfa, personel şartı, kaydet @sms", a
 
   await visit(visitor, `/r/${slug}`, "Online randevu · açık");
   await expect(visitor.getByRole("button", { name: /Saç kesimi/ })).toBeVisible();
-  await expect(visitor.getByText("300,00 TL")).toBeVisible();
+  await expect(visitor.getByText("300 TL")).toBeVisible();
 });

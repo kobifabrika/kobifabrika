@@ -58,7 +58,7 @@ test("tahsilat linki: IBAN, paylaş, Ödedim, bildirim, onay", async ({
   expect(url).toMatch(/\/odeme\//);
   await visit(page, "/panel/cari-kasa?sekme=tahsilat-linkleri", "Tahsilat linkleri");
   for (let i = 0; i < 2; i++) {
-    await requestRow(page, "300,00").getByRole("button", { name: "Paylaş" }).click();
+    await requestRow(page, "300 TL").getByRole("button", { name: "Paylaş" }).click();
     await expect(page.getByRole("dialog").getByText(url)).toBeVisible();
     await page.keyboard.press("Escape");
   }
@@ -66,7 +66,7 @@ test("tahsilat linki: IBAN, paylaş, Ödedim, bildirim, onay", async ({
   // Müşteri ayrı bağlamda (giriş yok) "Ödedim" der.
   const customer = await newPublicPage();
   await visit(customer, url, "Tahsilat linki · müşteri");
-  await expect(customer.getByText("300,00").first()).toBeVisible();
+  await expect(customer.getByText("300 TL").first()).toBeVisible();
   await customer.getByLabel("Not (isteğe bağlı)").fill("Garanti'den gönderdim");
   await customer.getByRole("button", { name: "Ödedim" }).click();
   await expect(customer.getByText("Teşekkürler, bildiriminiz iletildi.", { exact: false })).toBeVisible();
@@ -81,15 +81,15 @@ test("tahsilat linki: IBAN, paylaş, Ödedim, bildirim, onay", async ({
 
   // Onayla → tahsilat kaydı, bakiye 1.000 → 700
   await page.goto("/panel/cari-kasa?sekme=tahsilat-linkleri");
-  await expect(requestRow(page, "300,00")).toContainText("Müşteri notu: Garanti'den gönderdim");
-  await requestRow(page, "300,00").getByRole("button", { name: "Onayla" }).click();
+  await expect(requestRow(page, "300 TL")).toContainText("Müşteri notu: Garanti'den gönderdim");
+  await requestRow(page, "300 TL").getByRole("button", { name: "Onayla" }).click();
   await check(page, "Ödemeyi onayla");
   await page.getByRole("dialog").getByRole("button", { name: "Onayla" }).click();
   await expect(toast(page, "Ödeme onaylandı; tahsilat kaydedildi.")).toBeVisible();
   const after = await owner.get<{ balance: number }>(`/api/contacts/${contact.id}`);
   expect(after.balance).toBe(700);
   await page.goto(`/panel/musteriler/${contact.id}?sekme=cari`);
-  await expect(page.getByText("Güncel bakiye").locator("..")).toContainText("Alacak 700,00 TL");
+  await expect(page.getByText("Güncel bakiye").locator("..")).toContainText("Alacak 700 TL");
 });
 
 test("tahsilat linki: ödeme gelmedi, iptal ve linki yenile", async ({ owner, ownerPage: page, newPublicPage, guard }) => {
@@ -104,11 +104,11 @@ test("tahsilat linki: ödeme gelmedi, iptal ve linki yenile", async ({ owner, ow
   await customer.getByRole("button", { name: "Ödedim" }).click();
   await expect(customer.getByText("Teşekkürler, bildiriminiz iletildi.", { exact: false })).toBeVisible();
   await page.goto("/panel/cari-kasa?sekme=tahsilat-linkleri");
-  await requestRow(page, "150,00").getByRole("button", { name: "Ödeme gelmedi" }).click();
+  await requestRow(page, "150 TL").getByRole("button", { name: "Ödeme gelmedi" }).click();
   await expect(toast(page, "Link tekrar ödeme bekliyor.")).toBeVisible();
   await customer.reload();
   await expect(customer.getByRole("button", { name: "Ödedim" })).toBeVisible();
-  await requestRow(page, "150,00").getByRole("button", { name: "İptal" }).click();
+  await requestRow(page, "150 TL").getByRole("button", { name: "İptal" }).click();
   await expect(toast(page, "Link iptal edildi.")).toBeVisible();
   guard.allow(410, /\/api\/public\/payment-requests\//);
   guard.allow(404, /\/api\/public\/payment-requests\//);
@@ -118,7 +118,7 @@ test("tahsilat linki: ödeme gelmedi, iptal ve linki yenile", async ({ owner, ow
   // "Linki yenile": eski link 404, yenisi açılır.
   const old = await createLink(page, contact.id, "200");
   await page.goto("/panel/cari-kasa?sekme=tahsilat-linkleri");
-  await requestRow(page, "200,00").getByRole("button", { name: "Paylaş" }).click();
+  await requestRow(page, "200 TL").getByRole("button", { name: "Paylaş" }).click();
   await page.getByRole("dialog").getByRole("button", { name: "Linki yenile" }).click();
   await page.getByRole("dialog").getByRole("button", { name: "Evet, yenile" }).click();
   await expect(toast(page, "Link yenilendi; eski link artık çalışmıyor.")).toBeVisible();

@@ -101,7 +101,7 @@ describe("payments", () => {
   });
 
   it("validates like the server", () => {
-    expect(paymentError(100, [{ method: "Cash", amount: 90 }], false)).toBe("Ödemeler toplamı satış tutarından 10,00 TL eksik.");
+    expect(paymentError(100, [{ method: "Cash", amount: 90 }], false)).toBe("Ödemeler toplamı satış tutarından 10\u00a0TL eksik.");
     expect(paymentError(100, [{ method: "Credit", amount: 100 }], false)).toBe("Veresiye için müşteri seçin.");
     expect(paymentError(100, [{ method: "Credit", amount: 60 }, { method: "Card", amount: 40 }], true)).toBeNull();
     expect(paymentError(0, [], false)).toBeNull();

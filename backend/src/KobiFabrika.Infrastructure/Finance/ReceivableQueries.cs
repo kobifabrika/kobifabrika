@@ -1,3 +1,4 @@
+using KobiFabrika.Domain.Common;
 using KobiFabrika.Domain.Finance;
 using KobiFabrika.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
@@ -62,8 +63,6 @@ public static class ReceivableQueries
             ContactsWith(DueBucket.Later), SumOf(DueBucket.Later));
     }
 
-    public static string Money(decimal value) => value.ToString("N2", System.Globalization.CultureInfo.GetCultureInfo("tr-TR")) + " TL";
-
     /// <summary>Sabah bildirimi metni; bugün vadesi gelen yoksa null (sadece gecikmiş varsa da bildirim yok).</summary>
     public static string? DigestTitle(ReceivableTotals t)
     {
@@ -72,7 +71,7 @@ public static class ReceivableQueries
             return null;
         }
 
-        var title = $"Bugün vadesi gelen {t.TodayItems} alacak: {Money(t.Today)}";
-        return t.OverdueContacts > 0 ? $"{title} · Gecikmiş: {t.OverdueContacts} müşteri, {Money(t.Overdue)}" : title;
+        var title = $"Bugün vadesi gelen {t.TodayItems} alacak: {Money.Format(t.Today)}";
+        return t.OverdueContacts > 0 ? $"{title} · Gecikmiş: {t.OverdueContacts} müşteri, {Money.Format(t.Overdue)}" : title;
     }
 }

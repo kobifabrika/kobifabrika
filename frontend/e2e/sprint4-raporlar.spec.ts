@@ -18,11 +18,11 @@ test("raporlar: dört rapor, aralık, Excel ve yetki", async ({ owner, ownerPage
 
   await visit(page, "/panel/raporlar", "Rapor · satışlar");
   const sales = page.getByRole("region", { name: "Satış raporu" });
-  await expect(sales).toContainText("300,00 TL");
+  await expect(sales).toContainText("300 TL");
   await page.getByRole("group", { name: "Kırılım" }).getByRole("button", { name: "Ay" }).click();
   await expect(page).toHaveURL(/kirilim=ay/);
   await page.getByRole("group", { name: "Tarih aralığı" }).getByRole("button", { name: "Bu yıl" }).click();
-  await expect(sales).toContainText("300,00 TL");
+  await expect(sales).toContainText("300 TL");
   await page.getByRole("group", { name: "Tarih aralığı" }).getByRole("button", { name: "Özel aralık" }).click();
   await page.getByLabel("Başlangıç").fill(istanbulDay(-60));
   await page.getByLabel("Bitiş").fill(istanbulDay(-31));
@@ -47,7 +47,7 @@ test("raporlar: dört rapor, aralık, Excel ve yetki", async ({ owner, ownerPage
   await page.getByRole("navigation", { name: "Raporlar" }).getByRole("link", { name: "Alacaklar" }).click();
   const receivables = page.getByRole("region", { name: "Alacaklar" });
   await expect(receivables).toContainText("Ali Can");
-  await expect(receivables).toContainText("750,00 TL");
+  await expect(receivables).toContainText("750 TL");
   await check(page, "Rapor · alacaklar");
 
   // Gelir-gider
@@ -55,7 +55,7 @@ test("raporlar: dört rapor, aralık, Excel ve yetki", async ({ owner, ownerPage
   const incomeExpense = page.getByRole("region", { name: "Gelir-gider", exact: true });
   await expect(incomeExpense).toContainText("Satışlar");
   await expect(incomeExpense).toContainText("Kira");
-  await expect(incomeExpense).toContainText("-700,00 TL");
+  await expect(incomeExpense).toContainText("-700 TL");
   await check(page, "Rapor · gelir-gider");
   const ieExcel = await page.getByRole("link", { name: "Excel'e aktar" }).getAttribute("href");
   expect((await page.request.get(ieExcel!)).status()).toBe(200);

@@ -209,7 +209,7 @@ public sealed class ProductTests(SqlServerFixture db) : ApiTestBase(db)
 
         var search = await GetJsonAsync(owner.Client, "/api/search?q=cüzdan");
         var group = search.GetProperty("groups").EnumerateArray().Single(g => g.GetProperty("type").GetString() == "product");
-        group.GetProperty("items")[0].GetProperty("subtitle").GetString().ShouldBe("750,00 TL · Stok 4 adet");
+        group.GetProperty("items")[0].GetProperty("subtitle").GetString().ShouldBe("750\u00A0TL · Stok 4 adet");
         group.GetProperty("items")[0].GetProperty("href").GetString()!.ShouldStartWith("/panel/urunler/");
 
         var file = await owner.Client.GetAsync("/api/products/export.xlsx", Ct);

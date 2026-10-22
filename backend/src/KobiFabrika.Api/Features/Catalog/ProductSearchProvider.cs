@@ -1,5 +1,6 @@
 using KobiFabrika.Api.Features.Finance;
 using KobiFabrika.Api.Features.Search;
+using KobiFabrika.Domain.Common;
 using KobiFabrika.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 
@@ -24,8 +25,8 @@ internal sealed class ProductSearchProvider(AppDbContext db) : ISearchProvider
                 p.Id,
                 p.Name,
                 p.TrackStock
-                    ? $"{ShareLinks.Money(p.GrossSalePrice)} · Stok {CatalogLabels.Quantity(p.StockQuantity, p.Unit)}"
-                    : ShareLinks.Money(p.GrossSalePrice),
+                    ? $"{Money.Format(p.GrossSalePrice)} · Stok {CatalogLabels.Quantity(p.StockQuantity, p.Unit)}"
+                    : Money.Format(p.GrossSalePrice),
                 $"/panel/urunler/{p.Id}"))
             .ToList());
     }

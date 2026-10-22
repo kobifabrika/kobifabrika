@@ -1,4 +1,5 @@
 using System.Globalization;
+using KobiFabrika.Domain.Common;
 using QuestPDF.Fluent;
 using QuestPDF.Helpers;
 using QuestPDF.Infrastructure;
@@ -49,16 +50,14 @@ internal sealed partial class QuestPdfRenderer : IPdfRenderer
     private const string Gray = "#4a5a70";
     private const string Line = "#c6d2e1";
 
-    public static string Money(decimal value) => value.ToString("N2", Tr) + " TL";
-
     /// <summary>
     /// Ekstre müşteriye gider; son bakiye onun bakışıyla yazılır: pozitif = "Borcunuz", negatif = "Alacağınız".
     /// (Panelde aynı bakiye işletmenin bakışıyla "Alacak"/"Borç" görünür.)
     /// </summary>
     public static string BalanceText(decimal balance) => balance switch
     {
-        > 0 => $"Borcunuz {Money(balance)}",
-        < 0 => $"Alacağınız {Money(-balance)}",
+        > 0 => $"Borcunuz {Money.Format(balance)}",
+        < 0 => $"Alacağınız {Money.Format(-balance)}",
         _ => "Borç yok",
     };
 
@@ -166,8 +165,8 @@ internal sealed partial class QuestPdfRenderer : IPdfRenderer
             {
                 table.Cell().Element(Cell).Text(r.Date.ToString("dd.MM.yyyy", Tr));
                 table.Cell().Element(Cell).Text(r.Description);
-                table.Cell().Element(Cell).AlignRight().Text(r.Debit > 0 ? Money(r.Debit) : "");
-                table.Cell().Element(Cell).AlignRight().Text(r.Credit > 0 ? Money(r.Credit) : "");
+                table.Cell().Element(Cell).AlignRight().Text(r.Debit > 0 ? Money.Format(r.Debit) : "");
+                table.Cell().Element(Cell).AlignRight().Text(r.Credit > 0 ? Money.Format(r.Credit) : "");
                 table.Cell().Element(Cell).AlignRight().Text(Signed(r.Balance));
             }
 
@@ -179,8 +178,8 @@ internal sealed partial class QuestPdfRenderer : IPdfRenderer
             static IContainer Total(IContainer c) => c.BorderTop(1).BorderColor(Colors.Black).PaddingVertical(4);
             table.Cell().Element(Total);
             table.Cell().Element(Total).Text("Toplam").Bold();
-            table.Cell().Element(Total).AlignRight().Text(Money(d.TotalDebit)).Bold();
-            table.Cell().Element(Total).AlignRight().Text(Money(d.TotalCredit)).Bold();
+            table.Cell().Element(Total).AlignRight().Text(Money.Format(d.TotalDebit)).Bold();
+            table.Cell().Element(Total).AlignRight().Text(Money.Format(d.TotalCredit)).Bold();
             table.Cell().Element(Total).AlignRight().Text(Signed(d.Closing)).Bold();
         });
 
@@ -203,9 +202,9 @@ internal sealed partial class QuestPdfRenderer : IPdfRenderer
     /// <summary>Tablodaki bakiye, ekstre usulü: borç bakiyesi "(B)", alacak bakiyesi "(A)"; renge dayanmaz.</summary>
     private static string Signed(decimal balance) => balance switch
     {
-        > 0 => Money(balance) + " (B)",
-        < 0 => Money(-balance) + " (A)",
-        _ => Money(0),
+        > 0 => Money.Format(balance) + " (B)",
+        < 0 => Money.Format(-balance) + " (A)",
+        _ => Money.Format(0),
     };
 
     private static string Range(StatementData d) => d.From is { } from

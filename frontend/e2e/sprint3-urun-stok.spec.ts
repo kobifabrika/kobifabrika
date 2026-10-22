@@ -38,8 +38,8 @@ test("ürün ekleme, KDV dahil/hariç fiyat, stok hareketleri ve kritik stok", a
   await page.getByRole("button", { name: "Ürünü ekle" }).click();
   await expect(toast(page, "Pamuklu tişört eklendi.")).toBeVisible();
   await expect(page).toHaveURL(/\/panel\/urunler\/[0-9a-f-]{36}$/);
-  await expect(infoRow(page, "Satış fiyatı (KDV dahil)")).toContainText("240,00 TL");
-  await expect(infoRow(page, "KDV hariç")).toContainText("200,00 TL");
+  await expect(infoRow(page, "Satış fiyatı (KDV dahil)")).toContainText("240 TL");
+  await expect(infoRow(page, "KDV hariç")).toContainText("200 TL");
   await check(page, "Ürün kartı");
   const productUrl = page.url();
 
@@ -51,8 +51,8 @@ test("ürün ekleme, KDV dahil/hariç fiyat, stok hareketleri ve kritik stok", a
   await page.getByLabel("Satış fiyatı (TL)").fill("100");
   await page.getByRole("button", { name: "Ürünü ekle" }).click();
   await expect(page).toHaveURL(/\/panel\/urunler\/[0-9a-f-]{36}$/);
-  await expect(infoRow(page, "Satış fiyatı (KDV dahil)")).toContainText("120,00 TL");
-  await expect(infoRow(page, "KDV hariç")).toContainText("100,00 TL");
+  await expect(infoRow(page, "Satış fiyatı (KDV dahil)")).toContainText("120 TL");
+  await expect(infoRow(page, "KDV hariç")).toContainText("100 TL");
 
   // Stok: 10 → giriş 5 → 15 → çıkış 2 → 13 → sayım 2 (kritik 3'ün altı)
   await page.goto(productUrl);

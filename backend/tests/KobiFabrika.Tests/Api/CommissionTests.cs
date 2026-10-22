@@ -73,7 +73,7 @@ public sealed class CommissionTests(SqlServerFixture db) : MarketingTestBase(db)
         rules.EnumerateArray().Select(r => r.GetProperty("rank").GetInt32()).ShouldBe([1, 2, 3, 6, 8]);
         rules.EnumerateArray().Select(r => r.GetProperty("text").GetString())
             .ShouldContain("Mehmet Kalfa · Boya · %20");
-        rules.EnumerateArray().Select(r => r.GetProperty("text").GetString()).ShouldContain("Herkes · Boya · 50,00 TL/adet");
+        rules.EnumerateArray().Select(r => r.GetProperty("text").GetString()).ShouldContain("Herkes · Boya · 50\u00A0TL/adet");
 
         // Satır tutarları KDV dahil (%20); taban KDV hariç: 300 → 250, 2×1200 → 2000, 1200 → 1000, 240 → 200, 60 → 50.
         var sale = (await SaleTests.CreateSaleAsync(s.Owner.Client, SaleTests.Sale(

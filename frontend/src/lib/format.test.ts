@@ -25,14 +25,26 @@ describe("greeting", () => {
 });
 
 describe("para ve cari bakiye dili", () => {
-  it("TL biçimi", () => {
-    expect(formatMoney(1250.5)).toBe("1.250,50 TL");
-    expect(formatMoney(0)).toBe("0,00 TL");
+  // Tutar biçimi (karar 2026-10-22); aynı örnekler backend Domain/IbanAndMoneyTests.cs'te. Boşluk bölünmeyen boşluk (U+00A0).
+  it.each([
+    [1299, "1.299\u00a0TL"],
+    [1250.5, "1.250,50\u00a0TL"],
+    [699, "699\u00a0TL"],
+    [0, "0\u00a0TL"],
+    [0.5, "0,50\u00a0TL"],
+    [12990, "12.990\u00a0TL"],
+    [1234567.89, "1.234.567,89\u00a0TL"],
+    [-300.5, "-300,50\u00a0TL"],
+    [100.004, "100\u00a0TL"],
+    [0.005, "0,01\u00a0TL"],
+    [-0.001, "0\u00a0TL"],
+  ])("formatMoney(%s) → %s", (value, expected) => {
+    expect(formatMoney(value)).toBe(expected);
   });
 
   it("pozitif bakiye Alacak, negatif Borç (işletmenin bakışı)", () => {
-    expect(balanceLabel(1250)).toBe("Alacak 1.250,00 TL");
-    expect(balanceLabel(-300.5)).toBe("Borç 300,50 TL");
+    expect(balanceLabel(1250)).toBe("Alacak 1.250\u00a0TL");
+    expect(balanceLabel(-300.5)).toBe("Borç 300,50\u00a0TL");
     expect(balanceLabel(0)).toBe("Bakiye yok");
   });
 });

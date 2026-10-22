@@ -4,6 +4,8 @@
  *
  * Fiyatlar TL, KDV hariç. Yıllıkta 2 ay hediye. Pilot döneminde ücret alınmaz; online ödeme şirket kurulunca.
  */
+import { formatMoney } from "@/lib/format";
+
 import { isSiteOnly, pilotCtaLabel, pilotLink } from "./site-mode";
 
 export type PlanId = "cirak" | "kalfa" | "usta";
@@ -71,18 +73,17 @@ export const allPlansInclude = [
 export const planFootnote =
   "Fiyatlar TL ve KDV hariçtir; komisyon yoktur. Yıllık ödemede 2 ay hediye. Pilot döneminde ücret alınmaz; online ödeme yakında.";
 
-const tl = (n: number) => `${n.toLocaleString("tr-TR")} TL`;
 
 /** "Ücretsiz", "699 TL" (aylık) veya yıllıkta ayda düşen tutar "583 TL". */
 export function formatPlanPrice(plan: Plan, period: Period = "aylik"): string {
   if (plan.monthlyPrice === 0) return "Ücretsiz";
-  return tl(period === "yillik" ? Math.round(plan.yearlyPrice / 12) : plan.monthlyPrice);
+  return formatMoney(period === "yillik" ? Math.round(plan.yearlyPrice / 12) : plan.monthlyPrice);
 }
 
 /** Fiyatın altındaki not: "Yılda 6.990 TL ödenir" / "Aylık ödenir, istediğin ay bırak" / "Süresiz ücretsiz". */
 export function planPriceNote(plan: Plan, period: Period): string {
   if (plan.monthlyPrice === 0) return "Süresiz ücretsiz";
-  return period === "yillik" ? `Yılda ${tl(plan.yearlyPrice)} (2 ay hediye)` : "Aylık ödenir, istediğin ay bırakırsın";
+  return period === "yillik" ? `Yılda ${formatMoney(plan.yearlyPrice)} (2 ay hediye)` : "Aylık ödenir, istediğin ay bırakırsın";
 }
 
 /** "1 kullanıcı · 100 müşteri · ayda 50 randevu" */

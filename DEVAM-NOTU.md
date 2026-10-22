@@ -23,6 +23,9 @@
 5. Açık kalanlar:
    - kobifabrika.com.tr → kobifabrika.com yönlendirmesi (DNS kaydı + Caddy bloğu).
    - Cloudflare Web Analytics token'ı (`NEXT_PUBLIC_CF_ANALYTICS_TOKEN`, imaj yeniden derlenir).
-   - Yardım makalesi "İlk kurulum" hâlâ "Ücretsiz dene"ye dokun diyor (sadece-site modunda düğme "Pilot listesine katıl").
-   - Fiyatlar masaüstünde "1.299 TL" rakamları arasında boşluk görünüyor (tabular rakam; yeni değil, incelenmeli).
-6. Sonra 8B'nin asıl kısmı: KVM sunucuda API + panel + SQL Server, e-posta DNS, yedek, izleme.
+   - ~~"İlk kurulum" düğme adı~~ ve ~~fiyatlardaki "1 .299" boşluğu~~: 2026-10-22 düzeltildi (karar günlüğü 2026-10-22). Tutarlar artık
+     her yerde tek kuralla: "1.299 TL", "1.250,50 TL" (`formatMoney` / `Money.Format`). **Canlı site eski imajla duruyor**; yeni KVM
+     sunucuya geçerken güncel imaj yayınlanınca düzelir (geçici sunucuya dokunulmadı).
+6. Next.js 16.4.0 için güvenlik uyarısı var (16.4.2 çıktı): ajanla yapılan her `next build` bir kez duruyor ("SecurityFatalError",
+   tekrar denenince geçiyor; CI etkilenmiyor). Yükseltme ayrı iş olarak yapılmalı (`npm i next@16.4.2` + tam koşu).
+7. Sonra 8B'nin asıl kısmı: KVM sunucuda API + panel + SQL Server, e-posta DNS, yedek, izleme.

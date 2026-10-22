@@ -15,12 +15,12 @@ test("gider ve gelir: hızlı işlem, liste, ters kayıt ve kategoriler", async 
 
   await page.getByLabel("Tutar (TL)").fill("850");
   await page.getByText("Kira", { exact: true }).click();
-  await expect(page.getByText(/Nakit Kasa bakiyesi -850,00 TL olacak/)).toBeVisible();
+  await expect(page.getByText(/Nakit Kasa bakiyesi -850\sTL olacak/)).toBeVisible();
   await page.getByLabel("Açıklama (isteğe bağlı)").fill("Ekim kirası");
   await check(page, "Gider ekle");
   await page.getByRole("button", { name: "Kaydet" }).click();
-  await expect(page.getByText("850,00 TL gider kaydedildi.")).toBeVisible();
-  await expect(page.getByText("Nakit Kasa bakiyesi: -850,00 TL (eksi bakiye)")).toBeVisible();
+  await expect(page.getByText("850 TL gider kaydedildi.")).toBeVisible();
+  await expect(page.getByText("Nakit Kasa bakiyesi: -850 TL (eksi bakiye)")).toBeVisible();
   await check(page, "Gider kaydedildi");
 
   // Gelir
@@ -28,7 +28,7 @@ test("gider ve gelir: hızlı işlem, liste, ters kayıt ve kategoriler", async 
   await page.getByLabel("Tutar (TL)").fill("100");
   await page.getByText("Diğer gelir", { exact: true }).click();
   await page.getByRole("button", { name: "Kaydet" }).click();
-  await expect(page.getByText("100,00 TL gelir kaydedildi.")).toBeVisible();
+  await expect(page.getByText("100 TL gelir kaydedildi.")).toBeVisible();
 
   // Liste: giderler toplamı; ters kayıt toplamdan düşer.
   await visit(page, "/panel/cari-kasa?sekme=gelir-gider", "Gelir-gider listesi");
@@ -39,7 +39,7 @@ test("gider ve gelir: hızlı işlem, liste, ters kayıt ve kategoriler", async 
   await expect(toast(page, "Ters kayıt yapıldı.")).toBeVisible();
   await expect(page.getByText(/Gider toplamı · 2 kayıt/)).toBeVisible();
   await expect(page.getByText("Ters kaydı yapıldı")).toBeVisible();
-  await expect(page.getByText(/Gider toplamı/).locator("..")).toContainText("0,00 TL");
+  await expect(page.getByText(/Gider toplamı/).locator("..")).toContainText(/(?<![\d.])0\sTL/);
 
   // Ayarlar → Finans: kategori ekle, pasife al; vade günü
   await visit(page, "/panel/ayarlar/finans", "Finans ayarları");

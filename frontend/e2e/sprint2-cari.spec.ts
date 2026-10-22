@@ -24,7 +24,7 @@ test("cari hareketler, tahsilat, geri alma ve ekstre", async ({ ownerPage: page,
   const cardUrl = page.url().split("?")[0];
 
   await visit(page, `${cardUrl}?sekme=cari`, "Müşteri kartı · cari");
-  await expect(balance(page)).toContainText("Alacak 1.000,00 TL");
+  await expect(balance(page)).toContainText("Alacak 1.000 TL");
 
   // Borç 250 → 1.250; alacak 50 → 1.200
   await page.getByRole("button", { name: "Borç / alacak" }).click();
@@ -33,14 +33,14 @@ test("cari hareketler, tahsilat, geri alma ve ekstre", async ({ ownerPage: page,
   await check(page, "Borç / alacak ekle");
   await page.getByRole("dialog").getByRole("button", { name: "Kaydet" }).click();
   await expect(toast(page, "Hareket kaydedildi.")).toBeVisible();
-  await expect(balance(page)).toContainText("Alacak 1.250,00 TL");
+  await expect(balance(page)).toContainText("Alacak 1.250 TL");
 
   await page.getByRole("button", { name: "Borç / alacak" }).click();
   await page.getByRole("dialog").getByText("Alacak", { exact: true }).click();
   await page.getByRole("dialog").getByLabel("Tutar (TL)").fill("50");
   await page.getByRole("dialog").getByLabel("Açıklama").fill("İade");
   await page.getByRole("dialog").getByRole("button", { name: "Kaydet" }).click();
-  await expect(balance(page)).toContainText("Alacak 1.200,00 TL");
+  await expect(balance(page)).toContainText("Alacak 1.200 TL");
 
   // Tahsilat 700 Nakit Kasa'ya → 500; kasa 700
   await page.getByRole("button", { name: "Tahsilat al" }).click();
@@ -49,8 +49,8 @@ test("cari hareketler, tahsilat, geri alma ve ekstre", async ({ ownerPage: page,
   await check(page, "Tahsilat al");
   await page.getByRole("dialog").getByRole("button", { name: "Tahsilatı kaydet" }).click();
   await expect(toast(page, /Tahsilat kaydedildi/)).toBeVisible();
-  await expect(balance(page)).toContainText("Alacak 500,00 TL");
-  await expect(await cashBalance(page, "Nakit Kasa")).toContainText("700,00 TL");
+  await expect(balance(page)).toContainText("Alacak 500 TL");
+  await expect(await cashBalance(page, "Nakit Kasa")).toContainText("700 TL");
   await check(page, "Kasa ve banka");
 
   // Tahsilatı ters kayıtla geri al (Sprint 4) → 1.200; kasa 0
@@ -59,8 +59,8 @@ test("cari hareketler, tahsilat, geri alma ve ekstre", async ({ ownerPage: page,
   await page.getByRole("button", { name: "Ters kayıtla geri al" }).click();
   await expect(toast(page, "Ters kayıt yapıldı.")).toBeVisible();
   await expect(page.getByText("Tahsilat geri alındı").first()).toBeVisible();
-  await expect(balance(page)).toContainText("Alacak 1.200,00 TL");
-  await expect(await cashBalance(page, "Nakit Kasa")).toContainText("0,00 TL");
+  await expect(balance(page)).toContainText("Alacak 1.200 TL");
+  await expect(await cashBalance(page, "Nakit Kasa")).toContainText(/(?<![\d.])0\sTL/);
 
   // Bakiyeler listesi
   await visit(page, "/panel/cari-kasa", "Cari ve Kasa · bakiyeler");
@@ -83,7 +83,7 @@ test("cari hareketler, tahsilat, geri alma ve ekstre", async ({ ownerPage: page,
   await visit(customer, url, "Herkese açık ekstre");
   await expect(customer.getByRole("heading", { name: "Cari hesap ekstresi" })).toBeVisible();
   await expect(customer.getByText("Saç boyası")).toBeVisible();
-  await expect(customer.getByText(/1\.200,00/).first()).toBeVisible();
+  await expect(customer.getByText(/1\.200\sTL/).first()).toBeVisible();
 });
 
 test("Personel bakiyeleri göremez", async ({ owner, pageAs, guard }) => {
@@ -102,12 +102,12 @@ test("Personel bakiyeleri göremez", async ({ owner, pageAs, guard }) => {
 
   await staff.goto(`/panel/musteriler/${contact.id}`);
   await expect(staff.getByRole("heading", { name: "Gizli Bakiye" })).toBeVisible();
-  await expect(staff.getByText(/300,00/)).toHaveCount(0);
+  await expect(staff.getByText(/300\sTL/)).toHaveCount(0);
   await expect(staff.getByRole("link", { name: "Cari" })).toHaveCount(0);
 
   await staff.goto("/panel/musteriler");
   await expect(staff.getByText("Gizli Bakiye").filter({ visible: true }).first()).toBeVisible();
-  await expect(staff.getByText(/300,00/)).toHaveCount(0);
+  await expect(staff.getByText(/300\sTL/)).toHaveCount(0);
 
   allowForbidden(guard);
   const res = await staff.request.get(`http://localhost:5180/api/contacts/${contact.id}/ledger`);

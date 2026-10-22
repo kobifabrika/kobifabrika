@@ -1,3 +1,5 @@
+using System.Globalization;
+
 namespace KobiFabrika.Domain.Common;
 
 /// <summary>
@@ -13,6 +15,19 @@ public static class Money
     public const string PositiveMessage = "Tutar 0'dan büyük olmalı.";
     public const string DecimalsMessage = "Tutar en fazla 2 ondalık basamak içerebilir.";
     public const string MaxMessage = "Tutar en fazla 999.999.999.999,99 TL olabilir.";
+
+    private static readonly CultureInfo Tr = CultureInfo.GetCultureInfo("tr-TR");
+
+    /// <summary>
+    /// Bütün tutar metinleri buradan (PDF, e-posta, SMS, bildirim, hata mesajı; frontend src/lib/format.ts formatMoney ile aynı kural,
+    /// karar 2026-10-22): binlik nokta, kuruş varsa virgülle iki hane, TL'den önce bölünmeyen boşluk. 1299 → "1.299 TL", 1250,5 → "1.250,50 TL".
+    /// </summary>
+    public static string Format(decimal value)
+    {
+        var rounded = decimal.Round(value, 2, MidpointRounding.AwayFromZero);
+        if (rounded == 0) rounded = 0m; // -0,00 → 0
+        return rounded.ToString(rounded == decimal.Truncate(rounded) ? "#,##0" : "#,##0.00", Tr) + "\u00A0TL";
+    }
 
     public static bool HasAtMostTwoDecimals(decimal value) => decimal.Round(value, 2) == value;
 

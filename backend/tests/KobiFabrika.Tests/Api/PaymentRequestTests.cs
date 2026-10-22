@@ -187,7 +187,7 @@ public sealed class PaymentRequestTests(SqlServerFixture db) : ApiTestBase(db)
 
         var mail = Factory.Emails.To("ayse@ornek.com").Single();
         mail.Subject.ShouldBe("Şık Kuaför ödeme bilgileri");
-        mail.TextBody.ShouldContain("100,00 TL");
+        mail.TextBody.ShouldContain("100\u00A0TL");
         mail.TextBody.ShouldContain($"/odeme/{token}");
         mail.TextBody.ShouldContain("KobiFabrika ile gönderildi");
         ShouldHaveBusinessContactFooter(mail);

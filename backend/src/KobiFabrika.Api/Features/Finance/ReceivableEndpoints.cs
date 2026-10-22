@@ -165,7 +165,7 @@ public static class ReceivableEndpoints
         var when = dueDate is { } d
             ? d < today ? $"{d.ToString("dd.MM.yyyy", Tr)} vadeli" : d == today ? "bugün vadesi gelen" : $"{d.ToString("dd.MM.yyyy", Tr)} vadeli"
             : "vadesi gelen";
-        var text = $"Merhaba {contactName}, {businessName} olarak hatırlatmak isteriz: {when} {ShareLinks.Money(amount)} ödemeniz bulunuyor.";
+        var text = $"Merhaba {contactName}, {businessName} olarak hatırlatmak isteriz: {when} {Money.Format(amount)} ödemeniz bulunuyor.";
         return link is null ? $"{text} Teşekkür ederiz." : $"{text} Ödeme bilgileri: {link}";
     }
 
@@ -269,7 +269,7 @@ public static class ReceivableEndpoints
             : await EnsurePaymentLinkAsync(db, ledger, protector, options.Value, audit, clock, contactId, amount, ct);
         var sender = EmailSenders.For(business, options.Value);
         await email.TrySendAsync(EmailTemplates.DueReminder(contact.Email.Trim(), sender, contact.DisplayName,
-            amount.ToString("#,##0.00", Tr) + " TL", url), ct, "due-reminder");
+            Money.Format(amount), url), ct, "due-reminder");
 
         var log = new DueReminderLog
         {

@@ -157,11 +157,11 @@ test("yeni esnaf: kayıttan ilk satışa", async ({ page, newPublicPage, visit, 
 
   // 11. Kasa bakiyesi: Nakit Kasa 400 TL.
   await visit(page, "/panel/cari-kasa?sekme=kasa", "Yeni esnaf · kasa");
-  await expect(page.getByRole("listitem").filter({ hasText: "Nakit Kasa" }).getByText("400,00 TL").first()).toBeVisible();
+  await expect(page.getByRole("listitem").filter({ hasText: "Nakit Kasa" }).getByText("400 TL").first()).toBeVisible();
 
   // 12. Bugün: satış ve randevu.
   await visit(page, "/panel", "Yeni esnaf · Bugün");
-  await expect(page.getByText("400,00 TL").first()).toBeVisible();
+  await expect(page.getByText("400 TL").first()).toBeVisible();
   await expect(page.getByRole("region", { name: /Yarının randevuları/ })).toBeVisible();
   await expect(page.getByText("Deniz Ak").first()).toBeVisible();
 });

@@ -204,7 +204,7 @@ public static class AutomationEndpoints
         var text = MessageTemplate.Render(request.Body, "Ayşe", "Ayşe", businessName)
             .Replace(AutomationDefaults.SurveyLinkVariable, AutomationRunner.SurveyLink(links.Value.ShortBaseUrl, new string('X', SurveyRules.CodeLength)),
                 StringComparison.Ordinal)
-            .Replace(AutomationDefaults.AmountVariable, "1.250,00 TL", StringComparison.Ordinal);
+            .Replace(AutomationDefaults.AmountVariable, Money.Format(1250m), StringComparison.Ordinal);
         if (IsMarketing(t))
         {
             text = MessageTemplate.WithFooter(text, OptOut.SampleFooter(links.Value.ShortBaseUrl, options.Value.OptOutKeyword));

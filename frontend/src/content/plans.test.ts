@@ -13,11 +13,11 @@ describe("paketler (src/content/plans.ts, karar 2026-10-17)", () => {
   });
 
   it("onaylı fiyatlar: aylık ve yıllıkta ayda düşen", () => {
-    expect(formatPlanPrice(kalfa!, "aylik")).toBe("699 TL");
-    expect(formatPlanPrice(kalfa!, "yillik")).toBe("583 TL");
-    expect(planPriceNote(kalfa!, "yillik")).toBe("Yılda 6.990 TL (2 ay hediye)");
-    expect(formatPlanPrice(usta!, "aylik")).toBe("1.299 TL");
-    expect(planPriceNote(usta!, "yillik")).toBe("Yılda 12.990 TL (2 ay hediye)");
+    expect(formatPlanPrice(kalfa!, "aylik")).toBe("699\u00a0TL");
+    expect(formatPlanPrice(kalfa!, "yillik")).toBe("583\u00a0TL");
+    expect(planPriceNote(kalfa!, "yillik")).toBe("Yılda 6.990 TL (2 ay hediye)");
+    expect(formatPlanPrice(usta!, "aylik")).toBe("1.299\u00a0TL");
+    expect(planPriceNote(usta!, "yillik")).toBe("Yılda 12.990 TL (2 ay hediye)");
   });
 
   it("limitler", () => {

@@ -3,10 +3,13 @@ import type { Metadata } from "next";
 import { FaqList } from "@/components/site/faq-list";
 import { PageIntro } from "@/components/site/page-intro";
 import { Pricing } from "@/components/site/pricing";
+import { formatPlanPrice, plans } from "@/content/plans";
+
+const [cirak, kalfa, usta] = plans;
 
 export const metadata: Metadata = {
   title: "Fiyatlar",
-  description: "Çırak ücretsiz; Kalfa 699 TL/ay, Usta 1.299 TL/ay (KDV hariç). Yıllıkta 2 ay hediye, 14 gün ücretsiz deneme.",
+  description: `${cirak.name} ücretsiz; ${kalfa.name} ${formatPlanPrice(kalfa)}/ay, ${usta.name} ${formatPlanPrice(usta)}/ay (KDV hariç). Yıllıkta 2 ay hediye, 14 gün ücretsiz deneme.`,
   alternates: { canonical: "/fiyatlar" },
 };
 

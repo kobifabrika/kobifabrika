@@ -16,10 +16,10 @@ test("Bugün ekranı: kartlar, grafik, tahsilat penceresi ve rol bazlı içerik"
   await visit(page, "/panel", "Bugün · Sahip");
   const summary = page.getByRole("region", { name: "Özet" });
   await expect(summary).toContainText("Bugünkü satış");
-  await expect(summary).toContainText("50,00 TL");
-  await expect(summary).toContainText("Nakit 50,00 TL");
+  await expect(summary).toContainText("50 TL");
+  await expect(summary).toContainText("Nakit 50 TL");
   await expect(summary).toContainText("Vadesi gelen alacak");
-  await expect(summary).toContainText("400,00 TL");
+  await expect(summary).toContainText("400 TL");
   await expect(summary).toContainText("Kritik stok");
   await expect(page.getByLabel("Son 30 gün satış grafiği")).toBeVisible();
   await expect(page.getByText("Kasa ve banka")).toBeVisible();
@@ -42,7 +42,7 @@ test("Bugün ekranı: kartlar, grafik, tahsilat penceresi ve rol bazlı içerik"
   await dialog.getByRole("button", { name: "Tahsilatı kaydet" }).click();
   await expect(toast(page, /Tahsilat kaydedildi/)).toBeVisible();
   await expect(page).toHaveURL(/\/panel$/);
-  await expect(summary.getByRole("link", { name: /Bugünkü tahsilat/ })).toContainText("400,00 TL");
+  await expect(summary.getByRole("link", { name: /Bugünkü tahsilat/ })).toContainText("400 TL");
 
   // Personel: kendi satışları ve kritik stok; finans kartları yok.
   const staff = await addMember(owner, "Staff", "Personel Ece");
@@ -52,7 +52,7 @@ test("Bugün ekranı: kartlar, grafik, tahsilat penceresi ve rol bazlı içerik"
   await check(staffPage, "Bugün · Personel");
   const staffSummary = staffPage.getByRole("region", { name: "Özet" });
   await expect(staffSummary).toContainText("Bugünkü satışlarım");
-  await expect(staffSummary).toContainText("Kart 50,00 TL");
+  await expect(staffSummary).toContainText("Kart 50 TL");
   await expect(staffSummary).not.toContainText("Nakit");
   await expect(staffSummary).not.toContainText("Bugünkü tahsilat");
   await expect(staffSummary).not.toContainText("Vadesi gelen alacak");

@@ -35,7 +35,7 @@ test("teklif: hazırla, paylaş, müşteri onayı, bildirim, satışa dönüşt�
   await page.getByRole("button", { name: "Teklifi hazırla" }).click();
   await expect(page).toHaveURL(/\/panel\/teklifler\/[0-9a-f-]{36}$/);
   const quoteId = page.url().split("/").pop()!;
-  await expect(page.getByText("288,00 TL").first()).toBeVisible();
+  await expect(page.getByText("288 TL").first()).toBeVisible();
   await check(page, "Teklif detayı · taslak");
 
   // Paylaş: iki kez aynı link

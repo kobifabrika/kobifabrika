@@ -77,7 +77,7 @@ public sealed class CashAccountTests(SqlServerFixture db) : ApiTestBase(db)
 
         var problem = await ProblemAsync(await owner.Client.PostAsync($"/api/cash-accounts/{extra}/deactivate", null, Ct), HttpStatusCode.Conflict);
         problem.GetProperty("code").GetString().ShouldBe("balance_not_zero");
-        problem.GetProperty("detail").GetString()!.ShouldContain("100,00 TL");
+        problem.GetProperty("detail").GetString()!.ShouldContain("100\u00A0TL");
 
         (await ProblemAsync(await owner.Client.PostAsync($"/api/cash-accounts/{accounts["Cash"]}/deactivate", null, Ct), HttpStatusCode.Conflict))
             .GetProperty("code").GetString().ShouldBe("default_account");

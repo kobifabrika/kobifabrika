@@ -1,4 +1,5 @@
 import type { DocumentLineRequest, PaymentMethod, Product, ServicePackage } from "@/lib/api/types";
+import { formatMoney } from "@/lib/format";
 import { calculate, formatQuantity, round2, type CalcResult, type Discount, type Unit } from "@/lib/sales";
 
 /** Sepet satırı. Fiyat KDV dahil; ürün satırında sunucuya açıkça gönderilir ki önizleme ile kayıt aynı olsun. */
@@ -239,8 +240,8 @@ export function paymentError(total: number, payments: PaymentDraft[], hasContact
   if (payments.length === 0) return "Ödeme tipini seçin.";
   if (payments.some((p) => !(p.amount > 0))) return "Her ödemenin tutarını girin.";
   const left = remaining(total, payments);
-  if (left > 0) return `Ödemeler toplamı satış tutarından ${formatTl(left)} eksik.`;
-  if (left < 0) return `Ödemeler toplamı satış tutarından ${formatTl(-left)} fazla.`;
+  if (left > 0) return `Ödemeler toplamı satış tutarından ${formatMoney(left)} eksik.`;
+  if (left < 0) return `Ödemeler toplamı satış tutarından ${formatMoney(-left)} fazla.`;
   if (!hasContact && payments.some((p) => p.method === "Credit")) return "Veresiye için müşteri seçin.";
   return null;
 }
@@ -257,8 +258,6 @@ export function dueDateError(dueDate: string, today: string): string | null {
   return dueDate && dueDate < today ? "Vade tarihi satış tarihinden önce olamaz." : null;
 }
 
-const tl = new Intl.NumberFormat("tr-TR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-const formatTl = (v: number) => `${tl.format(v)} TL`;
 
 // Taslak: sayfa yenilense de sepet kaybolmaz (sadece bu tarayıcıda).
 

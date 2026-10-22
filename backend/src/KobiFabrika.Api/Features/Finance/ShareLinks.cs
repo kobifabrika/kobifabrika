@@ -1,4 +1,5 @@
 using System.Globalization;
+using KobiFabrika.Domain.Common;
 using KobiFabrika.Infrastructure.Tenancy;
 
 namespace KobiFabrika.Api.Features.Finance;
@@ -7,8 +8,6 @@ namespace KobiFabrika.Api.Features.Finance;
 public static class ShareLinks
 {
     private static readonly CultureInfo Tr = CultureInfo.GetCultureInfo("tr-TR");
-
-    public static string Money(decimal value) => value.ToString("N2", Tr) + " TL";
 
     /// <summary>wa.me linki: telefon varsa o kişiye, yoksa kişi seçtiren genel link. Mesaj hazır gelir.</summary>
     public static string WhatsApp(string? e164Phone, string message)
@@ -21,10 +20,10 @@ public static class ShareLinks
         $"Merhaba {contactName}, {businessName} cari hesap ekstreniz: {link}";
 
     public static string PaymentMessage(string contactName, string businessName, decimal amount, string link) =>
-        $"Merhaba {contactName}, {businessName} için {Money(amount)} ödeme bilgileri: {link}";
+        $"Merhaba {contactName}, {businessName} için {Money.Format(amount)} ödeme bilgileri: {link}";
 
     public static string QuoteMessage(string contactName, string businessName, string quoteNo, decimal total, string link) =>
-        $"Merhaba {contactName}, {businessName} teklifi ({quoteNo}, {Money(total)}): {link}";
+        $"Merhaba {contactName}, {businessName} teklifi ({quoteNo}, {Money.Format(total)}): {link}";
 
     public static string Range(DateOnly? from, DateOnly to) => from is { } f
         ? $"{f.ToString("dd.MM.yyyy", Tr)} – {to.ToString("dd.MM.yyyy", Tr)}"

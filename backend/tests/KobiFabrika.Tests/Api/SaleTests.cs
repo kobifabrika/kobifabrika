@@ -122,7 +122,7 @@ public sealed partial class SaleTests(SqlServerFixture db) : ApiTestBase(db)
             await ProblemAsync(await owner.Client.PostAsJsonAsync("/api/sales", body, Json, Ct), HttpStatusCode.BadRequest);
 
         (await Bad(Sale([Line(productId)], [Pay("Cash", 90m)]))).GetProperty("errors").GetProperty("payments")[0].GetString()
-            .ShouldBe("Ödemeler toplamı satış tutarından 10,00 TL eksik.");
+            .ShouldBe("Ödemeler toplamı satış tutarından 10\u00A0TL eksik.");
         (await Bad(Sale([Line(productId)], [Pay("Credit", 100m)]))).GetProperty("errors").GetProperty("contactId")[0].GetString()
             .ShouldBe("Veresiye için müşteri seçin.");
         (await Bad(Sale([Line(otherProduct)], [Pay("Cash", 100m)]))).GetProperty("errors").GetProperty("lines[0].productId")[0].GetString()

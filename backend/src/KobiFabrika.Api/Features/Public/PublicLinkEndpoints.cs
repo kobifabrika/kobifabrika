@@ -219,7 +219,7 @@ public static class PublicLinkEndpoints
             foreach (var userId in managers)
             {
                 notifications.Notify(userId, NotificationTypes.PaymentClaimed, $"{contactName} \"Ödedim\" dedi",
-                    $"{ShareLinks.Money(request.Amount)} · Hesaba geçtiyse onaylayın." + (note is null ? "" : $" Not: {note}"),
+                    $"{Money.Format(request.Amount)} · Hesaba geçtiyse onaylayın." + (note is null ? "" : $" Not: {note}"),
                     "/panel/cari-kasa?sekme=tahsilat-linkleri");
             }
 

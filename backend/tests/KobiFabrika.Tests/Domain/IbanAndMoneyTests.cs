@@ -40,6 +40,22 @@ public sealed class IbanAndMoneyTests
     public void Money_rules(string value, string? expected) =>
         Money.Validate(decimal.Parse(value, System.Globalization.CultureInfo.InvariantCulture)).ShouldBe(expected);
 
+    // Tutar biçimi (karar 2026-10-22); aynı örnekler frontend src/lib/format.test.ts'te. Boşluk bölünmeyen boşluk (U+00A0).
+    [Theory]
+    [InlineData("1299", "1.299\u00A0TL")]
+    [InlineData("1250.5", "1.250,50\u00A0TL")]
+    [InlineData("699", "699\u00A0TL")]
+    [InlineData("0", "0\u00A0TL")]
+    [InlineData("0.5", "0,50\u00A0TL")]
+    [InlineData("12990", "12.990\u00A0TL")]
+    [InlineData("1234567.89", "1.234.567,89\u00A0TL")]
+    [InlineData("-300.5", "-300,50\u00A0TL")]
+    [InlineData("100.004", "100\u00A0TL")]
+    [InlineData("0.005", "0,01\u00A0TL")]
+    [InlineData("-0.001", "0\u00A0TL")]
+    public void Money_format(string value, string expected) =>
+        Money.Format(decimal.Parse(value, System.Globalization.CultureInfo.InvariantCulture)).ShouldBe(expected);
+
     [Fact]
     public void Money_is_required() => Money.Validate(null).ShouldBe(Money.RequiredMessage);
 }

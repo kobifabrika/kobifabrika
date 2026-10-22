@@ -47,7 +47,7 @@ export function TagList({ tags, max = 3 }: { tags: Tag[]; max?: number }) {
   );
 }
 
-/** "Alacak 1.250,00 TL" / "Borç 300,00 TL"; renk değil kelime (alacakta kalın). */
+/** "Alacak 1.250 TL" / "Borç 300,50 TL"; renk değil kelime (alacakta kalın). */
 export function Balance({ value, className }: { value: number; className?: string }) {
   return (
     <span className={cn("tabular-nums", value > 0 ? "font-semibold text-black" : "text-neutral-700", className)}>

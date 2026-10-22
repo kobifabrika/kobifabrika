@@ -83,7 +83,7 @@ test("paket: tanımla, sat, randevuda kullan, satışa çevir, son seans uyarıs
   await expect(sheet.getByText("seans düştü")).toBeVisible();
   await sheet.getByRole("link", { name: "Satışa çevir" }).click();
   await expect(page.getByText("Randevudan satış: Paket: 10 seans lazer (1/2) · Ayşe Usta")).toBeVisible();
-  await expect(page.getByRole("list", { name: "Sepet" }).getByText("0,00 TL").first()).toBeVisible();
+  await expect(page.getByRole("list", { name: "Sepet" }).getByText("0 TL", { exact: true }).first()).toBeVisible();
   await check(page, "Hızlı satış · paketli randevudan");
   const zero = await checkout(page, info);
   await zero.getByRole("button", { name: /Satışı tamamla/ }).click();

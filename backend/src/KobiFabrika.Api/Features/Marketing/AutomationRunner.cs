@@ -173,7 +173,7 @@ public sealed class AutomationRunner(
             }
 
             var body = MessageTemplate.Render(a.Body, contact.FirstName, contact.DisplayName, businessName)
-                .Replace(AutomationDefaults.AmountVariable, ShareLinks.Money(amount), StringComparison.Ordinal)
+                .Replace(AutomationDefaults.AmountVariable, Money.Format(amount), StringComparison.Ordinal)
                 .Replace(AutomationDefaults.SurveyLinkVariable, link ?? "", StringComparison.Ordinal)
                 .Trim();
             var log = await sms.SendAsync(new SmsMessage(contact.Phone!, body, MessagePurpose.DueReminder, contact.Id, RefType, claim.Id), ct);

@@ -172,7 +172,7 @@ public sealed partial class QuoteTests(SqlServerFixture db) : ApiTestBase(db)
         (await NotificationsAsync(other, "quote.accepted")).ShouldBe(0);
         var notification = (await GetJsonAsync(owner.Client, "/api/notifications")).GetProperty("items")[0];
         notification.GetProperty("title").GetString().ShouldBe("Ayşe Yılmaz teklifi onayladı");
-        notification.GetProperty("body").GetString()!.ShouldEndWith("10.000,00 TL · Not: Salı teslim olsun");
+        notification.GetProperty("body").GetString()!.ShouldEndWith("10.000\u00A0TL · Not: Salı teslim olsun");
         notification.GetProperty("link").GetString().ShouldBe($"/panel/teklifler/{id}");
 
         (await ProblemAsync(await NewClient().PostAsJsonAsync($"/api/public/quotes/{token}/reject", new { }, Ct), HttpStatusCode.Conflict))

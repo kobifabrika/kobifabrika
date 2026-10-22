@@ -96,7 +96,7 @@ test("hızlı satış: barkod, bölünmüş ödeme, fiş, bakiye ve kasa", async
 
   // Kasa: nakit kısmı Nakit Kasa'da
   await page.goto("/panel/cari-kasa?sekme=kasa");
-  await expect(page.getByRole("listitem").filter({ hasText: "Nakit Kasa" })).toContainText("200,00 TL");
+  await expect(page.getByRole("listitem").filter({ hasText: "Nakit Kasa" })).toContainText("200 TL");
 });
 
 test("Yönetici satışı iptal eder: stok, kasa ve cari ters kayıtla geri alınır", async ({ owner, pageAs, visit }) => {
@@ -137,7 +137,7 @@ test("Personel: alış fiyatı yok, sadece kendi satışları, iptal düğmesi y
 
   await visit(staff, `/panel/urunler/${product.id}`, "Ürün kartı · Personel");
   await expect(staff.getByText("Alış fiyatı")).toHaveCount(0);
-  await expect(staff.getByText("300,00")).toHaveCount(0);
+  await expect(staff.getByText("300 TL")).toHaveCount(0);
 
   await visit(staff, "/panel/satislar", "Satışlar · Personel");
   await expect(staff.getByText(staffSale.no).filter({ visible: true }).first()).toBeVisible();

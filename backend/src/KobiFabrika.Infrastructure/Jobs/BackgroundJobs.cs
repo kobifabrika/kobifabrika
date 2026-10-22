@@ -137,7 +137,7 @@ public sealed class ReminderDueJob(AppDbContext db, IServiceScopeFactory scopes,
 
 /// <summary>
 /// Her sabah 09:00 (İstanbul): otomatik vade bildirimi açık işletmelerde bugün vadesi gelen alacak varsa Sahip ve Yöneticilere
-/// uygulama içi bildirim ("Bugün vadesi gelen 3 alacak: 4.250,00 TL · Gecikmiş: 7 müşteri, 12.300,00 TL"). Sadece gecikmiş
+/// uygulama içi bildirim ("Bugün vadesi gelen 3 alacak: 4.250 TL · Gecikmiş: 7 müşteri, 12.300,50 TL"). Sadece gecikmiş
 /// alacak varsa bildirim yok. Aynı gün ikinci bildirim olmaz: Businesses.LastDueDigestOn koşullu UPDATE ile bir kez işaretlenir.
 /// Müşteriye otomatik SMS Sprint 6'da.
 /// </summary>

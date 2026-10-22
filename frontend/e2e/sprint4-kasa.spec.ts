@@ -20,7 +20,7 @@ test("kasa ve banka: hesap, transfer, hesap kartı, ters kayıt, ödeme ve Excel
   await dialog.getByRole("button", { name: "Kaydet" }).click();
   await expect(toast(page, "Hesap eklendi.")).toBeVisible();
   const ziraat = page.getByRole("link", { name: /Ziraat/ });
-  await expect(ziraat).toContainText("1.000,00 TL");
+  await expect(ziraat).toContainText("1.000 TL");
 
   // Transfer: Nakit Kasa (0) → Ziraat 200; eksi bakiye uyarısı (engellemez)
   await page.getByRole("button", { name: "Transfer" }).click();
@@ -29,12 +29,12 @@ test("kasa ve banka: hesap, transfer, hesap kartı, ters kayıt, ödeme ve Excel
   await transfer.getByLabel("Nereden").selectOption(ids["Nakit Kasa"].id);
   await transfer.getByLabel("Nereye").selectOption(ids["Ziraat"].id);
   await transfer.getByLabel("Tutar (TL)").fill("200");
-  await expect(transfer.getByText(/Nakit Kasa bakiyesi -200,00 TL olacak/)).toBeVisible();
+  await expect(transfer.getByText(/Nakit Kasa bakiyesi -200\sTL olacak/)).toBeVisible();
   await check(page, "Transfer");
   await transfer.getByRole("button", { name: "Transferi kaydet" }).click();
   await expect(toast(page, "Transfer kaydedildi.")).toBeVisible();
   await expect(page.getByRole("link", { name: /Nakit Kasa/ })).toContainText("Eksi bakiye");
-  await expect(ziraat).toContainText("1.200,00 TL");
+  await expect(ziraat).toContainText("1.200 TL");
 
   // Hesap kartı
   await ziraat.click();
@@ -43,7 +43,7 @@ test("kasa ve banka: hesap, transfer, hesap kartı, ters kayıt, ödeme ve Excel
   await expect(page.getByText("TR40 0006 2000 0000 0000 0000 01")).toBeVisible();
   const totals = page.getByRole("region", { name: "Hareketler" }).locator("dl");
   await expect(totals).toContainText("Giriş");
-  await expect(totals).toContainText("1.200,00 TL");
+  await expect(totals).toContainText("1.200 TL");
 
   // Transferin ters kaydı: iki taraf da geri döner; satırlar bağlı görünür, giriş toplamından düşülür.
   await page.getByRole("button", { name: "Ters kayıt" }).first().click();
@@ -53,7 +53,7 @@ test("kasa ve banka: hesap, transfer, hesap kartı, ters kayıt, ödeme ve Excel
   await expect(toast(page, "Ters kayıt yapıldı.")).toBeVisible();
   await expect(page.getByText("Ters kaydı yapıldı").filter({ visible: true }).first()).toBeVisible();
   await expect(page.getByText(/Ters kayıt · .* tarihli harekete/).filter({ visible: true }).first()).toBeVisible();
-  await expect(totals).toContainText("1.000,00 TL");
+  await expect(totals).toContainText("1.000 TL");
 
   // Tarih filtresi: geçen ayda hareket yok.
   await page.getByRole("button", { name: "Geçen ay" }).click();
@@ -64,7 +64,7 @@ test("kasa ve banka: hesap, transfer, hesap kartı, ters kayıt, ödeme ve Excel
   guard.allow(409, /\/deactivate$/);
   page.once("dialog", (d) => d.accept());
   await page.getByRole("button", { name: "Pasife al" }).click();
-  await expect(toast(page, /bakiyesi 1\.000,00 TL/)).toBeVisible();
+  await expect(toast(page, /bakiyesi 1\.000\sTL/)).toBeVisible();
 
   // Excel (hesap hareketleri)
   const href = await page.getByRole("link", { name: "Excel'e aktar" }).getAttribute("href");

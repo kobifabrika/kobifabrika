@@ -126,7 +126,8 @@ Rakip incelemesi: `docs/rakip-site-notlari.md`.
 
 - **Başlık:** Schibsted Grotesk (`next/font/google`, kendi sunucumuzdan; `latin` + `latin-ext`). `h1`–`h3` ve `font-heading` sınıfı. Kalın (700), sıkı satır aralığı, hafif negatif harf aralığı.
 - **Gövde:** sistem fontu yığını `-apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif` (Türkçe karakter sorunu yok, hızlı).
-- Ölçek: 12 / 14 / 16 / 18 / 20 / 24 / 30 px panelde; sitede başlıklar 36–84px. Rakamlar `tabular-nums`. 12px'in altı yok.
+- Ölçek: 12 / 14 / 16 / 18 / 20 / 24 / 30 px panelde; sitede başlıklar 36–84px. Rakamlar `tabular-nums` (tablo ve hizalı sütunlar); sitedeki büyük fiyatta yok (Schibsted Grotesk'te sabit genişlikli "1" ile nokta arasında boşluk açıyordu). 12px'in altı yok.
+- **Tutar metni:** binlik nokta, kuruş varsa virgülle iki hane, TL'den önce bölünmeyen boşluk: "1.299 TL", "1.250,50 TL". Frontend `formatMoney` (`lib/format.ts`), backend `Money.Format` (Domain); başka biçimlendirici yazılmaz. Excel hücreleri sayı kalır (`Xlsx.MoneyFormat`).
 
 ## Taslaklardan alınan dil
 

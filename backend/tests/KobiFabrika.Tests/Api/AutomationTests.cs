@@ -196,7 +196,7 @@ public sealed class AutomationTests(SqlServerFixture db) : MarketingTestBase(db)
         await RunAutomationsAsync(businessId);
         await RunAutomationsAsync(businessId);
         var text = Factory.Sms.To("+905324400001").Single();
-        text.ShouldContain("Merhaba Borçlu, bugün vadesi gelen 1.250,00 TL ödemeniz var.");
+        text.ShouldContain("Merhaba Borçlu, bugün vadesi gelen 1.250\u00A0TL ödemeniz var.");
         text.ShouldNotContain("SMS almamak icin"); // bilgilendirme: çıkış eki yok, izin aranmaz
 
         // Ertesi gün tekrar gitmez (sadece vade günü).

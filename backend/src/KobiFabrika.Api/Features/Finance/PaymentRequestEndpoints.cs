@@ -145,7 +145,7 @@ public static class PaymentRequestEndpoints
         var url = options.Value.Link($"/odeme/{token}");
         var sent = sendEmail && await email.TrySendAsync(
             EmailTemplates.PaymentRequest(contact.Email!, EmailSenders.For(business, options.Value), contact.DisplayName,
-                ShareLinks.Money(response.Amount), url), ct);
+                Money.Format(response.Amount), url), ct);
         return new PaymentRequestLinkResponse(
             response, url, ShareLinks.WhatsApp(contact.Phone, ShareLinks.PaymentMessage(contact.DisplayName, business.Name, response.Amount, url)), sent, isNew);
     }

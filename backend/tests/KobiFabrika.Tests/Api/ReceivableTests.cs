@@ -132,7 +132,7 @@ public sealed class ReceivableTests(SqlServerFixture db) : ApiTestBase(db)
         link.ShouldContain("/odeme/");
         var text = first.GetProperty("text").GetString()!;
         text.ShouldStartWith("Merhaba Ayşe Yılmaz, Kaya Kırtasiye olarak hatırlatmak isteriz:");
-        text.ShouldContain("1.250,50 TL");
+        text.ShouldContain("1.250,50\u00A0TL");
         text.ShouldContain(Today.AddDays(-2).ToString("dd.MM.yyyy"));
         text.ShouldEndWith(link);
         first.GetProperty("whatsappUrl").GetString()!.ShouldStartWith("https://wa.me/905321234567?text=");
@@ -165,7 +165,7 @@ public sealed class ReceivableTests(SqlServerFixture db) : ApiTestBase(db)
         await DebitAsync(owner, contact, 100m, Today, Today);
         var message = await (await owner.Client.PostAsync($"/api/receivables/{contact}/reminder-message", null, Ct)).Content.ReadFromJsonAsync<JsonElement>(Json, Ct);
         message.GetProperty("paymentLinkUrl").ValueKind.ShouldBe(JsonValueKind.Null);
-        message.GetProperty("text").GetString()!.ShouldContain("bugün vadesi gelen 100,00 TL");
+        message.GetProperty("text").GetString()!.ShouldContain("bugün vadesi gelen 100\u00A0TL");
         message.GetProperty("text").GetString()!.ShouldEndWith("Teşekkür ederiz.");
 
         await EnsureSuccessAsync(await owner.Client.PutAsJsonAsync("/api/business/payment-info", new { iban = "TR400006200000000000000001" }, Ct));
@@ -225,7 +225,7 @@ public sealed class ReceivableTests(SqlServerFixture db) : ApiTestBase(db)
         await RunDigestAsync();
         var notes = await DigestNotificationsAsync(owner.Client);
         notes.Count.ShouldBe(1);
-        notes[0].GetProperty("title").GetString().ShouldBe("Bugün vadesi gelen 2 alacak: 4.250,00 TL · Gecikmiş: 1 müşteri, 1.000,00 TL");
+        notes[0].GetProperty("title").GetString().ShouldBe("Bugün vadesi gelen 2 alacak: 4.250\u00A0TL · Gecikmiş: 1 müşteri, 1.000\u00A0TL");
         notes[0].GetProperty("link").GetString().ShouldBe("/panel/cari-kasa?sekme=vadeler&filtre=bugun");
         (await DigestNotificationsAsync(manager.Client)).Count.ShouldBe(1);
         (await DigestNotificationsAsync(staff.Client)).Count.ShouldBe(0);
@@ -250,7 +250,7 @@ public sealed class ReceivableTests(SqlServerFixture db) : ApiTestBase(db)
 
         await RunDigestAsync();
         var notes = await DigestNotificationsAsync(on.Client);
-        notes.Single().GetProperty("title").GetString().ShouldBe("Bugün vadesi gelen 1 alacak: 100,00 TL");
+        notes.Single().GetProperty("title").GetString().ShouldBe("Bugün vadesi gelen 1 alacak: 100\u00A0TL");
         (await DigestNotificationsAsync(off.Client)).Count.ShouldBe(0);
     }
 }

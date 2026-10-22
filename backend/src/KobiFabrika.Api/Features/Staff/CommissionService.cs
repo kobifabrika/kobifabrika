@@ -25,7 +25,7 @@ public static class CommissionText
     };
 
     public static string Rate(CommissionType type, decimal value) =>
-        type == CommissionType.Percent ? "%" + value.ToString("0.##", Tr) : ShareLinks.Money(value) + "/adet";
+        type == CommissionType.Percent ? "%" + value.ToString("0.##", Tr) : Money.Format(value) + "/adet";
 
     public static string Describe(CommissionRule rule, string? staffName, string? categoryName, string? productName) =>
         $"{Who(staffName)} · {Target(rule.Target, categoryName, productName)} · {Rate(rule.Type, rule.Value)}";

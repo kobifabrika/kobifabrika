@@ -149,7 +149,7 @@ public static class PublicQuoteEndpoints
             {
                 notifications.Notify(userId, accepted ? NotificationTypes.QuoteAccepted : NotificationTypes.QuoteRejected,
                     $"{contactName} teklifi {(accepted ? "onayladı" : "reddetti")}",
-                    $"{quote.No} · {ShareLinks.Money(quote.Total)}" + (note is null ? "" : $" · Not: {note}"),
+                    $"{quote.No} · {Money.Format(quote.Total)}" + (note is null ? "" : $" · Not: {note}"),
                     $"/panel/teklifler/{quote.Id}");
             }
 

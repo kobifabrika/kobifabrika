@@ -1,3 +1,4 @@
+using KobiFabrika.Domain.Common;
 using QuestPDF.Fluent;
 using QuestPDF.Helpers;
 using QuestPDF.Infrastructure;
@@ -90,46 +91,46 @@ internal sealed partial class QuestPdfRenderer
                 if (narrow)
                 {
                     // 58 mm'de miktar × fiyat ve tutar yan yana sığmayabilir: tutar kendi satırında, sağa yaslı.
-                    col.Item().Text($"{line.Quantity} × {Money(line.UnitPrice)}  KDV {Percent(line.VatRate)}").FontColor(Gray);
-                    col.Item().AlignRight().Text(Money(line.LineTotal));
+                    col.Item().Text($"{line.Quantity} × {Money.Format(line.UnitPrice)}  KDV {Percent(line.VatRate)}").FontColor(Gray);
+                    col.Item().AlignRight().Text(Money.Format(line.LineTotal));
                 }
                 else
                 {
                     col.Item().Row(r =>
                     {
-                        r.RelativeItem().Text($"{line.Quantity} × {Money(line.UnitPrice)}  KDV {Percent(line.VatRate)}").FontColor(Gray);
-                        r.AutoItem().Text(Money(line.LineTotal));
+                        r.RelativeItem().Text($"{line.Quantity} × {Money.Format(line.UnitPrice)}  KDV {Percent(line.VatRate)}").FontColor(Gray);
+                        r.AutoItem().Text(Money.Format(line.LineTotal));
                     });
                 }
 
                 if (line.Discount > 0)
                 {
-                    col.Item().Text($"İndirim −{Money(line.Discount)}").FontColor(Gray);
+                    col.Item().Text($"İndirim −{Money.Format(line.Discount)}").FontColor(Gray);
                 }
             }
 
             col.Item().PaddingVertical(3).LineHorizontal(0.5f).LineColor(Colors.Black);
             if (d.Totals.Discount > 0)
             {
-                TotalRow(col, "Ara toplam", Money(d.Totals.SubTotal));
-                TotalRow(col, "İndirim", "−" + Money(d.Totals.Discount));
+                TotalRow(col, "Ara toplam", Money.Format(d.Totals.SubTotal));
+                TotalRow(col, "İndirim", "−" + Money.Format(d.Totals.Discount));
             }
 
             foreach (var vat in d.Totals.Vat.Where(v => v.Vat > 0))
             {
-                TotalRow(col, $"KDV {Percent(vat.Rate)} (matrah {Money(vat.Base)})", Money(vat.Vat));
+                TotalRow(col, $"KDV {Percent(vat.Rate)} (matrah {Money.Format(vat.Base)})", Money.Format(vat.Vat));
             }
 
             col.Item().Row(r =>
             {
                 r.RelativeItem().Text("TOPLAM").FontSize(narrow ? 9 : 11).Bold();
-                r.AutoItem().Text(Money(d.Totals.Total)).FontSize(narrow ? 9 : 11).Bold();
+                r.AutoItem().Text(Money.Format(d.Totals.Total)).FontSize(narrow ? 9 : 11).Bold();
             });
 
             col.Item().PaddingVertical(3).LineHorizontal(0.5f).LineColor(Line);
             foreach (var payment in d.Payments)
             {
-                TotalRow(col, payment.Label, Money(payment.Amount));
+                TotalRow(col, payment.Label, Money.Format(payment.Amount));
             }
 
             if (!string.IsNullOrWhiteSpace(d.Note))
@@ -238,31 +239,31 @@ internal sealed partial class QuestPdfRenderer
                 {
                     table.Cell().Element(Cell).Text(line.Description);
                     table.Cell().Element(Cell).AlignRight().Text(line.Quantity);
-                    table.Cell().Element(Cell).AlignRight().Text(Money(line.UnitPrice));
-                    table.Cell().Element(Cell).AlignRight().Text(line.Discount > 0 ? Money(line.Discount) : "");
+                    table.Cell().Element(Cell).AlignRight().Text(Money.Format(line.UnitPrice));
+                    table.Cell().Element(Cell).AlignRight().Text(line.Discount > 0 ? Money.Format(line.Discount) : "");
                     table.Cell().Element(Cell).AlignRight().Text(Percent(line.VatRate));
-                    table.Cell().Element(Cell).AlignRight().Text(Money(line.LineTotal));
+                    table.Cell().Element(Cell).AlignRight().Text(Money.Format(line.LineTotal));
                 }
             });
 
             content.Item().PaddingTop(10).AlignRight().Width(240).Column(totals =>
             {
                 totals.Spacing(2);
-                TotalRow(totals, "Ara toplam (KDV dahil)", Money(d.Totals.SubTotal));
+                TotalRow(totals, "Ara toplam (KDV dahil)", Money.Format(d.Totals.SubTotal));
                 if (d.Totals.Discount > 0)
                 {
-                    TotalRow(totals, "İndirim", "−" + Money(d.Totals.Discount));
+                    TotalRow(totals, "İndirim", "−" + Money.Format(d.Totals.Discount));
                 }
 
                 foreach (var vat in d.Totals.Vat.Where(v => v.Vat > 0))
                 {
-                    TotalRow(totals, $"KDV {Percent(vat.Rate)} (matrah {Money(vat.Base)})", Money(vat.Vat));
+                    TotalRow(totals, $"KDV {Percent(vat.Rate)} (matrah {Money.Format(vat.Base)})", Money.Format(vat.Vat));
                 }
 
                 totals.Item().BorderTop(1).BorderColor(Colors.Black).PaddingTop(4).Row(r =>
                 {
                     r.RelativeItem().Text("Genel toplam").FontSize(11).Bold();
-                    r.AutoItem().Text(Money(d.Totals.Total)).FontSize(11).Bold();
+                    r.AutoItem().Text(Money.Format(d.Totals.Total)).FontSize(11).Bold();
                 });
             });
 

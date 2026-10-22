@@ -44,7 +44,7 @@ test("personel kartı: bilgiler, maaş, ödenen maaşlar, izin bakiyesi ve perso
 
   await visit(page, `/panel/personel/${staff.id}?sekme=maas`, "Personel kartı · ödenen maaşlar");
   await expect(page.getByText("Ekim maaşı")).toBeVisible();
-  await expect(page.getByText("Toplam 30.000,00 TL")).toBeVisible();
+  await expect(page.getByText("Toplam 30.000 TL")).toBeVisible();
 
   // İzin bakiyesi: açılış bakiyesi.
   await page.getByRole("link", { name: "İzin", exact: true }).click();

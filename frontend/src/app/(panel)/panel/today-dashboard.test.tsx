@@ -39,9 +39,9 @@ describe("Bugün ekranı", () => {
     renderWithSession(<TodayDashboard />);
 
     expect(await screen.findByText("Bugünkü tahsilat")).toBeInTheDocument();
-    expect(screen.getByText("300,00 TL")).toBeInTheDocument();
+    expect(screen.getByText("300 TL")).toBeInTheDocument();
     expect(screen.getByText("Vadesi gelen alacak")).toBeInTheDocument();
-    expect(screen.getByText("1.400,00 TL", { selector: "p" })).toBeInTheDocument();
+    expect(screen.getByText("1.400 TL", { selector: "p" })).toBeInTheDocument();
     expect(screen.getByText("Eksi bakiye")).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /Vadesi gelen alacak/ })).toHaveAttribute("href", "/panel/cari-kasa?sekme=vadeler");
     expect(screen.getByRole("link", { name: /Satış yap/ })).toHaveAttribute("href", "/panel/satislar/yeni");
