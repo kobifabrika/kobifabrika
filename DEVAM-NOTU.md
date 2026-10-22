@@ -1,31 +1,30 @@
 # Devam notu
 
-## 2026-10-21 gecesi: durum
+## 2026-10-23: durum
 
-- **Sunucu:** Güzel Hosting TR-VPS-4 (70.40.139.194, Ubuntu 22.04, **OpenVZ 7**, 4 GB), `ssh kf` (root, sadece anahtar).
-  **SQL Server bu sunucuda çalışmıyor** (OpenVZ'de çöküyor); panel ve API için ayrı KVM sunucu gerekecek.
-- **Yayında:** tanıtım sitesi **sadece-site modunda** (`NEXT_PUBLIC_SITE_ONLY=1`): https://kobifabrika.com, `www` → kök 301,
-  `app.` ve `api.` → "Çok yakında" (noindex). Caddy + Let's Encrypt, `/opt/kobifabrika-site`. Yeniden başlatmada kendiliğinden geliyor (denendi).
-  Ayrıntı, güncelleme, geri alma, kapatma: `docs/canli-ortam.md` → Geçici site sunucusu.
-- **Sunucu güvenliği:** şifreyle SSH kapalı, ufw (22/80/443), fail2ban, unattended-upgrades; şablondaki Apache kapatıldı.
-- **Ölçüm:** web ~80 MB, caddy ~26 MB; Lighthouse mobil ana sayfa 91/100/100/100, /fiyatlar 96/100/100/100.
-- **Search Console:** doğrulandı, sitemap gönderildi.
-- **Güzel Hosting destek talebi #IXA-330501:** satış biriminden cevap bekleniyor.
-- **GitHub Actions #53** (`cd8ed1a`, sadece-site modu + belgeler): **yeşil** (2026-10-22 kontrol; backend 656, Vitest 313, E2E 152).
-  #52 yeni push yüzünden iptal oldu. Yerelde yeşil: Vitest 313, `@sadece-site` E2E (masaüstü + telefon-chromium), değişen site/hesap/online randevu E2E'leri.
+- **Sunucu:** Güzel Hosting **TR-VPS-4 (OpenVZ) silindi**, ücret iadesi hesaba **kredi** olarak geldi. Bununla birlikte
+  `ssh kf` ve geçici sunucudaki tanıtım sitesi de gitti; kobifabrika.com şu an bu sunucudan yayında değil.
+  Sıradaki sunucu: **Private Cloud 2 (KVM, Ubuntu 24.04)**. Sipariş, kredinin nasıl kullanılacağı netleşince verilecek.
+  Geçici sunucunun kurulum notları (Caddy, sadece-site modu, güvenlik adımları) `docs/canli-ortam.md`'de; yeni sunucuda tekrar kullanılır.
+- **GitHub Actions #54** (`c2a76c4`: tutar biçimi, İlk kurulum makalesi, lint): **sonucu henüz bilinmiyor** (izleme kapatılırken koşuyordu).
+  Yerelde yeşil: backend (tam koşudaki tek hata düzeltildi, ilgili sınıflar 38/38), Vitest 325, lint; değişen 17 E2E dosyası
+  telefon-chromium + SMS + sadece-site (25 senaryo) ve fiyat/yardım senaryoları masaüstünde.
+- **Actions #53** (`cd8ed1a`) yeşil; karar günlüğüne ve `docs/05-sprintler.md` Durum satırına işlendi.
+- **2026-10-22 yapılanlar:** tutarlar her yerde tek kuralla ("1.299 TL", "1.250,50 TL"; `formatMoney` / `Money.Format`),
+  fiyattaki "1 .299" boşluğu giderildi, "İlk kurulum" makalesi düğme adını arayüzden alıyor. Ayrıntı: karar günlüğü 2026-10-22.
+- **Search Console:** doğrulanmıştı, sitemap gönderilmişti (site kapalıyken tarama hata verebilir).
 
-## Yarın ilk yapılacaklar
+## İlk yapılacaklar
 
-1. ~~Actions #53 sonucuna bak~~ (2026-10-22: yeşil; karar günlüğüne ve `docs/05-sprintler.md` Durum satırına işlendi).
-2. Siteyi kontrol et: `curl -sI https://kobifabrika.com/ | head -1`, `ssh kf 'cd /opt/kobifabrika-site && docker compose ps'`.
-3. Güzel Hosting #IXA-330501 cevabına bak: KVM sunucu (SQL Server için) seçeneği/fiyatı; karar ver, `docs/05-sprintler.md` 8B'ye yaz.
-4. Search Console: kapsam/dizine ekleme durumunu kontrol et (site haritası okundu mu).
+1. **Actions #54 sonucuna bak** (`gh run list -L 3`). Kırmızıysa `gh run view <id> --log-failed` ve Playwright raporu; düzelt,
+   yeşil olana kadar takip et; yeşilse karar günlüğüne (2026-10-22 kaydı) ve `docs/05-sprintler.md` Durum satırına işle.
+2. Güzel Hosting: kredi kullanımı netleşince Private Cloud 2 (KVM, Ubuntu 24.04) siparişi; karar ve fiyatı `docs/05-sprintler.md` 8B'ye ve
+   karar günlüğüne yaz. Destek talebi #IXA-330501.
+3. Yeni sunucuda önce tanıtım sitesini güncel imajla geri aç (`docs/canli-ortam.md` adımları; Ubuntu 24.04 farklarına dikkat),
+   sonra 8B'nin asıl kısmı: API + panel + SQL Server, e-posta DNS, yedek, izleme. `docs/canli-ortam.md`'yi yeni sunucuya göre güncelle.
+4. **Next.js 16.4.2 yükseltmesi (ayrı iş, bekliyor):** 16.4.0 için güvenlik uyarısı var. Ajanla yapılan her `next build` bir kez
+   duruyor ("SecurityFatalError", tekrar denenince geçiyor; CI etkilenmiyor). `npm i next@16.4.2` + lint/Vitest/build + Actions tam koşu.
 5. Açık kalanlar:
    - kobifabrika.com.tr → kobifabrika.com yönlendirmesi (DNS kaydı + Caddy bloğu).
    - Cloudflare Web Analytics token'ı (`NEXT_PUBLIC_CF_ANALYTICS_TOKEN`, imaj yeniden derlenir).
-   - ~~"İlk kurulum" düğme adı~~ ve ~~fiyatlardaki "1 .299" boşluğu~~: 2026-10-22 düzeltildi (karar günlüğü 2026-10-22). Tutarlar artık
-     her yerde tek kuralla: "1.299 TL", "1.250,50 TL" (`formatMoney` / `Money.Format`). **Canlı site eski imajla duruyor**; yeni KVM
-     sunucuya geçerken güncel imaj yayınlanınca düzelir (geçici sunucuya dokunulmadı).
-6. Next.js 16.4.0 için güvenlik uyarısı var (16.4.2 çıktı): ajanla yapılan her `next build` bir kez duruyor ("SecurityFatalError",
-   tekrar denenince geçiyor; CI etkilenmiyor). Yükseltme ayrı iş olarak yapılmalı (`npm i next@16.4.2` + tam koşu).
-7. Sonra 8B'nin asıl kısmı: KVM sunucuda API + panel + SQL Server, e-posta DNS, yedek, izleme.
+   - Search Console: site yeniden açılınca kapsam/dizine ekleme durumunu kontrol et.
