@@ -1,3 +1,17 @@
+import { primaryCta } from "./site";
+import { isSiteOnly } from "./site-mode";
+
+/** İlk adım düğmenin arayüzdeki adıyla (primaryCta); sadece-site modunda kayıt yok, pilot listesine WhatsApp'tan katılınır. */
+const firstStep = isSiteOnly()
+  ? {
+      title: "Pilot listesine katıl",
+      text: `kobifabrika.com'da "${primaryCta.label}" düğmesine dokun; WhatsApp'ta hazır gelen mesaja işletmeni ekleyip gönder. Panel açılınca ilk sana haber veririz, sonraki adımlar o zaman.`,
+    }
+  : {
+      title: "Üye ol",
+      text: `kobifabrika.com'da "${primaryCta.label}" düğmesine dokun; adını, e-postanı, cep telefonunu ve şifreni yaz.`,
+    };
+
 /**
  * Yardım merkezi makaleleri (/yardim). Görseller demo işletmenin telefondaki ekranları (`npm run demo:shots` → public/yardim).
  * İlk etapta 4 makale (karar 2026-10-17); kalanlar yayından sonra (docs/05 → 8A Yayından sonra).
@@ -23,7 +37,7 @@ export const helpArticles: HelpArticle[] = [
       alt: "Telefonda kurulum sihirbazının ilk adımı: işletme adı, sektör ve telefon alanları.",
     },
     steps: [
-      { title: "Üye ol", text: "kobifabrika.com'da \"Ücretsiz dene\"ye dokun; adını, e-postanı, cep telefonunu ve şifreni yaz." },
+      firstStep,
       {
         title: "E-postanı doğrula",
         text: "Gelen \"E-posta adresini doğrula\" e-postasındaki bağlantıya dokun. Gelmezse İstenmeyen klasörüne bak; panelden tekrar gönderebilirsin.",

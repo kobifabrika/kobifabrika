@@ -5,13 +5,14 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 async function load(siteOnly: boolean) {
   vi.resetModules();
   if (siteOnly) vi.stubEnv("NEXT_PUBLIC_SITE_ONLY", "1");
-  const [site, plans, robots, proxy] = await Promise.all([
+  const [site, plans, help, robots, proxy] = await Promise.all([
     import("./site"),
     import("./plans"),
+    import("./help"),
     import("@/app/robots"),
     import("@/proxy"),
   ]);
-  return { site, plans, robots: robots.default(), proxy: proxy.proxy };
+  return { site, plans, help, robots: robots.default(), proxy: proxy.proxy };
 }
 
 const request = (path: string) => new NextRequest(new URL(path, "http://localhost:3000"));
@@ -29,6 +30,14 @@ describe("sadece-site modu kapalı (varsayılan)", () => {
     const kalfa = plans.plans.find((p) => p.id === "kalfa")!;
     expect(plans.signupHref(kalfa, "yillik")).toBe("/kayit?paket=kalfa&donem=yillik");
     expect(plans.planCta(kalfa)).toBe(kalfa.cta);
+  });
+
+  it("İlk kurulum makalesi ana çağrının adını kullanır", async () => {
+    const { site, help } = await load(false);
+    const [first] = help.helpArticles.find((a) => a.slug === "ilk-kurulum")!.steps;
+    expect(first.title).toBe("Üye ol");
+    expect(first.text).toContain(`"${site.primaryCta.label}" düğmesine dokun`);
+    expect(first.text).toContain("Ücretsiz dene");
   });
 
   it("proxy: oturumsuz panel girişe yönlenir, giriş ve randevu linki olduğu gibi geçer", async () => {
@@ -50,6 +59,15 @@ describe("sadece-site modu kapalı (varsayılan)", () => {
 });
 
 describe("sadece-site modu açık (NEXT_PUBLIC_SITE_ONLY=1)", () => {
+  it("İlk kurulum makalesi pilot düğmesini anlatır, kayıt formundan söz etmez", async () => {
+    const { help } = await load(true);
+    const [first] = help.helpArticles.find((a) => a.slug === "ilk-kurulum")!.steps;
+    expect(first.title).toBe("Pilot listesine katıl");
+    expect(first.text).toContain('"Pilot listesine katıl" düğmesine dokun');
+    expect(first.text).not.toContain("Ücretsiz dene");
+    expect(first.text).not.toContain("şifreni");
+  });
+
   it("bütün çağrılar WhatsApp'tan pilot listesine; giriş bağlantısı yok", async () => {
     const { site, plans } = await load(true);
     expect(site.primaryCta.label).toBe("Pilot listesine katıl");

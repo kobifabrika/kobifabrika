@@ -58,6 +58,11 @@ test("sadece-site modu: pilot çağrıları, Çok yakında, API isteği yok, kı
     expect(decodeURIComponent((await cta.getAttribute("href"))!)).toContain(`${name} paketiyle`);
   }
 
+  // Yardım "İlk kurulum": arayüzdeki düğmenin adı.
+  await visit(page, "/yardim/ilk-kurulum", "Sadece site · ilk kurulum");
+  await expect(page.getByText('"Pilot listesine katıl" düğmesine dokun')).toBeVisible();
+  await expect(page.getByText("Ücretsiz dene")).toHaveCount(0);
+
   // Uygulama yolları: aynı adreste "Çok yakında", arama motorlarına kapalı.
   for (const path of appPages) {
     await visit(page, path, `Sadece site · ${path}`);
