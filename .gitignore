@@ -5,6 +5,8 @@
 
 # .NET
 bin/
+# Canlı ortamın sunucu betikleri (.NET bin/ kuralının dışında)
+!deploy/canli/bin/
 obj/
 *.user
 .vs/
