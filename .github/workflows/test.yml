@@ -29,7 +29,7 @@ env:
 jobs:
   test:
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    timeout-minutes: 75
     services:
       sqlserver:
         image: mcr.microsoft.com/mssql/server:2025-latest
@@ -76,7 +76,9 @@ jobs:
       - name: Playwright sürümü
         id: pw
         working-directory: frontend
-        run: echo "version=$(node -p "require('@playwright/test/package.json').version")" >> "$GITHUB_OUTPUT"
+        run: |
+          echo "version=$(node -p "require('@playwright/test/package.json').version")" >> "$GITHUB_OUTPUT"
+          echo "image=$ImageOS-$ImageVersion" >> "$GITHUB_OUTPUT"
 
       - name: Playwright tarayıcı cache
         id: pw-cache
@@ -85,16 +87,42 @@ jobs:
           path: ~/.cache/ms-playwright
           key: playwright-${{ runner.os }}-${{ steps.pw.outputs.version }}
 
+      # Tarayıcıların sistem paketleri (.deb) de cache'lenir: 2026-10-22'den beri runner imajında çoğu eksik (~120 MB) ve
+      # azure aynası çok yavaş (#54'te 47 dk, iş 60 dk sınırında iptal). Cache kurulumdan hemen sonra kaydedilir (iş kırmızı bitse de).
+      - name: apt paket cache
+        id: apt-cache
+        uses: actions/cache/restore@v4
+        with:
+          path: ~/apt-debs
+          key: apt-pw-${{ steps.pw.outputs.image }}-${{ steps.pw.outputs.version }}
+          restore-keys: |
+            apt-pw-
+
       - name: Playwright tarayıcıları
+        id: pw-install
         working-directory: frontend
-        # Normalde 1 dk'nın altında; yavaş apt aynası (#54'te 47 dk) bütün iş süresini yemesin, erken ve açık nedenle düşsün.
-        timeout-minutes: 10
+        # Cache doluyken 1 dk'nın altında; yavaş ayna bütün iş süresini yemesin, erken ve açık nedenle düşsün.
+        timeout-minutes: 15
         run: |
+          sudo sed -i 's#http://azure.archive.ubuntu.com/ubuntu#http://archive.ubuntu.com/ubuntu#g' /etc/apt/apt-mirrors.txt
+          echo 'Binary::apt::APT::Keep-Downloaded-Packages "true";' | sudo tee /etc/apt/apt.conf.d/99keep-debs > /dev/null
+          mkdir -p ~/apt-debs
+          sudo cp ~/apt-debs/*.deb /var/cache/apt/archives/ 2> /dev/null || true
+          echo "cache'ten gelen paket: $(ls ~/apt-debs | wc -l)"
           if [ "${{ steps.pw-cache.outputs.cache-hit }}" = "true" ]; then
             npx playwright install-deps chromium webkit
           else
             npx playwright install --with-deps chromium webkit
           fi
+          cp /var/cache/apt/archives/*.deb ~/apt-debs/ 2> /dev/null || true
+          echo "cache'e yazılacak paket: $(ls ~/apt-debs | wc -l)"
+
+      - name: apt paket cache kaydı
+        if: steps.pw-install.outcome == 'success' && steps.apt-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: ~/apt-debs
+          key: apt-pw-${{ steps.pw.outputs.image }}-${{ steps.pw.outputs.version }}
 
       # Bir bölüm kalsa da sonrakiler çalışır (test.ps1 gibi); iş sonunda kırmızı olur.
       - name: Backend testleri
