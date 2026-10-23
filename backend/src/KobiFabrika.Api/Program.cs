@@ -42,6 +42,7 @@ using Scalar.AspNetCore;
 using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
+builder.UseSentryFromConfig();
 
 builder.Services.AddSerilog((services, logger) =>
 {
@@ -58,6 +59,7 @@ builder.Services.AddSerilog((services, logger) =>
 });
 
 builder.Services.AddInfrastructure(builder.Configuration);
+builder.Services.AddForwardedHeadersFromConfig(builder.Configuration);
 
 builder.Services.AddAuthentication(IdentityConstants.ApplicationScheme)
     .AddIdentityCookies(cookies => cookies.ApplicationCookie?.Configure(options =>
@@ -193,6 +195,12 @@ KobiFabrika.Infrastructure.Email.EmailTemplates.LogoUrl =
 
 var app = builder.Build();
 
+// Caddy arkasında (canlı): rate limit ve kayıtlar gerçek istemci IP'sini görsün. Ayar yoksa kapalı.
+if (ProductionHosting.ForwardedHeadersEnabled(app.Configuration))
+{
+    app.UseForwardedHeaders();
+}
+
 app.UseMiddleware<CorrelationIdMiddleware>();
 app.UseSerilogRequestLogging();
 app.UseExceptionHandler();
@@ -278,6 +286,16 @@ app.MapMarketingSuggestionEndpoints();
 
 if (BackgroundJobs.IsEnabled(app.Configuration))
 {
+    // Panel sadece PlatformAdmin'e (oturum cookie'si .kobifabrika.com'da, api. alt alan adında da geçerli).
+    app.MapHangfireDashboard("/hangfire", new DashboardOptions
+    {
+        Authorization = [],
+        AsyncAuthorization = [new PlatformAdminDashboardFilter()],
+        DisplayStorageConnectionString = false,
+        DashboardTitle = "KobiFabrika işleri",
+        AppPath = app.Configuration["App:FrontendUrl"],
+    });
+
     var recurring = app.Services.GetRequiredService<IRecurringJobManager>();
     BackgroundJobs.RegisterRecurringJobs(recurring);
     recurring.AddOrUpdate<CampaignDispatcher>(CampaignDispatcher.JobId, j => j.RunAsync(CancellationToken.None), Cron.Minutely);

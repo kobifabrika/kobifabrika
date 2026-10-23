@@ -67,7 +67,13 @@ public static class DependencyInjection
 
         // Data Protection anahtarları kalıcı: yeniden başlatınca oturum cookie'leri ve şifreli link token'ları geçerli kalır.
         // Yerelde dosya sistemi (DataProtection:KeysPath, içerik köküne göre). Canlıda kalıcı volume + anahtar şifreleme (karar günlüğü).
-        services.AddDataProtection().SetApplicationName("KobiFabrika");
+        var dataProtection = services.AddDataProtection().SetApplicationName("KobiFabrika");
+        // Canlıda anahtarlar sertifikayla şifreli durur (DataProtection:CertificatePath + CertificatePassword; docs/canli-ortam.md).
+        if (configuration["DataProtection:CertificatePath"] is { Length: > 0 } certificatePath)
+        {
+            dataProtection.ProtectKeysWithCertificate(System.Security.Cryptography.X509Certificates.X509CertificateLoader
+                .LoadPkcs12FromFile(certificatePath, configuration["DataProtection:CertificatePassword"]));
+        }
         services.AddOptions<KeyManagementOptions>().Configure<IHostEnvironment, ILoggerFactory>((o, env, loggers) =>
         {
             var path = Path.GetFullPath(Path.Combine(env.ContentRootPath, configuration["DataProtection:KeysPath"] ?? "App_Data/keys"));

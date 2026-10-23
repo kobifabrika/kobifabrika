@@ -1,0 +1,9 @@
+# API imajına girmeyenler (backend/Dockerfile). Yerel anahtarlar, dosyalar ve kayıtlar (App_Data, logs) asla imaja girmez.
+**/bin
+**/obj
+**/App_Data
+**/logs
+**/appsettings.Development.json
+**/*.user
+tests
+TestResults
