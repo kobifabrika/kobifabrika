@@ -8,6 +8,7 @@ Dosyaların kaynağı repoda `deploy/canli/`; sunucuda `/opt/kobifabrika`. Gizli
 | Sunucu | Güzel Hosting Private Cloud 2 · KVM · 4 çekirdek, 4 GB RAM (+4 GB swap dosyası, 1 GB swap bölümü; swappiness 10), 60 GB SSD · Ubuntu 24.04 · 70.40.139.67 · `kf-app.kobifabrika.com` |
 | Bağlantı | `ssh kf` → `deploy` kullanıcısı (sudo, şifresiz; şifreli giriş ve root girişi kapalı, sadece anahtar) |
 | Alan adları | `kobifabrika.com` site + herkese açık sayfalar (`/r/[slug]`, `/a`, `/c`, `/ekstre`, `/odeme`, `/teklif`) · `www` → kök (301) · `app.` panel (kök `/panel`'e gider; kök alandaki `/panel` ve `/platform` → `app.`) · `api.` API |
+| .com.tr | `kobifabrika.com.tr` ve `www.kobifabrika.com.tr` → `https://kobifabrika.com` (301, yol ve sorgu korunur) Cloudflare'de kurulu (2026-10-23, http/https denendi); sunucuya gelmez |
 | DNS | Cloudflare, dört A kaydı → 70.40.139.67, şimdilik **DNS only** (gri bulut); turuncuya geçiş için bkz. [Cloudflare](#cloudflare-turuncu-bulut) |
 | Sertifika | Let's Encrypt, Caddy alır ve yeniler (`caddy_data` biriminde) |
 | Saat | Sunucu ve konteynerler UTC; uygulama İstanbul saatini kendisi hesaplar |
@@ -214,4 +215,3 @@ sertifika yenilemesi (HTTP-01/TLS-ALPN) Cloudflare arkasında da çalışır. Cl
 - GitHub secret `DEPLOY_SSH_KEY` (yukarıda; `gh` hesabının bu depoda yönetici yetkisi yok).
 - Brevo hesabı + SMTP anahtarı, e-posta DNS (SPF/DKIM/DMARC), Cloudflare Email Routing → sonra `yayin-modu.sh tam`.
 - Sentry DSN, R2 anahtarları + kova (+ yaşam döngüsü kuralı), UptimeRobot (`https://api.kobifabrika.com/health`).
-- kobifabrika.com.tr → kobifabrika.com yönlendirmesi (DNS kaydı + Caddyfile bloğu).

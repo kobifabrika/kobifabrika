@@ -29,6 +29,6 @@
    `YEDEK_SIFRE`'yi parola yöneticisine al (sunucuda: `sudo grep YEDEK_SIFRE /opt/kobifabrika/.env`, ekranda kimse yokken).
 4. **Cloudflare turuncu bulut:** hazır (Caddy `trusted_proxies` + `CF-Connecting-IP`, API ForwardedHeaders). Geçerken SSL/TLS
    **Full (strict)**; sonra `curl -sI https://kobifabrika.com` ve bir girişte rate limit/IP davranışını kontrol et.
-5. Açık kalanlar: kobifabrika.com.tr → kobifabrika.com (DNS + Caddyfile bloğu); Cloudflare Web Analytics token'ı
+5. Açık kalanlar: Cloudflare Web Analytics token'ı
    (`NEXT_PUBLIC_CF_ANALYTICS_TOKEN`, workflow'daki web derlemesine build-arg); Search Console kapsam kontrolü (site tekrar yayında);
    Güzel Hosting kredisi/destek talebi #IXA-330501 kapandı mı.
