@@ -1,5 +1,5 @@
-# Tanıtım sitesi imajı (docs/canli-ortam.md → Geçici site sunucusu): Next.js standalone, root olmayan kullanıcı.
-# Bu bilgisayarda derlenir, sunucuya `docker save | ssh kf docker load` ile aktarılır; sunucuda derleme yapılmaz.
+# Web imajı (docs/canli-ortam.md → Dağıtım): Next.js standalone, root olmayan kullanıcı. GitHub Actions'ta iki kez derlenir:
+# site (NEXT_PUBLIC_SITE_ONLY=1, varsayılan) ve tam (0); sunucuya `docker save | ssh docker load`; sunucuda derleme yapılmaz.
 # NEXT_PUBLIC_* değerleri derlemeye gömülür, bu yüzden build-arg olarak verilir.
 FROM node:22-alpine AS deps
 WORKDIR /app

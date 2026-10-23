@@ -1,0 +1,10 @@
+[Unit]
+Description=KobiFabrika gece yedeği: her gün 03:30 İstanbul
+
+[Timer]
+OnCalendar=*-*-* 03:30:00 Europe/Istanbul
+Persistent=true
+RandomizedDelaySec=60
+
+[Install]
+WantedBy=timers.target

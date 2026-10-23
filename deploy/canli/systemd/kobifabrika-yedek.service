@@ -1,0 +1,8 @@
+[Unit]
+Description=KobiFabrika gece veritabanı yedeği (docs/canli-ortam.md)
+After=docker.service
+Requires=docker.service
+
+[Service]
+Type=oneshot
+ExecStart=/opt/kobifabrika/bin/yedek-al.sh gece

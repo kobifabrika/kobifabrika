@@ -1,0 +1,108 @@
+# Canlı ortam (docs/canli-ortam.md): sunucuda /opt/kobifabrika altında. Gizli değerler aynı klasördeki .env'de (chmod 600, git dışı).
+# İmajlar GitHub Actions'ta derlenir, `docker save | ssh docker load` ile gelir (registry yok); sunucuda derleme yapılmaz.
+# Dışarıya sadece Caddy (80/443) açılır; SQL Server, API ve web sadece iç ağda.
+name: kobifabrika
+
+networks:
+  default:
+    # Sabit alt ağ: API sadece bu ağdan gelen X-Forwarded-For'a güvenir (ForwardedHeaders__KnownNetworks).
+    ipam:
+      config: [{ subnet: 172.30.0.0/24 }]
+
+x-kayit: &kayit
+  logging: { driver: local, options: { max-size: 10m, max-file: "5" } }
+
+services:
+  sqlserver:
+    <<: *kayit
+    image: mcr.microsoft.com/mssql/server:${MSSQL_IMAGE_TAG:-2025-latest}
+    restart: unless-stopped
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_PID: Express
+      MSSQL_SA_PASSWORD: ${MSSQL_SA_PASSWORD:?.env eksik}
+      # mssql-conf memory.memorylimitmb: konteyner sınırının altında kalır (işletim payı).
+      MSSQL_MEMORY_LIMIT_MB: "1600"
+      TZ: UTC
+    mem_limit: 2g
+    memswap_limit: 2g
+    volumes:
+      - mssql_data:/var/opt/mssql
+      - ./yedek:/var/opt/mssql/backup
+    healthcheck:
+      test: ["CMD-SHELL", "SQLCMDPASSWORD=\"$$MSSQL_SA_PASSWORD\" /opt/mssql-tools18/bin/sqlcmd -C -S localhost -U sa -Q 'SELECT 1' -b -o /dev/null"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+      start_period: 40s
+
+  api:
+    <<: *kayit
+    image: kobifabrika-api:current
+    restart: unless-stopped
+    depends_on:
+      sqlserver: { condition: service_healthy }
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      ConnectionStrings__Default: "Server=sqlserver,1433;Database=KobiFabrika;User Id=kf_app;Password=${APP_DB_PASSWORD:?.env eksik};TrustServerCertificate=True"
+      App__FrontendUrl: https://app.kobifabrika.com
+      App__ApiUrl: https://api.kobifabrika.com
+      PublicLinks__ShortBaseUrl: https://kobifabrika.com
+      Auth__CookieDomain: .kobifabrika.com
+      Cors__AllowedOrigins__0: https://app.kobifabrika.com
+      Cors__AllowedOrigins__1: https://kobifabrika.com
+      ForwardedHeaders__KnownNetworks__0: 172.30.0.0/24
+      Platform__AdminEmails__0: emirkayaco@gmail.com
+      Messaging__SmsEnabled: "false"
+      Sms__MirrorToEmail: "false"
+      Email__Smtp__Host: smtp-relay.brevo.com
+      Email__Smtp__Port: "587"
+      Email__Smtp__UseSsl: "true"
+      Email__Smtp__UserName: ${BREVO_SMTP_USER:-}
+      Email__Smtp__Password: ${BREVO_SMTP_KEY:-}
+      Sentry__Dsn: ${SENTRY_DSN:-}
+      DataProtection__KeysPath: /app/App_Data/keys
+      DataProtection__CertificatePath: /run/kf/dp.pfx
+      DataProtection__CertificatePassword: ${DP_CERT_PASSWORD:?.env eksik}
+      Storage__LocalPath: /app/App_Data/files
+      Storage__PrivatePath: /app/App_Data/private
+    mem_limit: 700m
+    memswap_limit: 700m
+    cpus: 2
+    expose: ["8080"]
+    volumes:
+      - api_data:/app/App_Data
+      - api_logs:/app/logs
+      - ./sertifika/dp.pfx:/run/kf/dp.pfx:ro
+
+  web:
+    <<: *kayit
+    # site: sadece tanıtım sitesi (NEXT_PUBLIC_SITE_ONLY=1); tam: site + panel. Değiştirmek: bin/yayin-modu.sh site|tam
+    image: kobifabrika-web-${WEB_VARIANT:-site}:current
+    restart: unless-stopped
+    environment:
+      NODE_OPTIONS: --max-old-space-size=320
+    mem_limit: 450m
+    memswap_limit: 450m
+    cpus: 1.5
+    expose: ["3000"]
+
+  caddy:
+    <<: *kayit
+    image: caddy:2.10.2-alpine
+    restart: unless-stopped
+    depends_on: [web, api]
+    ports: ["80:80", "443:443", "443:443/udp"]
+    mem_limit: 100m
+    memswap_limit: 100m
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+
+volumes:
+  mssql_data:
+  api_data:
+  api_logs:
+  caddy_data:
+  caddy_config:

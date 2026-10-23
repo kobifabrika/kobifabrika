@@ -1,5 +1,5 @@
 # test.ps1 ile aynı testler, Ubuntu'da: backend (xUnit + Testcontainers), frontend lint/birim/build, E2E (Playwright).
-# Dakika tasarrufu: aynı dalda yeni push gelince eski çalışma iptal; sadece dokümanı değişen commit'te çalışmaz; NuGet, npm ve
+# Dakika tasarrufu: aynı dalda yeni push gelince eski test koşusu iptal (dağıtım değil); sadece dokümanı değişen commit'te çalışmaz; NuGet, npm ve
 # Playwright tarayıcıları cache'lenir.
 name: Testler
 
@@ -11,10 +11,6 @@ on:
     branches: [main]
     paths-ignore: ["docs/**", "**/*.md"]
   workflow_dispatch:
-
-concurrency:
-  group: test-${{ github.ref }}
-  cancel-in-progress: true
 
 permissions:
   contents: read
@@ -29,6 +25,10 @@ env:
 jobs:
   test:
     runs-on: ubuntu-latest
+    # Aynı dalda yeni push gelince eski test koşusu iptal (dağıtım işi iptal edilmez, aşağıda kendi kuyruğu var).
+    concurrency:
+      group: test-${{ github.ref }}
+      cancel-in-progress: true
     timeout-minutes: 75
     services:
       sqlserver:
@@ -180,3 +180,96 @@ jobs:
           name: playwright-raporu
           path: frontend/playwright-report
           retention-days: 14
+
+  # Canlıya dağıtım (docs/canli-ortam.md → Dağıtım): main'e push ve testler yeşilse. İmajlar burada derlenir, registry olmadan
+  # SSH ile aktarılır (docker save | zstd | ssh → docker load). Sunucuda sadece bin/actions-girisi.sh'nin üç komutu çalışır.
+  # Secret: DEPLOY_SSH_KEY (yoksa iş atlanır). Sunucu anahtarı deploy/canli/known_hosts'ta.
+  deploy:
+    name: Dağıtım
+    needs: test
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    # Dağıtımlar sırayla ve yarıda kesilmeden (migration ortasında iptal olmasın).
+    concurrency:
+      group: dagitim
+      cancel-in-progress: false
+    env:
+      HEDEF: deploy@70.40.139.67
+    steps:
+      - name: Dağıtım anahtarı
+        id: anahtar
+        env:
+          DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+        run: |
+          if [ -z "$DEPLOY_SSH_KEY" ]; then
+            echo "DEPLOY_SSH_KEY secret'ı yok: dağıtım atlandı (docs/canli-ortam.md → Dağıtım)." | tee -a "$GITHUB_STEP_SUMMARY"
+            echo "var=0" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          install -d -m 700 ~/.ssh
+          printf '%s\n' "$DEPLOY_SSH_KEY" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          echo "var=1" >> "$GITHUB_OUTPUT"
+          echo "etiket=$(date -u +%Y%m%d-%H%M)-${GITHUB_SHA::7}" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/checkout@v4
+        if: steps.anahtar.outputs.var == '1'
+
+      - uses: docker/setup-buildx-action@v3
+        if: steps.anahtar.outputs.var == '1'
+
+      - name: API imajı
+        if: steps.anahtar.outputs.var == '1'
+        uses: docker/build-push-action@v6
+        with:
+          context: backend
+          load: true
+          tags: kobifabrika-api:${{ steps.anahtar.outputs.etiket }}
+          cache-from: type=gha,scope=api
+          cache-to: type=gha,scope=api,mode=max
+
+      # İki web imajı: site (NEXT_PUBLIC_SITE_ONLY=1) ve tam (site + panel). Sunucuda bin/yayin-modu.sh ile seçilir.
+      - name: Web imajı (sadece site)
+        if: steps.anahtar.outputs.var == '1'
+        uses: docker/build-push-action@v6
+        with:
+          context: frontend
+          load: true
+          build-args: NEXT_PUBLIC_SITE_ONLY=1
+          tags: kobifabrika-web-site:${{ steps.anahtar.outputs.etiket }}
+          cache-from: type=gha,scope=web-site
+          cache-to: type=gha,scope=web-site,mode=max
+
+      - name: Web imajı (tam)
+        if: steps.anahtar.outputs.var == '1'
+        uses: docker/build-push-action@v6
+        with:
+          context: frontend
+          load: true
+          build-args: NEXT_PUBLIC_SITE_ONLY=0
+          tags: kobifabrika-web-tam:${{ steps.anahtar.outputs.etiket }}
+          cache-from: type=gha,scope=web-tam
+          cache-to: type=gha,scope=web-tam,mode=max
+
+      - name: Sunucuya aktar
+        if: steps.anahtar.outputs.var == '1'
+        env:
+          ETIKET: ${{ steps.anahtar.outputs.etiket }}
+        run: |
+          cp deploy/canli/known_hosts ~/.ssh/known_hosts
+          tar -czf - -C deploy/canli compose.yml Caddyfile bin systemd | ssh "$HEDEF" dosyalar
+          docker save "kobifabrika-api:$ETIKET" "kobifabrika-web-site:$ETIKET" "kobifabrika-web-tam:$ETIKET" \
+            | zstd -T0 -3 | ssh "$HEDEF" yukle
+
+      - name: Dağıt (yedek → migration → yeni imajlar → /health; hata olursa önceki imaj)
+        if: steps.anahtar.outputs.var == '1'
+        env:
+          ETIKET: ${{ steps.anahtar.outputs.etiket }}
+        run: |
+          ssh "$HEDEF" dagit "$ETIKET"
+          echo "Dağıtıldı: \`$ETIKET\` → https://kobifabrika.com, https://api.kobifabrika.com/health" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Anahtarı sil
+        if: always()
+        run: rm -f ~/.ssh/id_ed25519
