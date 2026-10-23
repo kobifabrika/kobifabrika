@@ -87,6 +87,8 @@ jobs:
 
       - name: Playwright tarayıcıları
         working-directory: frontend
+        # Normalde 1 dk'nın altında; yavaş apt aynası (#54'te 47 dk) bütün iş süresini yemesin, erken ve açık nedenle düşsün.
+        timeout-minutes: 10
         run: |
           if [ "${{ steps.pw-cache.outputs.cache-hit }}" = "true" ]; then
             npx playwright install-deps chromium webkit
