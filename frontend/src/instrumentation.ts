@@ -41,10 +41,10 @@ export async function register() {
     beforeBreadcrumb: scrubBreadcrumb,
   });
   if (process.env.SENTRY_STARTUP_TEST === "true") {
-    Sentry.captureException(
+    const eventId = Sentry.captureException(
       new Error("Sentry deneme hatası (web): canlı kurulum testi (maskelenmeli: deneme.kisi@ornek.com, +90 532 123 45 67)"),
     );
-    console.warn("Sentry deneme hatası gönderildi (web).");
+    console.warn(`Sentry deneme hatası gönderildi (web): ${eventId}`);
   }
 }
 
