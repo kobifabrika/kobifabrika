@@ -239,6 +239,8 @@ silindi. Sertifikalar Ocak 2027'ye kadar geçerli; Caddy ~30 gün kala yeniler (
 
 - **Site açılmıyor, Cloudflare 521/522:** güvenlik duvarı Cloudflare'i engelliyor olabilir (aralık listesi değişmiş):
   `sudo bin/cloudflare-ip.sh`, olmazsa `sudo bin/cloudflare-ip.sh --kaldir`. Turuncu bulut kapatılırsa da `--kaldir` şart.
+- **R2'ye gönderilemedi (403)**: `R2_BUCKET` kova adı mı (küçük harf, tire; anahtar adı değil), token'ın o kovada "Object
+  Read & Write" yetkisi var mı, `R2_ACCOUNT_ID` hesap kimliği mi. Düzeltip `sudo bin/yedek-al.sh elle`. Dağıtımı durdurmaz.
 - **Caddyfile değişti ama etkisi yok:** dosya tek dosya olarak bağlı; yeni inode'la yazılırsa (`install`, `scp` sonrası `mv`)
   konteyner eskisini görür. Yerinde yaz (`cat yeni > Caddyfile`) ya da `docker compose up -d --force-recreate --no-deps caddy`.
   `dagit.sh` bu durumu algılayıp Caddy'yi yeniden oluşturur.

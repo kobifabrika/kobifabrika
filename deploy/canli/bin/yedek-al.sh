@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
 # Veritabanı yedeği (docs/canli-ortam.md → Yedek): gece 03:30 İstanbul (kobifabrika-yedek.timer) ve her dağıtımda migration'dan
 # hemen önce. Yedek /opt/kobifabrika/yedek/KobiFabrika-<UTC zaman>-<etiket>.bak.zst; 7 günden eskiler silinir.
-# R2 anahtarları .env'de doluysa şifreli kopya R2'ye de gider (bin/r2-gonder.sh); boşsa bu adım atlanır.
+# R2 anahtarları .env'de doluysa şifreli kopya R2'ye de gider (bin/r2-gonder.sh); boşsa bu adım atlanır. R2'ye gönderim
+# başarısızsa yerel yedek kalır ve uyarı yazılır; dağıtımda devam edilir (geri dönüş yerel yedekle), diğerlerinde çıkış kodu 1
+# (gece zamanlayıcısı "failed" görünür).
 # Kullanım: sudo /opt/kobifabrika/bin/yedek-al.sh [gece|dagitim|elle]
 . /opt/kobifabrika/bin/ortak.sh
 etiket=${1:-elle}
@@ -21,7 +23,10 @@ kayit "Yedek alındı: yedek/$ad.zst ($(du -h "$KF/yedek/$ad.zst" | cut -f1))"
 find "$KF/yedek" -maxdepth 1 -name 'KobiFabrika-*.bak.zst' -mtime +6 -print -delete | sed 's/^/silindi (7 günden eski): /'
 
 if [ -n "${R2_ACCESS_KEY_ID:-}" ] && [ -n "${R2_SECRET_ACCESS_KEY:-}" ] && [ -n "${R2_ACCOUNT_ID:-}" ] && [ -n "${R2_BUCKET:-}" ]; then
-  "$KF/bin/r2-gonder.sh" "$KF/yedek/$ad.zst"
+  if ! "$KF/bin/r2-gonder.sh" "$KF/yedek/$ad.zst"; then
+    kayit "UYARI: R2'ye gönderilemedi (anahtarlar, R2_BUCKET adı, token yetkisi); yerel yedek yerinde: yedek/$ad.zst"
+    [ "$etiket" = dagitim ] || exit 1
+  fi
 else
   kayit "R2 anahtarları boş: uzak kopya pasif."
 fi

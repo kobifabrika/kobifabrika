@@ -25,6 +25,10 @@
 - **Let's Encrypt:** HTTP-01 Cloudflare arkasında çalışıyor (sahte jetonla denendi). Sertifikalar Ocak 2027'ye kadar geçerli; Aralık
   sonunda `docker compose logs caddy | grep -i "certificate obtained"` ile yenilendiğine bak.
 - **Düzeltilen hata:** dağıtım Caddyfile'ı yeni inode'la yazıyordu, `caddy reload` eskisini okuyordu (artık yerinde yazılıyor).
+- **#61 dağıtımı durdu:** `.env`'de `R2_BUCKET` değeri kova adı değil, düz `R2_BUCKET` metni → R2 403 → yedek betiği hata verdi.
+  Düzeltme: R2 hatası artık dağıtımı durdurmaz (uyarı). **Gerçek kova adını yaz:** `.\deploy\gizli-ekle.ps1 R2_BUCKET`, sonra
+  `ssh kf sudo /opt/kobifabrika/bin/yedek-al.sh elle` → "R2'ye gönderildi". Düzelene kadar gece yedeği yerelde alınır ama
+  zamanlayıcı "failed" görünür.
 - Hâlâ bekleyen: Sentry/BOM düzeltmesinin canlı denemesi (bozuk `SENTRY_DSN` → api healthy, kayıtta "UYARI: Sentry:Dsn geçersiz").
 
 ## Sonraki adımlar
