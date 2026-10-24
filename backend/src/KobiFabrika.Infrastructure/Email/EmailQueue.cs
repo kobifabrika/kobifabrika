@@ -92,9 +92,15 @@ internal sealed class EmailQueue(
 /// <summary>
 /// Kuyruktaki e-postayı gönderir. Koşullu UPDATE (Queued → Sending) ile tek gönderim; hata olursa 3 denemeye kadar
 /// Queued'a döner (1, 5, 30 dk sonra), sonra Failed. <see cref="SweepAsync"/> dakikada bir vakti gelenleri ve 10 dakikadır
-/// Sending'de kalanları (süreç düştü) yeniden dener.
+/// Sending'de kalanları (süreç düştü) yeniden dener. <see cref="EmailOptions.DailyLimit"/> doluysa e-posta gönderilmez, kuyrukta
+/// pencere açılana kadar bekler (deneme sayılmaz); taramada önce sistem e-postaları, sonra pazarlama.
 /// </summary>
-public sealed class EmailDeliveryJob(AppDbContext db, IEmailSender sender, TimeProvider clock, ILogger<EmailDeliveryJob> logger)
+public sealed class EmailDeliveryJob(
+    AppDbContext db,
+    IEmailSender sender,
+    TimeProvider clock,
+    IOptions<EmailOptions> options,
+    ILogger<EmailDeliveryJob> logger)
 {
     public const string SweepJobId = "email-outbox-sweep";
     public static readonly TimeSpan StaleAfter = TimeSpan.FromMinutes(10);
@@ -103,6 +109,12 @@ public sealed class EmailDeliveryJob(AppDbContext db, IEmailSender sender, TimeP
     public async Task DeliverAsync(Guid id, CancellationToken ct)
     {
         var now = clock.GetUtcNow().UtcDateTime;
+        if (await RemainingAsync(now, ct) <= 0)
+        {
+            await DeferAsync([id], now, ct);
+            return;
+        }
+
         var claimed = await db.Set<OutboundEmail>()
             .Where(e => e.Id == id && e.Status == OutboundEmailStatus.Queued && e.NextAttemptAt <= now)
             .ExecuteUpdateAsync(s => s.SetProperty(e => e.Status, OutboundEmailStatus.Sending)
@@ -148,12 +160,54 @@ public sealed class EmailDeliveryJob(AppDbContext db, IEmailSender sender, TimeP
                 : OutboundEmailStatus.Queued), ct);
         var due = await db.Set<OutboundEmail>().AsNoTracking()
             .Where(e => e.Status == OutboundEmailStatus.Queued && e.NextAttemptAt <= now)
-            .OrderBy(e => e.NextAttemptAt).Select(e => e.Id).Take(200).ToListAsync(ct);
+            .OrderBy(e => e.IsMarketing).ThenBy(e => e.NextAttemptAt).Select(e => e.Id).Take(200).ToListAsync(ct);
+        var remaining = Math.Max(await RemainingAsync(now, ct), 0);
+        if (remaining < due.Count)
+        {
+            await DeferAsync(due.Skip(remaining).ToList(), now, ct);
+            due = due.Take(remaining).ToList();
+        }
+
         foreach (var id in due)
         {
             await DeliverAsync(id, ct);
         }
 
         return due.Count;
+    }
+
+    /// <summary>Son 24 saatteki kotadan kalan (gönderilen ve şu an gönderilen düşülür); sınır yoksa int.MaxValue.</summary>
+    private async Task<int> RemainingAsync(DateTime now, CancellationToken ct)
+    {
+        var limit = options.Value.DailyLimit;
+        if (limit <= 0)
+        {
+            return int.MaxValue;
+        }
+
+        var since = now - TimeSpan.FromHours(24);
+        var used = await db.Set<OutboundEmail>()
+            .CountAsync(e => e.Status == OutboundEmailStatus.Sending || (e.Status == OutboundEmailStatus.Sent && e.SentAt >= since), ct);
+        return limit - used;
+    }
+
+    /// <summary>Kota dolu: e-postalar pencereden ilk gönderim çıkınca yeniden denenir (en geç 24 saat sonra).</summary>
+    private async Task DeferAsync(List<Guid> ids, DateTime now, CancellationToken ct)
+    {
+        if (ids.Count == 0)
+        {
+            return;
+        }
+
+        var since = now - TimeSpan.FromHours(24);
+        var oldest = await db.Set<OutboundEmail>()
+            .Where(e => e.Status == OutboundEmailStatus.Sent && e.SentAt >= since)
+            .MinAsync(e => e.SentAt, ct);
+        var next = (oldest ?? now) + TimeSpan.FromHours(24) + TimeSpan.FromMinutes(1);
+        await db.Set<OutboundEmail>()
+            .Where(e => ids.Contains(e.Id) && e.Status == OutboundEmailStatus.Queued)
+            .ExecuteUpdateAsync(s => s.SetProperty(e => e.NextAttemptAt, next), ct);
+        logger.LogWarning("Günlük e-posta sınırı ({Limit}) doldu: {Count} e-posta kuyrukta bekliyor, {Next:u} sonra gönderilecek",
+            options.Value.DailyLimit, ids.Count, next);
     }
 }

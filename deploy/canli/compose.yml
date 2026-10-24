@@ -60,7 +60,12 @@ services:
       Email__Smtp__UseSsl: "true"
       Email__Smtp__UserName: ${BREVO_SMTP_USER:-}
       Email__Smtp__Password: ${BREVO_SMTP_KEY:-}
+      Email__ReplyToAddress: destek@kobifabrika.com
+      # Brevo ücretsiz planı günde 300; 20'si elle/deneme gönderimlerine pay. Dolunca kuyrukta bekler (EmailDeliveryJob).
+      Email__DailyLimit: "280"
       Sentry__Dsn: ${SENTRY_DSN:-}
+      # Deneme hatası: `SENTRY_STARTUP_TEST=true docker compose up -d api` (docs/canli-ortam.md → Sentry).
+      Sentry__StartupTestEvent: ${SENTRY_STARTUP_TEST:-false}
       DataProtection__KeysPath: /app/App_Data/keys
       DataProtection__CertificatePath: /run/kf/dp.pfx
       DataProtection__CertificatePassword: ${DP_CERT_PASSWORD:?.env eksik}
@@ -82,6 +87,9 @@ services:
     restart: unless-stopped
     environment:
       NODE_OPTIONS: --max-old-space-size=320
+      # Sunucu tarafı hata izleme (src/instrumentation.ts); boşsa kapalı. Değer: deploy/gizli-ekle.ps1 SENTRY_DSN_WEB.
+      SENTRY_DSN: ${SENTRY_DSN_WEB:-}
+      SENTRY_STARTUP_TEST: ${SENTRY_STARTUP_TEST:-false}
     mem_limit: 450m
     memswap_limit: 450m
     cpus: 1.5

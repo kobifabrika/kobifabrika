@@ -194,6 +194,7 @@ KobiFabrika.Infrastructure.Email.EmailTemplates.LogoUrl =
     (builder.Configuration["App:FrontendUrl"] ?? "http://localhost:3000").TrimEnd('/') + "/marka/logo-eposta.png";
 
 var app = builder.Build();
+app.SendSentryStartupTestEvent();
 
 // Caddy arkasında (canlı): rate limit ve kayıtlar gerçek istemci IP'sini görsün. Ayar yoksa kapalı.
 if (ProductionHosting.ForwardedHeadersEnabled(app.Configuration))

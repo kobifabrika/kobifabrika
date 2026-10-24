@@ -2,6 +2,11 @@
 
 En yeni en üstte. Notion'daki "Proje Planı ve Kararlar" sayfasıyla aynı kararlar; teknik kararlar burada daha ayrıntılı.
 
+- **2026-10-24 (8B: e-posta, Sentry, tam moda hazırlık, Emir):** Ayrıntı `docs/canli-ortam.md` → E-posta, Sentry, Tam moda geçiş kontrol listesi. Bütün dış hizmetler ücretsiz planda; ücret çıkaracak ayar açılmaz.
+  - **Brevo:** kobifabrika.com "Authenticated" (Brevo TXT, DKIM `brevo1/brevo2` CNAME, DNS only); gönderen `KobiFabrika <bildirim@kobifabrika.com>`; DMARC `p=none`, `rua=destek@`; Cloudflare Email Routing destek@ ve bildirim@ → kobifabrika@gmail.com. SPF'e Brevo eklenmedi (tek SPF kaydı kalır; DMARC hizası DKIM ile).
+  - **SMTP:** 587'de STARTTLS artık zorunlu (önce `Auto` idi: sunucu STARTTLS sunmazsa düz metne düşebilirdi); 465'te doğrudan TLS. Sistem e-postalarının yanıt adresi `destek@` (`Email:ReplyToAddress`).
+  - **Günlük sınır:** Brevo ücretsiz planı günde 300 → `Email:DailyLimit` 280 (son 24 saat, kayan pencere; 20'si elle/deneme payı). Dolunca e-posta kuyrukta bekler (deneme sayılmaz), pencereden ilk e-posta çıkınca gider; taramada önce sistem e-postaları. Uyarı kaydı. Aynı anda çalışan iki gönderim işi sınırı birkaç e-posta aşabilir; pay bunun için.
+  - **Sentry:** API'de olaylardan e-posta/telefon maskelenir, kullanıcı/IP boşaltılır (`SentryScrubber`), performans izleme 0. Web için sunucu tarafı Sentry (`@sentry/nextjs` 11.6.0, `src/instrumentation.ts`, DSN `SENTRY_DSN_WEB`): tarayıcıya yüklenmez (paket boyutu, kişisel veri); sürüm 11'in `dataCollection` varsayılanları (çerez, başlık, gövde, yerel değişkenler) kapalı. Deneme hatası `SENTRY_STARTUP_TEST=true` ile açılışta.
 - **2026-10-24 (8B: Cloudflare turuncu bulut, Emir):** Ayrıntı `docs/canli-ortam.md` → Cloudflare.
   - **İlk otomatik dağıtım:** Actions #60 (`67a28dd`) test + dağıtım yeşil; dağıtım öncesi yedek alındı, `current`/`onceki` imajları yerinde. GitHub Actions dağıtımı böylece çalışır kabul edildi.
   - **Cloudflare:** `@`, `www`, `app`, `api` Proxied; SSL/TLS Full (strict), Always Use HTTPS, en düşük TLS 1.2. Üç adres de `cf-ray` ile 200 (app kökü → `/panel` 302).

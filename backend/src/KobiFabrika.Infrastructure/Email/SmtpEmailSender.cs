@@ -14,7 +14,7 @@ public sealed class SmtpEmailSender(IOptions<EmailOptions> options) : IEmailSend
         var mime = new MimeMessage();
         mime.From.Add(new MailboxAddress(message.FromName ?? settings.FromName, settings.FromAddress));
         mime.To.Add(MailboxAddress.Parse(message.To));
-        if (message.ReplyTo is { } replyTo && MailboxAddress.TryParse(replyTo, out var reply))
+        if ((message.ReplyTo ?? settings.ReplyToAddress) is { } replyTo && MailboxAddress.TryParse(replyTo, out var reply))
         {
             mime.ReplyTo.Add(reply);
         }
@@ -32,7 +32,9 @@ public sealed class SmtpEmailSender(IOptions<EmailOptions> options) : IEmailSend
         await client.ConnectAsync(
             settings.Smtp.Host,
             settings.Smtp.Port,
-            settings.Smtp.UseSsl ? SecureSocketOptions.Auto : SecureSocketOptions.None,
+            !settings.Smtp.UseSsl ? SecureSocketOptions.None
+                : settings.Smtp.Port == 465 ? SecureSocketOptions.SslOnConnect
+                : SecureSocketOptions.StartTls,
             cancellationToken);
 
         if (!string.IsNullOrEmpty(settings.Smtp.UserName))

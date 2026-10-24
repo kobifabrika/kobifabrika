@@ -14,6 +14,7 @@ $izinli = [ordered]@{
     "BREVO_SMTP_USER"      = "Brevo SMTP kullanıcı adı (api yeniden başlar)"
     "BREVO_SMTP_KEY"       = "Brevo SMTP anahtarı (api)"
     "SENTRY_DSN"           = "Sentry DSN (api)"
+    "SENTRY_DSN_WEB"       = "Sentry DSN, web projesi (web yeniden başlar)"
     "R2_ACCOUNT_ID"        = "Cloudflare hesap kimliği (yedek)"
     "R2_ACCESS_KEY_ID"     = "R2 erişim anahtarı (yedek)"
     "R2_SECRET_ACCESS_KEY" = "R2 gizli anahtarı (yedek)"

@@ -299,6 +299,7 @@ public sealed class PilotMessagingTests(SqlServerFixture db) : MarketingTestBase
 
         var failing = new FailingEmailSender();
         var job = new KobiFabrika.Infrastructure.Email.EmailDeliveryJob(dbContext, failing, Factory.Clock,
+            Microsoft.Extensions.Options.Options.Create(new KobiFabrika.Infrastructure.Email.EmailOptions()),
             Microsoft.Extensions.Logging.Abstractions.NullLogger<KobiFabrika.Infrastructure.Email.EmailDeliveryJob>.Instance);
         await job.DeliverAsync(row.Id, Ct);
         await job.DeliverAsync(row.Id, Ct); // vakti gelmedi, denenmez
@@ -312,6 +313,58 @@ public sealed class PilotMessagingTests(SqlServerFixture db) : MarketingTestBase
         final.Status.ShouldBe(OutboundEmailStatus.Failed);
         final.Attempts.ShouldBe(3);
         final.LastError.ShouldBe("SMTP kapalı");
+    }
+
+    [Fact]
+    public async Task Email_queue_holds_mail_when_daily_limit_is_reached_and_sends_system_mail_first()
+    {
+        await using var scope = Factory.Services.CreateAsyncScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        var now = Factory.Clock.GetUtcNow().UtcDateTime;
+        var since = now.AddHours(-24);
+        // Aynı veritabanındaki diğer gönderimler de kotaya sayılır: sınır onların 2 fazlası.
+        var used = await dbContext.OutboundEmails.CountAsync(e => e.Status == OutboundEmailStatus.Sending
+            || (e.Status == OutboundEmailStatus.Sent && e.SentAt >= since), Ct);
+        OutboundEmail Row(string to, bool marketing) => new()
+        {
+            To = to, Subject = "Kota", HtmlBody = "<p>x</p>", TextBody = "x", Purpose = "test", IsMarketing = marketing,
+            CreatedAt = now, NextAttemptAt = now.AddSeconds(-1),
+        };
+        var campaign = Row("kampanya@ornek.com", marketing: true);
+        var confirm = Row("dogrulama@ornek.com", marketing: false);
+        var reset = Row("sifre@ornek.com", marketing: false);
+        dbContext.OutboundEmails.AddRange(campaign, confirm, reset);
+        await dbContext.SaveChangesAsync(Ct);
+
+        var sender = new CountingEmailSender();
+        var job = new KobiFabrika.Infrastructure.Email.EmailDeliveryJob(dbContext, sender, Factory.Clock,
+            Microsoft.Extensions.Options.Options.Create(new KobiFabrika.Infrastructure.Email.EmailOptions { DailyLimit = used + 2 }),
+            Microsoft.Extensions.Logging.Abstractions.NullLogger<KobiFabrika.Infrastructure.Email.EmailDeliveryJob>.Instance);
+        await job.SweepAsync(Ct);
+
+        sender.To.ShouldBe(["dogrulama@ornek.com", "sifre@ornek.com"], ignoreOrder: true);
+        var waiting = await dbContext.OutboundEmails.AsNoTracking().SingleAsync(e => e.Id == campaign.Id, Ct);
+        waiting.Status.ShouldBe(OutboundEmailStatus.Queued);
+        waiting.Attempts.ShouldBe(0);
+        waiting.NextAttemptAt.ShouldBeGreaterThan(now.AddHours(23));
+
+        await job.DeliverAsync(campaign.Id, Ct); // doğrudan iş de kotaya bakar
+        sender.To.Count.ShouldBe(2);
+
+        Factory.Clock.Advance(TimeSpan.FromHours(24) + TimeSpan.FromMinutes(2));
+        await job.SweepAsync(Ct);
+        sender.To.ShouldContain("kampanya@ornek.com");
+    }
+
+    private sealed class CountingEmailSender : KobiFabrika.Infrastructure.Email.IEmailSender
+    {
+        public List<string> To { get; } = [];
+
+        public Task SendAsync(KobiFabrika.Infrastructure.Email.EmailMessage message, CancellationToken cancellationToken = default)
+        {
+            To.Add(message.To);
+            return Task.CompletedTask;
+        }
     }
 
     private sealed class FailingEmailSender : KobiFabrika.Infrastructure.Email.IEmailSender

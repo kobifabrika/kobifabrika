@@ -130,13 +130,13 @@ R2'den dönüş: kopyayı indir, `openssl enc -d -aes-256-cbc -pbkdf2 -iter 2000
 
 Sunucuda `/opt/kobifabrika/.env` (`deploy:deploy`, `600`). İlk kurulumda `bin/ilk-kurulum.sh` rastgele üretir (openssl), ekrana
 basmaz: `MSSQL_SA_PASSWORD`, `APP_DB_PASSWORD`, `DP_CERT_PASSWORD`, `YEDEK_SIFRE`. Boş başlayanlar: `BREVO_SMTP_USER`,
-`BREVO_SMTP_KEY`, `SENTRY_DSN`, `R2_*`. Boşken uygulama hatasız açılır (Sentry kapalı, e-posta gönderilemez, R2 pasif).
+`BREVO_SMTP_KEY`, `SENTRY_DSN`, `SENTRY_DSN_WEB`, `R2_*`. Boşken uygulama hatasız açılır (Sentry kapalı, e-posta gönderilemez, R2 pasif).
 Değerler `.env`'de tek tırnak içinde durur (compose ve bash için birebir).
 
 **Ekleme/değiştirme (bu bilgisayardan):** `.\deploy\gizli-ekle.ps1` (ya da `.\deploy\gizli-ekle.ps1 BREVO_SMTP_KEY`). Değer
 gösterilmeden sorulur, ssh'nin standart girdisiyle sunucudaki `bin/gizli-yaz.sh`'ye gider (komut satırına/kayda girmez),
 `.env`'ye yazılır, ilgili servis yeniden kurulur ve sağlığı beklenir (açılmazsa uyarır). Baştaki BOM ve boşluklar atılır;
-`SENTRY_DSN` biçimi denetlenir. Sunucuda: `sudo /opt/kobifabrika/bin/gizli-yaz.sh AD`, değeri yapıştır, Enter.
+`SENTRY_DSN` ve `SENTRY_DSN_WEB` biçimi denetlenir (`SENTRY_DSN_WEB` web'i yeniden kurar). Sunucuda: `sudo /opt/kobifabrika/bin/gizli-yaz.sh AD`, değeri yapıştır, Enter.
 
 Bu yolla değişmeyenler:
 
@@ -145,6 +145,56 @@ Bu yolla değişmeyenler:
 - `DP_CERT_PASSWORD` / `sertifika/dp.pfx`: Data Protection anahtarları bu sertifikayla şifreli. Sertifika ya da şifre
   kaybolursa anahtarlar açılmaz: kullanıcılar yeniden giriş yapar, şifre sıfırlama/doğrulama linkleri geçersiz olur,
   tahsilat linkleri çalışır ama "Paylaş" yeni link üretir (karar günlüğü 2026-10-11). Taşırken `.env` ile birlikte taşı.
+
+## E-posta (Brevo)
+
+Brevo ücretsiz plan (günde 300 e-posta). `smtp-relay.brevo.com:587`, STARTTLS zorunlu (`Email:Smtp:UseSsl`; 465'te doğrudan
+TLS), kullanıcı/anahtar `.env` `BREVO_SMTP_USER` / `BREVO_SMTP_KEY`. Gönderen `KobiFabrika <bildirim@kobifabrika.com>`;
+sistem e-postalarının (doğrulama, şifre) yanıt adresi `destek@kobifabrika.com` (`Email:ReplyToAddress`), işletme adına
+gidenlerde işletmenin e-postası.
+
+- **DNS (Cloudflare):** Brevo doğrulama TXT'si (`brevo-code:…`), DKIM `brevo1._domainkey` / `brevo2._domainkey` CNAME (DNS only),
+  DMARC `p=none; rua=mailto:destek@kobifabrika.com`. SPF tek kayıt (`include:_spf.mx.cloudflare.net`), Brevo eklenmedi: Brevo
+  zarf adresinde kendi alan adını kullanır (SPF orada geçer), DMARC hizası DKIM `d=kobifabrika.com` ile sağlanır. İkinci bir
+  SPF kaydı ekleme (iki SPF = SPF hatası).
+- **Gelen posta:** Cloudflare Email Routing, `destek@` ve `bildirim@` → kobifabrika@gmail.com (MX `route*.mx.cloudflare.net`).
+- **Günlük sınır:** `Email:DailyLimit` = 280 (compose; 20'si elle/deneme gönderimlerine pay). Son 24 saatte 280 e-posta
+  gittiyse yenileri `OutboundEmails`'te `Queued` bekler, pencereden ilk e-posta çıkınca gider (deneme sayılmaz); önce sistem
+  e-postaları, sonra pazarlama. Kayıtta `Günlük e-posta sınırı (280) doldu: N e-posta kuyrukta bekliyor`. Bakmak:
+  `docker compose logs --since 24h api | grep "e-posta sınırı"`; kuyruk süper admin `/platform`'da.
+- **Elle deneme** (kimlik bilgisi ekrana gelmez, kotadan düşer):
+
+```bash
+ssh kf 'cd /opt/kobifabrika; set -a; . ./.env; set +a; python3 -c "
+import os,smtplib,ssl; from email.message import EmailMessage
+m=EmailMessage(); m[\"From\"]=\"KobiFabrika <bildirim@kobifabrika.com>\"; m[\"To\"]=\"kobifabrika@gmail.com\"
+m[\"Reply-To\"]=\"destek@kobifabrika.com\"; m[\"Subject\"]=\"KobiFabrika deneme\"; m.set_content(\"deneme\")
+s=smtplib.SMTP(\"smtp-relay.brevo.com\",587,timeout=30); s.starttls(context=ssl.create_default_context())
+s.login(os.environ[\"BREVO_SMTP_USER\"],os.environ[\"BREVO_SMTP_KEY\"]); s.send_message(m); s.quit(); print(\"gönderildi\")"'
+```
+
+  Gmail'de e-postayı aç → ⋮ → **Orijinali göster**: üstteki tabloda `SPF: PASS`, `DKIM: 'PASS' alan adı kobifabrika.com`,
+  `DMARC: 'PASS'` olmalı (SPF satırındaki alan adı Brevo'nun gönderim alanıdır; normal).
+
+## Sentry (ücretsiz plan)
+
+İki proje: `kobifabrika-api` (`.env` `SENTRY_DSN`) ve web (`SENTRY_DSN_WEB`, sadece sunucu tarafı: `src/instrumentation.ts`;
+tarayıcıya Sentry yüklenmez). İkisi de boşsa veya geçersizse kapalı; bozuk/BOM'lu DSN uygulamayı düşürmez (BOM atılır, biçim
+bozuksa kayıtta `UYARI: Sentry:Dsn geçersiz` / `UYARI: SENTRY_DSN geçersiz`).
+
+- **Kişisel veri:** API `SendDefaultPii=false`, istek gövdesi yok; web `dataCollection` (kullanıcı, çerez, başlık, gövde, sorgu,
+  yerel değişkenler) kapalı. Gitmeden önce e-posta (`***@alan.com`) ve telefon (`[telefon **67]`) maskelenir, kullanıcı/IP
+  boşaltılır (`Common/SentryScrubber.cs`, `lib/sentry-scrub.ts`). Sentry projesinde Settings → Security & Privacy →
+  "Prevent Storing of IP Addresses" açık olmalı (ücretsiz).
+- **Kota:** performans izleme kapalı (`TracesSampleRate` 0), profil/replay yok; sadece hatalar.
+- **Deneme hatası** (metninde sahte e-posta ve telefon var; Sentry'de maskeli görünmeli):
+
+```bash
+ssh kf 'cd /opt/kobifabrika && SENTRY_STARTUP_TEST=true docker compose up -d --wait api && docker compose logs --since 2m api | grep "deneme hatası"; docker compose up -d --wait api'
+ssh kf 'cd /opt/kobifabrika && SENTRY_STARTUP_TEST=true docker compose up -d --wait web && docker compose logs --since 2m web | grep "deneme hatası"; docker compose up -d --wait web'
+```
+
+  İkinci `up -d` bayraksız yeniden kurar (sonraki açılışlarda deneme gönderilmez).
 
 ## Yayın modu (site / tam)
 
@@ -156,7 +206,30 @@ ssh kf sudo /opt/kobifabrika/bin/yayin-modu.sh site   # geri: sadece tanıtım s
 ```
 
 `.env`'deki `WEB_VARIANT`'ı değiştirir ve sadece `web`'i yeniden kurar (birkaç saniye). **`tam`'a geçmeden önce** Brevo SMTP
-anahtarı girilmiş ve e-posta DNS'i (SPF/DKIM/DMARC) hazır olmalı: kayıt doğrulaması e-postayla.
+anahtarı girilmiş ve e-posta DNS'i (DKIM/DMARC) hazır olmalı: kayıt doğrulaması e-postayla.
+
+### Tam moda geçiş kontrol listesi
+
+Önkoşullar (2026-10-24'te doğrulandı): Brevo SMTP gönderiyor; DKIM/DMARC DNS'te; `App__FrontendUrl` =
+`https://app.kobifabrika.com` (doğrulama ve şifre bağlantıları `/e-posta-dogrula`, `/sifre-sifirla`'ya gider, ikisi de tam
+imajda var); çerez `.kobifabrika.com` (app ve api aynı site); `Platform__AdminEmails__0` = emirkayaco@gmail.com; `/hangfire`
+sadece e-postası doğrulanmış PlatformAdmin'e; Sentry API'de açık; yedek R2'ye gidiyor; 80/443 Cloudflare'den.
+
+Geçtikten hemen sonra, sırayla (kendi hesabınla; ilk gerçek kayıt):
+
+1. `https://kobifabrika.com` → "Ücretsiz dene" → `/kayit` açılıyor ("Çok yakında" ya da WhatsApp değil).
+2. emirkayaco@gmail.com ile kayıt → kurulum sihirbazı (`/kurulum`) açılır, "e-postanı doğrula" uyarısı görünür.
+3. Doğrulama e-postası 1 dakika içinde gelir (Gmail; gelmezse Spam). Gönderen KobiFabrika <bildirim@kobifabrika.com>,
+   "Orijinali göster"de SPF/DKIM/DMARC PASS. Bağlantı `app.kobifabrika.com/e-posta-dogrula` → "doğrulandı".
+4. Kurulum sihirbazını sonuna kadar (işletme bilgileri, çalışma saatleri …) → panel `app.kobifabrika.com/panel`; çıkış →
+   `/giris` ile giriş.
+5. Çıkış → "Şifremi unuttum" → şifre sıfırlama e-postası → bağlantıyla yeni şifre → yeni şifreyle giriş.
+6. `https://app.kobifabrika.com/platform` açılır (doğrulanmış PlatformAdmin); işletmeler listesinde kendi işletmen.
+7. `https://api.kobifabrika.com/hangfire` açılır; "Recurring jobs"da `email-outbox-sweep`; "Succeeded"da e-posta işleri.
+8. Telefonda (375 px) kayıt ve giriş ekranlarına bir kez bak; `docker compose logs --since 30m api | grep -E "ERR|FTL"` boş;
+   Sentry'de yeni hata yok.
+
+Bir adım tutmazsa: `ssh kf sudo /opt/kobifabrika/bin/yayin-modu.sh site` (birkaç saniye), sonra incele.
 
 ## Sıfırdan kurulum / başka sunucuya taşıma
 

@@ -6,7 +6,7 @@ KF=/opt/kobifabrika
 ad=${1:?değişken adı gerekli}
 
 declare -A servis=(
-  [BREVO_SMTP_USER]=api [BREVO_SMTP_KEY]=api [SENTRY_DSN]=api
+  [BREVO_SMTP_USER]=api [BREVO_SMTP_KEY]=api [SENTRY_DSN]=api [SENTRY_DSN_WEB]=web
   [R2_ACCOUNT_ID]=- [R2_ACCESS_KEY_ID]=- [R2_SECRET_ACCESS_KEY]=- [R2_BUCKET]=- [YEDEK_SIFRE]=-
   [APP_DB_PASSWORD]=api
 )
@@ -22,8 +22,8 @@ deger=${deger%$'\r'}
 deger=${deger#$'\xef\xbb\xbf'}
 deger=$(printf '%s' "$deger" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')
 case "$deger" in *"'"*|*$'\n'*) echo "Değer tek tırnak veya satır sonu içeremez." >&2; exit 2 ;; esac
-if [ "$ad" = SENTRY_DSN ] && [ -n "$deger" ] && ! [[ "$deger" =~ ^https://[^@[:space:]]+@[^/[:space:]]+/[0-9]+$ ]]; then
-  echo "SENTRY_DSN biçimi https://<anahtar>@<sunucu>/<proje no> olmalı; yazılmadı." >&2
+if [[ "$ad" = SENTRY_DSN* ]] && [ -n "$deger" ] && ! [[ "$deger" =~ ^https://[^@[:space:]]+@[^/[:space:]]+/[0-9]+$ ]]; then
+  echo "$ad biçimi https://<anahtar>@<sunucu>/<proje no> olmalı; yazılmadı." >&2
   exit 2
 fi
 

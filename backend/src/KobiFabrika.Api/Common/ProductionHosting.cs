@@ -57,7 +57,29 @@ public static class ProductionHosting
             options.Environment = builder.Environment.EnvironmentName;
             options.SendDefaultPii = false;
             options.MaxRequestBodySize = Sentry.Extensibility.RequestSize.None;
+            // Performans izleme kapalı (ücretsiz kota hatalar için); kişisel veri maskelenir (SentryScrubber).
             options.TracesSampleRate = 0;
+            options.SetBeforeSend((sentryEvent, _) => SentryScrubber.Scrub(sentryEvent));
+            options.SetBeforeBreadcrumb((breadcrumb, _) => SentryScrubber.Scrub(breadcrumb));
+        });
+    }
+
+    /// <summary>
+    /// "Sentry:StartupTestEvent" true ise açılışta bir deneme hatası gönderir (canlı kurulum kontrolü; docs/canli-ortam.md →
+    /// Sentry). Metindeki sahte e-posta ve telefon Sentry'de maskeli görünmeli.
+    /// </summary>
+    public static void SendSentryStartupTestEvent(this WebApplication app)
+    {
+        if (!app.Configuration.GetValue<bool>("Sentry:StartupTestEvent") || !SentrySdk.IsEnabled)
+        {
+            return;
+        }
+
+        app.Lifetime.ApplicationStarted.Register(() =>
+        {
+            var id = SentrySdk.CaptureException(new InvalidOperationException(
+                "Sentry deneme hatası: canlı kurulum testi (maskelenmeli: deneme.kisi@ornek.com, +90 532 123 45 67)"));
+            app.Logger.LogWarning("Sentry deneme hatası gönderildi: {EventId}", id);
         });
     }
 }
