@@ -5,7 +5,7 @@
 - **Sunucu:** Güzel Hosting Private Cloud 2, KVM, 4 çekirdek / 4 GB / 60 GB, Ubuntu 24.04, 70.40.139.67. `ssh kf` → `deploy`
   (root ve şifreli giriş kapalı). Her şey `docs/canli-ortam.md`'de (bağlanma, kayıtlar, dağıtım, geri dönüş, yedek, gizli değerler,
   yayın modu, taşıma, Cloudflare).
-- **Yayında:** https://kobifabrika.com (site, **sadece-site modu**), https://app.kobifabrika.com ("Çok yakında"),
+- **Yayında:** https://kobifabrika.com (site; 2026-10-23 sadece-site, 2026-10-24 tam mod), https://app.kobifabrika.com (panel),
   https://api.kobifabrika.com/health (API + SQL Server 2025 Express tam çalışıyor, 19 migration, canlı veritabanı boş başladı).
   Sertifikalar Let's Encrypt (Ocak 2027'ye kadar, Caddy yeniler). Reboot denendi: ~60 sn'de kendiliğinden geliyor.
 - **Bellek (boşta):** SQL Server ~520 MB / 2 GB, API ~130 / 700 MB, web ~105 / 450 MB, Caddy ~20 / 100 MB; makinede ~2,5 GB boş.
