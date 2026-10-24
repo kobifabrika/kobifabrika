@@ -26,18 +26,25 @@
 - **#61 dağıtımı durdu:** `.env`'de `R2_BUCKET` yanlıştı → R2 403 → yedek betiği hata verdi. R2 hatası artık dağıtımı durdurmaz
   (`e275e35`). Kova adı düzeltildi; #62'de dağıtım yeşil, şifreli kopya `kobifabrika-yedek/veritabani/`'ye gitti. API kaydında
   `from 31.223.77.108` doğrulandı.
-- Hâlâ bekleyen: Sentry/BOM düzeltmesinin canlı denemesi (bozuk `SENTRY_DSN` → api healthy, kayıtta "UYARI: Sentry:Dsn geçersiz").
+
+## 2026-10-24: e-posta, Sentry, tam moda hazırlık
+
+- **E-posta:** Brevo (ücretsiz) authenticated, DKIM + DMARC; Gmail'de SPF/DKIM/DMARC PASS, doğrudan ve destek@ yönlendirmesi Gelen
+  Kutusu'nda. 587 STARTTLS zorunlu, sistem e-postalarında Reply-To destek@, günlük sınır 280 (dolunca kuyruk).
+- **Sentry:** API ve web (sunucu tarafı) açık, kişisel veri maskeli, performans izleme kapalı. Deneme olayları: API
+  `6577b3d18b014d518736e92769577ee3`, API BOM'lu DSN `c33dcfaebd484d17bbb96e0fe840bd33`, web `b9842e27d9d54494ac19f7fdf1bb50c3`
+  (Sentry'de maskeleme kontrolü proje sohbetinde, Chrome'dan). Bozuk DSN → api healthy + "UYARI" denendi.
+- **Tam mod:** HENÜZ açılmadı (site-only sürüyor). Kontrol listesi `docs/canli-ortam.md` → Tam moda geçiş kontrol listesi.
+  Emir'in onayıyla: `ssh kf sudo /opt/kobifabrika/bin/yayin-modu.sh tam`, sonra listedeki 8 adım (ilk kayıt emirkayaco@gmail.com).
+
 
 ## Sonraki adımlar
 
-1. **E-posta:** Brevo hesabı → SMTP kullanıcı/anahtar `.\deploy\gizli-ekle.ps1 BREVO_SMTP_USER` ve `BREVO_SMTP_KEY`;
-   Cloudflare'de SPF/DKIM/DMARC + Email Routing (destek@, bildirim@). Kendi hesabınla kayıt olup e-postanı doğrula
-   (PlatformAdmin için doğrulanmış e-posta şart), `/platform` ve `https://api.kobifabrika.com/hangfire`'ı dene.
-   Hazır olunca `ssh kf sudo /opt/kobifabrika/bin/yayin-modu.sh tam`.
-2. **İzleme/yedek anahtarları:** Sentry DSN (`gizli-ekle.ps1 SENTRY_DSN`), R2 (`R2_ACCOUNT_ID`, `R2_ACCESS_KEY_ID`,
-   `R2_SECRET_ACCESS_KEY`, `R2_BUCKET`; kovaya 30 gün yaşam döngüsü), sonra `ssh kf sudo /opt/kobifabrika/bin/yedek-al.sh elle` ile
-   R2 gönderimini dene. UptimeRobot: `https://api.kobifabrika.com/health` ve `https://kobifabrika.com`.
-   `YEDEK_SIFRE`'yi parola yöneticisine al (sunucuda: `sudo grep YEDEK_SIFRE /opt/kobifabrika/.env`, ekranda kimse yokken).
-3. Açık kalanlar: Cloudflare Web Analytics token'ı
-   (`NEXT_PUBLIC_CF_ANALYTICS_TOKEN`, workflow'daki web derlemesine build-arg); Search Console kapsam kontrolü (site tekrar yayında);
-   Güzel Hosting kredisi/destek talebi #IXA-330501 kapandı mı.
+1. **Tam moda geçiş** (Emir onaylayınca): `ssh kf sudo /opt/kobifabrika/bin/yayin-modu.sh tam`, sonra `docs/canli-ortam.md` →
+   Tam moda geçiş kontrol listesi (kayıt → doğrulama e-postası → kurulum → giriş → şifre sıfırlama → `/platform` → `/hangfire`).
+   Tutmazsa `yayin-modu.sh site`.
+2. **UptimeRobot** (ücretsiz): `https://api.kobifabrika.com/health` ve `https://kobifabrika.com`, 5 dk.
+3. `YEDEK_SIFRE`'yi parola yöneticisine al (sunucuda: `sudo grep YEDEK_SIFRE /opt/kobifabrika/.env`, ekranda kimse yokken);
+   R2 kovasına 30 gün yaşam döngüsü kuralı var mı bak.
+4. Açık kalanlar: Cloudflare Web Analytics token'ı (`NEXT_PUBLIC_CF_ANALYTICS_TOKEN`, workflow'daki web derlemesine build-arg);
+   Search Console kapsam kontrolü; Güzel Hosting destek talebi #IXA-330501 kapandı mı.
