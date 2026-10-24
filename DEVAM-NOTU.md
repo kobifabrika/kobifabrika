@@ -16,19 +16,16 @@
 
 - **Otomatik dağıtım çalışıyor:** #60 (`67a28dd`) test + dağıtım yeşil, dağıtım öncesi yedek alındı, `current`/`onceki` imajları var.
 - **Cloudflare:** dört kayıt Proxied, Full (strict), Always Use HTTPS, TLS ≥ 1.2. Üç adres `cf-ray` ile 200 (app kökü → `/panel` 302).
-- **Gerçek IP:** Caddy erişim kaydında `client_ip=31.223.77.108`, `remote_ip` Cloudflare. API istek kaydına `from <ip>` eklendi
-  (bu commit'le dağıtılıyor). **Kontrol et:** `ssh kf 'cd /opt/kobifabrika; docker compose logs --since 30m api | grep responded | tail'`
-  → Cloudflare IP'si (104.x, 172.64-71.x, 162.158.x …) değil, ziyaretçi IP'si görünmeli.
+- **Gerçek IP:** Caddy erişim kaydında `client_ip=31.223.77.108`, `remote_ip` Cloudflare; API istek kaydında `from 31.223.77.108`.
 - **Güvenlik duvarı:** 80/443 sadece Cloudflare aralıklarına (`bin/cloudflare-ip.sh`; `DOCKER-USER` → `KF-CLOUDFLARE` + ufw
   `# cloudflare`; açılışta ve pazartesi 04:00). Doğrudan IP'den 80/443 zaman aşımı, SSH 22 açık. Sunucuya elle kuruldu; bu
   dağıtımla repodaki sürüm aynısı gelir.
 - **Let's Encrypt:** HTTP-01 Cloudflare arkasında çalışıyor (sahte jetonla denendi). Sertifikalar Ocak 2027'ye kadar geçerli; Aralık
   sonunda `docker compose logs caddy | grep -i "certificate obtained"` ile yenilendiğine bak.
 - **Düzeltilen hata:** dağıtım Caddyfile'ı yeni inode'la yazıyordu, `caddy reload` eskisini okuyordu (artık yerinde yazılıyor).
-- **#61 dağıtımı durdu:** `.env`'de `R2_BUCKET` değeri kova adı değil, düz `R2_BUCKET` metni → R2 403 → yedek betiği hata verdi.
-  Düzeltme: R2 hatası artık dağıtımı durdurmaz (uyarı). **Gerçek kova adını yaz:** `.\deploy\gizli-ekle.ps1 R2_BUCKET`, sonra
-  `ssh kf sudo /opt/kobifabrika/bin/yedek-al.sh elle` → "R2'ye gönderildi". Düzelene kadar gece yedeği yerelde alınır ama
-  zamanlayıcı "failed" görünür.
+- **#61 dağıtımı durdu:** `.env`'de `R2_BUCKET` yanlıştı → R2 403 → yedek betiği hata verdi. R2 hatası artık dağıtımı durdurmaz
+  (`e275e35`). Kova adı düzeltildi; #62'de dağıtım yeşil, şifreli kopya `kobifabrika-yedek/veritabani/`'ye gitti. API kaydında
+  `from 31.223.77.108` doğrulandı.
 - Hâlâ bekleyen: Sentry/BOM düzeltmesinin canlı denemesi (bozuk `SENTRY_DSN` → api healthy, kayıtta "UYARI: Sentry:Dsn geçersiz").
 
 ## Sonraki adımlar
