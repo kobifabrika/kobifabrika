@@ -71,8 +71,14 @@ if ! saglikli || ! dis_saglik; then
   exit 1
 fi
 
-# Caddyfile değişmiş olabilir: yeniden yükle (sertifikalar korunur).
-docker compose exec -T caddy caddy reload --config /etc/caddy/Caddyfile > /dev/null 2>&1 || true
+# Caddyfile değişmiş olabilir: yeniden yükle (sertifikalar korunur). Konteyner dosyanın eski inode'unu görüyorsa
+# (dosya yerinde yazılmamışsa) reload eskisini okur: o durumda Caddy yeniden oluşturulur (birkaç saniye).
+if docker compose exec -T caddy cat /etc/caddy/Caddyfile | cmp -s - Caddyfile; then
+  docker compose exec -T caddy caddy reload --config /etc/caddy/Caddyfile > /dev/null 2>&1 || true
+else
+  kayit "Caddyfile konteynerdekinden farklı: Caddy yeniden oluşturuluyor"
+  docker compose up -d --force-recreate --no-deps caddy
+fi
 
 # Son 2 sürüm kalır: current ve onceki dışındaki etiketler kaldırılır.
 for i in "${imajlar[@]}"; do

@@ -1,6 +1,8 @@
 # Canlı ortam (docs/canli-ortam.md). Sertifikalar Let's Encrypt'ten otomatik (caddy_data biriminde kalır).
-# DNS (Cloudflare): kobifabrika.com, www, app, api → bu sunucu. Şimdilik "DNS only" (gri bulut); turuncu buluta geçişe hazır:
-# istek Cloudflare'den geliyorsa gerçek istemci IP'si CF-Connecting-IP'den okunur (sadece aşağıdaki Cloudflare aralıklarından
+# DNS (Cloudflare): kobifabrika.com, www, app, api → bu sunucu, turuncu bulut (Proxied, SSL Full (strict), 2026-10-24).
+# 80/443 güvenlik duvarında sadece Cloudflare aralıklarına açık (bin/cloudflare-ip.sh). Sertifika yenilemesi HTTP-01 ile
+# Cloudflare üzerinden çalışır (Always Use HTTPS'in 308'i sorun değil: Caddy jetonu 443'te de verir; 2026-10-24 denendi).
+# İstek Cloudflare'den geliyorsa gerçek istemci IP'si CF-Connecting-IP'den okunur (sadece aşağıdaki Cloudflare aralıklarından
 # gelen isteklerde; doğrudan gelen istekte başlık yok sayılır). API'ye ve web'e X-Forwarded-For olarak tek değer gider.
 # Aralıklar: https://www.cloudflare.com/ips-v4 ve /ips-v6 (2026-10-23).
 # kobifabrika.com.tr ve www.kobifabrika.com.tr → https://kobifabrika.com (301, yol ve sorgu korunur) Cloudflare'de; bu sunucuya gelmez.
@@ -11,7 +13,16 @@
 	}
 }
 
+# Erişim kaydı (docker logs caddy; local sürücü 10 MB x 5 ile döner). client_ip = Cloudflare arkasında gerçek istemci IP'si.
+(kayit) {
+	log {
+		output stderr
+		format json
+	}
+}
+
 (guvenlik) {
+	import kayit
 	header {
 		Strict-Transport-Security "max-age=31536000"
 		X-Content-Type-Options nosniff
@@ -48,6 +59,7 @@ kobifabrika.com {
 }
 
 www.kobifabrika.com, http://www.kobifabrika.com {
+	import kayit
 	redir https://kobifabrika.com{uri} permanent
 }
 

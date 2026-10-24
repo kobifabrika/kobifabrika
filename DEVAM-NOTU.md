@@ -12,33 +12,31 @@
 - **Yedek:** gece 03:30 İstanbul + her dağıtımda migration öncesi, 7 gün, `/opt/kobifabrika/yedek`; geri yükleme denendi. R2 pasif.
 - **Next.js 16.4.2** yükseltildi (`a347d78`).
 
-## İlk otomatik dağıtım (yarın ilk iş)
+## 2026-10-24: Cloudflare turuncu bulut
 
-- `DEPLOY_SSH_KEY` secret'ı eklendi. #58 yeşil ama dağıtım "atlandı" (secret dağıtım işi başladığında henüz yoktu).
-- #59: testler yeşil, dağıtım imajları derledi ama **aktarımda durdu** (`tar: bin: Cannot stat`): `.gitignore`'daki .NET `bin/`
-  kuralı `deploy/canli/bin/`'i dışarıda bırakmıştı. Sunucuya dokunulmadı, canlı eski (bu PC'den 2026-10-23'te yapılan) dağıtımla
-  çalışıyor. Düzeltme `.gitignore` istisnası + betikler (sunucudakilerle sağlama toplamı aynı).
-- **#60 (`40018440519`, ilk gerçek otomatik dağıtım): sonucu henüz bilinmiyor.** Kontrol: `gh run view 40018440519`; kırmızıysa
-  `gh run view 40018440519 --log-failed`. Yeşilse: `ssh kf 'cd /opt/kobifabrika && docker compose ps && docker image ls | grep kobifabrika && ls yedek'`
-  (yeni etiketli imajlar `current`, `onceki` var, `...-dagitim.bak.zst` yedeği alınmış), sonra
-  https://kobifabrika.com, https://app.kobifabrika.com, https://api.kobifabrika.com/health → 200; Sentry/BOM düzeltmesinin canlıda
-  olduğunu doğrula (`ProductionHosting.cs`: bozuk DSN'de API düşmez; denemek için sunucuda `.env`'deki `SENTRY_DSN`'e elle geçici
-  bozuk değer yazıp `docker compose up -d api` → kayıtta "UYARI: Sentry:Dsn geçersiz" ve api healthy; sonra değeri boşa geri al).
-  Sonucu karar günlüğüne (2026-10-23 8B kaydı) ve `docs/05-sprintler.md`'deki GitHub Actions maddesine işle.
+- **Otomatik dağıtım çalışıyor:** #60 (`67a28dd`) test + dağıtım yeşil, dağıtım öncesi yedek alındı, `current`/`onceki` imajları var.
+- **Cloudflare:** dört kayıt Proxied, Full (strict), Always Use HTTPS, TLS ≥ 1.2. Üç adres `cf-ray` ile 200 (app kökü → `/panel` 302).
+- **Gerçek IP:** Caddy erişim kaydında `client_ip=31.223.77.108`, `remote_ip` Cloudflare. API istek kaydına `from <ip>` eklendi
+  (bu commit'le dağıtılıyor). **Kontrol et:** `ssh kf 'cd /opt/kobifabrika; docker compose logs --since 30m api | grep responded | tail'`
+  → Cloudflare IP'si (104.x, 172.64-71.x, 162.158.x …) değil, ziyaretçi IP'si görünmeli.
+- **Güvenlik duvarı:** 80/443 sadece Cloudflare aralıklarına (`bin/cloudflare-ip.sh`; `DOCKER-USER` → `KF-CLOUDFLARE` + ufw
+  `# cloudflare`; açılışta ve pazartesi 04:00). Doğrudan IP'den 80/443 zaman aşımı, SSH 22 açık. Sunucuya elle kuruldu; bu
+  dağıtımla repodaki sürüm aynısı gelir.
+- **Let's Encrypt:** HTTP-01 Cloudflare arkasında çalışıyor (sahte jetonla denendi). Sertifikalar Ocak 2027'ye kadar geçerli; Aralık
+  sonunda `docker compose logs caddy | grep -i "certificate obtained"` ile yenilendiğine bak.
+- **Düzeltilen hata:** dağıtım Caddyfile'ı yeni inode'la yazıyordu, `caddy reload` eskisini okuyordu (artık yerinde yazılıyor).
+- Hâlâ bekleyen: Sentry/BOM düzeltmesinin canlı denemesi (bozuk `SENTRY_DSN` → api healthy, kayıtta "UYARI: Sentry:Dsn geçersiz").
 
 ## Sonraki adımlar
 
-1. **Cloudflare turuncu bulut:** sunucu tarafı hazır (Caddy `trusted_proxies` + `CF-Connecting-IP`, API ForwardedHeaders).
-   SSL/TLS → **Full (strict)**, dört kaydı turuncuya al; `curl -sI https://kobifabrika.com` (cf-ray başlığı), sertifika ve
-   gerçek IP kontrolü (ör. geçici olarak Caddy erişim kaydında `{client_ip}` veya API'de rate limit davranışı).
-2. **E-posta:** Brevo hesabı → SMTP kullanıcı/anahtar `.\deploy\gizli-ekle.ps1 BREVO_SMTP_USER` ve `BREVO_SMTP_KEY`;
+1. **E-posta:** Brevo hesabı → SMTP kullanıcı/anahtar `.\deploy\gizli-ekle.ps1 BREVO_SMTP_USER` ve `BREVO_SMTP_KEY`;
    Cloudflare'de SPF/DKIM/DMARC + Email Routing (destek@, bildirim@). Kendi hesabınla kayıt olup e-postanı doğrula
    (PlatformAdmin için doğrulanmış e-posta şart), `/platform` ve `https://api.kobifabrika.com/hangfire`'ı dene.
    Hazır olunca `ssh kf sudo /opt/kobifabrika/bin/yayin-modu.sh tam`.
-3. **İzleme/yedek anahtarları:** Sentry DSN (`gizli-ekle.ps1 SENTRY_DSN`), R2 (`R2_ACCOUNT_ID`, `R2_ACCESS_KEY_ID`,
+2. **İzleme/yedek anahtarları:** Sentry DSN (`gizli-ekle.ps1 SENTRY_DSN`), R2 (`R2_ACCOUNT_ID`, `R2_ACCESS_KEY_ID`,
    `R2_SECRET_ACCESS_KEY`, `R2_BUCKET`; kovaya 30 gün yaşam döngüsü), sonra `ssh kf sudo /opt/kobifabrika/bin/yedek-al.sh elle` ile
    R2 gönderimini dene. UptimeRobot: `https://api.kobifabrika.com/health` ve `https://kobifabrika.com`.
    `YEDEK_SIFRE`'yi parola yöneticisine al (sunucuda: `sudo grep YEDEK_SIFRE /opt/kobifabrika/.env`, ekranda kimse yokken).
-4. Açık kalanlar: Cloudflare Web Analytics token'ı
+3. Açık kalanlar: Cloudflare Web Analytics token'ı
    (`NEXT_PUBLIC_CF_ANALYTICS_TOKEN`, workflow'daki web derlemesine build-arg); Search Console kapsam kontrolü (site tekrar yayında);
    Güzel Hosting kredisi/destek talebi #IXA-330501 kapandı mı.

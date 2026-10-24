@@ -43,7 +43,8 @@ docker stats --no-stream                            # bellek
 docker compose logs --tail 100 api                  # api | web | caddy | sqlserver; -f ile canlı izle
 docker compose exec api ls /app/logs                # API dosya kayıtları (14 gün)
 curl -s https://api.kobifabrika.com/health          # Healthy (veritabanı dahil)
-systemctl list-timers kobifabrika-yedek.timer       # sıradaki gece yedeği
+systemctl list-timers 'kobifabrika-*'               # sıradaki gece yedeği, Cloudflare listesi yenilemesi
+docker compose logs --since 10m caddy | grep http.log.access   # erişim kaydı (client_ip = gerçek istemci IP'si)
 sudo fail2ban-client status sshd                    # engellenen IP'ler
 ```
 
@@ -167,7 +168,7 @@ Yeni sunucuda (Ubuntu 24.04, KVM; OpenVZ'de SQL Server çalışmaz — `systemd-
    `/etc/ssh/sshd_config.d/00-kobifabrika.conf`: `PermitRootLogin no`, `PasswordAuthentication no`,
    `KbdInteractiveAuthentication no`, `AllowUsers deploy` (ilk okunan değer geçerli; `50-cloud-init.conf` şifreyi açıyordu,
    onu da `no` yap), `sshd -t && systemctl reload ssh`, `sshd -T | grep -i -E 'permitroot|password'` ile doğrula.
-   ufw (`deny incoming`; 22/tcp, 80/tcp, 443/tcp, 443/udp), fail2ban (`/etc/fail2ban/jail.d/kobifabrika.local`: sshd,
+   ufw (`deny incoming`; 22/tcp herkese; 80/443 sadece Cloudflare'e, adım 3'te `bin/cloudflare-ip.sh` yazar), fail2ban (`/etc/fail2ban/jail.d/kobifabrika.local`: sshd,
    `/var/log/auth.log`, 10 dk'da 5 hata → 1 saat, `banaction = ufw`), unattended-upgrades (`20auto-upgrades`), 4 GB
    `/swapfile` + `vm.swappiness=10` (`/etc/sysctl.d/90-kobifabrika.conf`), `timedatectl set-timezone UTC`.
 2. **Docker** resmi depodan (`docker-ce`, `docker-compose-plugin`), `/etc/docker/daemon.json`: `local` kayıt sürücüsü (10 MB × 3),
@@ -184,22 +185,63 @@ Yeni sunucuda (Ubuntu 24.04, KVM; OpenVZ'de SQL Server çalışmaz — `systemd-
 6. **Veri taşıma:** eski sunucuda `sudo bin/yedek-al.sh tasima`, dosyayı yeni sunucunun `yedek/`'ine kopyala, ilk dağıtımdan
    (migration) sonra `sudo bin/yedek-geri-yukle.sh canli yedek/<dosya>`. Logo dosyaları `api_data` biriminde:
    `docker run --rm -v kobifabrika_api_data:/v -v $PWD:/y alpine tar czf /y/api_data.tgz -C /v .` ile taşınır.
-7. İlk dağıtım (Actions veya elle), sonra Cloudflare'de A kayıtlarını yeni IP'ye çevir; sertifikaları Caddy kendisi alır.
+7. İlk dağıtım (Actions veya elle), sonra Cloudflare'de A kayıtlarını yeni IP'ye çevir (turuncu bulut kalır); sertifikaları
+   Caddy kendisi alır. `ilk-kurulum.sh` 80/443'ü sadece Cloudflare'e açar: yeni sunucuyu doğrudan IP'den deneyemezsin
+   (gerekirse geçici olarak `sudo bin/cloudflare-ip.sh --kaldir`, sonra `sudo bin/cloudflare-ip.sh`).
 8. Doğrula: `https://kobifabrika.com`, `/fiyatlar`, `/sitemap.xml`, `https://app.kobifabrika.com`, `https://api.kobifabrika.com/health`
    → 200, `www` → 301, bir kez `sudo systemctl reboot` ve her şeyin kendiliğinden geldiğini gör.
 
 ## Cloudflare (turuncu bulut)
 
-Hazır: Caddy Cloudflare'in IP aralıklarına güvenir (`Caddyfile` başı, `trusted_proxies`) ve oradan gelen istekte gerçek IP'yi
-`CF-Connecting-IP`'den alır; doğrudan gelen istekte bu başlık yok sayılır. API'ye ve web'e `X-Forwarded-For` olarak tek değer
-gider; API sadece Docker ağından (`172.30.0.0/24`) gelen bu başlığa güvenir (`ForwardedHeaders:KnownNetworks`): rate limit gerçek
-istemci IP'siyle çalışır.
+2026-10-24'ten beri `@`, `www`, `app`, `api` **Proxied**; SSL/TLS **Full (strict)** (Flexible yönlendirme döngüsü yapar),
+Always Use HTTPS açık, en düşük TLS 1.2. Yanıtlarda `server: cloudflare` ve `cf-ray` görünür.
 
-Geçerken: Cloudflare → SSL/TLS → **Full (strict)** (Flexible yönlendirme döngüsü yapar); dört kaydı turuncuya al; Caddy'nin
-sertifika yenilemesi (HTTP-01/TLS-ALPN) Cloudflare arkasında da çalışır. Cloudflare aralıkları değişirse (nadiren)
-`Caddyfile`'daki listeyi https://www.cloudflare.com/ips-v4 ve /ips-v6'dan güncelle.
+**Gerçek istemci IP'si:** Caddy Cloudflare'in IP aralıklarına güvenir (`Caddyfile` başı, `trusted_proxies`) ve oradan gelen
+istekte gerçek IP'yi `CF-Connecting-IP`'den alır; doğrudan gelen istekte bu başlık yok sayılır. API'ye ve web'e
+`X-Forwarded-For` olarak tek değer gider; API sadece Docker ağından (`172.30.0.0/24`) gelen bu başlığa güvenir
+(`ForwardedHeaders:KnownNetworks`): rate limit gerçek IP'yle çalışır. Kontrol: Caddy erişim kaydında `remote_ip` Cloudflare,
+`client_ip` ziyaretçi; API istek kaydı `... responded 200 in 2.1 ms from <ip>`:
+
+```bash
+docker compose logs --since 10m caddy | grep http.log.access | tail -3
+docker compose logs --since 10m api | grep responded | tail -3
+```
+
+**Güvenlik duvarı:** 80/443 sadece Cloudflare aralıklarına açık; 22 herkese. `bin/cloudflare-ip.sh` listeyi resmi kaynaktan
+(https://www.cloudflare.com/ips-v4, /ips-v6) indirir, biçimini denetler (indirilemez/bozuksa son kayıtlı liste,
+`/opt/kobifabrika/cloudflare-ip/`) ve iki yere yazar:
+
+- `DOCKER-USER` → `KF-CLOUDFLARE` zinciri (asıl kısıt): Docker'ın yayınladığı portlar DNAT ile FORWARD'dan geçer, **ufw'ye
+  uğramaz**. eth0'dan 80/tcp, 443/tcp, 443/udp'ye gelen yeni bağlantı Cloudflare aralığında değilse düşer.
+- ufw: aynı aralıklar `# cloudflare` yorumlu kurallar (INPUT / docker-proxy yolu); herkese açık 80/443 kuralları silinir.
+
+`kobifabrika-cloudflare-ip.service` açılışta (Docker'dan sonra), `.timer` her pazartesi 04:00 çalıştırır. Elle:
+
+```bash
+sudo bin/cloudflare-ip.sh            # indir + uygula (değişiklik yoksa ufw'ye dokunmaz)
+sudo bin/cloudflare-ip.sh --yerel    # indirmeden kayıtlı listeyi uygula
+sudo bin/cloudflare-ip.sh --kaldir   # kısıtı kaldır, 80/443 herkese (turuncu buluttan çıkarken / sunucuyu IP'den denerken)
+sudo iptables -L KF-CLOUDFLARE -v -n # düşen paket sayacı son satırda
+sudo journalctl -u kobifabrika-cloudflare-ip -n 20
+```
+
+Liste değişince `Caddyfile`'daki `trusted_proxies` de aynı listeye çekilmeli (elle; betik uyarmaz, haftalık kayda bakılır:
+`ips-v4 güncellendi`). Doğrudan IP'den deneme (`curl --resolve kobifabrika.com:443:70.40.139.67 https://kobifabrika.com`)
+zaman aşımına düşmeli.
+
+**Sertifika yenilemesi:** Let's Encrypt doğrulaması Cloudflare'den geçer. TLS-ALPN-01 Cloudflare arkasında çalışmaz (TLS'i
+Cloudflare sonlandırır); HTTP-01 çalışır: Always Use HTTPS `/.well-known/acme-challenge/` isteğini 308 ile HTTPS'e
+yönlendirir, Let's Encrypt yönlendirmeyi izler ve Caddy jetonu 443'te de verir. 2026-10-24'te denendi: Caddy deposuna sahte
+bir jeton yazıldı, `http://kobifabrika.com/.well-known/acme-challenge/<jeton>` Cloudflare üzerinden doğru yanıtı döndü, jeton
+silindi. Sertifikalar Ocak 2027'ye kadar geçerli; Caddy ~30 gün kala yeniler (kayıtta `certificate obtained successfully`).
 
 ## Sorun giderme
+
+- **Site açılmıyor, Cloudflare 521/522:** güvenlik duvarı Cloudflare'i engelliyor olabilir (aralık listesi değişmiş):
+  `sudo bin/cloudflare-ip.sh`, olmazsa `sudo bin/cloudflare-ip.sh --kaldir`. Turuncu bulut kapatılırsa da `--kaldir` şart.
+- **Caddyfile değişti ama etkisi yok:** dosya tek dosya olarak bağlı; yeni inode'la yazılırsa (`install`, `scp` sonrası `mv`)
+  konteyner eskisini görür. Yerinde yaz (`cat yeni > Caddyfile`) ya da `docker compose up -d --force-recreate --no-deps caddy`.
+  `dagit.sh` bu durumu algılayıp Caddy'yi yeniden oluşturur.
 
 - **Sertifika alınamıyor**, Caddy kaydında `lookup ... connection refused`: `docker compose up -d --force-recreate caddy`.
 - **502**: web/api yeni başlıyor ya da düştü: `docker compose ps` (healthy olmalı), `docker compose logs --tail 100 api`.

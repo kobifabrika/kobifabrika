@@ -1,0 +1,10 @@
+[Unit]
+Description=KobiFabrika: Cloudflare IP listesini haftada bir yenile
+
+[Timer]
+OnCalendar=Mon *-*-* 04:00:00 Europe/Istanbul
+Persistent=true
+RandomizedDelaySec=300
+
+[Install]
+WantedBy=timers.target

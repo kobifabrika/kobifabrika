@@ -42,7 +42,9 @@ if [ ! -f "$KF/sertifika/dp.pfx" ]; then
   echo "Data Protection sertifikası oluşturuldu."
 fi
 
-install -m 644 "$KF/systemd/kobifabrika-yedek.service" "$KF/systemd/kobifabrika-yedek.timer" /etc/systemd/system/
+install -m 644 "$KF"/systemd/kobifabrika-* /etc/systemd/system/
 systemctl daemon-reload
 systemctl enable --now kobifabrika-yedek.timer > /dev/null
+# 80/443 sadece Cloudflare'e (bin/cloudflare-ip.sh): açılışta ve haftada bir. DNS turuncu bulutta değilse site dışarıdan açılmaz.
+systemctl enable --now kobifabrika-cloudflare-ip.service kobifabrika-cloudflare-ip.timer > /dev/null
 echo "Yedek zamanlayıcısı: $(systemctl list-timers kobifabrika-yedek.timer --no-legend | awk '{print $1, $2, $3}')"

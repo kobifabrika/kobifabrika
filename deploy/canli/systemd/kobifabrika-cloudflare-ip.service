@@ -1,0 +1,12 @@
+[Unit]
+Description=KobiFabrika: 80/443 sadece Cloudflare aralıklarına (docs/canli-ortam.md)
+After=docker.service ufw.service network-online.target
+Wants=network-online.target
+Requires=docker.service
+
+[Service]
+Type=oneshot
+ExecStart=/opt/kobifabrika/bin/cloudflare-ip.sh
+
+[Install]
+WantedBy=multi-user.target

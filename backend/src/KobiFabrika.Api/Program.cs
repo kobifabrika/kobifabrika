@@ -202,7 +202,13 @@ if (ProductionHosting.ForwardedHeadersEnabled(app.Configuration))
 }
 
 app.UseMiddleware<CorrelationIdMiddleware>();
-app.UseSerilogRequestLogging();
+// İstek kaydında istemci IP'si (canlıda ForwardedHeaders sonrası gerçek IP; Cloudflare IP'si görünüyorsa zincir bozuktur).
+app.UseSerilogRequestLogging(options =>
+{
+    options.MessageTemplate = "HTTP {RequestMethod} {RequestPath} responded {StatusCode} in {Elapsed:0.0000} ms from {ClientIp}";
+    options.EnrichDiagnosticContext = (diagnostics, http) =>
+        diagnostics.Set("ClientIp", http.Connection.RemoteIpAddress?.ToString() ?? "unknown");
+});
 app.UseExceptionHandler();
 app.UseStatusCodePages();
 app.UseCors();
