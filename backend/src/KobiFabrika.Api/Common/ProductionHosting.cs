@@ -70,13 +70,20 @@ public static class ProductionHosting
     /// </summary>
     public static void SendSentryStartupTestEvent(this WebApplication app)
     {
-        if (!app.Configuration.GetValue<bool>("Sentry:StartupTestEvent") || !SentrySdk.IsEnabled)
+        if (!app.Configuration.GetValue<bool>("Sentry:StartupTestEvent"))
         {
             return;
         }
 
+        // Sentry, UseSentry ile host başlarken açılır: kontrol Build sonrası değil açılıştan sonra yapılır.
         app.Lifetime.ApplicationStarted.Register(() =>
         {
+            if (!SentrySdk.IsEnabled)
+            {
+                app.Logger.LogWarning("Sentry deneme hatası gönderilmedi: Sentry kapalı (Sentry:Dsn boş ya da geçersiz)");
+                return;
+            }
+
             var id = SentrySdk.CaptureException(new InvalidOperationException(
                 "Sentry deneme hatası: canlı kurulum testi (maskelenmeli: deneme.kisi@ornek.com, +90 532 123 45 67)"));
             app.Logger.LogWarning("Sentry deneme hatası gönderildi: {EventId}", id);
