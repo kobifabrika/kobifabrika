@@ -2,6 +2,7 @@
 
 En yeni en üstte. Notion'daki "Proje Planı ve Kararlar" sayfasıyla aynı kararlar; teknik kararlar burada daha ayrıntılı.
 
+- **2026-10-24 (8B: tam mod açıldı, Emir):** `yayin-modu.sh tam`; web `kobifabrika-web-tam`, sağlıklı; sitede "Ücretsiz dene" / "Giriş", "Pilot listesine katıl" yok; `/kayit`, `/giris` 200, `app.kobifabrika.com/panel` oturumsuz → `/giris?donus=/panel`. Sentry denemeleri proje sohbetinde Chrome'dan doğrulandı (üç olay, maskeli, kullanıcı/IP yok; resolve edildi). Kontrol listesi turu Emir'in hesabıyla.
 - **2026-10-24 (8B: e-posta, Sentry, tam moda hazırlık, Emir):** Ayrıntı `docs/canli-ortam.md` → E-posta, Sentry, Tam moda geçiş kontrol listesi. Bütün dış hizmetler ücretsiz planda; ücret çıkaracak ayar açılmaz.
   - **Brevo:** kobifabrika.com "Authenticated" (Brevo TXT, DKIM `brevo1/brevo2` CNAME, DNS only); gönderen `KobiFabrika <bildirim@kobifabrika.com>`; DMARC `p=none`, `rua=destek@`; Cloudflare Email Routing destek@ ve bildirim@ → kobifabrika@gmail.com. SPF'e Brevo eklenmedi (tek SPF kaydı kalır; DMARC hizası DKIM ile).
   - **SMTP:** 587'de STARTTLS artık zorunlu (önce `Auto` idi: sunucu STARTTLS sunmazsa düz metne düşebilirdi); 465'te doğrudan TLS. Sistem e-postalarının yanıt adresi `destek@` (`Email:ReplyToAddress`).

@@ -34,13 +34,13 @@
 - **Sentry:** API ve web (sunucu tarafı) açık, kişisel veri maskeli, performans izleme kapalı. Deneme olayları: API
   `6577b3d18b014d518736e92769577ee3`, API BOM'lu DSN `c33dcfaebd484d17bbb96e0fe840bd33`, web `b9842e27d9d54494ac19f7fdf1bb50c3`
   (Sentry'de maskeleme kontrolü proje sohbetinde, Chrome'dan). Bozuk DSN → api healthy + "UYARI" denendi.
-- **Tam mod:** HENÜZ açılmadı (site-only sürüyor). Kontrol listesi `docs/canli-ortam.md` → Tam moda geçiş kontrol listesi.
+- **Tam mod AÇILDI (2026-10-24):** web `kobifabrika-web-tam`, sitede "Ücretsiz dene" / "Giriş" (`/kayit`, `/giris` 200), web Sentry açık. Kontrol listesi `docs/canli-ortam.md` → Tam moda geçiş kontrol listesi.
   Emir'in onayıyla: `ssh kf sudo /opt/kobifabrika/bin/yayin-modu.sh tam`, sonra listedeki 8 adım (ilk kayıt emirkayaco@gmail.com).
 
 
 ## Sonraki adımlar
 
-1. **Tam moda geçiş** (Emir onaylayınca): `ssh kf sudo /opt/kobifabrika/bin/yayin-modu.sh tam`, sonra `docs/canli-ortam.md` →
+1. **Tam mod kontrol listesi** (tam mod açıldı; Emir kendi hesabıyla): `docs/canli-ortam.md` →
    Tam moda geçiş kontrol listesi (kayıt → doğrulama e-postası → kurulum → giriş → şifre sıfırlama → `/platform` → `/hangfire`).
    Tutmazsa `yayin-modu.sh site`.
 2. **UptimeRobot** (ücretsiz): `https://api.kobifabrika.com/health` ve `https://kobifabrika.com`, 5 dk.
